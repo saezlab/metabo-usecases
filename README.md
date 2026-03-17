@@ -13,3 +13,5 @@ This repository includes all notebooks used to create figures and data tables fo
     | Sheet 3 | ... |
 
 - The final figures should be saved as `.svg` or anything else compatible with Inkscape or Adobe Illustrator.
+- Ensure that any papers/methods you mention/use in your notebooks are cited (e.g. using `.bib` file)
+
