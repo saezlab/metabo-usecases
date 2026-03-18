@@ -1,10 +1,11 @@
-# Omnipath Metabo
+# Case studies for the upcoming OmniPath Metabo manuscript
 
-This repository includes all notebooks used to create figures and data tables for the manuscript. \
+This repository includes all notebooks used to create figures and data tables for the manuscript.
 
 ## Structure
-- The `Omnipath Metabo` database overview and each use-case has their own folder with its own environment management with `uv`, `nix` or `renv`.
-- The final supplementary tables should be saved as `ExtendedDataTable_Number_ShortName.xlsx` with a sheet overview in the first sheet:
+
+- Each use-case goes in its own directory, use `uv` for environment management (or `nix`)
+- Supplementary tables should be saved in the Google Drive as `ExtendedDataTable_Number_ShortName.xlsx` with a sheet overview in the first sheet:
 
     | Sheet | Content |
     |---------|---------|
@@ -12,6 +13,6 @@ This repository includes all notebooks used to create figures and data tables fo
     | Sheet 2 | Normalised data. |
     | Sheet 3 | ... |
 
-- The final figures should be saved as `.svg` or anything else compatible with Inkscape or Adobe Illustrator.
-- Ensure that any papers/methods you mention/use in your notebooks are cited (e.g. using `.bib` file)
+- The final figures should be saved as `.svg` and as `.pdf`
+- Ensure that any papers and methods you mention or use in your notebooks are cited (e.g. using `.bib` file)
 
