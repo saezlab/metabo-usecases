@@ -55,3 +55,6 @@
 | Structural subspecies | 0    | 0.0%  |
 | Isomeric subspecies   | 0    | 0.0%  |
 | (unmatched)           | 76   | 5.9%  |
+
+# Ambiguity in the 'Complete Structure' Classification
+![img](issue.png)
