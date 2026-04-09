@@ -50,11 +50,27 @@
 
 | level                 | n    | pct   |
 | --------------------- | ---- | ----- |
-| Species               | 0    | 0.0%  |
+| Species               | 4    | 0.0%  |
 | Molecular subspecies  | 1213 | 94.1% |
 | Structural subspecies | 0    | 0.0%  |
 | Isomeric subspecies   | 0    | 0.0%  |
-| (unmatched)           | 76   | 5.9%  |
+| (unmatched)           | 72   | 5.9%  |
+
+---
+# Currently detected issues
+### Problem
+Some entries in the database are classified at SN_POSITION level despite using _ in their name (e.g. DG 12:0_16:1)
+Per GOSLIN nomenclature, _ denotes unresolved sn-position (molecular species level), while / denotes resolved sn-position (sn-position level)
+This is a conflict between the name and the level annotation
+
+### Causes
+Curation errors in the DB: name and level are managed independently
+Legacy entries pre-dating GOSLIN standardization, where _ was used interchangeably with /
+
+### Handling options
+Trust the level, ignore the name — treat SN_POSITION entries as resolved; simple, but risks false confidence
+Trust the name, override the level — downgrade _-named entries to MOLECULAR_SPECIES; GOSLIN-compliant, but discards DB curation intent
+Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and level_source_conflict = True; safest, allows downstream handling
 
 ---
 
