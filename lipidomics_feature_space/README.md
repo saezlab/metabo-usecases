@@ -1,3 +1,4 @@
+
 # Hierarchy 
 ### LipidMaps (8 classes)
 
@@ -25,7 +26,8 @@
 | **Isomeric subspecies**   | PC(P-16:0/20:4(5Z,8Z,11Z,14Z))         |
 
 ---
-# Results
+
+# Result -feature space-
 ### LipidMaps 
 
 | level                | n    | pct   |
@@ -76,3 +78,12 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 
 # Ambiguity in the 'Complete Structure' Classification
 ![img](issue.png)
+
+---
+
+# Results -mapping-
+![img](swisslipids_final_coverage.png)
+![img](swisslipids_pkn_coverage.png)
+
+---
+
