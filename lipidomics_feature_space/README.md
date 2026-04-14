@@ -85,7 +85,7 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 ![img](swisslipids_final_coverage.png)
 ![img](swisslipids_pkn_coverage.png)
 
-### Travel the tree to change granurality level
+## Travel the tree to change granurality level
 
 
 | Lipid class | Exact                | First relaxed                    | Second relaxed                   |
@@ -108,7 +108,7 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 | HexCer      | `HexCer(d18:1_16:0)` | <font color="#ff0000">NaN</font> | <font color="#ff0000">NaN</font> |
 | Cholesterol | `Cholesterol`        | <font color="#ff0000">NaN</font> | <font color="#ff0000">NaN</font> |
 
-### Lipids failed to match 
+## Lipids failed to match 
 - No annotation of Lysophospholipid
 	- LPC
 	- LPE
@@ -116,7 +116,7 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 - Cholesterol: No annotation
 - HexCer: There are `GlcCer` and `GalCer` annotated but no annotation of HexCer
 
-### Special case: HexCer, GlcCer and GalCer
+## Special case: HexCer, GlcCer and GalCer
 - Glc and Gal are stereoisomers of hexose, differing only in the orientation of the hydroxyl group at C4
 - $HexCer \supseteq {GlcCer, GalCer}$
 
@@ -128,7 +128,7 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 
 ![img](https://ars.els-cdn.com/content/image/1-s2.0-S0022227520326778-gr1.jpg)
 
-### Discussion 
+## Discussion 
 - Absolute level unification is structurally infeasible 
 - relative traversal (N steps down) is a more practical alternative
 
