@@ -81,7 +81,10 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 
 ---
 
-# Results -mapping-
+# Result -mapping onto SwissLipids-
+- `mapping_swisslipids.ipynb`
+- `mapping_swisslipids_pkn.ipynb`
+
 ![img](swisslipids_final_coverage.png)
 ![img](swisslipids_pkn_coverage.png)
 
@@ -134,3 +137,8 @@ Flag the conflict — keep both, set level_inferred = MOLECULAR_SPECIES and leve
 
 ---
 
+# Result -mapping onto Rhea-
+- `convert_chebi.ipynb`
+- `mapping_rhea_pkn.ipynb`
+
+![img](rhea_chebi_conversion.png)
