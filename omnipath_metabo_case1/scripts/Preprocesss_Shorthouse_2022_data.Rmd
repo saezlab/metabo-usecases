@@ -245,13 +245,13 @@ shorthouse_intensities_collapsed <-
 ```
 
 ```{r}
-Shorthouse_2022 <- list(
+Shorthouse_2022_preprocessed <- list(
     data_matrix = shorthouse_intensities_collapsed,
     sampels = shorthouse_injections_collapsed,
     features = shorthouse_ions
 )
 
-save(Shorthouse_2022, file = "../data/Shorthouse_2022.RData")
+save(Shorthouse_2022_preprocessed, file = "../data/Shorthouse_2022_preprocessed.RData")
 ```
 
 ```{r cleanup}
