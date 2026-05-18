@@ -1,0 +1,349 @@
+---
+title: "Differential_Analysis"
+author: "Jannik Franken"
+date: "18 5 2026"
+output: html_document
+---
+
+```{r library, include=FALSE}
+library(dplyr)
+library(tibble)
+library(stringr)
+library(readr)
+library(tidyr)
+library(ggplot2)
+library(limma)
+library(pheatmap)
+```
+
+```{r load_data}
+load("../data/Shorthouse_2022_extended.RData")
+```
+
+```{r extract_objects}
+shorthouse_intensities <- Shorthouse_2022_extended$data_matrix
+shorthouse_samples <- Shorthouse_2022_extended$samples
+shorthouse_features <- Shorthouse_2022_extended$features
+```
+
+```{r limma_differential_analysis}
+# perform limma differential analysis
+# n_extreme_features controls top and bottom features separately:
+# 10 means top 10 and bottom 10, 20 total before deduplication
+n_extreme_features <- 10L
+
+results_dir <- "../Results/Differential_Analysis"
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+
+stopifnot(identical(rownames(shorthouse_intensities), rownames(shorthouse_samples)))
+
+lung_samples <-
+    shorthouse_samples %>%
+    filter(
+        is_lung_cell_line,
+        !is.na(has_KRAS_mutation)
+    ) %>%
+    mutate(
+        kras_group = factor(
+            if_else(has_KRAS_mutation, "KRAS", "WT"),
+            levels = c("WT", "KRAS")
+        )
+    )
+
+lung_intensities <-
+    shorthouse_intensities[
+        rownames(lung_samples),
+        ,
+        drop = FALSE
+    ]
+
+lung_matrix_raw <- as.matrix(lung_intensities)
+storage.mode(lung_matrix_raw) <- "numeric"
+
+feature_positive_mask <- colSums(!is.finite(lung_matrix_raw) | lung_matrix_raw <= 0) == 0
+lung_matrix_positive <- lung_matrix_raw[, feature_positive_mask, drop = FALSE]
+
+feature_variance_mask <- apply(lung_matrix_positive, 2, var, na.rm = TRUE) > 0
+lung_matrix_filtered <- lung_matrix_positive[, feature_variance_mask, drop = FALSE]
+
+exprs_log2 <- log2(t(lung_matrix_filtered))
+
+feature_annotations <-
+    shorthouse_features %>%
+    as.data.frame() %>%
+    mutate(feature_id = paste0("V", seq_len(n())))
+
+sample_summary <-
+    lung_samples %>%
+    count(kras_group, name = "n_samples")
+
+sample_summary
+
+cat(
+    "Retained features after filtering:", nrow(exprs_log2), "\n",
+    "Removed for non-positive or non-finite values:", sum(!feature_positive_mask), "\n",
+    "Removed for zero variance:", sum(!feature_variance_mask), "\n"
+)
+
+sample_order <- order(lung_samples$kras_group, lung_samples$name)
+lung_samples_ordered <- lung_samples[sample_order, , drop = FALSE]
+exprs_log2_ordered <- exprs_log2[, rownames(lung_samples_ordered), drop = FALSE]
+
+plot_boxplot_df <-
+    as.data.frame(t(exprs_log2_ordered)) %>%
+    rownames_to_column("sample_id") %>%
+    pivot_longer(
+        cols = -sample_id,
+        names_to = "feature_id",
+        values_to = "log2_intensity"
+    ) %>%
+    left_join(
+        lung_samples_ordered %>%
+            rownames_to_column("sample_id") %>%
+            select(sample_id, name, kras_group),
+        by = "sample_id"
+    ) %>%
+    mutate(sample_id = factor(sample_id, levels = unique(sample_id)))
+
+p_boxplot <-
+    ggplot(plot_boxplot_df, aes(x = sample_id, y = log2_intensity, fill = kras_group)) +
+    geom_boxplot(outlier.size = 0.15) +
+    labs(
+        title = "Log2 intensity distribution by lung cell line",
+        x = NULL,
+        y = "Log2 intensity",
+        fill = "Group"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "top"
+    )
+
+print(p_boxplot)
+
+ggsave(
+    filename = file.path(results_dir, "lung_KRAS_vs_WT_boxplot.png"),
+    plot = p_boxplot,
+    width = 12,
+    height = 6,
+    dpi = 300
+)
+
+pca_fit <- prcomp(t(exprs_log2), center = TRUE, scale. = TRUE)
+pca_percent_var <- 100 * (pca_fit$sdev^2 / sum(pca_fit$sdev^2))
+
+pca_df <-
+    as.data.frame(pca_fit$x[, 1:2, drop = FALSE]) %>%
+    rownames_to_column("sample_id") %>%
+    left_join(
+        lung_samples %>%
+            rownames_to_column("sample_id") %>%
+            select(sample_id, name, kras_group),
+        by = "sample_id"
+    )
+
+p_pca <-
+    ggplot(pca_df, aes(x = PC1, y = PC2, color = kras_group, label = name)) +
+    geom_point(size = 3) +
+    geom_text(size = 3, vjust = -0.6, check_overlap = TRUE) +
+    labs(
+        title = "PCA of lung cell line metabolite profiles",
+        x = paste0("PC1 (", round(pca_percent_var[1], 1), "%)"),
+        y = paste0("PC2 (", round(pca_percent_var[2], 1), "%)"),
+        color = "Group"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
+
+print(p_pca)
+
+ggsave(
+    filename = file.path(results_dir, "lung_KRAS_vs_WT_pca.png"),
+    plot = p_pca,
+    width = 8,
+    height = 6,
+    dpi = 300
+)
+
+sample_annotation <- lung_samples_ordered %>% select(kras_group)
+rownames(sample_annotation) <- rownames(lung_samples_ordered)
+
+pheatmap(
+    mat = cor(exprs_log2_ordered, method = "pearson"),
+    annotation_col = sample_annotation,
+    annotation_row = sample_annotation,
+    main = "Sample correlation heatmap",
+    filename = file.path(results_dir, "lung_KRAS_vs_WT_sample_correlation_heatmap.png"),
+    width = 8,
+    height = 8
+)
+
+xdesign <- model.matrix(~ 0 + kras_group, data = lung_samples)
+colnames(design) <- levels(lung_samples$kras_group)
+contrast_matrix <- makeContrasts(KRAS - WT, levels = design)
+
+fit <- lmFit(exprs_log2, design)
+fit <- contrasts.fit(fit, contrast_matrix)
+fit <- eBayes(fit)
+
+limma_results <-
+    topTable(
+        fit,
+        coef = 1,
+        number = Inf,
+        sort.by = "P"
+    ) %>%
+    rownames_to_column("feature_id") %>%
+    left_join(feature_annotations, by = "feature_id") %>%
+    mutate(
+        kras_direction = case_when(
+            logFC > 0 ~ "Up_in_KRAS",
+            logFC < 0 ~ "Down_in_KRAS",
+            TRUE ~ "Unchanged"
+        )
+    ) %>%
+    arrange(adj.P.Val, desc(abs(logFC)))
+
+top_features <-
+    limma_results %>%
+    arrange(desc(logFC), adj.P.Val) %>%
+    slice_head(n = n_extreme_features) %>%
+    mutate(extreme_set = "Top")
+
+bottom_features <-
+    limma_results %>%
+    arrange(logFC, adj.P.Val) %>%
+    slice_head(n = n_extreme_features) %>%
+    mutate(extreme_set = "Bottom")
+
+extreme_features <-
+    bind_rows(top_features, bottom_features) %>%
+    distinct(feature_id, .keep_all = TRUE)
+
+readr::write_csv(
+    limma_results,
+    file.path(results_dir, "limma_lung_KRAS_vs_WT_results.csv")
+)
+readr::write_csv(
+    top_features,
+    file.path(results_dir, paste0("limma_lung_KRAS_vs_WT_top_", n_extreme_features, ".csv"))
+)
+readr::write_csv(
+    bottom_features,
+    file.path(results_dir, paste0("limma_lung_KRAS_vs_WT_bottom_", n_extreme_features, ".csv"))
+)
+readr::write_csv(
+    extreme_features,
+    file.path(results_dir, paste0("limma_lung_KRAS_vs_WT_extreme_", 2 * n_extreme_features, ".csv"))
+)
+
+volcano_df <-
+    limma_results %>%
+    mutate(
+        is_significant = adj.P.Val < 0.05,
+        label = if_else(feature_id %in% extreme_features$feature_id, feature_id, NA_character_),
+        neg_log10_adj_p = -log10(adj.P.Val)
+    )
+
+p_volcano <-
+    ggplot(volcano_df, aes(x = logFC, y = neg_log10_adj_p, color = is_significant)) +
+    geom_point(alpha = 0.8) +
+    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey60") +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey60") +
+    geom_text(
+        aes(label = label),
+        size = 3,
+        na.rm = TRUE,
+        check_overlap = TRUE,
+        vjust = -0.5
+    ) +
+    scale_color_manual(values = c(`TRUE` = "#C44E52", `FALSE` = "#4C72B0")) +
+    labs(
+        title = "Volcano plot: KRAS-mutant vs WT lung cell lines",
+        x = "Log2 fold-change (KRAS - WT)",
+        y = "-log10 adjusted p-value",
+        color = "adj.P.Val < 0.05"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
+
+print(p_volcano)
+
+ggsave(
+    filename = file.path(results_dir, "lung_KRAS_vs_WT_volcano.png"),
+    plot = p_volcano,
+    width = 8,
+    height = 6,
+    dpi = 300
+)
+
+p_ma <-
+    ggplot(limma_results, aes(x = AveExpr, y = logFC, color = adj.P.Val < 0.05)) +
+    geom_point(alpha = 0.8) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
+    scale_color_manual(values = c(`TRUE` = "#C44E52", `FALSE` = "#4C72B0")) +
+    labs(
+        title = "MA plot: KRAS-mutant vs WT lung cell lines",
+        x = "Average log2 expression",
+        y = "Log2 fold-change (KRAS - WT)",
+        color = "adj.P.Val < 0.05"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
+
+print(p_ma)
+
+ggsave(
+    filename = file.path(results_dir, "lung_KRAS_vs_WT_MA.png"),
+    plot = p_ma,
+    width = 8,
+    height = 6,
+    dpi = 300
+)
+
+extreme_feature_ids <- extreme_features$feature_id
+heatmap_matrix <- exprs_log2_ordered[extreme_feature_ids, , drop = FALSE]
+heatmap_labels <-
+    extreme_features %>%
+    arrange(match(feature_id, extreme_feature_ids)) %>%
+    mutate(
+        heatmap_label = if_else(
+            !is.na(name) & name != "",
+            paste0(feature_id, " | ", name),
+            feature_id
+        )
+    ) %>%
+    pull(heatmap_label)
+rownames(heatmap_matrix) <- heatmap_labels
+
+pheatmap(
+    mat = heatmap_matrix,
+    annotation_col = sample_annotation,
+    scale = "row",
+    cluster_cols = TRUE,
+    show_colnames = FALSE,
+    main = paste0(
+        "Top ",
+        n_extreme_features,
+        " and bottom ",
+        n_extreme_features,
+        " differential features"
+    ),
+    filename = file.path(
+        results_dir,
+        paste0("lung_KRAS_vs_WT_heatmap_top_bottom_", n_extreme_features, ".png")
+    ),
+    width = 10,
+    height = 8
+)
+
+list(
+    sample_summary = sample_summary,
+    limma_results = limma_results,
+    top_features = top_features,
+    bottom_features = bottom_features,
+    extreme_features = extreme_features
+)
+```
