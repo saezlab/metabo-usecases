@@ -1,0 +1,272 @@
+---
+title: "Preprocesss_Shorthouse_2022_data"
+author: "Jannik Franken"
+date: "18 5 2026"
+output: html_document
+---
+
+# Pre-processing script to retrieve and structure Shorthouse_2022 data into a coherent Summarized Experiment object
+Publication: https://pubmed.ncbi.nlm.nih.gov/36321551/
+
+## Overview
+This publication is a back-to-back publication with data from Cherkaoui et al. 2022 (https://pubmed.ncbi.nlm.nih.gov/36321552/)
+
+The data contains X samples and Y features.
+
+```{r library, include=FALSE}
+library(magrittr)
+library(dplyr)
+library(readxl)
+library(readr)
+library(tibble)
+library(stringr)
+library(purrr)
+library(SummarizedExperiment)
+```
+
+```{r load_data}
+# samples
+shorthouse_injections_raw <- 
+    read_xlsx(
+        "../data/msb202211006-sup-0002-datasetev1.xlsx",
+        sheet = "Sheet1"
+    ) 
+
+head(shorthouse_injections_raw)
+names(shorthouse_injections_raw)
+
+# features
+shorthouse_ions_raw <- 
+    read_xlsx(
+        "../data/msb202211006-sup-0003-datasetev2.xlsx",
+        sheet = "Sheet1"
+    )
+
+head(shorthouse_ions_raw)
+names(shorthouse_ions_raw)
+
+# intensities
+shorthouse_intensities_raw <- 
+    read_xlsx(
+        "../data/msb202211006-sup-0004-datasetev3.xlsx",
+        sheet = "Sheet1"
+    ) 
+
+head(shorthouse_intensities_raw)
+head(names(shorthouse_intensities_raw))
+```
+
+```{r process_samples}
+
+shorthouse_injections <- 
+    shorthouse_injections_raw %>%
+    as.data.frame() %>%
+    group_by(
+        dsIdx
+    ) %>%
+    summarise(
+        celltype              = first(celltype),
+        CC    = str_c(unique(CC), collapse = " || "),
+        disease   = str_c(unique(DI), collapse = " || "),
+        DR    = str_c(unique(DR), collapse = " || "),
+        HI    = str_c(unique(HI), collapse = " || "),
+        id_2  = str_c(unique(ID), collapse = " || "),
+        OI    = str_c(unique(OI), collapse = " || "),
+        organism    = str_c(unique(OX), collapse = " || "),
+        refs        = str_c(unique(RX), collapse = " || "),
+        sources     = str_c(unique(ST), collapse = " || "),
+        sex         = str_c(unique(SX), collapse = " || "),
+        synonyms    = str_c(unique(SY), collapse = " || "),
+        TAG   = str_c(unique(TAG), collapse = " || "),
+        WW    = str_c(unique(WW), collapse = " || "),
+        RRID  = str_c(unique(RRID), collapse = " || "),
+        
+        .groups = "drop"
+    ) %>%
+    replace(
+        . == "NA", NA
+    ) %>%
+    replace(
+        . == "NS", NA
+    ) %>%
+    mutate(
+        cl_id = paste0(dsIdx, "_", celltype)
+    ) %>%
+    select(
+        cl_id, 
+        everything()
+    ) 
+
+shorthouse_injections_collapsed <- 
+    shorthouse_injections %>%
+    group_by(celltype) %>%
+    summarise(
+        celltype = first(celltype),
+        cl_id    = paste(unique(cl_id), collapse = "; "),
+        dsIdx    = paste(unique(dsIdx), collapse = "; "),
+        CC       = paste(unique(CC), collapse = "; "),
+        disease  = paste(unique(disease), collapse = "; "),
+        DR       = paste(unique(DR), collapse = "; "),
+        HI       = paste(unique(HI), collapse = "; "),
+        id_2     = paste(unique(id_2), collapse = "; "),
+        organism = paste(unique(organism), collapse = "; "),
+        refs     = paste(unique(refs), collapse = "; "),
+        sources  = paste(unique(sources), collapse = "; "),
+        sex      = paste(unique(sex), collapse = "; "),
+        synonyms = paste(unique(synonyms), collapse = "; "),
+        TAG      = paste(unique(TAG), collapse = "; "),
+        WW       = paste(unique(WW), collapse = "; "),
+        RRID     = paste(unique(RRID), collapse = "; "),
+        .groups = "drop"
+    ) %>%
+    mutate(
+        cell_line_tmp = celltype
+    ) %>%
+    column_to_rownames("cell_line_tmp")
+
+head(shorthouse_injections_collapsed)
+```
+
+
+```{r process_features}
+
+shorthouse_ions <- shorthouse_ions_raw %>%
+    as.data.frame() %>%
+    select(
+        -`average intensity`, -`mz difference`
+    ) %>%
+    mutate(
+        name = str_replace_all(name, " ", "_")
+    ) %>%
+    group_by(
+        ionIdx = .[[1]]
+    ) %>%
+    summarise(
+        ionMz              = first(ionMz),
+        
+        hmdb    = str_c(unique(HMDB), collapse = "; "),
+        kegg    = str_c(unique(KEGG), collapse = "; "),
+        score   = str_c(unique(score), collapse = "; "),
+        formula = str_c(unique(formula), collapse = "; "),
+        ion     = str_c(unique(ion), collapse = "; "),
+        name    = str_c(unique(name), collapse = "; "),
+        
+        id_list = paste(
+            na.omit(c(unique(HMDB), unique(KEGG))),
+            collapse = "; "
+        ),
+        
+        .groups = "drop"
+    ) %>%
+    replace(
+        . == "NA", NA
+    ) %>%
+    replace(
+        . == "NS", NA
+    )
+
+
+# identify duplicated feature identifiers (keep only one)
+duplicated_features <- unlist(shorthouse_ions[duplicated(shorthouse_ions$id_list), "ionIdx"])
+# There are three cases in which two ions of different ionMz have been measured with
+# either +F(-) or -H. They were assigned the same metabolite name and HMDB ID.
+
+shorthouse_ions <- shorthouse_ions[-duplicated_features, ]
+
+```
+
+
+```{r process_intensities}
+
+shorthouse_intensities <- 
+    shorthouse_intensities_raw %>%
+    select(
+        -ionIdx,
+    ) %>%
+    replace(
+        . == "NA", NA
+    ) %>%
+    replace(
+        . == "NS", NA
+    ) %>%
+    t() %>%
+    as.data.frame() %>%
+    mutate(
+        across(
+            everything(), 
+            ~ suppressWarnings(as.numeric(.))
+        )
+    )
+
+# remove identified duplicated features
+shorthouse_intensities  <- shorthouse_intensities[, -duplicated_features, drop = FALSE]
+
+# collapse by rownames last part (x_[cell_line])
+shorthouse_intensities_collapsed <- 
+    shorthouse_intensities %>%
+        mutate(
+            celltype = shorthouse_injections$celltype
+        ) %>%
+        group_by(celltype) %>%
+        summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+        column_to_rownames("celltype")
+
+```
+
+```{r build_SE_object, include=FALSE}
+# 
+# shorthouse_col_data <- 
+#     shorthouse_injections_collapsed[
+#         rownames(shorthouse_intensities_collapsed),
+#         ,
+#         drop = FALSE
+#     ]
+# 
+# shorthouse_row_data <- shorthouse_ions %>% as.data.frame()
+# rownames(shorthouse_row_data) <- colnames(shorthouse_intensities_collapsed)
+# 
+# stopifnot(
+#     identical(
+#         rownames(shorthouse_col_data),
+#         rownames(shorthouse_intensities_collapsed)
+#     ),
+#     nrow(shorthouse_row_data) == ncol(shorthouse_intensities_collapsed)
+# )
+# 
+# shorthouse_se <- SummarizedExperiment(
+#     assays = list(
+#         intensities = t(as.matrix(shorthouse_intensities_collapsed))
+#     ),
+#     rowData = S4Vectors::DataFrame(shorthouse_row_data),
+#     colData = S4Vectors::DataFrame(shorthouse_col_data)
+# )
+# 
+
+```
+
+```{r}
+Shorthouse_2022 <- list(
+    data_matrix = shorthouse_intensities_collapsed,
+    sampels = shorthouse_injections_collapsed,
+    features = shorthouse_ions
+)
+
+save(Shorthouse_2022, file = "../data/Shorthouse_2022.RData")
+```
+
+```{r cleanup}
+rm(shorthouse_injections_raw)
+rm(shorthouse_ions_raw)
+rm(shorthouse_intensities_raw)
+rm(shorthouse_injections)
+rm(shorthouse_injections_collapsed)
+rm(shorthouse_ions)
+rm(duplicated_features)
+rm(shorthouse_intensities)
+rm(shorthouse_intensities_collapsed)
+rm(Shorthouse_2022)
+```
+
+```{r}
+sessionInfo()
+```
