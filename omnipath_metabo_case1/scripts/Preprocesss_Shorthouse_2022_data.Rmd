@@ -65,21 +65,21 @@ shorthouse_injections <-
         dsIdx
     ) %>%
     summarise(
-        celltype              = first(celltype),
-        CC    = str_c(unique(CC), collapse = " || "),
+        name  = dplyr::first(celltype),
+        CC        = str_c(unique(CC), collapse = " || "),
         disease   = str_c(unique(DI), collapse = " || "),
-        DR    = str_c(unique(DR), collapse = " || "),
-        HI    = str_c(unique(HI), collapse = " || "),
-        id_2  = str_c(unique(ID), collapse = " || "),
-        OI    = str_c(unique(OI), collapse = " || "),
-        organism    = str_c(unique(OX), collapse = " || "),
-        refs        = str_c(unique(RX), collapse = " || "),
-        sources     = str_c(unique(ST), collapse = " || "),
-        sex         = str_c(unique(SX), collapse = " || "),
-        synonyms    = str_c(unique(SY), collapse = " || "),
-        TAG   = str_c(unique(TAG), collapse = " || "),
-        WW    = str_c(unique(WW), collapse = " || "),
-        RRID  = str_c(unique(RRID), collapse = " || "),
+        DR        = str_c(unique(DR), collapse = " || "),
+        HI        = str_c(unique(HI), collapse = " || "),
+        id_2      = str_c(unique(ID), collapse = " || "),
+        OI        = str_c(unique(OI), collapse = " || "),
+        organism  = str_c(unique(OX), collapse = " || "),
+        refs      = str_c(unique(RX), collapse = " || "),
+        sources   = str_c(unique(ST), collapse = " || "),
+        sex       = str_c(unique(SX), collapse = " || "),
+        synonyms  = str_c(unique(SY), collapse = " || "),
+        TAG       = str_c(unique(TAG), collapse = " || "),
+        WW        = str_c(unique(WW), collapse = " || "),
+        RRID      = str_c(unique(RRID), collapse = " || "),
         
         .groups = "drop"
     ) %>%
@@ -90,7 +90,7 @@ shorthouse_injections <-
         . == "NS", NA
     ) %>%
     mutate(
-        cl_id = paste0(dsIdx, "_", celltype)
+        cl_id = paste0(dsIdx, "_", name)
     ) %>%
     select(
         cl_id, 
@@ -99,9 +99,9 @@ shorthouse_injections <-
 
 shorthouse_injections_collapsed <- 
     shorthouse_injections %>%
-    group_by(celltype) %>%
+    group_by(name) %>%
     summarise(
-        celltype = first(celltype),
+        name = dplyr::first(name),
         cl_id    = paste(unique(cl_id), collapse = "; "),
         dsIdx    = paste(unique(dsIdx), collapse = "; "),
         CC       = paste(unique(CC), collapse = "; "),
@@ -120,7 +120,7 @@ shorthouse_injections_collapsed <-
         .groups = "drop"
     ) %>%
     mutate(
-        cell_line_tmp = celltype
+        cell_line_tmp = name
     ) %>%
     column_to_rownames("cell_line_tmp")
 
@@ -142,8 +142,7 @@ shorthouse_ions <- shorthouse_ions_raw %>%
         ionIdx = .[[1]]
     ) %>%
     summarise(
-        ionMz              = first(ionMz),
-        
+        ionMz   = dplyr::first(ionMz),
         hmdb    = str_c(unique(HMDB), collapse = "; "),
         kegg    = str_c(unique(KEGG), collapse = "; "),
         score   = str_c(unique(score), collapse = "; "),
@@ -205,11 +204,11 @@ shorthouse_intensities  <- shorthouse_intensities[, -duplicated_features, drop =
 shorthouse_intensities_collapsed <- 
     shorthouse_intensities %>%
         mutate(
-            celltype = shorthouse_injections$celltype
+            name = shorthouse_injections$name
         ) %>%
-        group_by(celltype) %>%
+        group_by(name) %>%
         summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
-        column_to_rownames("celltype")
+        column_to_rownames("name")
 
 ```
 
@@ -247,7 +246,7 @@ shorthouse_intensities_collapsed <-
 ```{r}
 Shorthouse_2022_preprocessed <- list(
     data_matrix = shorthouse_intensities_collapsed,
-    sampels = shorthouse_injections_collapsed,
+    samples = shorthouse_injections_collapsed,
     features = shorthouse_ions
 )
 
@@ -255,16 +254,8 @@ save(Shorthouse_2022_preprocessed, file = "../data/Shorthouse_2022_preprocessed.
 ```
 
 ```{r cleanup}
-rm(shorthouse_injections_raw)
-rm(shorthouse_ions_raw)
-rm(shorthouse_intensities_raw)
-rm(shorthouse_injections)
-rm(shorthouse_injections_collapsed)
-rm(shorthouse_ions)
-rm(duplicated_features)
-rm(shorthouse_intensities)
-rm(shorthouse_intensities_collapsed)
-rm(Shorthouse_2022)
+gc()
+rm(list = ls())
 ```
 
 ```{r}

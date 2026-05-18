@@ -1,0 +1,1942 @@
+---
+title: "Feature_Processing"
+author: "Jannik Franken"
+date: "18 5 2026"
+output: html_document
+---
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+library(scales)
+library(stats)
+library(magrittr)
+library(readr)
+library(stringr)
+
+library(MetaProViz)
+```
+
+```{r}
+
+if (!dir.exists("../Results/Feature_processing")) {
+  dir.create("../Results/Feature_processing", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/original")) {
+  dir.create("../Results/Feature_processing/original", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/ID_QC")) {
+  dir.create("../Results/Feature_processing/ID_QC", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/cleaned")) {
+  dir.create("../Results/Feature_processing/cleaned", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/traverse")) {
+  dir.create("../Results/Feature_processing/traverse", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/addEquivalent")) {
+  dir.create("../Results/Feature_processing/addEquivalent", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/id_summary")) {
+  dir.create("../Results/Feature_processing/id_summary", recursive = TRUE)
+}
+if (!dir.exists("../Results/Feature_processing/id_summary_plots")) {
+  dir.create("../Results/Feature_processing/id_summary_plots", recursive = TRUE)
+}
+```
+
+
+```{r}
+########################
+### HELPER functions for id_summary table and deltas
+
+## Helper: extract one summary row from count_id() output
+extract_id_counts <- function(count_obj, row_name) {
+  ## count_obj must be an object returned by MetaProViz::count_id()
+  
+  tbl <- count_obj$Table
+  
+  ## Count how many features fall into each ID class
+  counts_wide <- tbl %>%
+    count(id_label, name = "n") %>%
+    mutate(
+      id_label = recode(
+        id_label,
+        "No ID" = "no_ID",
+        "Single ID" = "Single_ID",
+        "Multiple IDs" = "Multiple_IDs"
+      )
+    ) %>%
+    pivot_wider(
+      names_from = id_label,
+      values_from = n,
+      values_fill = 0
+    )
+  
+  ## Make sure all expected columns exist
+  ## This avoids errors if one class is absent in a given dataset
+  for (col in c("no_ID", "Single_ID", "Multiple_IDs")) {
+    if (!col %in% names(counts_wide)) {
+      counts_wide[[col]] <- 0L
+    }
+  }
+  
+  ## Build one clean summary row
+  tibble(
+    row_name = row_name,
+    no_ID = as.integer(counts_wide$no_ID[1]),
+    Single_ID = as.integer(counts_wide$Single_ID[1]),
+    Multiple_IDs = as.integer(counts_wide$Multiple_IDs[1]),
+    Total_IDs = as.integer(sum(tbl$entry_count, na.rm = TRUE))
+  )
+}
+
+
+
+## Helper: append one summary row to id_count_df
+append_id_counts <- function(df, count_obj, row_name) {
+  bind_rows(df, extract_id_counts(count_obj, row_name))
+}
+
+## Helper: calculate deltas within each database only
+
+## Example:
+## HMDB_cleaned - HMDB_Original
+## KEGG_cleaned - KEGG_Original
+## PUBCHEM_cleaned - PUBCHEM_Original
+
+## This does not compare across databases.
+calculate_id_deltas <- function(df, from_category, to_category) {
+  
+  df %>%
+    separate(row_name, into = c("id_type", "category"), sep = "_", remove = FALSE) %>%
+    select(-row_name) %>%
+    pivot_wider(
+      names_from = category,
+      values_from = c(no_ID, Single_ID, Multiple_IDs, Total_IDs)
+    ) %>%
+    transmute(
+      row_name = paste0("delta_", id_type, "_", from_category, "_", id_type, "_", to_category),
+      no_ID = .data[[paste0("no_ID_", to_category)]] - .data[[paste0("no_ID_", from_category)]],
+      Single_ID = .data[[paste0("Single_ID_", to_category)]] - .data[[paste0("Single_ID_", from_category)]],
+      Multiple_IDs = .data[[paste0("Multiple_IDs_", to_category)]] - .data[[paste0("Multiple_IDs_", from_category)]],
+      Total_IDs = .data[[paste0("Total_IDs_", to_category)]] - .data[[paste0("Total_IDs_", from_category)]]
+    )
+}
+
+## Helper: count features with no HMDB, KEGG, or PUBCHEM
+## This works on the original category dataframe, not on count_id() output.
+## Example inputs:  MetaboliteIDs    or   MetaboliteID_Translated
+count_none_all_ids <- function(df) {
+  sum(
+    (is.na(df$HMDB)    | trimws(as.character(df$HMDB)) %in% c("", "NA")) &
+    (is.na(df$KEGG)    | trimws(as.character(df$KEGG)) %in% c("", "NA")) &
+    (is.na(df$PUBCHEM) | trimws(as.character(df$PUBCHEM)) %in% c("", "NA")),
+    na.rm = TRUE
+  )
+}
+
+## Helper: append one row to none_summary_df
+append_none_summary <- function(df, input_df, row_name) {
+  bind_rows(
+    df,
+    tibble(
+      row_name = row_name,
+      No_database_ID = as.integer(count_none_all_ids(input_df))
+    )
+  )
+}
+
+## Helper: calculate delta for the "none at all" summary
+## Example:  ## cleaned - Original
+calculate_none_delta <- function(df, from_category, to_category) {
+  
+  tibble(
+    row_name = paste0("delta_", from_category, "_", to_category),
+    No_database_ID =
+      df$No_database_ID[df$row_name == to_category] -
+      df$No_database_ID[df$row_name == from_category]
+  )
+}
+
+```
+
+```{r}
+load("../data/Shorthouse_2022.RData")
+```
+
+
+# Plan
+
+Perform this logic for all 4 experiments without sub-versions
+We will be working on the ...$features dataframes only.
+Generally, assess ID state, then do something (check, traverse, addEquivalent),
+re-assess ID state again
+
+1. Assess ID state "original"
+
+2. Perform ID QC seed_id_compatibility_check
+3. Assess ID state "cleaned"
+
+4. Perform MetaProViz::traverse_ids()
+5. Assess ID state "traverse"
+
+6. Perform MetaProViz::equivalent_id()
+7. Assess ID state "addEquivalent"
+
+
+```{r}
+# 1. Assess ID state "original"
+
+features_Shorthouse_original <- Shorthouse_2022$features %>%
+    mutate(
+        chebi = NA,
+        pubchem = NA
+    ) %>%
+    mutate(
+        across(any_of(c("hmdb", "kegg", "chebi", "pubchem")), ~ as.character(.x))
+    )
+
+# save original as csv
+write.csv(
+    features_Shorthouse_original,
+    "../Results/Feature_processing/original/features_Shorthouse_original.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+
+# assess original ID status
+# using count_id and compare_pk
+
+compare_pk_Shorthouse_original <-
+    MetaProViz::compare_pk(
+        data = list(Biocft = features_Shorthouse_original %>% dplyr::rename("Class" = "metabolite_class")),
+        name_col = "name",
+        metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
+        plot_name = "Shorthouse_2022 original - overlap of ID types",
+        path = "../Results/Feature_processing/original"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/original/compare_pk_Shorthouse_original.svg",
+  plot = compare_pk_Shorthouse_original$upset_plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_original_HMDB <- 
+    MetaProViz::count_id(
+        features_Shorthouse_original, 
+        delimiter = ";",
+        "hmdb",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/original"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_HMDB.svg",
+  plot = count_id_Shorthouse_original_HMDB$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_original_KEGG <- 
+    MetaProViz::count_id(
+        features_Shorthouse_original, 
+        delimiter = ";",
+        "kegg",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/original"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_KEGG.svg",
+  plot = count_id_Shorthouse_original_KEGG$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_original_CHEBI <- 
+    MetaProViz::count_id(
+        features_Shorthouse_original, 
+        delimiter = ";",
+        "chebi",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/original"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_CHEBI.svg",
+  plot = count_id_Shorthouse_original_CHEBI$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_original_PUBCHEM <- 
+    MetaProViz::count_id(
+        features_Shorthouse_original, 
+        delimiter = ";",
+        "pubchem",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/original"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_PUBCHEM.svg",
+  plot = count_id_Shorthouse_original_PUBCHEM$Plot,
+  width = 12,
+  height = 8
+)
+```
+
+
+
+```{r}
+# Initialise the main per-database summary dataframe
+id_summary_Shorthouse <- tibble(
+  row_name      = character(),
+  no_ID         = integer(),
+  Single_ID     = integer(),
+  Multiple_IDs  = integer(),
+  Total_IDs     = integer()
+)
+
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_HMDB,    "HMDB_original")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_KEGG,    "KEGG_original")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_CHEBI,   "CHEBI_original")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_KEGG,    "PUBCHEM_original")
+
+none_summary_Shorthouse <- tibble(
+  row_name = character(),
+  No_database_ID = integer()
+)
+
+none_summary_Shorthouse <- append_none_summary(none_summary_Shorthouse, features_Shorthouse_original, "original")
+```
+
+```{r}
+# 2. Perform ID QC seed_id_compatibility_check
+
+# features_Shorthouse_compatibility_check <-
+#     MetaProViz:::seed_id_compatibility_check(
+#         data = features_Shorthouse_original,
+#         id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
+#         delimiter = ";",
+#         verbose = TRUE
+#     )
+# save(features_Shorthouse_compatibility_check, file = "../data/features_Shorthouse_compatibility_check.RData")
+
+load("../data/features_Shorthouse_compatibility_check.RData")
+
+compatibility_by_feature_Shorthouse <- 
+    features_Shorthouse_compatibility_check$ID_pair_compatibility %>%
+    group_by(name) %>%
+    summarise(
+        n_pairs = n(),
+        n_true = sum(pair_compatible == TRUE, na.rm = TRUE),
+        n_false = sum(pair_compatible == FALSE, na.rm = TRUE),
+        all_seed_ids_compatible = all_seed_ids_compatible,
+        compatibility_class = case_when(
+            all_seed_ids_compatible ~ "fully_compatible",
+            !all_seed_ids_compatible & n_true > 0 & n_false > 0 ~ "partially_compatible",
+            !all_seed_ids_compatible & n_true == 0 & n_false > 0 ~ "completely_incompatible",
+            TRUE ~ NA_character_
+        ),
+        .groups = "drop"
+    )
+
+fully_compatible_Shorthouse <- compatibility_by_feature_Shorthouse %>% filter(compatibility_class == "fully_compatible")
+partially_compatible_Shorthouse <- compatibility_by_feature_Shorthouse %>% filter(compatibility_class == "partially_compatible")
+completely_incompatible_Shorthouse <- compatibility_by_feature_Shorthouse %>% filter(compatibility_class == "completely_incompatible")
+# how many features are:
+# fully_compatible?
+length(unique(fully_compatible_Shorthouse$name)) # 495
+# partially_compatible
+length(unique(partially_compatible_Shorthouse$name)) # 209
+# completely_incompatible
+length(unique(completely_incompatible_Shorthouse$name)) # 392
+
+
+# save ID QC results
+write.csv(
+    features_Shorthouse_compatibility_check$ID_pair_compatibility,
+    "../Results/Feature_processing/ID_QC/features_Shorthouse_compatibility_check___ID_pair_compatibility.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    features_Shorthouse_compatibility_check$data_with_compatibility,
+    "../Results/Feature_processing/ID_QC/features_Shorthouse_compatibility_check___data_with_compatibility.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    fully_compatible_Shorthouse,
+    "../Results/Feature_processing/ID_QC/fully_compatible_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    partially_compatible_Shorthouse,
+    "../Results/Feature_processing/ID_QC/partially_compatible_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    completely_incompatible_Shorthouse,
+    "../Results/Feature_processing/ID_QC/completely_incompatible_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+
+# get ID_pair_compatibility rows for fully_compatible features
+fully_compatible_metabolites <- unique(fully_compatible_Shorthouse$name)
+
+fully_compatible_id_pair_rows <- 
+    features_Shorthouse_compatibility_check$ID_pair_compatibility %>%
+    filter(
+        name %in% fully_compatible_metabolites
+    )
+# keep these as is to later merge together with the others
+
+
+### handle partially_compatible IDs
+
+# retrieve ID_pair_compatibility for partially_compatible features
+partially_compatible_metabolites <- unique(partially_compatible_Shorthouse$name)
+
+partially_compatible_id_pair_rows <- 
+    features_Shorthouse_compatibility_check$ID_pair_compatibility %>%
+    filter(
+        name %in% partially_compatible_metabolites
+    )
+
+# keep only the matching id pairs through direct and secondary match, discard no_match ID pairs completely
+partially_compatible_id_pair_rows_filtered <- 
+    partially_compatible_id_pair_rows %>%
+    filter(
+        compatibility_path != "no_match"   #only keep matches
+    )
+# sanity check: still all features there?
+length(unique(partially_compatible_id_pair_rows_filtered$name))
+
+write.csv(
+    partially_compatible_id_pair_rows_filtered,
+    "../Results/Feature_processing/ID_QC/partially_compatible_id_pair_rows_filtered_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+
+
+### handle completely_incompatible IDs
+completely_incompatible_metabolites <- unique(completely_incompatible_Shorthouse$name)
+
+completely_incompatible_metabolites_id_pair_rows <- 
+    features_Shorthouse_compatibility_check$ID_pair_compatibility %>%
+    filter(
+        name %in% completely_incompatible_metabolites
+    )
+
+completely_incompatible_data_with_compatibility <- features_Shorthouse_compatibility_check$data_with_compatibility %>%
+    filter(
+        name %in% completely_incompatible_metabolites
+    )
+
+## these are too many to manually review. Therefore for now I am going to do this:
+# - if there is one KEGG ID in addition to multiple HMDB IDs, keep only the KEGG ID
+# - if there are only two HMDB IDs, keep both
+# - if there are multiple HMDB and two KEGG IDs, keep first HMDB and first KEGG
+# - if there are only many HMDB IDs, keep the first one
+# - if there is only one HMDB ID, and one KEGG ID, keep it and discard KEGG
+
+split_ids <- function(x) {
+    if (length(x) == 0) return(character(0))
+    x <- as.character(x)
+    x <- x[!is.na(x) & trimws(x) != "" & toupper(trimws(x)) != "NA"]
+    if (length(x) == 0) return(character(0))
+    vals <- unlist(strsplit(x[[1]], ";", fixed = TRUE))
+    vals <- trimws(vals)
+    vals <- vals[!is.na(vals) & vals != "" & toupper(vals) != "NA"]
+    unique(vals)
+}
+
+first_non_empty <- function(x) {
+    x <- x[!is.na(x) & trimws(as.character(x)) != "" & toupper(trimws(as.character(x))) != "NA"]
+    if (length(x) == 0) return(NA_character_)
+    as.character(x[[1]])
+}
+
+completely_incompatible_data_with_compatibility_processed <-
+    completely_incompatible_data_with_compatibility %>%
+    group_by(ionIdx, name) %>%
+    mutate(
+        hmdb_raw = first_non_empty(hmdb),
+        kegg_raw = first_non_empty(kegg),
+        hmdb_ids = list(split_ids(hmdb_raw)),
+        kegg_ids = list(split_ids(kegg_raw)),
+        n_hmdb = length(hmdb_ids[[1]]),
+        n_kegg = length(kegg_ids[[1]]),
+        hmdb_new = case_when(
+            n_kegg == 1 & n_hmdb > 1 ~ NA_character_,
+            n_kegg == 0 & n_hmdb == 2 ~ paste(hmdb_ids[[1]][1:2], collapse = ";"),
+            n_kegg == 1 & n_hmdb == 1 ~ hmdb_ids[[1]][1],
+            n_kegg == 2 & n_hmdb > 1 ~ hmdb_ids[[1]][1],
+            n_kegg == 0 & n_hmdb > 2 ~ hmdb_ids[[1]][1],
+            TRUE ~ hmdb_raw
+        ),
+        kegg_new = case_when(
+            n_kegg == 1 & n_hmdb > 1 ~ kegg_ids[[1]][1],
+            n_kegg == 2 & n_hmdb > 1 ~ kegg_ids[[1]][1],
+            TRUE ~ kegg_raw
+        ),
+        hmdb = if_else(is.na(hmdb_new) | hmdb_new == "", NA_character_, hmdb_new),
+        kegg = if_else(is.na(kegg_new) | kegg_new == "", NA_character_, kegg_new),
+        HMDB = hmdb,
+        KEGG = kegg
+    ) %>%
+    ungroup() %>%
+    select(
+        -hmdb_raw, -kegg_raw, -hmdb_ids, -kegg_ids, -n_hmdb, -n_kegg, -hmdb_new, -kegg_new, -HMDB, -KEGG, -CHEBI, -PUBCHEM
+    ) %>% 
+    mutate(
+        sub_tbl = "completely_incompatible"
+    )
+
+write.csv(
+    completely_incompatible_data_with_compatibility_processed,
+    "../Results/Feature_processing/ID_QC/completely_incompatible_data_with_compatibility_processed_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+
+# merge back together ID_pair_compatibility for fully_compatible, partially_compatible
+merge_completely_and_partially_compatible_ID_pair_rows <- 
+    rbind(
+        fully_compatible_id_pair_rows %>% mutate(sub_tbl = "fully_compatible"),
+        partially_compatible_id_pair_rows_filtered %>% mutate(sub_tbl = "partially_compatible")
+    )
+length(unique(merge_completely_and_partially_compatible_ID_pair_rows$ionIdx)) # 704 is correct
+
+# summarize by original row id, rbind to completely_incompatible_data_with_compatibility_processed and construct the features_Shorthouse_cleaned from this
+
+# join back together based on "original_row_id"
+
+features_Shorthouse_cleaned <- 
+    rbind(
+        merge_completely_and_partially_compatible_ID_pair_rows %>%
+            select(-hmdb_kegg) %>%
+            group_by(original_row_id) %>%
+            summarise(
+                name       = first(name),
+                ionIdx     = first(ionIdx),
+                ionMz      = first(ionMz),
+                score      = first(score),
+                formula    = first(formula),
+                ion        = first(ion),
+                
+                hmdb = {
+                    x <- trimws(as.character(HMDB))
+                    x[x == ""] <- NA_character_
+                    x <- unique(na.omit(x))
+                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
+                },
+                kegg = {
+                    x <- trimws(as.character(KEGG))
+                    x[x == ""] <- NA_character_
+                    x <- unique(na.omit(x))
+                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
+                },
+                chebi = {
+                    x <- trimws(as.character(CHEBI))
+                    x[x == ""] <- NA_character_
+                    x <- unique(na.omit(x))
+                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
+                },
+                pubchem = {
+                    x <- trimws(as.character(PUBCHEM))
+                    x[x == ""] <- NA_character_
+                    x <- unique(na.omit(x))
+                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
+                },
+                
+                sub_tbl = first(sub_tbl),
+                metabolite_class = first(metabolite_class),
+                
+                .groups = "drop"
+            ) %>%
+            select(
+                - original_row_id
+            ),
+        completely_incompatible_data_with_compatibility_processed %>%
+            select(-all_seed_ids_compatible, -hmdb_kegg)
+    ) %>%
+    arrange(ionIdx)
+
+# save as csv
+write.csv(
+    features_Shorthouse_cleaned,
+    "../Results/Feature_processing/cleaned/features_Shorthouse_cleaned.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+
+```
+
+```{r}
+# 3. Assess ID state "cleaned"
+
+# assess cleaned ID status
+# using count_id and compare_pk
+
+compare_pk_Shorthouse_cleaned <-
+    MetaProViz::compare_pk(
+        data = list(Biocft = features_Shorthouse_cleaned %>% dplyr::rename("Class" = "metabolite_class")),
+        name_col = "name",
+        metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
+        plot_name = "Shorthouse_2022 cleaned - overlap of ID types",
+        path = "../Results/Feature_processing/cleaned"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/cleaned/compare_pk_Shorthouse_cleaned.svg",
+  plot = compare_pk_Shorthouse_cleaned$upset_plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_cleaned_HMDB <- 
+    MetaProViz::count_id(
+        features_Shorthouse_cleaned, 
+        delimiter = ";",
+        "hmdb",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/cleaned"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_HMDB.svg",
+  plot = count_id_Shorthouse_cleaned_HMDB$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_cleaned_KEGG <- 
+    MetaProViz::count_id(
+        features_Shorthouse_cleaned, 
+        delimiter = ";",
+        "kegg",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/cleaned"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_KEGG.svg",
+  plot = count_id_Shorthouse_cleaned_KEGG$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_cleaned_CHEBI <- 
+    MetaProViz::count_id(
+        features_Shorthouse_cleaned, 
+        delimiter = ";",
+        "chebi",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/cleaned"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_CHEBI.svg",
+  plot = count_id_Shorthouse_cleaned_CHEBI$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_cleaned_PUBCHEM <- 
+    MetaProViz::count_id(
+        features_Shorthouse_cleaned, 
+        delimiter = ";",
+        "pubchem",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/cleaned"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_PUBCHEM.svg",
+  plot = count_id_Shorthouse_cleaned_PUBCHEM$Plot,
+  width = 12,
+  height = 8
+)
+
+```
+
+```{r}
+# append the new "cleaned" ID counts
+
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_cleaned_HMDB,    "HMDB_cleaned")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_cleaned_KEGG,    "KEGG_cleaned")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_cleaned_CHEBI,   "CHEBI_cleaned")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_cleaned_PUBCHEM, "PUBCHEM_cleaned")
+
+## Calculate delta rows
+delta_df_Shorthouse <- calculate_id_deltas(id_summary_Shorthouse, "original", "cleaned")
+
+## cleaned category dataframe
+none_summary_Shorthouse <- append_none_summary(none_summary_Shorthouse, features_Shorthouse_cleaned, "cleaned")
+
+## Calculate delta row
+none_delta_Shorthouse <- calculate_none_delta(none_summary_Shorthouse, "original", "cleaned")
+```
+
+
+```{r}
+# 4. Perform MetaProViz::traverse_ids()
+
+# features_Shorthouse_traverse_ids <-
+#     MetaProViz::traverse_ids(
+#         data = features_Shorthouse_cleaned,
+#         id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
+#         delimiter = ";",
+#         path = "../Results/Feature_processing/traverse"
+#     )
+# 
+# save(features_Shorthouse_traverse_ids, file = "../data/features_Shorthouse_traverse_ids.RData")
+
+load("../data/features_Shorthouse_traverse_ids.RData")
+
+traverse_Shorthouse_ExpandedDF <- features_Shorthouse_traverse_ids$ExpandedDF
+traverse_Shorthouse_ID_pair_compatibility <- features_Shorthouse_traverse_ids$ID_pair_compatibility
+
+
+
+# create new feature table
+
+features_Shorthouse_traverse <- 
+    merge(
+        features_Shorthouse_cleaned %>%
+            select(
+                - hmdb,
+                - kegg,
+                - chebi,
+                - pubchem
+            ),
+        traverse_Shorthouse_ExpandedDF %>%
+            select(
+                name,
+                hmdb,
+                kegg,
+                chebi,
+                pubchem,
+                n_HMDB_translated,
+                n_KEGG_translated,
+                n_CHEBI_translated,
+                n_PUBCHEM_translated,
+                HMDB_translated,
+                KEGG_translated,
+                CHEBI_translated,
+                PUBCHEM_translated
+            ),
+        by.x = "name",
+        by.y = "name",
+        all.x = TRUE
+    ) %>%
+    mutate(
+        hmdb = case_when(
+            n_HMDB_translated < 50 ~ HMDB_translated,
+            TRUE ~ hmdb
+        ),
+        kegg = case_when(
+            n_KEGG_translated < 50 ~ KEGG_translated,
+            TRUE ~ kegg
+        ),
+        chebi = case_when(
+            n_CHEBI_translated < 50 ~ CHEBI_translated,
+            TRUE ~ chebi
+        ),
+        pubchem = case_when(
+            n_PUBCHEM_translated < 50 ~ PUBCHEM_translated,
+            TRUE ~ pubchem
+        )
+    ) %>%
+    mutate(
+        all_ids = pmap_chr(
+            pick(hmdb, kegg, chebi, pubchem),
+            ~ {
+                c(...) %>%
+                    .[!is.na(.)] %>%
+                    stringr::str_split(";") %>%
+                    unlist() %>%
+                    stringr::str_trim() %>%
+                    .[. != ""] %>%
+                    unique() %>%
+                    {\(vals) if (length(vals) == 0) NA_character_ else paste(vals, collapse = ";")}()
+            }
+        )
+    ) %>%
+    select(
+        - HMDB_translated,
+        - KEGG_translated,
+        - CHEBI_translated,
+        - PUBCHEM_translated,
+        - n_HMDB_translated,
+        - n_KEGG_translated,
+        - n_CHEBI_translated,
+        - n_PUBCHEM_translated
+    )
+
+# save as csv
+write.csv(
+    features_Shorthouse_traverse,
+    "../Results/Feature_processing/traverse/features_Shorthouse_traverse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+
+```
+
+```{r}
+# 5. Assess ID state "traverse"
+
+# assess original ID status
+# using count_id and compare_pk
+
+compare_pk_Shorthouse_traverse <-
+    MetaProViz::compare_pk(
+        data = list(Biocft = features_Shorthouse_traverse %>% dplyr::rename("Class" = "metabolite_class")),
+        name_col = "name",
+        metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
+        plot_name = "Shorthouse_2022 traverse - overlap of ID types",
+        path = "../Results/Feature_processing/traverse"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/traverse/compare_pk_Shorthouse_traverse.svg",
+  plot = compare_pk_Shorthouse_traverse$upset_plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_traverse_HMDB <- 
+    MetaProViz::count_id(
+        features_Shorthouse_traverse, 
+        delimiter = ";",
+        "hmdb",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/traverse"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_HMDB.svg",
+  plot = count_id_Shorthouse_traverse_HMDB$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_traverse_KEGG <- 
+    MetaProViz::count_id(
+        features_Shorthouse_traverse, 
+        delimiter = ";",
+        "kegg",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/traverse"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_KEGG.svg",
+  plot = count_id_Shorthouse_traverse_KEGG$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_traverse_CHEBI <- 
+    MetaProViz::count_id(
+        features_Shorthouse_traverse, 
+        delimiter = ";",
+        "chebi",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/traverse"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_CHEBI.svg",
+  plot = count_id_Shorthouse_traverse_CHEBI$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_traverse_PUBCHEM <- 
+    MetaProViz::count_id(
+        features_Shorthouse_traverse, 
+        delimiter = ";",
+        "pubchem",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/traverse"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_PUBCHEM.svg",
+  plot = count_id_Shorthouse_traverse_PUBCHEM$Plot,
+  width = 12,
+  height = 8
+)
+
+```
+
+```{r}
+# append the new "traverse" ID counts
+
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_traverse_HMDB,    "HMDB_traverse")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_traverse_KEGG,    "KEGG_traverse")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_traverse_CHEBI,   "CHEBI_traverse")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_traverse_PUBCHEM, "PUBCHEM_traverse")
+
+## Calculate delta rows
+delta_df_Shorthouse <- rbind(
+  delta_df_Shorthouse,
+  calculate_id_deltas(id_summary_Shorthouse, "original", "traverse"),
+  calculate_id_deltas(id_summary_Shorthouse, "cleaned", "traverse")
+)
+
+## cleaned category dataframe
+none_summary_Shorthouse <- append_none_summary(none_summary_Shorthouse, features_Shorthouse_traverse, "traverse")
+
+## Calculate delta row
+none_delta_Shorthouse <- rbind(
+  none_delta_Shorthouse,
+  calculate_none_delta(none_summary_Shorthouse, "original", "traverse"),
+  calculate_none_delta(none_summary_Shorthouse, "cleaned", "traverse")
+)
+```
+
+```{r}
+# 6. Perform MetaProViz::equivalent_id()
+
+## HMDB
+
+Input_HMDB_Shorthouse <- features_Shorthouse_traverse %>%
+    select(
+        name,
+        hmdb
+    ) %>%
+    separate_rows(
+        hmdb, sep = ";"
+    ) %>%
+    mutate(
+        hmdb = str_trim(hmdb)
+    ) %>%
+    filter(
+        hmdb != ""
+    )
+
+length(which(duplicated(Input_HMDB_Shorthouse$hmdb)))  # 11301
+length(which(!duplicated(Input_HMDB_Shorthouse$hmdb)))  # 3185
+
+Input_HMDB_Shorthouse_distinct <- Input_HMDB_Shorthouse %>% distinct(hmdb, .keep_all = TRUE)
+
+
+equivalent_id_res_Shorthouse_HMDB <- 
+    MetaProViz::equivalent_id(
+        data = Input_HMDB_Shorthouse_distinct,
+        metadata_info = c(InputID = "hmdb"),
+        from = "hmdb",
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+
+equivalent_id_res_Shorthouse_HMDB_clean <-
+    equivalent_id_res_Shorthouse_HMDB %>%
+    group_by(hmdb) %>%
+    summarise(
+        across(
+            c(PotentialAdditionalIDs, AllIDs), ~{
+                ids <- strsplit(as.character(.x), ",\\s*")
+                ids <- trimws(unlist(ids, use.names = FALSE))
+                ids <- ids[!is.na(ids) & ids != "" & ids != "NA"]
+                if (length(ids) == 0) NA_character_ else paste(unique(ids), collapse = ";")
+            }
+        ),
+        .groups = "drop"
+    )
+
+# now map the cleaned output from equivalent_id back to the metabolite
+output_HMDB_Shorthouse <- 
+    Input_HMDB_Shorthouse %>%
+    left_join(
+        equivalent_id_res_Shorthouse_HMDB_clean %>%
+            select(
+                hmdb,
+                PotentialAdditionalIDs,
+                AllIDs
+            ),
+        by = "hmdb"
+      ) %>%
+      group_by(name) %>%
+      summarise(
+          hmdb = {
+              ids <- unlist(strsplit(paste(AllIDs, collapse = ";"), ";\\s*"))
+              ids <- trimws(ids)
+              ids <- unique(ids[!is.na(ids) & ids != "" & ids != "NA"])
+              if (length(ids) == 0) NA_character_ else paste(ids, collapse = ";")
+          },
+          .groups = "drop"
+      ) %>%
+    mutate(
+        n_expansion = lengths(strsplit(hmdb, ";"))
+    )
+
+
+
+## KEGG
+
+Input_KEGG_Shorthouse <- features_Shorthouse_traverse %>%
+    select(
+        name,
+        kegg
+    ) %>%
+    separate_rows(
+        kegg, sep = ";"
+    ) %>%
+    mutate(
+        kegg = str_trim(kegg)
+    ) %>%
+    filter(
+        kegg != ""
+    )
+
+length(which(duplicated(Input_KEGG_Shorthouse$kegg)))  # 193
+length(which(!duplicated(Input_KEGG_Shorthouse$kegg)))  # 890
+
+Input_KEGG_Shorthouse_distinct <- Input_KEGG_Shorthouse %>% distinct(kegg, .keep_all = TRUE)
+
+
+equivalent_id_res_Shorthouse_KEGG <- 
+    MetaProViz::equivalent_id(
+        data = Input_KEGG_Shorthouse_distinct,
+        metadata_info = c(InputID = "kegg"),
+        from = "kegg",
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+
+equivalent_id_res_Shorthouse_KEGG_clean <-
+    equivalent_id_res_Shorthouse_KEGG %>%
+    group_by(kegg) %>%
+    summarise(
+        across(
+            c(PotentialAdditionalIDs, AllIDs), ~{
+                ids <- strsplit(as.character(.x), ",\\s*")
+                ids <- trimws(unlist(ids, use.names = FALSE))
+                ids <- ids[!is.na(ids) & ids != "" & ids != "NA"]
+                if (length(ids) == 0) NA_character_ else paste(unique(ids), collapse = ";")
+            }
+        ),
+        .groups = "drop"
+    )
+
+# now map the cleaned output from equivalent_id back to the metabolite
+output_KEGG_Shorthouse <- 
+    Input_KEGG_Shorthouse %>%
+    left_join(
+        equivalent_id_res_Shorthouse_KEGG_clean %>%
+            select(
+                kegg,
+                PotentialAdditionalIDs,
+                AllIDs
+            ),
+        by = "kegg"
+      ) %>%
+      group_by(name) %>%
+      summarise(
+          kegg = {
+              ids <- unlist(strsplit(paste(AllIDs, collapse = ";"), ";\\s*"))
+              ids <- trimws(ids)
+              ids <- unique(ids[!is.na(ids) & ids != "" & ids != "NA"])
+              if (length(ids) == 0) NA_character_ else paste(ids, collapse = ";")
+          },
+          .groups = "drop"
+      ) %>%
+    mutate(
+        n_expansion = lengths(strsplit(kegg, ";"))
+    )
+
+
+
+## CHEBI
+
+Input_CHEBI_Shorthouse <- features_Shorthouse_traverse %>%
+    select(
+        name,
+        chebi
+    ) %>%
+    separate_rows(
+        chebi, sep = ";"
+    ) %>%
+    mutate(
+        chebi = str_trim(chebi)
+    ) %>%
+    filter(
+        chebi != ""
+    ) %>%
+    mutate(   # remove "CHEBI:" prefix for equivalent_id() function
+         chebi = str_remove(str_to_upper(chebi), "^CHEBI:")
+    )
+
+length(which(duplicated(Input_CHEBI_Shorthouse$chebi)))  # 4744
+length(which(!duplicated(Input_CHEBI_Shorthouse$chebi)))  # 2578
+
+Input_CHEBI_Shorthouse_distinct <- Input_CHEBI_Shorthouse %>% distinct(chebi, .keep_all = FALSE)
+
+
+equivalent_id_res_Shorthouse_CHEBI <- 
+    MetaProViz::equivalent_id(
+        data = Input_CHEBI_Shorthouse_distinct,
+        metadata_info = c(InputID = "chebi"),
+        from = "chebi",
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+
+equivalent_id_res_Shorthouse_CHEBI_clean <-
+    equivalent_id_res_Shorthouse_CHEBI %>%
+    group_by(chebi) %>%
+    summarise(
+        across(
+            c(PotentialAdditionalIDs, AllIDs), ~{
+                ids <- strsplit(as.character(.x), ",\\s*")
+                ids <- trimws(unlist(ids, use.names = FALSE))
+                ids <- ids[!is.na(ids) & ids != "" & ids != "NA"]
+                if (length(ids) == 0) NA_character_ else paste(unique(ids), collapse = ";")
+            }
+        ),
+        .groups = "drop"
+    )
+
+# now map the cleaned output from equivalent_id back to the metabolite
+output_CHEBI_Shorthouse <- 
+    Input_CHEBI_Shorthouse %>%
+    left_join(
+        equivalent_id_res_Shorthouse_CHEBI_clean %>%
+            select(
+                chebi,
+                PotentialAdditionalIDs,
+                AllIDs
+            ),
+        by = "chebi"
+    ) %>%
+    group_by(name) %>%
+    summarise(
+        chebi = {
+            ids <- unlist(strsplit(paste(AllIDs, collapse = ";"), ";\\s*"))
+            ids <- trimws(ids)
+            ids <- unique(ids[!is.na(ids) & ids != "" & ids != "NA"])
+            if (length(ids) == 0) NA_character_ else paste(ids, collapse = ";")
+        },
+        .groups = "drop"
+    ) %>%
+    mutate(  # get CHEBI: prefix back
+        chebi = if_else(
+            is.na(chebi) | chebi == "",
+            chebi,
+            purrr::map_chr(str_split(chebi, "\\s*;\\s*"), ~ {
+                ids <- str_trim(.x)
+                ids <- ids[ids != ""]
+                ids <- if_else(str_detect(ids, "^CHEBI:"), ids, paste0("CHEBI:", ids))
+                paste(ids, collapse = ";")
+            })
+        )
+    ) %>%
+    mutate(
+        n_expansion = lengths(strsplit(chebi, ";"))
+    )
+
+
+
+## PUBCHEM
+
+Input_PUBCHEM_Shorthouse <- features_Shorthouse_traverse %>%
+    select(
+        name,
+        pubchem
+    ) %>%
+    separate_rows(
+        pubchem, sep = ";"
+    ) %>%
+    mutate(
+        pubchem = str_trim(pubchem)
+    ) %>%
+    filter(
+        pubchem != ""
+    ) %>%
+    mutate(   # remove "CID:" prefix for equivalent_id() function
+         pubchem = str_remove(str_to_upper(pubchem), "^CID")
+    )
+
+length(which(duplicated(Input_PUBCHEM_Shorthouse$pubchem)))  # 10594
+length(which(!duplicated(Input_PUBCHEM_Shorthouse$pubchem)))  # 3060
+
+Input_PUBCHEM_Shorthouse_distinct <- Input_PUBCHEM_Shorthouse %>% distinct(pubchem, .keep_all = FALSE)
+
+
+equivalent_id_res_Shorthouse_PUBCHEM <- 
+    MetaProViz::equivalent_id(
+        data = Input_PUBCHEM_Shorthouse_distinct,
+        metadata_info = c(InputID = "pubchem"),
+        from = "pubchem",
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+
+equivalent_id_res_Shorthouse_PUBCHEM_clean <-
+    equivalent_id_res_Shorthouse_PUBCHEM %>%
+    group_by(pubchem) %>%
+    summarise(
+        across(
+            c(PotentialAdditionalIDs, AllIDs), ~{
+                ids <- strsplit(as.character(.x), ",\\s*")
+                ids <- trimws(unlist(ids, use.names = FALSE))
+                ids <- ids[!is.na(ids) & ids != "" & ids != "NA"]
+                if (length(ids) == 0) NA_character_ else paste(unique(ids), collapse = ";")
+            }
+        ),
+        .groups = "drop"
+    )
+
+# now map the cleaned output from equivalent_id back to the metabolite
+output_PUBCHEM_Shorthouse <- 
+    Input_PUBCHEM_Shorthouse %>%
+    left_join(
+        equivalent_id_res_Shorthouse_PUBCHEM_clean %>%
+            select(
+                pubchem,
+                PotentialAdditionalIDs,
+                AllIDs
+            ),
+        by = "pubchem"
+    ) %>%
+    group_by(name) %>%
+    summarise(
+        pubchem = {
+            ids <- unlist(strsplit(paste(AllIDs, collapse = ";"), ";\\s*"))
+            ids <- trimws(ids)
+            ids <- unique(ids[!is.na(ids) & ids != "" & ids != "NA"])
+            if (length(ids) == 0) NA_character_ else paste(ids, collapse = ";")
+        },
+        .groups = "drop"
+    ) %>%
+    mutate(  # get CHEBI: prefix back
+        pubchem = if_else(
+            is.na(pubchem) | pubchem == "",
+            pubchem,
+            purrr::map_chr(str_split(pubchem, "\\s*;\\s*"), ~ {
+                ids <- str_trim(.x)
+                ids <- ids[ids != ""]
+                ids <- if_else(str_detect(ids, "^CID"), ids, paste0("CID", ids))
+                paste(ids, collapse = ";")
+            })
+        )
+    ) %>%
+    mutate(
+        n_expansion = lengths(strsplit(pubchem, ";"))
+    )
+
+
+```
+
+```{r}
+
+features_Shorthouse_addEquivalent <-
+    features_Shorthouse_traverse %>%
+    left_join(
+        output_HMDB_Shorthouse %>% 
+            filter(n_expansion < 50) %>%
+            select(name, hmdb_new = hmdb),
+        by = "name"
+    ) %>%
+    left_join(
+        output_KEGG_Shorthouse %>% 
+            filter(n_expansion < 50) %>%
+            select(name, kegg_new = kegg),
+        by = "name"
+    ) %>%
+    left_join(
+        output_CHEBI_Shorthouse %>% 
+            filter(n_expansion < 50) %>%
+            select(name, chebi_new = chebi),
+        by = "name"
+    ) %>%
+    left_join(
+        output_PUBCHEM_Shorthouse %>% 
+            filter(n_expansion < 50) %>%
+            select(name, pubchem_new = pubchem),
+        by = "name"
+    ) %>%
+    mutate(
+        hmdb    = coalesce(hmdb_new, hmdb),
+        kegg    = coalesce(kegg_new, kegg),
+        chebi   = coalesce(chebi_new, chebi),
+        pubchem = coalesce(pubchem_new, pubchem)
+    ) %>%
+    select(-hmdb_new, -kegg_new, -chebi_new, -pubchem_new) %>%
+    relocate(
+        hmdb, kegg, chebi, pubchem, .after = name
+    ) %>%
+    mutate(
+        all_ids = pmap_chr( 
+            pick(hmdb, kegg, chebi, pubchem),
+            ~ {
+                c(...) %>%
+                    .[!is.na(.)] %>%
+                    stringr::str_split(";") %>%
+                    unlist() %>%
+                    stringr::str_trim() %>%
+                    .[. != ""] %>%
+                    unique() %>%
+                    {\(vals) if (length(vals) == 0) NA_character_ else paste(vals, collapse = ";")}()
+            }
+        )
+    )
+
+```
+
+```{r}
+# save as csv
+write.csv(
+    features_Shorthouse_addEquivalent,
+    "../Results/Feature_processing/addEquivalent/features_Shorthouse_addEquivalent.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+```
+
+```{r}
+# 7. Assess ID state "addEquivalent"
+
+
+compare_pk_Shorthouse_addEquivalent <-
+    MetaProViz::compare_pk(
+        data = list(Biocft = features_Shorthouse_addEquivalent %>% dplyr::rename("Class" = "metabolite_class")),
+        name_col = "name",
+        metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
+        plot_name = "Shorthouse_2022 addEquivalent - overlap of ID types",
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/addEquivalent/compare_pk_Shorthouse_addEquivalent.svg",
+  plot = compare_pk_Shorthouse_traverse$upset_plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_addEquivalent_HMDB <- 
+    MetaProViz::count_id(
+        features_Shorthouse_addEquivalent, 
+        delimiter = ";",
+        "hmdb",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_HMDB.svg",
+  plot = count_id_Shorthouse_addEquivalent_HMDB$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_addEquivalent_KEGG <- 
+    MetaProViz::count_id(
+        features_Shorthouse_addEquivalent, 
+        delimiter = ";",
+        "kegg",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_KEGG.svg",
+  plot = count_id_Shorthouse_addEquivalent_KEGG$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_addEquivalent_CHEBI <- 
+    MetaProViz::count_id(
+        features_Shorthouse_addEquivalent, 
+        delimiter = ";",
+        "chebi",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_CHEBI.svg",
+  plot = count_id_Shorthouse_addEquivalent_CHEBI$Plot,
+  width = 12,
+  height = 8
+)
+
+count_id_Shorthouse_addEquivalent_PUBCHEM <- 
+    MetaProViz::count_id(
+        features_Shorthouse_addEquivalent, 
+        delimiter = ";",
+        "pubchem",
+        fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
+        path = "../Results/Feature_processing/addEquivalent"
+    )
+ggplot2::ggsave(
+  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_PUBCHEM.svg",
+  plot = count_id_Shorthouse_addEquivalent_PUBCHEM$Plot,
+  width = 12,
+  height = 8
+)
+```
+
+```{r}
+# append the new "addEquivalent" ID counts
+
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_addEquivalent_HMDB,    "HMDB_addEquivalent")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_addEquivalent_KEGG,    "KEGG_addEquivalent")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_addEquivalent_CHEBI,   "CHEBI_addEquivalent")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_addEquivalent_PUBCHEM, "PUBCHEM_addEquivalent")
+
+## Calculate delta rows
+delta_df_Shorthouse <- rbind(
+  delta_df_Shorthouse,
+  calculate_id_deltas(id_summary_Shorthouse, "original", "addEquivalent"),
+  calculate_id_deltas(id_summary_Shorthouse, "cleaned", "addEquivalent"),
+  calculate_id_deltas(id_summary_Shorthouse, "traverse", "addEquivalent")
+)
+
+## cleaned category dataframe
+none_summary_Shorthouse <- append_none_summary(none_summary_Shorthouse, features_Shorthouse_addEquivalent, "addEquivalent")
+
+## Calculate delta row
+none_delta_Shorthouse <- rbind(
+  none_delta_Shorthouse,
+  calculate_none_delta(none_summary_Shorthouse, "original", "addEquivalent"),
+  calculate_none_delta(none_summary_Shorthouse, "cleaned", "addEquivalent"),
+  calculate_none_delta(none_summary_Shorthouse, "traverse", "addEquivalent")
+)
+```
+
+```{r}
+# save id summary
+write.csv(
+    id_summary_Shorthouse,
+    "../Results/Feature_processing/id_summary/id_summary_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    delta_df_Shorthouse,
+    "../Results/Feature_processing/id_summary/delta_df_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    none_summary_Shorthouse,
+    "../Results/Feature_processing/id_summary/none_summary_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+write.csv(
+    none_delta_Shorthouse,
+    "../Results/Feature_processing/id_summary/none_delta_Shorthouse.csv",
+    row.names = TRUE,
+    fileEncoding = "UTF-8"
+)
+```
+
+```{r}
+# Plots
+id_types <- c("HMDB", "KEGG", "PUBCHEM", "CHEBI")
+id_type_colors <- c(
+  HMDB = "#bbcc33",
+  KEGG = "#99ddff",
+  PUBCHEM = "#feaf16",
+  CHEBI = "#d03293"
+)
+
+data_versions <- c("original", "cleaned", "traverse", "addEquivalent")
+
+theme_no_grid <- theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+mpv_theme <- theme_classic(base_size = 11) +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.text.x = element_text(angle = 90, hjust = 1),
+    legend.position = "right",
+    legend.box = "vertical",
+    legend.box.margin = margin(10, 10, 10, 10)
+  )
+plot_theme <- theme_no_grid + mpv_theme
+
+id_summary_plot_df <- id_summary_Shorthouse %>%
+  mutate(
+    id_type = sub("_.*$", "", row_name),
+    data_version = sub("^[^_]+_", "", row_name)
+  ) %>%
+  filter(id_type %in% id_types, data_version %in% data_versions) %>%
+  mutate(
+    id_type = factor(id_type, levels = id_types),
+    data_version = factor(data_version, levels = data_versions)
+  ) %>%
+  complete(
+    id_type,
+    data_version,
+    fill = list(no_ID = 0L, Single_ID = 0L, Multiple_IDs = 0L, Total_IDs = 0L)
+  )
+
+version_levels <- unlist(lapply(data_versions, function(v) paste(v, id_types, sep = " | ")))
+type_levels <- unlist(lapply(id_types, function(t) paste(t, data_versions, sep = " | ")))
+
+compact_bar_labels <- function(x) sub("^.*\\|\\s*", "", x)
+
+version_group_labels <- tibble(
+  data_version = data_versions,
+  x = ((seq_along(data_versions) - 1) * length(id_types)) + (length(id_types) + 1) / 2
+)
+
+type_group_labels <- tibble(
+  id_type = id_types,
+  x = ((seq_along(id_types) - 1) * length(data_versions)) + (length(data_versions) + 1) / 2
+)
+
+version_group_annotation <- geom_text(
+  data = version_group_labels,
+  aes(x = x, y = -Inf, label = data_version),
+  inherit.aes = FALSE,
+  vjust = 3.0,
+  fontface = "bold",
+  size = 3.2
+)
+
+type_group_annotation <- geom_text(
+  data = type_group_labels,
+  aes(x = x, y = -Inf, label = id_type),
+  inherit.aes = FALSE,
+  vjust = 3.0,
+  fontface = "bold",
+  size = 3.2
+)
+
+bar_plot_theme <- plot_theme +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5),
+    plot.margin = margin(5.5, 5.5, 28, 5.5)
+  )
+
+
+id_summary_plot_df <- id_summary_plot_df %>%
+  mutate(
+    group_by_version = factor(paste(as.character(data_version), as.character(id_type), sep = " | "), levels = version_levels),
+    group_by_type = factor(paste(as.character(id_type), as.character(data_version), sep = " | "), levels = type_levels)
+  )
+```
+
+
+```{r}
+stacked_long_version <- id_summary_plot_df %>%
+  pivot_longer(
+    cols = c(no_ID, Single_ID, Multiple_IDs),
+    names_to = "id_bucket",
+    values_to = "count"
+  ) %>%
+  mutate(id_bucket = factor(id_bucket, levels = c("Multiple_IDs", "Single_ID", "no_ID"))) %>%
+  group_by(group_by_version) %>%
+  arrange(id_bucket, .by_group = TRUE) %>%
+  mutate(label_y = cumsum(count) - count / 2) %>%
+  ungroup()
+
+stacked_long_type <- id_summary_plot_df %>%
+  pivot_longer(
+    cols = c(no_ID, Single_ID, Multiple_IDs),
+    names_to = "id_bucket",
+    values_to = "count"
+  ) %>%
+  mutate(id_bucket = factor(id_bucket, levels = c("Multiple_IDs", "Single_ID", "no_ID"))) %>%
+  group_by(group_by_type) %>%
+  arrange(id_bucket, .by_group = TRUE) %>%
+  mutate(label_y = cumsum(count) - count / 2) %>%
+  ungroup()
+
+p_id_stacked_by_version <- ggplot(stacked_long_version, aes(x = group_by_version, y = count, fill = id_bucket)) +
+  geom_col(width = 0.8) +
+  geom_text(
+    aes(y = label_y, label = ifelse(count == 0, "", count)),
+    color = "black",
+    size = 2.8
+  ) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "ID Summary by Data Version and ID Type",
+    x = "Data Version and ID Type",
+    y = "Feature Count",
+    fill = "ID Count Class"
+  ) +
+  version_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+p_total_ids_by_version <- ggplot(id_summary_plot_df, aes(x = group_by_version, y = Total_IDs, fill = id_type)) +
+  geom_col(width = 0.8, show.legend = FALSE) +
+  geom_text(
+    aes(y = pmax(Total_IDs - 5, 0), label = ifelse(Total_IDs == 0, "", Total_IDs)),
+    color = "black",
+    size = 2.8,
+    fontface = "bold"
+  ) +
+  scale_fill_manual(values = id_type_colors) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "Total IDs by Data Version and ID Type",
+    x = "Data Version and ID Type",
+    y = "Total_IDs"
+  ) +
+  version_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+p_id_stacked_by_type <- ggplot(stacked_long_type, aes(x = group_by_type, y = count, fill = id_bucket)) +
+  geom_col(width = 0.8) +
+  geom_text(
+    aes(y = label_y, label = ifelse(count == 0, "", count)),
+    color = "black",
+    size = 2.8
+  ) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "ID Summary by ID Type and Data Version",
+    x = "ID Type and Data Version",
+    y = "Feature Count",
+    fill = "ID Count Class"
+  ) +
+  type_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+p_total_ids_by_type <- ggplot(id_summary_plot_df, aes(x = group_by_type, y = Total_IDs, fill = id_type)) +
+  geom_col(width = 0.8, show.legend = FALSE) +
+  geom_text(
+    aes(y = pmax(Total_IDs - 5, 0), label = ifelse(Total_IDs == 0, "", Total_IDs)),
+    color = "black",
+    size = 2.8,
+    fontface = "bold"
+  ) +
+  scale_fill_manual(values = id_type_colors) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "Total IDs by ID Type and Data Version",
+    x = "ID Type and Data Version",
+    y = "Total_IDs"
+  ) +
+  type_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+print(p_id_stacked_by_version)
+print(p_total_ids_by_version)
+print(p_id_stacked_by_type)
+print(p_total_ids_by_type)
+```
+```{r}
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_data_version.svg",
+  plot = p_id_stacked_by_version,
+  width = 16,
+  height = 8
+)
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_data_version.svg",
+  plot = p_total_ids_by_version,
+  width = 16,
+  height = 8
+)
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_id_type.svg",
+  plot = p_id_stacked_by_type,
+  width = 16,
+  height = 8
+)
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_id_type.svg",
+  plot = p_total_ids_by_type,
+  width = 16,
+  height = 8
+)
+```
+
+```{r}
+## ID summary plots with delta annotations (delta vs Original)
+
+id_summary_with_delta_df <- id_summary_plot_df %>%
+  group_by(id_type) %>%
+  arrange(data_version, .by_group = TRUE) %>%
+  mutate(
+    delta_no_ID = no_ID - lag(no_ID, default = first(no_ID)),
+    delta_Single_ID = Single_ID - lag(Single_ID, default = first(Single_ID)),
+    delta_Multiple_IDs = Multiple_IDs - lag(Multiple_IDs, default = first(Multiple_IDs)),
+    delta_Total_IDs = Total_IDs - lag(Total_IDs, default = first(Total_IDs))
+  ) %>%
+  ungroup()
+
+stacked_long_version_delta <- id_summary_with_delta_df %>%
+  pivot_longer(
+    cols = c(no_ID, Single_ID, Multiple_IDs),
+    names_to = "id_bucket",
+    values_to = "count"
+  ) %>%
+  mutate(
+    id_bucket = factor(id_bucket, levels = c("Multiple_IDs", "Single_ID", "no_ID")),
+    delta_value = case_when(
+      id_bucket == "no_ID" ~ delta_no_ID,
+      id_bucket == "Single_ID" ~ delta_Single_ID,
+      id_bucket == "Multiple_IDs" ~ delta_Multiple_IDs
+    )
+  ) %>%
+  group_by(group_by_version) %>%
+  arrange(id_bucket, .by_group = TRUE) %>%
+  mutate(label_y = cumsum(count) - count / 2) %>%
+  ungroup()
+
+stacked_long_type_delta <- id_summary_with_delta_df %>%
+  pivot_longer(
+    cols = c(no_ID, Single_ID, Multiple_IDs),
+    names_to = "id_bucket",
+    values_to = "count"
+  ) %>%
+  mutate(
+    id_bucket = factor(id_bucket, levels = c("Multiple_IDs", "Single_ID", "no_ID")),
+    delta_value = case_when(
+      id_bucket == "no_ID" ~ delta_no_ID,
+      id_bucket == "Single_ID" ~ delta_Single_ID,
+      id_bucket == "Multiple_IDs" ~ delta_Multiple_IDs
+    )
+  ) %>%
+  group_by(group_by_type) %>%
+  arrange(id_bucket, .by_group = TRUE) %>%
+  mutate(label_y = cumsum(count) - count / 2) %>%
+  ungroup()
+
+p_id_stacked_by_version_with_delta <- ggplot(stacked_long_version_delta, aes(x = group_by_version, y = count, fill = id_bucket)) +
+  geom_col(width = 0.8) +
+  geom_text(
+    aes(
+      y = label_y,
+      label = ifelse(count == 0 & delta_value == 0, "", paste0(count, "\nΔ", sprintf("%+d", delta_value)))
+    ),
+    color = "black",
+    size = 2.5,
+    lineheight = 0.9
+  ) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "ID Summary by Data Version and ID Type (with Δ vs Original)",
+    x = "Data Version and ID Type",
+    y = "Feature Count",
+    fill = "ID Count Class"
+  ) +
+  version_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+p_total_ids_by_version_with_delta <- ggplot(id_summary_with_delta_df, aes(x = group_by_version, y = Total_IDs, fill = id_type)) +
+  geom_col(width = 0.8, show.legend = FALSE) +
+  geom_text(
+    aes(
+      y = pmax(Total_IDs - 8, 0),
+      label = ifelse(Total_IDs == 0 & delta_Total_IDs == 0, "", paste0(Total_IDs, "\nΔ", sprintf("%+d", delta_Total_IDs)))
+    ),
+    color = "black",
+    size = 2.6,
+    fontface = "bold",
+    lineheight = 0.9
+  ) +
+  scale_fill_manual(values = id_type_colors) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "Total IDs by Data Version and ID Type (with Δ vs Original)",
+    x = "Data Version and ID Type",
+    y = "Total_IDs"
+  ) +
+  version_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+p_id_stacked_by_type_with_delta <- ggplot(stacked_long_type_delta, aes(x = group_by_type, y = count, fill = id_bucket)) +
+  geom_col(width = 0.8) +
+  geom_text(
+    aes(
+      y = label_y,
+      label = ifelse(count == 0 & delta_value == 0, "", paste0(count, "\nΔ", sprintf("%+d", delta_value)))
+    ),
+    color = "black",
+    size = 2.5,
+    lineheight = 0.9
+  ) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "ID Summary by ID Type and Data Version (with Δ vs Original)",
+    x = "ID Type and Data Version",
+    y = "Feature Count",
+    fill = "ID Count Class"
+  ) +
+  type_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+p_total_ids_by_type_with_delta <- ggplot(id_summary_with_delta_df, aes(x = group_by_type, y = Total_IDs, fill = id_type)) +
+  geom_col(width = 0.8, show.legend = FALSE) +
+  geom_text(
+    aes(
+      y = pmax(Total_IDs - 8, 0),
+      label = ifelse(Total_IDs == 0 & delta_Total_IDs == 0, "", paste0(Total_IDs, "\nΔ", sprintf("%+d", delta_Total_IDs)))
+    ),
+    color = "black",
+    size = 2.6,
+    fontface = "bold",
+    lineheight = 0.9
+  ) +
+  scale_fill_manual(values = id_type_colors) +
+  scale_x_discrete(drop = FALSE, labels = compact_bar_labels) +
+  labs(
+    title = "Total IDs by ID Type and Data Version (with Δ vs Original)",
+    x = "ID Type and Data Version",
+    y = "Total_IDs"
+  ) +
+  type_group_annotation +
+  coord_cartesian(clip = "off") +
+  bar_plot_theme
+
+print(p_id_stacked_by_version_with_delta)
+print(p_total_ids_by_version_with_delta)
+print(p_id_stacked_by_type_with_delta)
+print(p_total_ids_by_type_with_delta)
+```
+
+```{r}
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_data_version_with_delta.svg",
+  plot = p_id_stacked_by_version_with_delta,
+  width = 16,
+  height = 8
+)
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_data_version_with_delta.svg",
+  plot = p_total_ids_by_version_with_delta,
+  width = 16,
+  height = 8
+)
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_id_type_with_delta.svg",
+  plot = p_id_stacked_by_type_with_delta,
+  width = 16,
+  height = 8
+)
+ggsave(
+  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_id_type_with_delta.svg",
+  plot = p_total_ids_by_type_with_delta,
+  width = 16,
+  height = 8
+)
+
+```
+
+```{r}
+baseline_steps <- tibble::tribble(
+  ~from_version, ~to_version, ~step_label,
+  "original", "cleaned", "original -> cleaned",
+  "original", "traverse", "original -> traverse",
+  "original", "addEquivalent", "original -> addEquivalent"
+)
+
+delta_plot_df <- delta_df_Shorthouse %>%
+  mutate(parts = stringr::str_split(row_name, "_", simplify = TRUE)) %>%
+  mutate(
+    id_type = parts[, 2],
+    from_version = parts[, 3],
+    to_id_type = parts[, 4],
+    to_version = parts[, 5]
+  ) %>%
+  select(-parts) %>%
+  filter(
+    id_type %in% id_types,
+    from_version %in% data_versions,
+    to_version %in% data_versions
+  ) %>%
+  left_join(baseline_steps, by = c("from_version", "to_version")) %>%
+  filter(!is.na(step_label)) %>%
+  mutate(
+    id_type = factor(id_type, levels = id_types),
+    step_label = factor(step_label, levels = baseline_steps$step_label)
+  ) %>%
+  mutate(across(c(no_ID, Single_ID, Multiple_IDs, Total_IDs), ~ tidyr::replace_na(., 0)))
+
+## Plot 1: Total_IDs deltas vs Original (line plot)
+delta_total_df <- delta_plot_df %>%
+  filter(!is.na(Total_IDs))
+
+p_delta_total_vs_original <- ggplot(delta_total_df, aes(x = step_label, y = Total_IDs, color = id_type, group = id_type)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 2.4) +
+  geom_text(
+    aes(label = Total_IDs),
+    vjust = ifelse(delta_total_df$Total_IDs >= 0, -0.55, 1.25),
+    size = 2.8,
+    color = "black"
+  ) +
+  labs(
+    title = "Delta Total_IDs vs Original",
+    x = "Comparison",
+    y = "Delta Total_IDs",
+    color = "ID Type"
+  ) +
+  plot_theme
+
+## Plot 2: no_ID / Single_ID / Multiple_IDs deltas vs Original (line plot)
+delta_comp_long <- delta_plot_df %>%
+  select(id_type, step_label, no_ID, Single_ID, Multiple_IDs) %>%
+  pivot_longer(
+    cols = c(no_ID, Single_ID, Multiple_IDs),
+    names_to = "metric",
+    values_to = "delta"
+  ) %>%
+  filter(!is.na(delta)) %>%
+  mutate(metric = factor(metric, levels = c("no_ID", "Single_ID", "Multiple_IDs")))
+
+p_delta_comp_vs_original <- ggplot(delta_comp_long, aes(x = step_label, y = delta, color = metric, group = metric)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  geom_text(
+    aes(label = ifelse(delta == 0, "", delta)),
+    vjust = ifelse(delta_comp_long$delta >= 0, -0.45, 1.15),
+    size = 2.3,
+    color = "black"
+  ) +
+  facet_wrap(~ id_type, ncol = 2) +
+  labs(
+    title = "Delta Composition vs Original",
+    x = "Comparison",
+    y = "Delta Count",
+    color = "Metric"
+  ) +
+  plot_theme
+
+print(p_delta_total_vs_original)
+print(p_delta_comp_vs_original)
+```
+
+```{r rebuild_feature_metadata}
+
+features_Shorthouse_extended <- 
+    read.csv(
+        "../Results/Feature_processing/addEquivalent/features_Shorthouse_addEquivalent.csv", 
+        row.names=1, 
+        header = TRUE, 
+        encoding="UTF-8", 
+        check.names = FALSE
+    )
+
+Shorthouse_2022_extended <- Shorthouse_2022
+Shorthouse_2022_extended$features <- features_Shorthouse_extended
+
+save(Shorthouse_2022_extended, file = "../data/Shorthouse_2022_extended.RData")
+
+```
+
+```{r}
+# clean up
+gc()
+rm(list = ls())
+```
+
+```{r}
+sessionInfo()
+```
+
