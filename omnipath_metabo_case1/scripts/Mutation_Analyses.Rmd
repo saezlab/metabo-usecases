@@ -28,7 +28,7 @@ shorthouse_samples <- Shorthouse_2022_extended$samples
 shorthouse_features <- Shorthouse_2022_extended$features
 
 # create mutation_tokens column from mutated_genes in samples
-shorthouse_samples <-
+shorthouse_samples_working <-
     shorthouse_samples %>%
     mutate(
         mutation_tokens = mutated_genes %>%
@@ -62,10 +62,10 @@ shorthouse_samples <-
         )
     )
 
-Shorthouse_2022_extended$samples <- shorthouse_samples
+Shorthouse_2022_extended$samples <- shorthouse_samples_working
 save(Shorthouse_2022_extended, file = "../data/Shorthouse_2022_extended.RData")
 
-samples_lung <- shorthouse_samples %>%
+samples_lung <- shorthouse_samples_working %>%
     filter(is_lung_cell_line)
 
 samples_lung_KRAS <- samples_lung %>%
