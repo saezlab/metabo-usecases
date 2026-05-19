@@ -359,10 +359,10 @@ Shorthouse_2022$features <- features_Shorthouse
 ```
 
 ```{r}
-# harmonise the derived_from_site sample metadata
-# this data comes from cellosaurus and is very detailed.
-# Build:
-# 1) derived_from_site_general (anatomical generalisation)
+# harmonise sample site metadata
+# derived_from_site from Cellosaurus is anatomically precise, but for many cancer cell lines
+# it reflects the sampled material (e.g. body fluid) rather than the primary disease context.
+# Therefore, prioritise disease-driven assignment and only fall back to derived_from_site.
 
 site_rules <- tibble::tribble(
   ~pattern,                                                     ~general_site,
@@ -405,7 +405,35 @@ site_rules <- tibble::tribble(
   "^Soft tissue$|^Connective tissue$",                          "Soft tissue"
 )
 
-map_general_site <- function(x, rules = site_rules) {
+disease_rules <- tibble::tribble(
+  ~pattern,                                                                 ~general_site,
+  "lung|bronch|pleural|mesotheli",                                         "Lung/Pleura",
+  "bladder|urothel|urinary bladder",                                       "Urinary bladder",
+  "renal|kidney",                                                          "Kidney",
+  "pancrea|ampulla of vater",                                              "Pancreas",
+  "breast|mammary",                                                        "Breast",
+  "ovar",                                                                  "Ovary",
+  "prostate",                                                              "Prostate",
+  "colon|colorectal|cec",                                                  "Colon",
+  "rect",                                                                  "Rectum",
+  "glioblast|gliosarcoma|astrocyt|brain",                                  "Brain",
+  "leukemia|lymphoblastic|myeloid|myelogenous",                            "Blood",
+  "myeloma",                                                               "Bone marrow",
+  "melanoma",                                                              "Skin",
+  "thyroid",                                                               "Thyroid",
+  "adrenal",                                                               "Adrenal gland",
+  "esoph",                                                                 "Esophagus",
+  "laryn",                                                                 "Larynx",
+  "pharyn",                                                                "Pharynx",
+  "oral cavity",                                                           "Oral cavity",
+  "endomet|uter|cervi",                                                    "Uterus/Cervix/Endometrium",
+  "liver|hepat|bile duct|gallbladder|cholang",                             "Liver/Biliary",
+  "soft tissue|connective tissue|sarcoma",                                 "Soft tissue",
+  "bone",                                                                  "Bone"
+)
+
+map_by_rules <- function(x, rules) {
+  x <- as.character(x)
   out <- rep(NA_character_, length(x))
 
   for (i in seq_len(nrow(rules))) {
@@ -417,12 +445,23 @@ map_general_site <- function(x, rules = site_rules) {
   out
 }
 
-# include new general site mapping to sample metadata
+clean_disease_text <- function(x) {
+  x %>%
+    as.character() %>%
+    str_replace_all("\\[|\\]|'", "") %>%
+    str_replace_all("\bNA\b", "") %>%
+    str_replace_all("\\s*\\|\\|\\s*", "; ") %>%
+    str_squish() %>%
+    na_if("")
+}
 
 Shorthouse_2022$samples <-
     Shorthouse_2022$samples %>%
     mutate(
-        general_site = map_general_site(derived_from_site) 
+        disease_clean = clean_disease_text(disease),
+        general_site_disease = map_by_rules(disease_clean, disease_rules),
+        general_site_derived = map_by_rules(derived_from_site, site_rules),
+        general_site = coalesce(general_site_disease, general_site_derived)
     )
 
 ```

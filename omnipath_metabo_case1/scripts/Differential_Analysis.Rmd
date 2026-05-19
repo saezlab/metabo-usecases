@@ -5,7 +5,7 @@ date: "18 5 2026"
 output: html_document
 ---
 
-```{r library, include=FALSE}
+```{r library}
 library(dplyr)
 library(tibble)
 library(stringr)
@@ -24,6 +24,27 @@ load("../data/Shorthouse_2022_extended.RData")
 shorthouse_intensities <- Shorthouse_2022_extended$data_matrix
 shorthouse_samples <- Shorthouse_2022_extended$samples
 shorthouse_features <- Shorthouse_2022_extended$features
+
+shorthouse_repo_intensities <- read.csv("../data/Metabolite_levels_shorthouse.csv", check.names = FALSE) %>%
+    select(-1, -2) %>%
+    t() %>%
+    as.data.frame() %>%
+    rownames_to_column("ID")
+
+keep_idx <- shorthouse_repo_intensities$ID
+
+
+
+# write.csv(shorthouse_samples,
+#           "../Shorthouse_samples.csv",
+#           row.names = TRUE,
+#           fileEncoding = "UTF-8"
+# )
+# write.csv(shorthouse_intensities,
+#           "../Shorthouse_intensities.csv",
+#           row.names = TRUE,
+#           fileEncoding = "UTF-8"
+# )
 ```
 
 ```{r limma_differential_analysis}
@@ -32,52 +53,168 @@ shorthouse_features <- Shorthouse_2022_extended$features
 # 10 means top 10 and bottom 10, 20 total before deduplication
 n_extreme_features <- 10L
 
+slugify <- function(x) {
+    x %>%
+        tolower() %>%
+        str_replace_all("[^[:alnum:]]+", "_") %>%
+        str_replace_all("^_+|_+$", "")
+}
+
+# user config ---------------------------------------------------------------
+# Preselect the sample set you want to analyse.
+# analysis_samples <-
+#     shorthouse_samples %>%
+#     filter(
+#         is_lung_cell_line,
+#         !is.na(mutation_tokens)
+#     )
+analysis_samples <-
+    shorthouse_samples %>%
+    filter(
+        !is.na(general_site),
+        general_site == "Lung/Pleura"
+    )
+
+# - analysis_samples: the preselected dataframe
+# - comparison_kind: "mutation_token" or "column_value"
+# - contrast_column: e.g. "mutation_tokens" or "general_site"
+# - contrast_numerator
+# - contrast_denominator
+# - contrast_denominator_mode: "all_others" or "value"
+
+
+
+# comparison_group_var <- "comparison_group"
+# comparison_kind <- "mutation_token"
+# contrast_column <- "mutation_tokens"
+# contrast_numerator <- "TP53"
+# contrast_denominator <- "WT"
+# contrast_denominator_mode <- "all_others"
+
+
+comparison_group_var <- "comparison_group"
+
+comparison_kind <- "mutation_token"
+contrast_column <- "mutation_tokens"
+contrast_numerator <- "EGFR"
+contrast_denominator <- "WT"
+contrast_denominator_mode <- "all_others"
+plot_stat_mode <- "t_value"      # "adj_p" or "t_value"
+plot_adj_p_threshold <- 0.05
+plot_t_threshold <- 2
+# --------------------------------------------------------------------------
+
+comparison_label <- paste0(
+    slugify(contrast_numerator),
+    "_vs_",
+    slugify(contrast_denominator)
+)
+comparison_title <- paste0(contrast_numerator, " vs ", contrast_denominator)
+direction_up_label <- paste0("Up_in_", slugify(contrast_numerator))
+direction_down_label <- paste0("Down_in_", slugify(contrast_denominator))
+
 results_dir <- "../Results/Differential_Analysis"
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 
 stopifnot(identical(rownames(shorthouse_intensities), rownames(shorthouse_samples)))
 
-lung_samples <-
-    shorthouse_samples %>%
-    filter(
-        is_lung_cell_line,
-        !is.na(has_KRAS_mutation)
-    ) %>%
-    mutate(
-        kras_group = factor(
-            if_else(has_KRAS_mutation, "KRAS", "WT"),
-            levels = c("WT", "KRAS")
-        )
-    )
+if (comparison_kind == "mutation_token") {
+    stopifnot(contrast_denominator_mode == "all_others")
 
-lung_intensities <-
+    analysis_samples <-
+        analysis_samples %>%
+        mutate(
+            contrast_values = str_split(coalesce(as.character(.data[[contrast_column]]), ""), fixed(";")),
+            contrast_values = lapply(contrast_values, str_trim),
+            has_numerator = vapply(
+                contrast_values,
+                function(tokens) contrast_numerator %in% tokens,
+                logical(1)
+            ),
+            !!comparison_group_var := factor(
+                if_else(has_numerator, contrast_numerator, contrast_denominator),
+                levels = c(contrast_denominator, contrast_numerator)
+            )
+        )
+
+    source_counts <-
+        analysis_samples %>%
+        rownames_to_column("sample_id") %>%
+        select(sample_id, contrast_values) %>%
+        unnest(contrast_values) %>%
+        filter(contrast_values != "") %>%
+        distinct(sample_id, contrast_values) %>%
+        count(contrast_values, name = "n_samples") %>%
+        arrange(desc(n_samples), contrast_values)
+} else if (comparison_kind == "column_value") {
+    analysis_samples <-
+        analysis_samples %>%
+        mutate(
+            contrast_value = as.character(.data[[contrast_column]])
+        )
+
+    if (contrast_denominator_mode == "all_others") {
+        analysis_samples <-
+            analysis_samples %>%
+            mutate(
+                !!comparison_group_var := factor(
+                    if_else(contrast_value == contrast_numerator, contrast_numerator, contrast_denominator),
+                    levels = c(contrast_denominator, contrast_numerator)
+                )
+            )
+    } else if (contrast_denominator_mode == "value") {
+        analysis_samples <-
+            analysis_samples %>%
+            filter(contrast_value %in% c(contrast_numerator, contrast_denominator)) %>%
+            mutate(
+                !!comparison_group_var := factor(
+                    if_else(contrast_value == contrast_numerator, contrast_numerator, contrast_denominator),
+                    levels = c(contrast_denominator, contrast_numerator)
+                )
+            )
+    } else {
+        stop("contrast_denominator_mode must be 'all_others' or 'value'.")
+    }
+
+    source_counts <-
+        analysis_samples %>%
+        count(.data[[contrast_column]], name = "n_samples") %>%
+        arrange(desc(n_samples))
+} else {
+    stop("comparison_kind must be 'mutation_token' or 'column_value'.")
+}
+
+sample_summary <-
+    analysis_samples %>%
+    count(.data[[comparison_group_var]], name = "n_samples")
+
+stopifnot(all(levels(analysis_samples[[comparison_group_var]]) %in% sample_summary[[comparison_group_var]]))
+
+analysis_intensities <-
     shorthouse_intensities[
-        rownames(lung_samples),
+        rownames(analysis_samples),
         ,
         drop = FALSE
     ]
 
-lung_matrix_raw <- as.matrix(lung_intensities)
-storage.mode(lung_matrix_raw) <- "numeric"
+analysis_matrix_raw <- as.matrix(analysis_intensities)
+storage.mode(analysis_matrix_raw) <- "numeric"
 
-feature_positive_mask <- colSums(!is.finite(lung_matrix_raw) | lung_matrix_raw <= 0) == 0
-lung_matrix_positive <- lung_matrix_raw[, feature_positive_mask, drop = FALSE]
+feature_positive_mask <- colSums(!is.finite(analysis_matrix_raw) | analysis_matrix_raw <= 0) == 0
+analysis_matrix_positive <- analysis_matrix_raw[, feature_positive_mask, drop = FALSE]
 
-feature_variance_mask <- apply(lung_matrix_positive, 2, var, na.rm = TRUE) > 0
-lung_matrix_filtered <- lung_matrix_positive[, feature_variance_mask, drop = FALSE]
+feature_variance_mask <- apply(analysis_matrix_positive, 2, var, na.rm = TRUE) > 0
+analysis_matrix_filtered <- analysis_matrix_positive[, feature_variance_mask, drop = FALSE]
 
-exprs_log2 <- log2(t(lung_matrix_filtered))
+exprs_log2 <- log2(t(analysis_matrix_filtered))
 
 feature_annotations <-
     shorthouse_features %>%
     as.data.frame() %>%
     mutate(feature_id = paste0("V", seq_len(n())))
 
-sample_summary <-
-    lung_samples %>%
-    count(kras_group, name = "n_samples")
-
 sample_summary
+source_counts
 
 cat(
     "Retained features after filtering:", nrow(exprs_log2), "\n",
@@ -85,9 +222,10 @@ cat(
     "Removed for zero variance:", sum(!feature_variance_mask), "\n"
 )
 
-sample_order <- order(lung_samples$kras_group, lung_samples$name)
-lung_samples_ordered <- lung_samples[sample_order, , drop = FALSE]
-exprs_log2_ordered <- exprs_log2[, rownames(lung_samples_ordered), drop = FALSE]
+group_values <- analysis_samples[[comparison_group_var]]
+sample_order <- order(group_values, analysis_samples$name)
+analysis_samples_ordered <- analysis_samples[sample_order, , drop = FALSE]
+exprs_log2_ordered <- exprs_log2[, rownames(analysis_samples_ordered), drop = FALSE]
 
 plot_boxplot_df <-
     as.data.frame(t(exprs_log2_ordered)) %>%
@@ -98,18 +236,18 @@ plot_boxplot_df <-
         values_to = "log2_intensity"
     ) %>%
     left_join(
-        lung_samples_ordered %>%
+        analysis_samples_ordered %>%
             rownames_to_column("sample_id") %>%
-            select(sample_id, name, kras_group),
+            select(sample_id, name, all_of(comparison_group_var)),
         by = "sample_id"
     ) %>%
     mutate(sample_id = factor(sample_id, levels = unique(sample_id)))
 
 p_boxplot <-
-    ggplot(plot_boxplot_df, aes(x = sample_id, y = log2_intensity, fill = kras_group)) +
+    ggplot(plot_boxplot_df, aes(x = sample_id, y = log2_intensity, fill = .data[[comparison_group_var]])) +
     geom_boxplot(outlier.size = 0.15) +
     labs(
-        title = "Log2 intensity distribution by lung cell line",
+        title = "Log2 intensity distribution by selected samples",
         x = NULL,
         y = "Log2 intensity",
         fill = "Group"
@@ -124,7 +262,7 @@ p_boxplot <-
 print(p_boxplot)
 
 ggsave(
-    filename = file.path(results_dir, "lung_KRAS_vs_WT_boxplot.png"),
+    filename = file.path(results_dir, paste0(comparison_label, "_boxplot.png")),
     plot = p_boxplot,
     width = 12,
     height = 6,
@@ -138,18 +276,18 @@ pca_df <-
     as.data.frame(pca_fit$x[, 1:2, drop = FALSE]) %>%
     rownames_to_column("sample_id") %>%
     left_join(
-        lung_samples %>%
+        analysis_samples %>%
             rownames_to_column("sample_id") %>%
-            select(sample_id, name, kras_group),
+            select(sample_id, name, all_of(comparison_group_var)),
         by = "sample_id"
     )
 
 p_pca <-
-    ggplot(pca_df, aes(x = PC1, y = PC2, color = kras_group, label = name)) +
+    ggplot(pca_df, aes(x = PC1, y = PC2, color = .data[[comparison_group_var]], label = name)) +
     geom_point(size = 3) +
     geom_text(size = 3, vjust = -0.6, check_overlap = TRUE) +
     labs(
-        title = "PCA of lung cell line metabolite profiles",
+        title = paste0("PCA of metabolite profiles: ", comparison_title),
         x = paste0("PC1 (", round(pca_percent_var[1], 1), "%)"),
         y = paste0("PC2 (", round(pca_percent_var[2], 1), "%)"),
         color = "Group"
@@ -160,29 +298,33 @@ p_pca <-
 print(p_pca)
 
 ggsave(
-    filename = file.path(results_dir, "lung_KRAS_vs_WT_pca.png"),
+    filename = file.path(results_dir, paste0(comparison_label, "_pca.png")),
     plot = p_pca,
     width = 8,
     height = 6,
     dpi = 300
 )
 
-sample_annotation <- lung_samples_ordered %>% select(kras_group)
-rownames(sample_annotation) <- rownames(lung_samples_ordered)
+sample_annotation <- analysis_samples_ordered %>% select(all_of(comparison_group_var))
+rownames(sample_annotation) <- rownames(analysis_samples_ordered)
 
-pheatmap(
+heatmap <- pheatmap(
     mat = cor(exprs_log2_ordered, method = "pearson"),
     annotation_col = sample_annotation,
     annotation_row = sample_annotation,
-    main = "Sample correlation heatmap",
-    filename = file.path(results_dir, "lung_KRAS_vs_WT_sample_correlation_heatmap.png"),
+    main = paste0("Sample correlation heatmap: ", comparison_title),
+    filename = file.path(results_dir, paste0(comparison_label, "_sample_correlation_heatmap.png")),
     width = 8,
     height = 8
 )
 
-xdesign <- model.matrix(~ 0 + kras_group, data = lung_samples)
-colnames(design) <- levels(lung_samples$kras_group)
-contrast_matrix <- makeContrasts(KRAS - WT, levels = design)
+group_factor <- analysis_samples[[comparison_group_var]]
+design <- model.matrix(~ 0 + group_factor)
+colnames(design) <- make.names(levels(group_factor), unique = TRUE)
+contrast_matrix <- makeContrasts(
+    contrasts = paste0(make.names(contrast_numerator), " - ", make.names(contrast_denominator)),
+    levels = design
+)
 
 fit <- lmFit(exprs_log2, design)
 fit <- contrasts.fit(fit, contrast_matrix)
@@ -198,13 +340,58 @@ limma_results <-
     rownames_to_column("feature_id") %>%
     left_join(feature_annotations, by = "feature_id") %>%
     mutate(
-        kras_direction = case_when(
-            logFC > 0 ~ "Up_in_KRAS",
-            logFC < 0 ~ "Down_in_KRAS",
+        comparison_direction = case_when(
+            logFC > 0 ~ direction_up_label,
+            logFC < 0 ~ direction_down_label,
             TRUE ~ "Unchanged"
-        )
+        ),
+        neg_log10_adj_p = -log10(adj.P.Val)
     ) %>%
     arrange(adj.P.Val, desc(abs(logFC)))
+
+if (plot_stat_mode == "adj_p") {
+    limma_results <-
+        limma_results %>%
+        mutate(
+            plot_metric_value = neg_log10_adj_p,
+            plot_metric_flag = adj.P.Val < plot_adj_p_threshold
+        )
+} else if (plot_stat_mode == "t_value") {
+    limma_results <-
+        limma_results %>%
+        mutate(
+            plot_metric_value = abs(t),
+            plot_metric_flag = abs(t) >= plot_t_threshold
+        )
+} else {
+    stop("plot_stat_mode must be 'adj_p' or 't_value'.")
+}
+
+limma_results <-
+    limma_results %>%
+    mutate(plot_metric_label = if_else(plot_metric_flag, "Highlighted", "Background"))
+
+plot_metric_legend <- if (plot_stat_mode == "adj_p") {
+    paste0("adj.P.Val < ", plot_adj_p_threshold)
+} else if (plot_stat_mode == "t_value") {
+    paste0("|t| >= ", plot_t_threshold)
+} else {
+    stop("plot_stat_mode must be 'adj_p' or 't_value'.")
+}
+
+plot_metric_y_label <- if (plot_stat_mode == "adj_p") {
+    "-log10 adjusted p-value"
+} else {
+    "Moderated t-statistic"
+}
+
+plot_metric_hline <- if (plot_stat_mode == "adj_p") {
+    -log10(plot_adj_p_threshold)
+} else if (plot_stat_mode == "t_value") {
+    plot_t_threshold
+} else {
+    NULL
+}
 
 top_features <-
     limma_results %>%
@@ -224,34 +411,31 @@ extreme_features <-
 
 readr::write_csv(
     limma_results,
-    file.path(results_dir, "limma_lung_KRAS_vs_WT_results.csv")
+    file.path(results_dir, paste0("limma_", comparison_label, "_results.csv"))
 )
 readr::write_csv(
     top_features,
-    file.path(results_dir, paste0("limma_lung_KRAS_vs_WT_top_", n_extreme_features, ".csv"))
+    file.path(results_dir, paste0("limma_", comparison_label, "_top_", n_extreme_features, ".csv"))
 )
 readr::write_csv(
     bottom_features,
-    file.path(results_dir, paste0("limma_lung_KRAS_vs_WT_bottom_", n_extreme_features, ".csv"))
+    file.path(results_dir, paste0("limma_", comparison_label, "_bottom_", n_extreme_features, ".csv"))
 )
 readr::write_csv(
     extreme_features,
-    file.path(results_dir, paste0("limma_lung_KRAS_vs_WT_extreme_", 2 * n_extreme_features, ".csv"))
+    file.path(results_dir, paste0("limma_", comparison_label, "_extreme_", 2 * n_extreme_features, ".csv"))
 )
 
 volcano_df <-
     limma_results %>%
     mutate(
-        is_significant = adj.P.Val < 0.05,
-        label = if_else(feature_id %in% extreme_features$feature_id, feature_id, NA_character_),
-        neg_log10_adj_p = -log10(adj.P.Val)
+        label = if_else(feature_id %in% extreme_features$feature_id, feature_id, NA_character_)
     )
 
 p_volcano <-
-    ggplot(volcano_df, aes(x = logFC, y = neg_log10_adj_p, color = is_significant)) +
+    ggplot(volcano_df, aes(x = logFC, y = plot_metric_value, color = plot_metric_label)) +
     geom_point(alpha = 0.8) +
     geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "grey60") +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey60") +
     geom_text(
         aes(label = label),
         size = 3,
@@ -259,12 +443,13 @@ p_volcano <-
         check_overlap = TRUE,
         vjust = -0.5
     ) +
-    scale_color_manual(values = c(`TRUE` = "#C44E52", `FALSE` = "#4C72B0")) +
+    {if (!is.null(plot_metric_hline)) geom_hline(yintercept = plot_metric_hline, linetype = "dashed", color = "grey60") else NULL} +
+    scale_color_manual(values = c("Highlighted" = "#C44E52", "Background" = "#4C72B0")) +
     labs(
-        title = "Volcano plot: KRAS-mutant vs WT lung cell lines",
-        x = "Log2 fold-change (KRAS - WT)",
-        y = "-log10 adjusted p-value",
-        color = "adj.P.Val < 0.05"
+        title = paste0("Volcano plot: ", comparison_title),
+        x = paste0("Log2 fold-change (", contrast_numerator, " - ", contrast_denominator, ")"),
+        y = plot_metric_y_label,
+        color = plot_metric_legend
     ) +
     theme_minimal(base_size = 12) +
     theme(legend.position = "top")
@@ -272,7 +457,7 @@ p_volcano <-
 print(p_volcano)
 
 ggsave(
-    filename = file.path(results_dir, "lung_KRAS_vs_WT_volcano.png"),
+    filename = file.path(results_dir, paste0(comparison_label, "_volcano.png")),
     plot = p_volcano,
     width = 8,
     height = 6,
@@ -280,15 +465,15 @@ ggsave(
 )
 
 p_ma <-
-    ggplot(limma_results, aes(x = AveExpr, y = logFC, color = adj.P.Val < 0.05)) +
+    ggplot(limma_results, aes(x = AveExpr, y = logFC, color = plot_metric_label)) +
     geom_point(alpha = 0.8) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey60") +
-    scale_color_manual(values = c(`TRUE` = "#C44E52", `FALSE` = "#4C72B0")) +
+    scale_color_manual(values = c("Highlighted" = "#C44E52", "Background" = "#4C72B0")) +
     labs(
-        title = "MA plot: KRAS-mutant vs WT lung cell lines",
+        title = paste0("MA plot: ", comparison_title),
         x = "Average log2 expression",
-        y = "Log2 fold-change (KRAS - WT)",
-        color = "adj.P.Val < 0.05"
+        y = paste0("Log2 fold-change (", contrast_numerator, " - ", contrast_denominator, ")"),
+        color = plot_metric_legend
     ) +
     theme_minimal(base_size = 12) +
     theme(legend.position = "top")
@@ -296,7 +481,7 @@ p_ma <-
 print(p_ma)
 
 ggsave(
-    filename = file.path(results_dir, "lung_KRAS_vs_WT_MA.png"),
+    filename = file.path(results_dir, paste0(comparison_label, "_MA.png")),
     plot = p_ma,
     width = 8,
     height = 6,
@@ -318,7 +503,7 @@ heatmap_labels <-
     pull(heatmap_label)
 rownames(heatmap_matrix) <- heatmap_labels
 
-pheatmap(
+heatmap2 <- pheatmap(
     mat = heatmap_matrix,
     annotation_col = sample_annotation,
     scale = "row",
@@ -329,11 +514,12 @@ pheatmap(
         n_extreme_features,
         " and bottom ",
         n_extreme_features,
-        " differential features"
+        " differential features: ",
+        comparison_title
     ),
     filename = file.path(
         results_dir,
-        paste0("lung_KRAS_vs_WT_heatmap_top_bottom_", n_extreme_features, ".png")
+        paste0(comparison_label, "_heatmap_top_bottom_", n_extreme_features, ".png")
     ),
     width = 10,
     height = 8
@@ -341,9 +527,24 @@ pheatmap(
 
 list(
     sample_summary = sample_summary,
+    source_counts = source_counts,
     limma_results = limma_results,
     top_features = top_features,
     bottom_features = bottom_features,
     extreme_features = extreme_features
+)
+```
+
+```{r}
+# MPV dma
+library(MetaProViz)
+
+metadata_cols <- unique(c(comparison_group_var, contrast_column))
+
+DMA_res <- MetaProViz::dma(
+    data = analysis_intensities %>% .[order(rownames(.)), ],
+    metadata_sample = analysis_samples[, metadata_cols, drop = FALSE] %>% .[order(rownames(.)), ],
+    metadata_info = c(Conditions = comparison_group_var, Numerator = contrast_numerator, Denominator = contrast_denominator),
+    pval = "wilcox.test"
 )
 ```

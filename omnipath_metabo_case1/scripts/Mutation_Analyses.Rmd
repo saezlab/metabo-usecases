@@ -5,7 +5,7 @@ date: "18 5 2026"
 output: html_document
 ---
 
-```{r library, include=FALSe}
+```{r library, include=FALSE}
 library(magrittr)
 library(dplyr)
 library(readxl)
@@ -13,6 +13,9 @@ library(readr)
 library(tibble)
 library(stringr)
 library(purrr)
+library(tidyr)
+library(ggplot2)
+library(ggalluvial)
 ```
 
 ```{r load_Shorthouse_data}
@@ -20,13 +23,12 @@ load("../data/Shorthouse_2022_extended.RData")
 ```
 
 ```{r}
-
 shorthouse_intensities <- Shorthouse_2022_extended$data_matrix
 shorthouse_samples <- Shorthouse_2022_extended$samples
 shorthouse_features <- Shorthouse_2022_extended$features
 
 # create mutation_tokens column from mutated_genes in samples
-shorthouse_samples_test <-
+shorthouse_samples <-
     shorthouse_samples %>%
     mutate(
         mutation_tokens = mutated_genes %>%
@@ -35,15 +37,14 @@ shorthouse_samples_test <-
             str_replace_all("\\s*[;+]\\s*", ";") %>%
             strsplit(split = ";", fixed = TRUE) %>%
             sapply(function(tokens) {
-                
                 cleaned_tokens <-
                     tokens %>%
                     str_trim() %>%
                     str_to_upper() %>%
                     (\(x) x[x != ""])() %>%
                     unique()
-                
-                if(length(cleaned_tokens) == 0) {
+
+                if (length(cleaned_tokens) == 0) {
                     NA_character_
                 } else {
                     paste(cleaned_tokens, collapse = "; ")
@@ -52,10 +53,195 @@ shorthouse_samples_test <-
     ) %>%
     mutate(
         is_lung_cell_line = case_when(
-            
+            general_site == "Lung/Pleura" ~ TRUE,
+            TRUE ~ FALSE
         ),
-        has_KRAS_mutation = 
+        has_KRAS_mutation = case_when(
+            str_detect(mutation_tokens, "(^|;\\s*)KRAS($|;)") ~ TRUE,
+            TRUE ~ FALSE
+        )
     )
 
+Shorthouse_2022_extended$samples <- shorthouse_samples
+save(Shorthouse_2022_extended, file = "../data/Shorthouse_2022_extended.RData")
+
+samples_lung <- shorthouse_samples %>%
+    filter(is_lung_cell_line)
+
+samples_lung_KRAS <- samples_lung %>%
+    filter(has_KRAS_mutation)
+
+samples_lung_NO_KRAS <- samples_lung %>%
+    filter(!has_KRAS_mutation)
+
+
+```
+
+```{r}
+# investigate mutation co-occurrence with alluvial plots
+
+top_n_genes <- 20L
+
+build_alluvial_objects <- function(sample_df, cohort_label, anchor_gene = NULL, top_n = 6L) {
+    mutation_long <-
+        sample_df %>%
+        select(name, mutation_tokens) %>%
+        mutate(mutation_tokens = coalesce(mutation_tokens, "")) %>%
+        separate_rows(mutation_tokens, sep = "\\s*;\\s*") %>%
+        mutate(mutation_tokens = str_trim(mutation_tokens)) %>%
+        filter(mutation_tokens != "", !is.na(mutation_tokens)) %>%
+        distinct(name, mutation_tokens)
+
+    partner_counts <- mutation_long
+
+    if (!is.null(anchor_gene)) {
+        partner_counts <- partner_counts %>%
+            filter(mutation_tokens != anchor_gene)
+    }
+
+    partner_counts <- partner_counts %>%
+        count(mutation_tokens, sort = TRUE, name = "n_samples")
+
+    top_partners <- partner_counts %>%
+        slice_head(n = top_n) %>%
+        pull(mutation_tokens)
+
+    if (length(top_partners) == 0) {
+        return(list(
+            partner_counts = partner_counts,
+            top_partners = top_partners,
+            plot = NULL
+        ))
+    }
+
+    alluvial_wide <-
+        mutation_long %>%
+        filter(mutation_tokens %in% top_partners) %>%
+        mutate(value = TRUE) %>%
+        pivot_wider(
+            names_from = mutation_tokens,
+            values_from = value,
+            values_fill = FALSE
+        ) %>%
+        right_join(sample_df %>% select(name), by = "name") %>%
+        mutate(across(-name, ~ coalesce(.x, FALSE)))
+
+    gene_levels <- top_partners
+
+    if (!is.null(anchor_gene)) {
+        alluvial_wide <- alluvial_wide %>%
+            mutate(!!anchor_gene := TRUE)
+        gene_levels <- c(anchor_gene, top_partners)
+    }
+
+    alluvial_df <-
+        alluvial_wide %>%
+        pivot_longer(
+            cols = -name,
+            names_to = "gene",
+            values_to = "mutated"
+        ) %>%
+        mutate(
+            mutated = if_else(mutated, "Mutated", "Wildtype"),
+            gene = factor(gene, levels = gene_levels)
+        ) %>%
+        count(name, gene, mutated, name = "Freq")
+
+    subtitle_text <- paste0(
+        "Top ",
+        length(top_partners),
+        if (!is.null(anchor_gene)) {
+            paste0(" genes co-mutated with ", anchor_gene)
+        } else {
+            " mutated genes in this cohort"
+        }
+    )
+
+    plot_obj <-
+        ggplot(
+            alluvial_df,
+            aes(
+                x = gene,
+                stratum = mutated,
+                alluvium = name,
+                y = Freq,
+                fill = mutated,
+                label = mutated
+            )
+        ) +
+        geom_flow(alpha = 0.45, width = 0.2, color = "grey70") +
+        geom_stratum(width = 0.35, color = "grey35") +
+        geom_text(stat = "stratum", size = 3) +
+        scale_fill_manual(values = c(Mutated = "#C44E52", Wildtype = "#4C72B0")) +
+        labs(
+            title = paste0(cohort_label, " mutation co-occurrence"),
+            subtitle = subtitle_text,
+            x = NULL,
+            y = "Number of lung cell lines",
+            fill = NULL
+        ) +
+        theme_minimal(base_size = 12) +
+        theme(
+            panel.grid.major.x = element_blank(),
+            legend.position = "top"
+        )
+
+    list(
+        partner_counts = partner_counts,
+        top_partners = top_partners,
+        plot = plot_obj
+    )
+}
+
+kras_alluvial_obj <- build_alluvial_objects(
+    sample_df = samples_lung_KRAS,
+    cohort_label = "KRAS-mutant lung cell lines",
+    anchor_gene = "KRAS",
+    top_n = top_n_genes
+)
+
+no_kras_alluvial_obj <- build_alluvial_objects(
+    sample_df = samples_lung_NO_KRAS,
+    cohort_label = "Non-KRAS lung cell lines",
+    top_n = top_n_genes
+)
+
+all_lung_alluvial_obj <- build_alluvial_objects(
+    sample_df = samples_lung,
+    cohort_label = "All lung cell lines",
+    top_n = top_n_genes
+)
+
+if (!is.null(kras_alluvial_obj$plot)) {
+    print(kras_alluvial_obj$plot)
+} else {
+    message("No KRAS co-mutations detected in KRAS-mutant lung cell lines.")
+}
+
+kras_alluvial_obj$partner_counts
+
+if (!is.null(no_kras_alluvial_obj$plot)) {
+    print(no_kras_alluvial_obj$plot)
+} else {
+    message("No recurrent mutations detected in non-KRAS lung cell lines.")
+}
+
+no_kras_alluvial_obj$partner_counts
+
+if (!is.null(all_lung_alluvial_obj$plot)) {
+    print(all_lung_alluvial_obj$plot)
+} else {
+    message("No recurrent mutations detected across all lung cell lines.")
+}
+
+all_lung_alluvial_obj$partner_counts
+```
+
+```{r}
+gc()
+rm(list = ls())
+```
+```{r}
+sessionInfo()
 ```
 
