@@ -17,6 +17,30 @@ library(stringr)
 library(ggplot2)
 ```
 
+```{r prepare_cellosaurus}
+cellosaurus_path <- "../data/cellosaurus.txt"
+cellosaurus_url <- "https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt"
+
+if (!file.exists(cellosaurus_path)) {
+  raw_cellosaurus_path <- tempfile(fileext = ".txt")
+  download.file(cellosaurus_url, destfile = raw_cellosaurus_path, mode = "wb")
+
+  raw_lines <- readLines(raw_cellosaurus_path, warn = FALSE, encoding = "UTF-8")
+  if (length(raw_lines) <= 57) {
+    stop("Downloaded Cellosaurus file is shorter than expected.")
+  }
+
+  processed_lines <- raw_lines[-seq_len(57)]
+  writeLines(processed_lines, cellosaurus_path, useBytes = TRUE)
+}
+
+cellosaurus_first_line <- readLines(cellosaurus_path, n = 1, warn = FALSE, encoding = "UTF-8")
+if (length(cellosaurus_first_line) != 1 || !grepl("^ID\\s+#", cellosaurus_first_line)) {
+  stop("Prepared Cellosaurus file failed verification: expected the first line to start with 'ID   #'.")
+}
+```
+
+
 ```{r read_cellosaurus}
 ## read in cellosaurus flat file:
 # download https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt file and remove headers to get cellosaurus.txt
