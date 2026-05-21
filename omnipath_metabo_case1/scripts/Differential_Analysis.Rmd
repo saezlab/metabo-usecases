@@ -595,3 +595,13 @@ list(
     workbook_path = workbook_path
 )
 ```
+
+
+```{r}
+gc()
+rm(list = ls())
+```
+
+```{r}
+sessionInfo()
+```
