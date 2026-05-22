@@ -130,6 +130,12 @@ head(shorthouse_injections_collapsed)
 
 ```{r process_features}
 
+clean_collapse <- function(x) {
+    x <- unique(x)
+    x <- x[!is.na(x) & x != "NA" & x != "NS"]
+    str_c(x, collapse = "; ")
+}
+
 shorthouse_ions <- shorthouse_ions_raw %>%
     as.data.frame() %>%
     select(
@@ -143,25 +149,16 @@ shorthouse_ions <- shorthouse_ions_raw %>%
     ) %>%
     summarise(
         ionMz   = dplyr::first(ionMz),
-        hmdb    = str_c(unique(HMDB), collapse = "; "),
-        kegg    = str_c(unique(KEGG), collapse = "; "),
-        score   = str_c(unique(score), collapse = "; "),
-        formula = str_c(unique(formula), collapse = "; "),
-        ion     = str_c(unique(ion), collapse = "; "),
-        name    = str_c(unique(name), collapse = "; "),
-        
-        id_list = paste(
-            na.omit(c(unique(HMDB), unique(KEGG))),
-            collapse = "; "
-        ),
-        
+        hmdb    = clean_collapse(HMDB),
+        kegg    = clean_collapse(KEGG),
+        score   = clean_collapse(score),
+        formula = clean_collapse(formula),
+        ion     = clean_collapse(ion),
+        name    = clean_collapse(name),
+
+        id_list = clean_collapse(c(HMDB, KEGG)),
+
         .groups = "drop"
-    ) %>%
-    replace(
-        . == "NA", NA
-    ) %>%
-    replace(
-        . == "NS", NA
     )
 
 

@@ -58,6 +58,27 @@ feature_annotations <-
 shorthouse_samples_working <-
     shorthouse_samples %>%
     mutate(
+        mutation_tokens = mutated_genes %>%
+            as.character() %>%
+            coalesce("") %>%
+            str_replace_all("\\s*[;+]\\s*", ";") %>%
+            strsplit(split = ";", fixed = TRUE) %>%
+            sapply(function(tokens) {
+                cleaned_tokens <-
+                    tokens %>%
+                    str_trim() %>%
+                    str_to_upper() %>%
+                    (\(x) x[x != ""])() %>%
+                    unique()
+
+                if (length(cleaned_tokens) == 0) {
+                    NA_character_
+                } else {
+                    paste(cleaned_tokens, collapse = "; ")
+                }
+            })
+    ) %>%
+    mutate(
         mutation_tokens = coalesce(as.character(mutation_tokens), ""),
         has_EGFR_mutation = str_detect(mutation_tokens, "(^|;\\s*)EGFR($|;)"),
         has_KRAS_mutation = str_detect(mutation_tokens, "(^|;\\s*)KRAS($|;)"),

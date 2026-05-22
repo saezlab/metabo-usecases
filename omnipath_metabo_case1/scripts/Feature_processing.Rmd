@@ -348,11 +348,11 @@ partially_compatible_Shorthouse <- compatibility_by_feature_Shorthouse %>% filte
 completely_incompatible_Shorthouse <- compatibility_by_feature_Shorthouse %>% filter(compatibility_class == "completely_incompatible")
 # how many features are:
 # fully_compatible?
-length(unique(fully_compatible_Shorthouse$name)) # 495
+length(unique(fully_compatible_Shorthouse$name)) # 494
 # partially_compatible
-length(unique(partially_compatible_Shorthouse$name)) # 209
+length(unique(partially_compatible_Shorthouse$name)) # 353
 # completely_incompatible
-length(unique(completely_incompatible_Shorthouse$name)) # 392
+length(unique(completely_incompatible_Shorthouse$name)) # 249
 
 
 # save ID QC results
@@ -508,12 +508,108 @@ write.csv(
 )
 
 # merge back together ID_pair_compatibility for fully_compatible, partially_compatible
-merge_completely_and_partially_compatible_ID_pair_rows <- 
+merge_completely_and_partially_compatible_features <- 
     rbind(
         fully_compatible_id_pair_rows %>% mutate(sub_tbl = "fully_compatible"),
-        partially_compatible_id_pair_rows_filtered %>% mutate(sub_tbl = "partially_compatible")
-    )
-length(unique(merge_completely_and_partially_compatible_ID_pair_rows$ionIdx)) # 704 is correct
+        partially_compatible_id_pair_rows_filtered %>% 
+            mutate(sub_tbl = "partially_compatible") 
+    ) %>%
+    select(-id_list) %>%
+    group_by(original_row_id) %>%
+    summarise(
+        name       = dplyr::first(name),
+        ionIdx     = dplyr::first(ionIdx),
+        ionMz      = dplyr::first(ionMz),
+        score      = dplyr::first(score),
+        formula    = dplyr::first(formula),
+        ion        = dplyr::first(ion),
+        
+        seed1_list = {
+            x <- trimws(as.character(seed1_id))
+            x[x == ""] <- NA_character_
+            x <- unique(na.omit(x))
+            if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+        },
+        
+        seed2_list = {
+            x <- trimws(as.character(seed2_id))
+            x[x == ""] <- NA_character_
+            x <- unique(na.omit(x))
+            if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+        },
+        
+        sub_tbl = dplyr::first(sub_tbl),
+        metabolite_class = dplyr::first(metabolite_class),
+        hmdb_full = {
+            x <- trimws(as.character(HMDB))
+            x[x == ""] <- NA_character_
+            x <- unique(na.omit(x))
+            if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+        },
+        kegg_full = {
+            x <- trimws(as.character(KEGG))
+            x[x == ""] <- NA_character_
+            x <- unique(na.omit(x))
+            if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+        },
+        chebi_full = {
+            x <- trimws(as.character(CHEBI))
+            x[x == ""] <- NA_character_
+            x <- unique(na.omit(x))
+            if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+        },
+        pubchem_full = {
+            x <- trimws(as.character(PUBCHEM))
+            x[x == ""] <- NA_character_
+            x <- unique(na.omit(x))
+            if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+        },
+        
+        .groups = "drop"
+    ) %>%
+    mutate(
+        hmdb = if_else(sub_tbl == "fully_compatible", hmdb_full, NA_character_),
+        kegg = if_else(sub_tbl == "fully_compatible", kegg_full, NA_character_),
+        chebi = if_else(sub_tbl == "fully_compatible", chebi_full, NA_character_),
+        pubchem = if_else(sub_tbl == "fully_compatible", pubchem_full, NA_character_),
+        partial_id_list = apply(
+            cbind(seed1_list, seed2_list),
+            1,
+            \(x) {
+                x <- trimws(as.character(x))
+                x[x == ""] <- NA_character_
+                x <- unique(na.omit(x))
+                if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+            }
+        ),
+        full_id_list = apply(
+            cbind(hmdb, kegg, chebi, pubchem),
+            1,
+            \(x) {
+                x <- trimws(as.character(x))
+                x[x == ""] <- NA_character_
+                x <- unique(na.omit(x))
+                if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")
+            }
+        ),
+        # create new merged ID list
+        # for partially_compatible features, create merged list from seed1_list and seed2_list
+        # for fully_compatible features, create merged list from existing ID columns
+        id_list = case_when(
+            sub_tbl == "partially_compatible" ~ partial_id_list,
+            sub_tbl == "fully_compatible" ~ full_id_list,
+            TRUE ~ NA_character_
+        ),
+        # regenerate namespace-specific ID cols
+        hmdb = str_extract_all(id_list, "HMDB\\d+") %>% sapply(\(x) if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")),
+        kegg = str_extract_all(id_list, "C\\d+") %>% sapply(\(x) if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")),
+        chebi = str_extract_all(id_list, "CHEBI:\\d+") %>% sapply(\(x) if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")),
+        pubchem = str_extract_all(id_list, "CID\\d+") %>% sapply(\(x) if (length(x) == 0) NA_character_ else paste(x, collapse = "; ")),
+    ) %>%
+    select(-seed1_list, -seed2_list, -hmdb_full, -kegg_full, -chebi_full, -pubchem_full, -partial_id_list, -full_id_list)
+
+length(unique(merge_completely_and_partially_compatible_features$ionIdx)) # 847 is correct
+
 
 # summarize by original row id, rbind to completely_incompatible_data_with_compatibility_processed and construct the features_Shorthouse_cleaned from this
 
@@ -521,52 +617,9 @@ length(unique(merge_completely_and_partially_compatible_ID_pair_rows$ionIdx)) # 
 
 features_Shorthouse_cleaned <- 
     rbind(
-        merge_completely_and_partially_compatible_ID_pair_rows %>%
-            select(-hmdb_kegg) %>%
-            group_by(original_row_id) %>%
-            summarise(
-                name       = first(name),
-                ionIdx     = first(ionIdx),
-                ionMz      = first(ionMz),
-                score      = first(score),
-                formula    = first(formula),
-                ion        = first(ion),
-                
-                hmdb = {
-                    x <- trimws(as.character(HMDB))
-                    x[x == ""] <- NA_character_
-                    x <- unique(na.omit(x))
-                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
-                },
-                kegg = {
-                    x <- trimws(as.character(KEGG))
-                    x[x == ""] <- NA_character_
-                    x <- unique(na.omit(x))
-                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
-                },
-                chebi = {
-                    x <- trimws(as.character(CHEBI))
-                    x[x == ""] <- NA_character_
-                    x <- unique(na.omit(x))
-                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
-                },
-                pubchem = {
-                    x <- trimws(as.character(PUBCHEM))
-                    x[x == ""] <- NA_character_
-                    x <- unique(na.omit(x))
-                    if (length(x) == 0) NA_character_ else paste(x, collapse = ", ")
-                },
-                
-                sub_tbl = first(sub_tbl),
-                metabolite_class = first(metabolite_class),
-                
-                .groups = "drop"
-            ) %>%
-            select(
-                - original_row_id
-            ),
+        merge_completely_and_partially_compatible_features %>% select(-original_row_id),
         completely_incompatible_data_with_compatibility_processed %>%
-            select(-all_seed_ids_compatible, -hmdb_kegg)
+            select(-all_seed_ids_compatible)
     ) %>%
     arrange(ionIdx)
 
