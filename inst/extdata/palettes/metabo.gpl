@@ -1,0 +1,16 @@
+GIMP Palette
+Name: metabo.gpl
+Columns: 1
+# Lead categorical palette for the OmniPath Metabo manuscript figures.
+# Canonical order; #BEBEBE (grey) is reserved for None/Unknown/NA per FR-020.
+# See specs/001-figures-pipeline/spec.md (FR-020, FR-020a) and
+# https://github.com/saezlab/graphics/palettes/metabo.gpl
+  0 99 132	Teal
+159  1 98	Magenta
+254 175 22	Amber
+187 204 51	Lime
+234 101 114	Coral
+  0 158 115	Green
+153 221 255	Sky
+208  50 147	Pink
+190 190 190	Grey (None/Unknown)

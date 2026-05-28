@@ -1,0 +1,92 @@
+name: rebuild
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: omnipath_test
+          POSTGRES_USER: omnipath
+          POSTGRES_PASSWORD: omnipath
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: omnipath_test
+      PGUSER: omnipath
+      PGPASSWORD: omnipath
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::devtools
+            any::lintr
+            any::testthat
+            any::jsonvalidate
+            any::withr
+            any::processx
+            bioc::OmnipathR
+
+      - name: Set up Python (uv)
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install Python helpers
+        run: |
+          cd python
+          uv venv .venv
+          uv pip install -e .
+
+      - name: Install LaTeX + pdftk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+              texlive-xetex texlive-latex-extra texlive-fontsextra pdftk-java
+
+      - name: Load test fixture
+        run: psql -h localhost -U omnipath -d omnipath_test -f tests/fixtures/omnipath-mini.sql
+
+      - name: Configure project-local connection
+        run: |
+          cat > connection.yaml <<EOF
+          deployment: dev3
+          credentials_source: env
+          EOF
+
+      - name: Lint
+        run: Rscript -e 'lintr::lint_package()'
+
+      - name: R CMD check
+        run: Rscript -e 'devtools::check(error_on = "warning")'
+
+      - name: testthat
+        run: Rscript -e 'devtools::test(stop_on_failure = TRUE)'
+
+      - name: Dry-run rebuild
+        run: ./rebuild.sh --dry-run
+
+      - name: Tail unified log on failure
+        if: failure()
+        run: tail -n 200 logs/latest.log || true

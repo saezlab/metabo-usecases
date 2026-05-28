@@ -1,0 +1,8 @@
+# Copy to ~/.config/metabo-figures/connection.yaml (or to project root as
+# `connection.yaml` — gitignored — for project-local override).
+#
+# See CONFIGURATION.md for the full schema.
+
+deployment: dev3                # prod | dev2 | dev3 | dev4 | dev5
+credentials_source: env         # env | file | pgpass
+credentials_path: null          # required when credentials_source == "file"

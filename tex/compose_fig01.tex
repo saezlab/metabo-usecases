@@ -1,0 +1,72 @@
+% tex/compose_fig01.tex
+%
+% Figure 1 composite — Panel A (TikZ-built architecture) on top, with
+% Panels B–F (ggplot-rendered PDFs) below in a 3-row × 2-column grid.
+% Uses pdfpages for vector-native PDF placement (research.md R-2).
+%
+% Invoked by figures/fig01-overview/build.R via the rebuild driver →
+% R/compose/mixed_source.R::compose_mixed_source(mode = "pdf", ...).
+%
+% Panel input paths are written relative to the repo root; the rebuild
+% driver runs xelatex with -output-directory pointed at the figure's
+% out/ folder.
+
+\documentclass[paper = letter]{article}
+
+\usepackage[paper = letter, margin = 8mm]{geometry}
+\usepackage{compose_helpers}
+\usepackage{pdfpages}
+
+\pagestyle{empty}
+
+\begin{document}
+
+% Panel A — full-width architecture.
+\includepdf[
+    pages       = 1,
+    fitpaper    = false,
+    pagecommand = {\panellabel{A}},
+    width       = \doublecolwidth
+]{tikz/fig1a_architecture.pdf}
+
+% Panel B — entities by resource.
+\includepdf[
+    pages       = 1,
+    fitpaper    = false,
+    pagecommand = {\panellabel{B}},
+    width       = \singlecolwidth
+]{figures/fig01-overview/out/panelB.pdf}
+
+% Panel C — interactions by resource.
+\includepdf[
+    pages       = 1,
+    fitpaper    = false,
+    pagecommand = {\panellabel{C}},
+    width       = \singlecolwidth
+]{figures/fig01-overview/out/panelC.pdf}
+
+% Panel D — interactions by type.
+\includepdf[
+    pages       = 1,
+    fitpaper    = false,
+    pagecommand = {\panellabel{D}},
+    width       = \singlecolwidth
+]{figures/fig01-overview/out/panelD.pdf}
+
+% Panel E — annotation classes by resource.
+\includepdf[
+    pages       = 1,
+    fitpaper    = false,
+    pagecommand = {\panellabel{E}},
+    width       = \singlecolwidth
+]{figures/fig01-overview/out/panelE.pdf}
+
+% Panel F — ontology terms by ontology.
+\includepdf[
+    pages       = 1,
+    fitpaper    = false,
+    pagecommand = {\panellabel{F}},
+    width       = \singlecolwidth
+]{figures/fig01-overview/out/panelF.pdf}
+
+\end{document}

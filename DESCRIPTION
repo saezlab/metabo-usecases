@@ -1,0 +1,55 @@
+Package: metabo.figures
+Title: OmniPath Metabo Manuscript Figures and Tables Pipeline
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Dénes", "Türei", email = "turei.denes@gmail.com", role = c("aut", "cre")),
+    person("Boglárka", "Várkonyi-Sepp", role = "aut"),
+    person("Christina", "Schmidt", role = "aut"),
+    person("Yunfan", "Bai", role = "aut"),
+    person("Saez Lab", role = c("cph", "fnd"))
+    )
+Description: Reproducible pipeline that regenerates every figure and table for
+    the OmniPath Metabo manuscript (main text and supplementary) from a
+    pinned OmniPath Postgres snapshot. Plots are ggplot2 + tidyverse; the
+    Figure 1A workflow-architecture diagram is TikZ compiled with xelatex;
+    composites are assembled automatically via patchwork, LaTeX pdfpages,
+    svgutils, and pdftk. See specs/001-figures-pipeline/ in the
+    saezverse repository for the spec, plan, contracts, and quickstart.
+License: BSD_3_clause + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.3)
+Imports:
+    cli,
+    DBI,
+    digest,
+    dplyr,
+    fs,
+    ggplot2,
+    gt,
+    jsonlite,
+    logger,
+    magrittr,
+    OmnipathR,
+    patchwork,
+    progress,
+    purrr,
+    readr,
+    rlang,
+    RPostgres,
+    RSQLite,
+    stringr,
+    tibble,
+    tidyr,
+    yaml
+Suggests:
+    devtools,
+    jsonvalidate,
+    lintr,
+    roxygen2,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+URL: https://github.com/saezlab/metabo-usecases
+BugReports: https://github.com/saezlab/metabo-usecases/issues

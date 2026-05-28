@@ -1,0 +1,54 @@
+% tikz/components/columns.tex
+%
+% Helpers for the utils | main | metabo three-column split used in
+% bands 3–5 of Figure 1 Panel A (FR-005c, FR-005d, FR-005e).
+%
+% Coordinate convention:
+%   - x = 0 is the page centerline; columns sit at x = -55mm, 0, +55mm
+%     by default.
+%   - y decreases downward; one band occupies ~25mm of vertical space.
+% Override with \setcolumnxs / \setbandys before \input{components/columns}.
+
+\newlength{\colspacing}    \setlength{\colspacing}{55mm}
+\newlength{\bandheight}    \setlength{\bandheight}{22mm}
+
+% \utilsx / \mainx / \metabox — column centerline x coordinates.
+\newcommand{\utilsx}{-\colspacing}
+\newcommand{\mainx}{0pt}
+\newcommand{\metabox}{\colspacing}
+
+% \bandtop{N} — top y coordinate of band N (counted from 1 at the top).
+\newcommand{\bandtop}[1]{- (#1 - 1) * \bandheight}
+\newcommand{\bandmid}[1]{- (#1 - 0.5) * \bandheight}
+
+% Lateral arrow style — for utils → main, utils → metabo, main →
+% metabo arrows at the same band height.
+\tikzset{
+    lateral/.style = {
+        thick,
+        -{Latex[length=2.5mm, width=2mm]},
+        color = black!70
+    },
+    downstream/.style = {
+        thick,
+        -{Latex[length=2.5mm, width=2mm]},
+        color = black!85
+    },
+    shortcut/.style = {
+        thick, dashed,
+        -{Latex[length=2.5mm, width=2mm]},
+        color = paletteunknown!80!black
+    },
+    planned/.style = {
+        thick, densely dashdotted,
+        -{Latex[length=2.5mm, width=2mm]},
+        color = paletteamber!80!black
+    }
+}
+
+% \bandlabel{<text>} placed in the left margin at the current y.
+\newcommand{\bandlabel}[2]{%
+    \node[anchor = east, font = \sffamily\small\bfseries,
+          text width = 26mm, align = right]
+        at (-\colspacing - 35mm, #1) {#2};
+}

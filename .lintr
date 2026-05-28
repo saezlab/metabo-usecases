@@ -1,0 +1,30 @@
+linters: linters_with_defaults(
+    line_length_linter = line_length_linter(80L),
+    absolute_path_linter = absolute_path_linter(),
+    T_and_F_symbol_linter = T_and_F_symbol_linter(),
+    object_name_linter = object_name_linter(styles = "snake_case"),
+    semicolon_linter = semicolon_linter(),
+    seq_linter = seq_linter(),
+    todo_comment_linter = NULL,
+    commented_code_linter = NULL,
+    cyclocomp_linter = cyclocomp_linter(complexity_limit = 25L),
+    undesirable_function_linter = undesirable_function_linter(
+        fun = c(
+            "print" = "use logger::log_info or logger::log_debug",
+            "cat" = "use logger::log_info or logger::log_debug",
+            "message" = "use logger::log_info or logger::log_warn",
+            "ifelse" = "use dplyr::if_else for type safety",
+            "sapply" = "use purrr::map_* for type safety",
+            "vapply" = "use purrr::map_* for tidyverse consistency"
+        )
+    )
+)
+exclusions: list(
+    "inst/extdata",
+    "tests/fixtures",
+    "tikz",
+    "tex",
+    "python",
+    "logs",
+    "out"
+)

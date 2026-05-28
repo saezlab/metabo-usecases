@@ -1,0 +1,63 @@
+% tex/compose_helpers.sty
+%
+% Composite-assembly helpers used by the pdfpages-based composite
+% templates (e.g. tex/compose_fig01.tex). All assembly is scripted —
+% no GUI editor steps for pipeline composites (constitution
+% Principle III).
+%
+% See specs/001-figures-pipeline/contracts/rebuild-cli.md and the
+% Figure-1A reference at
+% ~/omnipath_figures/omnipath-architecture-legacy2025-v1.svg.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{compose_helpers}[2026/05/28 v0.2 metabo.figures composite helpers]
+
+\RequirePackage{pdfpages}
+\RequirePackage{graphicx}
+\RequirePackage{tikz}
+\RequirePackage{xcolor}
+\RequirePackage{geometry}
+\RequirePackage{fontspec}
+
+\usetikzlibrary{positioning, calc, fit, backgrounds}
+
+% Lead palette colours from FR-020 — same identifiers as
+% R/style/palettes.R so figure scripts and TikZ source share names.
+\definecolor{paletteteal}    {HTML}{006384}
+\definecolor{palettemagenta} {HTML}{9F0162}
+\definecolor{paletteamber}   {HTML}{FEAF16}
+\definecolor{palettelime}    {HTML}{BBCC33}
+\definecolor{palettecoral}   {HTML}{EA6572}
+\definecolor{palettegreen}   {HTML}{009E73}
+\definecolor{palettesky}     {HTML}{99DDFF}
+\definecolor{palettepink}    {HTML}{D03293}
+\definecolor{paletteunknown} {HTML}{BEBEBE}
+
+% Sans-serif typography matching FR-017a — Arial / Helvetica preferred,
+% fall back to TeX Gyre Heros which ships with most TeX Live installs.
+\setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]
+\renewcommand{\familydefault}{\sfdefault}
+
+% Standard widths from FR-017a.
+\newcommand{\singlecolwidth}{89mm}
+\newcommand{\doublecolwidth}{180mm}
+
+% \panellabel{<letter>} — capital-letter panel label, sans-serif bold,
+% positioned at the top-left of the surrounding page or node.
+\newcommand{\panellabel}[1]{%
+    \begin{tikzpicture}[remember picture, overlay]
+        \node[anchor=north west,
+              font=\sffamily\bfseries\large,
+              inner sep=4pt]
+            at (current page.north west) {\textbf{#1}};
+    \end{tikzpicture}%
+}
+
+% \composesinglerow{<width>}{<paths>} — overlay multiple PDFs at the
+% same page row, comma-separated. Wrapped pdfpages call so callers do
+% not have to repeat options.
+\newcommand{\composesinglerow}[2]{%
+    \includepdf[width=#1, nup=2x1, frame=false, pages=-]{#2}%
+}
+
+\endinput

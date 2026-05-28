@@ -1,0 +1,28 @@
+[project]
+name = "metabo-figures-helpers"
+version = "0.0.0"
+description = "Python helpers shelled from the metabo.figures R pipeline (SVG composition, Postgres helpers, COSMOS PKN refactor)"
+requires-python = ">=3.11"
+dependencies = [
+    "pyarrow>=15.0.0",
+    "psycopg[binary]>=3.1.0",
+    "svgutils>=0.3.4",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+    "pytest>=8.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP"]
+ignore = []

@@ -1,11 +1,66 @@
-.Rproj.user
+# R
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
+*.Rproj
+.Rcheck/
+packrat/
+renv/library/
+renv/local/
+renv/lock/
+renv/python/
+renv/staging/
+
+# Existing case-study artifacts (kept from prior .gitignore)
 omnipath_metabo_case1/omnipath_metabo_case1.Rproj
 omnipath_metabo_case1/.Rhistory
 omnipath_metabo_case1/.RData
 omnipath_metabo_case1/.Ruserdata
 omnipath_metabo_case1/data/cellosaurus.txt
 omnipath_metabo_case1/data/cellosaurus_entry_lookup.RData
+
+# Python (uv-managed)
+**/__pycache__/
+*.pyc
+*.pyo
+.venv/
+python/.venv/
+*.egg-info/
+
+# LaTeX intermediate
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.out
+*.nav
+*.snm
+*.bbl
+*.blg
+
+# Pipeline runtime
+logs/rebuild-*.log
+logs/orphan-*.log
+logs/latest.log
+**/out/
+manifests/*.json
+manifests/*.SHA256
+manuscript-bundle.pdf
+
+# Environment
 .env
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Keep the directories themselves
+!logs/.gitkeep
+!manifests/.gitkeep
+!**/out/.gitkeep
