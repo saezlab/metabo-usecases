@@ -81,5 +81,10 @@ pkgs.mkShell {
     # carries the user's ~/R library; prepend system PATH so it wins
     # over any R we accidentally pull in transitively.
     export PATH="/run/current-system/sw/bin:$PATH"
+
+    # R V8 package: tell it to fetch a static libv8 rather than look
+    # for a system one (nixpkgs has no top-level v8 attribute, and
+    # jsonvalidate / juicyjuice / gt depend on V8).
+    export DOWNLOAD_STATIC_LIBV8=1
   '';
 }
