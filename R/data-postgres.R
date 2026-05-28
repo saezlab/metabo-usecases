@@ -105,7 +105,14 @@ resolve_credentials <- function(source, path = NULL) {
 #' @export
 pg_query <- function(con, sql, ...) {
 
-    rows <- tibble::as_tibble(DBI::dbGetQuery(con, sql, params = list(...)))
+    params <- list(...)
+    rows <- tibble::as_tibble(
+        if (length(params) == 0L) {
+            DBI::dbGetQuery(con, sql)
+        } else {
+            DBI::dbGetQuery(con, sql, params = params)
+        }
+    )
 
     hash <- substr(
         digest::digest(rows, algo = "sha256", serialize = TRUE),

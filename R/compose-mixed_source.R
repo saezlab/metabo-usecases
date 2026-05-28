@@ -74,30 +74,50 @@ compose_pdf <- function(spec, work_dir) {
         ))
     }
 
-    component <- spec$component %||% "compose:pdf"
+    fs::dir_create(work_dir)
+    xelatex_log <- file.path(work_dir, "compose_xelatex.log")
 
-    sh <- sprintf(
-        paste0(
-            "set -e; source lib/log.sh; ",
-            "log_xelatex_capture '%s' xelatex ",
-            "-interaction=nonstopmode ",
-            "-output-directory='%s' '%s'"
-        ),
-        component,
-        normalizePath(work_dir, mustWork = FALSE),
-        normalizePath(spec$template, mustWork = TRUE)
+    # Copy the template + compose_helpers.sty into the work_dir and
+    # invoke xelatex with that as the CWD, so panel paths in the
+    # template are bare basenames resolved from the panel artifacts'
+    # own directory (FR-005a layout: each figure folder has out/).
+    template_basename <- basename(spec$template)
+    file.copy(spec$template,
+              file.path(work_dir, template_basename),
+              overwrite = TRUE)
+    sty_src <- "tex/compose_helpers.sty"
+    if (file.exists(sty_src)) {
+        file.copy(sty_src,
+                  file.path(work_dir, "compose_helpers.sty"),
+                  overwrite = TRUE)
+    }
+
+    # normalizePath() with mustWork = FALSE leaves missing files
+    # un-resolved; spell out the absolute log path so it survives
+    # the setwd() below.
+    abs_workdir <- normalizePath(work_dir, mustWork = TRUE)
+    abs_log     <- file.path(abs_workdir, basename(xelatex_log))
+    old_wd <- setwd(abs_workdir)
+    on.exit(setwd(old_wd), add = TRUE)
+
+    logger::log_info("xelatex in {abs_workdir}")
+    rc <- system2(
+        "xelatex",
+        c("-interaction=nonstopmode", template_basename),
+        stdout = abs_log,
+        stderr = abs_log
     )
 
-    rc <- system2("bash", c("-c", sh))
     if (rc != 0L) {
         rlang::abort(sprintf(
             "xelatex composite step failed (rc=%d) — see %s",
-            rc, Sys.getenv("METABO_FIGURES_LOG")
+            rc, xelatex_log
         ))
     }
 
-    # xelatex writes <template_basename>.pdf next to the .tex; move/copy
+    # xelatex writes <template_basename>.pdf in the work_dir; copy
     # into the requested output path if they differ.
+    setwd(old_wd)
     template_pdf <- file.path(
         work_dir,
         sub("\\.tex$", ".pdf", basename(spec$template))

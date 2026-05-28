@@ -20,19 +20,29 @@ fs::dir_create(out_dir)
 
 deployment <- load_connection()
 con <- pg_connect()
-on.exit(DBI::dbDisconnect(con), add = TRUE)
 
+# ---- Manifest --------------------------------------------------------------
+
+logger::log_info("Deriving main build manifest")
 main_manifest <- build_manifest_for(con, "main")
 sid_main <- write_manifest(main_manifest)
 logger::log_info("Using main snapshot {sid_main}")
 
 # ---- Data ------------------------------------------------------------------
 
-logger::log_info("Querying database content")
+logger::log_info("Querying Panel B (entities_by_resource)")
 data_b <- entities_by_resource(con)
+
+logger::log_info("Querying Panel C (interactions_by_resource)")
 data_c <- interactions_by_resource(con)
+
+logger::log_info("Querying Panel D (interactions_by_type)")
 data_d <- interactions_by_type(con)
+
+logger::log_info("Querying Panel E (annotation_classes_by_resource)")
 data_e <- annotation_classes_by_resource(con)
+
+logger::log_info("Querying Panel F (ontology_terms_by_ontology)")
 data_f <- ontology_terms_by_ontology(con)
 
 queries <- list(
@@ -43,18 +53,38 @@ queries <- list(
     query_record(data_f)
 )
 
-# Register the resources that appear in this snapshot. We register
-# only what we see — the assertive accessor catches anything else.
+# Register the categories that appear in this snapshot. The
+# assertive accessor catches anything else.
 all_resources <- unique(c(
     data_b$resource, data_c$resource, data_e$resource
 ))
-register_category_colours(
-    "resources",
-    setNames(
-        palette_n(length(all_resources), unknown = FALSE),
-        all_resources
+if (length(all_resources) > 0L) {
+    register_category_colours(
+        "resources",
+        setNames(
+            palette_n(length(all_resources), unknown = FALSE),
+            all_resources
+        )
     )
+}
+
+all_interactions <- unique(data_d$interaction_type)
+new_interactions <- setdiff(
+    all_interactions,
+    registered_category_values("interaction_types")
 )
+if (length(new_interactions) > 0L) {
+    register_category_colours(
+        "interaction_types",
+        setNames(
+            palette_n(
+                length(new_interactions),
+                unknown = FALSE
+            ),
+            new_interactions
+        )
+    )
+}
 
 # ---- Panels B–F ------------------------------------------------------------
 
@@ -83,15 +113,21 @@ for (name in names(panels)) {
 # ---- Panel A (TikZ + xelatex) ----------------------------------------------
 
 logger::log_info("Compiling Panel A (TikZ → xelatex)")
-sh <- paste0(
-    "source lib/log.sh && ",
-    "log_xelatex_capture xelatex:fig01a xelatex ",
-    "-interaction=nonstopmode ",
-    "-output-directory=", shQuote(out_dir), " ",
-    "tikz/fig1a_architecture.tex"
+xelatex_log <- file.path(out_dir, "fig1a_xelatex.log")
+rc <- system2(
+    "xelatex",
+    c(
+        "-interaction=nonstopmode",
+        sprintf("-output-directory=%s", out_dir),
+        "tikz/fig1a_architecture.tex"
+    ),
+    stdout = xelatex_log,
+    stderr = xelatex_log
 )
-rc <- system2("bash", c("-c", sh))
 if (rc != 0L) {
+    logger::log_error(
+        "Panel A xelatex failed (rc={rc}); see {xelatex_log}"
+    )
     rlang::abort(sprintf("Panel A xelatex failed (rc = %d)", rc))
 }
 file.copy(
@@ -99,6 +135,7 @@ file.copy(
     file.path(out_dir, "panelA.pdf"),
     overwrite = TRUE
 )
+logger::log_info("Panel A compiled")
 
 # ---- Composite -------------------------------------------------------------
 
@@ -146,4 +183,5 @@ write_sidecar(
     seed           = pipeline_seed()
 )
 
+DBI::dbDisconnect(con)
 logger::log_info("fig01-overview complete")

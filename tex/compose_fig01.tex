@@ -11,9 +11,9 @@
 % driver runs xelatex with -output-directory pointed at the figure's
 % out/ folder.
 
-\documentclass[paper = letter]{article}
+\documentclass[letterpaper]{article}
 
-\usepackage[paper = letter, margin = 8mm]{geometry}
+\usepackage[letterpaper, margin = 8mm]{geometry}
 \usepackage{compose_helpers}
 \usepackage{pdfpages}
 
@@ -21,52 +21,26 @@
 
 \begin{document}
 
-% Panel A — full-width architecture.
-\includepdf[
-    pages       = 1,
-    fitpaper    = false,
-    pagecommand = {\panellabel{A}},
-    width       = \doublecolwidth
-]{tikz/fig1a_architecture.pdf}
+% Each panel is included as a single page; build.R copies this file
+% into the figure's out/ directory before invoking xelatex, so the
+% panel paths are bare basenames resolving from there.
 
-% Panel B — entities by resource.
-\includepdf[
-    pages       = 1,
-    fitpaper    = false,
-    pagecommand = {\panellabel{B}},
-    width       = \singlecolwidth
-]{figures/fig01-overview/out/panelB.pdf}
+\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{A}},
+    width=\doublecolwidth]{panelA.pdf}
 
-% Panel C — interactions by resource.
-\includepdf[
-    pages       = 1,
-    fitpaper    = false,
-    pagecommand = {\panellabel{C}},
-    width       = \singlecolwidth
-]{figures/fig01-overview/out/panelC.pdf}
+\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{B}},
+    width=\singlecolwidth]{panelB.pdf}
 
-% Panel D — interactions by type.
-\includepdf[
-    pages       = 1,
-    fitpaper    = false,
-    pagecommand = {\panellabel{D}},
-    width       = \singlecolwidth
-]{figures/fig01-overview/out/panelD.pdf}
+\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{C}},
+    width=\singlecolwidth]{panelC.pdf}
 
-% Panel E — annotation classes by resource.
-\includepdf[
-    pages       = 1,
-    fitpaper    = false,
-    pagecommand = {\panellabel{E}},
-    width       = \singlecolwidth
-]{figures/fig01-overview/out/panelE.pdf}
+\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{D}},
+    width=\singlecolwidth]{panelD.pdf}
 
-% Panel F — ontology terms by ontology.
-\includepdf[
-    pages       = 1,
-    fitpaper    = false,
-    pagecommand = {\panellabel{F}},
-    width       = \singlecolwidth
-]{figures/fig01-overview/out/panelF.pdf}
+\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{E}},
+    width=\singlecolwidth]{panelE.pdf}
+
+\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{F}},
+    width=\singlecolwidth]{panelF.pdf}
 
 \end{document}

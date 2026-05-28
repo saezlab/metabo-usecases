@@ -185,31 +185,22 @@ write_manifest <- function(manifest, dir = "manifests") {
 #' @noRd
 resource_state <- function(con) {
 
+    # Conservative shape that works against the current dev3 schema:
+    # data_source is the resource registry; counts come from
+    # entity_evidence (partitioned by source_id, so the count query is
+    # cheap). Other per-source totals (relations, annotations) are
+    # added back once the corresponding schema-side joins are stable —
+    # this is sufficient for distinguishing snapshots today.
     sql <- "
-        WITH per_source AS (
-            SELECT ds.name AS name,
-                   COALESCE((
-                       SELECT COUNT(*) FROM entity e
-                       JOIN entity_evidence ee USING (entity_id)
-                       WHERE ee.source_id = ds.source_id
-                   ), 0) AS entity_count,
-                   COALESCE((
-                       SELECT COUNT(*) FROM relation r
-                       WHERE r.source_id = ds.source_id
-                   ), 0) AS relation_count,
-                   COALESCE((
-                       SELECT COUNT(*) FROM entity_annotation_relation ea
-                       WHERE ea.source_id = ds.source_id
-                   ), 0) AS annotation_count
-            FROM data_source ds
-        )
-        SELECT name,
+        SELECT ds.name AS name,
                'unknown' AS version,
-               (entity_count + relation_count + annotation_count)
-                   AS record_count,
+               COALESCE((
+                   SELECT COUNT(*) FROM entity_evidence ee
+                   WHERE ee.source_id = ds.source_id
+               ), 0) AS record_count,
                NULL::bigint AS expected_count
-        FROM per_source
-        ORDER BY name
+        FROM data_source ds
+        ORDER BY ds.name
     "
 
     tibble::as_tibble(DBI::dbGetQuery(con, sql))

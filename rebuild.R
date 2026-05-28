@@ -96,7 +96,7 @@ usage <- function() c(
 
 setup_run_log <- function(args, snapshot_label = "pending") {
 
-    log_dir <- "logs"
+    log_dir <- file.path(getwd(), "logs")
     dir.create(log_dir, showWarnings = FALSE, recursive = TRUE)
     ts <- format(Sys.time(), "%Y%m%dT%H%M%S")
     log_path <- file.path(
@@ -204,13 +204,18 @@ main <- function() {
         artifact_id <- sub("/build\\.R$", "", b)
         logger::log_info("→ {artifact_id}")
         rc <- tryCatch({
-            sys.source(
+            source(
                 normalizePath(b, mustWork = TRUE),
-                envir = new.env(parent = globalenv())
+                local = new.env(parent = globalenv())
             )
             0L
         }, error = function(e) {
-            logger::log_error("{artifact_id} failed: {conditionMessage(e)}")
+            # Use paste0 not glue: error messages may contain {…}
+            # tokens that confuse the default glue layout (e.g. SQL,
+            # nested error formatters).
+            logger::log_error(paste0(
+                artifact_id, " failed: ", conditionMessage(e)
+            ))
             1L
         })
         if (rc != 0L) errors <- errors + 1L

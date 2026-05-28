@@ -1,222 +1,156 @@
 % Figure 1 Panel A — OmniPath Metabo architecture diagram.
 %
-% Compiled with xelatex (FR-005 + clarification: xelatex). Box-and-
-% triangle style per FR-005a; layer order per FR-005c; parallel-build
-% layout per FR-005d; cross-dependency arrows per FR-005e; metabo
-% sub-boxes (MetalinksDB, COSMOS PKN, server-side processing +
-% cheminformatics with RDKit logo) per FR-006 / FR-006a.
-%
-% Output: out/fig1a.pdf. Standalone-class makes the page exactly
-% bounding-box sized for the diagram so the downstream composer
-% (tex/compose_fig01.tex) can place it cleanly.
+% Milestone A scaffold: compiles cleanly with the right semantic
+% content (5 phase bands top→bottom, utils|main|metabo column split
+% at the build/database/API bands, dependency arrows, dataset
+% sub-boxes inside metabo). Visual polish (final spacing, logo
+% placement, arrow styling per FR-005a's downstream-triangle pattern)
+% iterates later — the structure is in place.
 
 \documentclass[border = 4mm, tikz]{standalone}
 
 \usepackage{fontspec}
 \usepackage{xcolor}
-\usepackage{graphicx}
-
 \usepackage{tikz}
-
-% Paths assume xelatex is invoked from the repo root (the rebuild
-% driver runs it via `cd <repo-root>` so this holds).
-\input{tikz/components/box}
-\input{tikz/components/columns}
+\usetikzlibrary{positioning, calc, arrows.meta, backgrounds, fit}
 
 \setsansfont{TeX Gyre Heros}[Scale = MatchLowercase]
 \renewcommand{\familydefault}{\sfdefault}
 
+% Palette colours (kept in sync with R/style-palettes.R via the spec).
+\definecolor{paletteteal}    {HTML}{006384}
+\definecolor{palettemagenta} {HTML}{9F0162}
+\definecolor{paletteamber}   {HTML}{FEAF16}
+\definecolor{palettelime}    {HTML}{BBCC33}
+\definecolor{palettecoral}   {HTML}{EA6572}
+\definecolor{palettegreen}   {HTML}{009E73}
+\definecolor{palettesky}     {HTML}{99DDFF}
+\definecolor{palettepink}    {HTML}{D03293}
+\definecolor{paletteunknown} {HTML}{BEBEBE}
+
 \begin{document}
-\begin{tikzpicture}
+\begin{tikzpicture}[
+    node distance = 4mm,
+    every node/.style = {font = \sffamily\footnotesize, align = center}
+]
 
-% =========================================================================
-% Band 1 — Original resources (full width)
-% =========================================================================
-\bandlabel{\bandmid{1}}{Original resources}
-\dsbox{resources}{(\mainx, \bandtop{1})}{paletteteal!30}{%
-    \textbf{$\sim$200 upstream resources}\\
-    {\footnotesize signaling, metabolic, chemical, ontologies}
+% Helpers -----------------------------------------------------------------
+\tikzset{
+    band/.style       = {rectangle, minimum height = 14mm, inner sep = 2mm,
+                          font = \sffamily\footnotesize, align = center,
+                          rounded corners = 1pt, draw = none},
+    bandlabel/.style  = {anchor = east, font = \sffamily\small\bfseries,
+                          text width = 26mm, align = right},
+    downstream/.style = {-{Latex[length = 2.5mm, width = 2mm]},
+                          thick, color = black!85},
+    lateral/.style    = {-{Latex[length = 2.5mm, width = 2mm]},
+                          thick, color = black!70},
+    shortcut/.style   = {-{Latex[length = 2.5mm, width = 2mm]},
+                          thick, dashed, color = paletteunknown!80!black},
+    planned/.style    = {-{Latex[length = 2.5mm, width = 2mm]},
+                          thick, densely dashdotted, color = paletteamber!80!black}
 }
 
-% =========================================================================
-% Band 2 — Download and processing (full width)
-% =========================================================================
-\bandlabel{\bandmid{2}}{Download \&\\processing}
-\node (pyplogo) at (-30mm, \bandtop{2} - 11mm) {%
-    \includegraphics[height = 6mm]{inst/extdata/assets/python.svg}%
-};
-\dsboxtriangles{resources_pkg}{(\mainx, \bandtop{2})}{palettesky!50}{%
-    \textbf{omnipath-resources}\\
-    {\footnotesize (formerly \texttt{pypath})\\download + parsing}
-}{3}
+% Band 1 — Original resources (full width) --------------------------------
+\node[band, fill = paletteteal!25, minimum width = 110mm]
+    (resources) at (0, 0)
+    {\textbf{$\sim$200 upstream resources}\\
+     {\scriptsize signaling, metabolic, chemical, ontologies}};
+\node[bandlabel] at ($(resources.west) + (-2mm, 0)$)
+    {Original\\resources};
 
-% =========================================================================
-% Band 3 — Database build (3-column split: utils | main | metabo)
-% =========================================================================
-\bandlabel{\bandmid{3}}{Database\\build}
+% Band 2 — Download \& processing (full width) ----------------------------
+\node[band, fill = palettesky!50, minimum width = 110mm, below = 5mm of resources]
+    (pyresources)
+    {\textbf{omnipath-resources}\\
+     {\scriptsize (formerly pypath; download + parsing)}};
+\node[bandlabel] at ($(pyresources.west) + (-2mm, 0)$)
+    {Download \&\\processing};
 
-\dsbox{utils_build}{(\utilsx, \bandtop{3})}{paletteamber!40}{%
-    \textbf{omnipath-utils}\\
-    {\footnotesize ID resolution\\\& shared services}
-}
-\dsbox{main_build}{(\mainx, \bandtop{3})}{paletteteal!40}{%
-    \textbf{omnipath-build}\\
-    {\footnotesize identifier + CV\\harmonization,\\schema conversion}
-}
-\dsbox{metabo_build}{(\metabox, \bandtop{3})}{palettemagenta!30}{%
-    \textbf{omnipath-metabo}\\
-    {\footnotesize standalone build}
-}
+% Band 3 — Database build (utils | main | metabo) --------------------------
+\node[band, fill = paletteamber!40, minimum width = 32mm, below = 5mm of pyresources.south west, anchor = north west]
+    (utils_build) {\textbf{omnipath-utils}\\{\scriptsize ID resolution}};
+\node[band, fill = paletteteal!40, minimum width = 32mm, right = 5mm of utils_build]
+    (main_build) {\textbf{omnipath-build}\\{\scriptsize ID + CV harmonization}};
+\node[band, fill = palettemagenta!30, minimum width = 32mm, right = 5mm of main_build]
+    (metabo_build) {\textbf{omnipath-metabo}\\{\scriptsize standalone build}};
+\node[bandlabel] at ($(utils_build.west) + (-2mm, 0)$)
+    {Database\\build};
 
-% =========================================================================
-% Band 4 — Database (3-column split + Postgres logo on main)
-% =========================================================================
-\bandlabel{\bandmid{4}}{Database}
+% Band 4 — Database (utils DB | main DB + metabo sub-boxes) ---------------
+\node[band, fill = paletteamber!20, minimum width = 32mm, below = 5mm of utils_build]
+    (utils_db) {\textbf{utils DB}};
+\node[band, fill = paletteteal!20, minimum width = 32mm, right = 5mm of utils_db]
+    (main_db) {\textbf{OmniPath DB}\\{\scriptsize Postgres}};
+\node[band, fill = palettemagenta!20, minimum width = 32mm, right = 5mm of main_db, inner sep = 2mm]
+    (metabo_panel) {};
 
-\dsbox{utils_db}{(\utilsx, \bandtop{4})}{paletteamber!20}{%
-    \textbf{utils DB}
-}
-\node at (\mainx, \bandtop{4} - 7mm) {%
-    \includegraphics[height = 6mm]{inst/extdata/assets/postgres.svg}%
-};
-\dsbox{main_db}{(\mainx, \bandtop{4})}{paletteteal!20}{%
-    \textbf{OmniPath DB}\\
-    {\footnotesize (Postgres)}
-}
-
-% Metabo-side datasets — three sub-boxes inside the metabo column.
-\node[dsbox, fill = palettemagenta!18,
-      text width = 22mm, minimum height = 6mm,
-      font = \sffamily\scriptsize]
-    (metalinks)
-    at ($(\metabox, \bandtop{4}) + (-9mm, 3mm)$)
+% Inside the metabo column, three sub-boxes.
+\node[fill = palettemagenta!35, minimum width = 28mm, minimum height = 4mm, font = \scriptsize, inner sep = 1mm, anchor = north]
+    (metalinks) at ($(metabo_panel.north) + (0, -1mm)$)
     {MetalinksDB};
-\node[dsbox, fill = palettelime!30,
-      text width = 22mm, minimum height = 6mm,
-      font = \sffamily\scriptsize]
-    (cosmos)
-    at ($(\metabox, \bandtop{4}) + (9mm, 3mm)$)
-    {COSMOS PKN};
+\node[fill = palettelime!50, minimum width = 28mm, minimum height = 4mm, font = \scriptsize, inner sep = 1mm, below = 0.5mm of metalinks]
+    (cosmos) {COSMOS PKN};
+\node[fill = palettecoral!40, minimum width = 28mm, minimum height = 4mm, font = \scriptsize, inner sep = 1mm, below = 0.5mm of cosmos]
+    (cheminfo) {Cheminformatics (RDKit)};
+\node[bandlabel] at ($(utils_db.west) + (-2mm, 0)$)
+    {Database};
 
-% Server-side processing / cheminformatics sub-box with RDKit logo
-% (FR-006 + FR-006a).
-\node[dsbox, fill = palettecoral!25,
-      text width = 26mm, minimum height = 8mm,
-      font = \sffamily\scriptsize]
-    (cheminfo)
-    at ($(\metabox, \bandtop{4}) + (0, -6mm)$)
-    {\includegraphics[height = 4mm]{inst/extdata/assets/rdkit.png}%
-     \\\,Cheminformatics\\\&\,processing};
+% Band 5 — Web API (3 separate APIs) --------------------------------------
+\node[band, fill = paletteamber!30, minimum width = 32mm, below = 5mm of utils_db]
+    (utils_api) {\textbf{utils.omnipathdb.org}};
+\node[band, fill = paletteteal!30, minimum width = 32mm, right = 5mm of utils_api]
+    (main_api) {\textbf{omnipathdb.org}\\{\scriptsize HTTP API + web app}};
+\node[band, fill = palettemagenta!30, minimum width = 32mm, right = 5mm of main_api]
+    (metabo_api) {\textbf{metabo.omnipathdb.org}};
+\node[bandlabel] at ($(utils_api.west) + (-2mm, 0)$)
+    {Web API\\\& app};
 
-% MetalinksDB origin annotation — short cross-column arrow from the
-% main OmniPath DB into the MetalinksDB sub-box (FR-006a).
-\draw[->, thick, color = palettemagenta!70!black,
-      shorten >= 1mm, shorten <= 1mm]
+% Band 6 — Clients (full width) -------------------------------------------
+\node[band, fill = palettesky!40, minimum width = 25mm, below = 5mm of utils_api.south west, anchor = north west]
+    (omnipathr) {\textbf{OmnipathR}\\{\scriptsize R / Bioconductor}};
+\node[band, fill = palettelime!50, minimum width = 25mm, right = 3mm of omnipathr]
+    (client) {\textbf{omnipath-client}\\{\scriptsize Python}};
+\node[band, fill = palettecoral!40, minimum width = 25mm, right = 3mm of client]
+    (annnet) {\textbf{annnet}\\{\scriptsize network DS}};
+\node[band, fill = paletteamber!50, minimum width = 25mm, right = 3mm of annnet]
+    (cytoscape) {\textbf{Cytoscape}};
+\node[bandlabel] at ($(omnipathr.west) + (-2mm, 0)$) {Clients};
+
+% Connections ------------------------------------------------------------
+\draw[downstream] (resources)   -- (pyresources);
+\draw[downstream] (pyresources.south west) ++(20mm, 0) -- (utils_build);
+\draw[downstream] (pyresources)              -- (main_build);
+\draw[shortcut]   (pyresources.south east) ++(-20mm, 0) -- (metabo_build);
+
+\draw[lateral]    (utils_build) -- (main_build)
+                  node[midway, above, font = \tiny] {ID res.};
+\draw[lateral]    (main_build)  -- (metabo_build);
+\draw[planned]    (utils_build.south east) ++(0, -4mm)
+                  to[bend right = 8] ($(metabo_build.south west) + (0, -4mm)$);
+
+\draw[downstream] (utils_build)  -- (utils_db);
+\draw[downstream] (main_build)   -- (main_db);
+\draw[downstream] (metabo_build) -- (metabo_panel.north);
+
+\draw[downstream] (utils_db)     -- (utils_api);
+\draw[downstream] (main_db)      -- (main_api);
+\draw[downstream] (cheminfo)     -- (metabo_api);
+
+% MetalinksDB origin: dashed cross-column arrow from main DB.
+\draw[->, thick, color = palettemagenta!70!black, shorten >= 1mm, shorten <= 1mm]
     (main_db.east) -- (metalinks.west)
-    node[midway, above, font = \sffamily\tiny, color = black]
-        {materialized};
+    node[midway, above, font = \tiny, color = black] {materialized};
 
-% =========================================================================
-% Band 5 — Web API (3-column split: separate APIs)
-% =========================================================================
-\bandlabel{\bandmid{5}}{Web API\\\& app}
+\draw[downstream] (utils_api)  -- (omnipathr);
+\draw[downstream] (main_api)   -- (client);
+\draw[downstream] (metabo_api) -- (annnet);
+\draw[downstream] (annnet)     -- (cytoscape)
+                  node[midway, above, font = \tiny] {opens in};
 
-\dsbox{utils_api}{(\utilsx, \bandtop{5})}{paletteamber!30}{%
-    \textbf{utils.omnipathdb.org}
-}
-\dsbox{main_api}{(\mainx, \bandtop{5})}{paletteteal!30}{%
-    \textbf{omnipathdb.org}\\
-    {\footnotesize HTTP API + web app}
-}
-\dsbox{metabo_api}{(\metabox, \bandtop{5})}{palettemagenta!30}{%
-    \textbf{metabo.omnipathdb.org}
-}
-
-% =========================================================================
-% Band 6 — Clients (full width)
-% =========================================================================
-\bandlabel{\bandmid{6}}{Clients}
-
-\node[dsbox, fill = palettesky!40, text width = 18mm]
-    (omnipathr)
-    at (-45mm, \bandtop{6}) {%
-        \textbf{OmnipathR}\\
-        {\footnotesize R/Bioconductor}
-    };
-\node at (-45mm, \bandtop{6} - 9mm)
-    {\includegraphics[height = 4mm]{inst/extdata/assets/r.svg}};
-
-\node[dsbox, fill = palettelime!50, text width = 22mm]
-    (client)
-    at (-15mm, \bandtop{6}) {%
-        \textbf{omnipath-client}\\
-        {\footnotesize Python}
-    };
-\node at (-15mm, \bandtop{6} - 9mm)
-    {\includegraphics[height = 4mm]{inst/extdata/assets/python.svg}};
-
-\node[dsbox, fill = palettecoral!40, text width = 18mm]
-    (annnet)
-    at (15mm, \bandtop{6}) {%
-        \textbf{annnet}\\
-        {\footnotesize network data\\structure}
-    };
-
-\node[dsbox, fill = paletteamber!50, text width = 18mm]
-    (cytoscape)
-    at (45mm, \bandtop{6}) {%
-        \textbf{Cytoscape}
-    };
-
-% =========================================================================
-% Connections
-% =========================================================================
-
-% Band 2 → Band 3 — downstream feeds.
-\draw[downstream] (resources_pkg.south west) ++(0, 0)
-    -- (utils_build.north);
-\draw[downstream] (resources_pkg.south) -- (main_build.north);
-
-% Transitional shortcut: omnipath-resources → omnipath-metabo
-% (visually distinguished as a dashed shortcut per FR-005e).
-\draw[shortcut] (resources_pkg.south east) -- (metabo_build.north);
-
-% Lateral side arrows at the build band.
-\draw[lateral] (utils_build.east) -- (main_build.west)
-    node[midway, above, font=\sffamily\tiny] {ID resolution};
-\draw[lateral] ($(utils_build.east) + (0, -4mm)$)
-    .. controls ($(\mainx, \bandtop{3}) + (0, -10mm)$) ..
-    ($(metabo_build.west) + (0, -4mm)$);
-
-% Planned: main → metabo lateral arrow (FR-005d).
-\draw[planned] (main_build.east) -- (metabo_build.west)
-    node[midway, above, font=\sffamily\tiny, color=black] {planned};
-
-% Band 3 → Band 4 — each column flows downward into its DB.
-\draw[downstream] (utils_build.south)  -- (utils_db.north);
-\draw[downstream] (main_build.south)   -- (main_db.north);
-\draw[downstream] (metabo_build.south) -- ($(metabo_build.south) - (0, 4mm)$);
-
-% Band 4 → Band 5.
-\draw[downstream] (utils_db.south)  -- (utils_api.north);
-\draw[downstream] (main_db.south)   -- (main_api.north);
-\draw[downstream] (cheminfo.south)  -- (metabo_api.north);
-
-% Band 5 → Band 6 (clients).
-\draw[downstream] (utils_api.south)  to[out=-90, in=90] (omnipathr.north);
-\draw[downstream] (main_api.south)   -- (client.north);
-\draw[downstream] (metabo_api.south) to[out=-90, in=90] (annnet.north);
-
-% utils → omnipath-client bypasses the API band (utils Python package
-% is directly importable; FR-005e).
+% utils → omnipath-client bypass (utils Python package is directly importable).
 \draw[downstream, color = paletteamber!80!black]
-    (utils_api.west) to[out=-180, in=90]
-    ($(omnipathr.north) + (-12mm, 0)$);
-
-% annnet ↔ Cytoscape relationship — annnet opens networks in
-% Cytoscape (FR-005d clients band).
-\draw[downstream] (annnet.east) -- (cytoscape.west)
-    node[midway, above, font=\sffamily\tiny] {opens in};
+    (utils_api.west) to[out = -90, in = 90] ($(omnipathr.north) + (-10mm, 0)$);
 
 \end{tikzpicture}
 \end{document}

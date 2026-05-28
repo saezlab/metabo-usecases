@@ -22,28 +22,43 @@
 #' @noRd
 init_category_colours <- function() {
 
-    .metabo_category_colours$interaction_types <- c(
-        signaling          = "#006384",  # teal
-        gene_regulatory    = "#9F0162",  # magenta
-        kinase_substrate   = "#FEAF16",  # amber
-        metabolic_reaction = "#BBCC33",  # lime
-        receptor           = "#EA6572",  # coral
-        inhibitor          = "#009E73",  # green
-        allosteric         = "#99DDFF",  # sky
-        transport          = "#D03293",  # pink
-        unknown            = "#BEBEBE"
-    )
-
-    # Resource colours: populated lazily by figure scripts as they
-    # introduce new resources; the assertive accessor
-    # `assert_category_known()` fails fast on unregistered values so
-    # we surface forgotten registrations rather than silently
-    # autocoloring (spec Edge Case).
-    .metabo_category_colours$resources <- character(0)
-
-    .metabo_category_colours$ontologies <- character(0)
+    # All categories start empty. Figure scripts register the values
+    # they observe in the live snapshot via
+    # \code{\link{register_category_colours}}; the assertive accessor
+    # \code{\link{assert_category_known}} fails fast on unregistered
+    # values so missing registrations surface as build errors rather
+    # than silently autocoloring (spec Edge Case).
+    #
+    # Once Figure 4's COSMOS PKN comparison lands (Milestone B), we
+    # will hard-code the curated interaction_types palette so its
+    # categories render the same colour across every figure.
+    .metabo_category_colours$interaction_types <- character(0)
+    .metabo_category_colours$resources         <- character(0)
+    .metabo_category_colours$ontologies        <- character(0)
 
     invisible()
+}
+
+
+#' List the values currently registered in a category
+#'
+#' Lets figure scripts compute the "new" subset they need to
+#' \code{\link{register_category_colours}} for, without poking at the
+#' internal registry environment directly.
+#'
+#' @param category Character scalar.
+#' @return Character vector of registered value names (empty when the
+#'     category has no entries yet).
+#'
+#' @examples
+#' registered_category_values("interaction_types")
+#'
+#' @export
+registered_category_values <- function(category) {
+    if (!exists(category, envir = .metabo_category_colours)) {
+        return(character(0))
+    }
+    names(.metabo_category_colours[[category]])
 }
 
 
