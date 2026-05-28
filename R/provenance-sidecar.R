@@ -9,7 +9,7 @@
 #' @param artifact_id Character: stable id, e.g.
 #'     \code{"fig01-overview/panelB"}.
 #' @param artifact_path Character: path of the artifact whose sidecar
-#'     this is — the sidecar file is written to
+#'     this is -- the sidecar file is written to
 #'     \code{paste0(artifact_path, ".provenance.json")}.
 #' @param deployment Deployment record from
 #'     \code{\link{load_connection}}.
@@ -17,7 +17,7 @@
 #'     touched).
 #' @param script_path Character: path to the generating script
 #'     relative to the repo root.
-#' @param queries List of query records — each list element has
+#' @param queries List of query records -- each list element has
 #'     \code{sql}, \code{row_count}, \code{result_hash}. Typically
 #'     accumulated via the \code{attr(rows, "sql")} +
 #'     \code{attr(rows, "result_hash")} produced by \code{\link{pg_query}}.

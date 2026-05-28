@@ -22,7 +22,7 @@
 #' Where commit hashes are not supplied via \code{package_commits},
 #' they are read from \code{manifest-config.yaml} at the project root,
 #' falling back to the env vars \code{OMNIPATH_BUILD_COMMIT},
-#' \code{OMNIPATH_UTILS_COMMIT}, etc. — and finally to the placeholder
+#' \code{OMNIPATH_UTILS_COMMIT}, etc. -- and finally to the placeholder
 #' string \code{"unknown"} (the manifest's \code{partial_build} flag
 #' becomes \code{TRUE} in that case so consumers know the identifier
 #' is not authoritative).
@@ -96,7 +96,7 @@ build_manifest_for <- function(con, build, package_commits = NULL) {
 #'
 #' @param manifest A list as produced by \code{\link{build_manifest_for}}.
 #'
-#' @return Character scalar — 12 hex chars.
+#' @return Character scalar -- 12 hex chars.
 #'
 #' @examples
 #' m <- list(
@@ -189,7 +189,7 @@ resource_state <- function(con) {
     # data_source is the resource registry; counts come from
     # entity_evidence (partitioned by source_id, so the count query is
     # cheap). Other per-source totals (relations, annotations) are
-    # added back once the corresponding schema-side joins are stable —
+    # added back once the corresponding schema-side joins are stable --
     # this is sufficient for distinguishing snapshots today.
     sql <- "
         SELECT ds.name AS name,
@@ -240,7 +240,7 @@ resolve_package_commits <- function(wanted, override = NULL) {
         "unknown"
     }, character(1L), USE.NAMES = FALSE)
 
-    setNames(as.list(out), wanted)
+    stats::setNames(as.list(out), wanted)
 }
 
 

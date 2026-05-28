@@ -42,7 +42,7 @@ assemble_bundle <- function(pdf_paths,
 
     if (Sys.which("pdftk") == "") {
         rlang::abort(
-            "pdftk not found on PATH — install pdftk per quickstart.md § 1"
+            "pdftk not found on PATH -- install pdftk per quickstart.md section 1"
         )
     }
 

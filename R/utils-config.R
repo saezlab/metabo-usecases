@@ -28,7 +28,7 @@ known_deployments <- function() {
 #' Reads \code{~/.config/metabo-figures/connection.yaml} (or a
 #' project-local \code{connection.yaml}, or env-only) and resolves it
 #' into a deployment record. Refuses \code{dev5} as long as it is
-#' marked unpopulated in \code{\link{known_deployments}} (spec edge
+#' marked unpopulated in \code{known_deployments} (spec edge
 #' case: unreachable deployment).
 #'
 #' Credential fields are NOT returned in the deployment record — they

@@ -71,6 +71,10 @@ registered_category_values <- function(category) {
 #' @return Character vector of hex codes, same length as \code{value}.
 #'
 #' @examples
+#' register_category_colours(
+#'     "interaction_types",
+#'     c(signaling = "#006384", transport = "#D03293")
+#' )
 #' category_colour("interaction_types", c("signaling", "transport"))
 #'
 #' @importFrom rlang abort

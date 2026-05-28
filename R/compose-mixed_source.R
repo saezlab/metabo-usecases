@@ -110,7 +110,7 @@ compose_pdf <- function(spec, work_dir) {
 
     if (rc != 0L) {
         rlang::abort(sprintf(
-            "xelatex composite step failed (rc=%d) — see %s",
+            "xelatex composite step failed (rc=%d) -- see %s",
             rc, xelatex_log
         ))
     }
@@ -154,7 +154,7 @@ compose_svg <- function(spec) {
 
     if (rc != 0L) {
         rlang::abort(sprintf(
-            "svg_assemble.py failed (rc=%d) — see %s",
+            "svg_assemble.py failed (rc=%d) -- see %s",
             rc, Sys.getenv("METABO_FIGURES_LOG")
         ))
     }

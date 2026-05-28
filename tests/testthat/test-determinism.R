@@ -26,39 +26,32 @@ test_that("snapshot_id is byte-stable across re-serialization", {
 })
 
 
-test_that("rebuild.R --dry-run output is sorted (stable across runs)", {
+test_that("rebuild.R discover_targets returns sorted, stable plan", {
 
-    skip_if_not_installed("processx")
+    # The rebuild driver lives at the repo root, not in the package
+    # namespace, so source it into a sandbox env to get
+    # discover_targets() available.
+    repo_root  <- testthat::test_path("..", "..")
+    rebuild_R  <- file.path(repo_root, "rebuild.R")
+    skip_if_not(file.exists(rebuild_R), "rebuild.R not found")
+
+    sandbox <- new.env(parent = globalenv())
+    sandbox$main <- function() invisible(NULL)  # block auto-exec
+    source(rebuild_R, local = sandbox)
 
     withr::with_tempdir({
-        dir.create("logs")
-        dir.create("figures/fig01-overview", recursive = TRUE)
+        dir.create("figures/fig01-overview",         recursive = TRUE)
         dir.create("figures/fig03-metalinks-versions", recursive = TRUE)
-        dir.create("tables/tab01-id-resolving", recursive = TRUE)
+        dir.create("tables/tab01-id-resolving",      recursive = TRUE)
         writeLines("1+1", "figures/fig01-overview/build.R")
         writeLines("1+1", "figures/fig03-metalinks-versions/build.R")
         writeLines("1+1", "tables/tab01-id-resolving/build.R")
 
-        repo_root <- testthat::test_path("..", "..")
-        rebuild_R <- normalizePath(file.path(repo_root, "rebuild.R"))
+        builds_1 <- sandbox$discover_targets(character(0))
+        builds_2 <- sandbox$discover_targets(character(0))
 
-        run1 <- system2(
-            "Rscript",
-            c(rebuild_R, "--dry-run"),
-            stdout = TRUE, stderr = FALSE
-        )
-        run2 <- system2(
-            "Rscript",
-            c(rebuild_R, "--dry-run"),
-            stdout = TRUE, stderr = FALSE
-        )
-
-        plan_lines <- grep("^\\[plan\\]", run1, value = TRUE)
-        expect_true(length(plan_lines) >= 3L)
-        expect_equal(plan_lines, sort(plan_lines))
-        expect_equal(
-            grep("^\\[plan\\]", run1, value = TRUE),
-            grep("^\\[plan\\]", run2, value = TRUE)
-        )
+        expect_length(builds_1, 3L)
+        expect_equal(builds_1, sort(builds_1))
+        expect_equal(builds_1, builds_2)
     })
 })

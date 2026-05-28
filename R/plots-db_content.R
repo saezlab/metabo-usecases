@@ -1,4 +1,4 @@
-#' Panel B — entities by resource
+#' Panel B -- entities by resource
 #'
 #' Horizontal bar chart, one bar per resource, coloured via the
 #' \code{resources} category registry. Uniform bar widths (FR-019).
@@ -45,7 +45,7 @@ plot_entities_by_resource <- function(data, width_mm = 89L) {
 }
 
 
-#' Panel C — interactions by resource
+#' Panel C -- interactions by resource
 #'
 #' Same shape as Panel B; reuses the resource colour mapping.
 #'
@@ -88,7 +88,7 @@ plot_interactions_by_resource <- function(data, width_mm = 89L) {
 }
 
 
-#' Panel D — interactions by type
+#' Panel D -- interactions by type
 #'
 #' Vertical bar chart coloured by interaction-type registry. Uniform
 #' bar widths matching panels B and C.
@@ -134,7 +134,7 @@ plot_interactions_by_type <- function(data, width_mm = 89L) {
 }
 
 
-#' Panel E — annotation classes by resource
+#' Panel E -- annotation classes by resource
 #'
 #' Empty-data case emits a single-bar placeholder so the panel layout
 #' remains stable when the snapshot has no annotation relations yet
@@ -188,7 +188,7 @@ plot_annotation_classes_by_resource <- function(data, width_mm = 89L) {
 }
 
 
-#' Panel F — ontology terms by ontology
+#' Panel F -- ontology terms by ontology
 #'
 #' Ontologies are not currently tracked in the category-colour
 #' registry; cycle through the lead palette deterministically.

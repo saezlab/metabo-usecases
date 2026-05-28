@@ -22,7 +22,6 @@ RoxygenNote: 7.3.2
 Depends:
     R (>= 4.3)
 Imports:
-    cli,
     DBI,
     digest,
     dplyr,
@@ -32,24 +31,27 @@ Imports:
     jsonlite,
     logger,
     magrittr,
-    OmnipathR,
     patchwork,
-    progress,
     purrr,
     readr,
     rlang,
     RPostgres,
-    RSQLite,
     stringr,
     tibble,
-    tidyr,
     yaml
 Suggests:
+    cli,
     devtools,
     jsonvalidate,
     lintr,
+    OmnipathR,
+    progress,
     roxygen2,
-    testthat (>= 3.0.0)
+    RSQLite,
+    svglite,
+    testthat (>= 3.0.0),
+    tidyr,
+    withr
 Config/testthat/edition: 3
 URL: https://github.com/saezlab/metabo-usecases
 BugReports: https://github.com/saezlab/metabo-usecases/issues

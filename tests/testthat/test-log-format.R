@@ -33,7 +33,12 @@ test_that("bash log_line in lib/log.sh writes a conforming line", {
 
     tmp <- tempfile(fileext = ".log")
     repo_root <- testthat::test_path("..", "..")
-    log_sh <- normalizePath(file.path(repo_root, "lib", "log.sh"))
+    log_sh_candidate <- file.path(repo_root, "lib", "log.sh")
+    skip_if_not(
+        file.exists(log_sh_candidate),
+        "lib/log.sh not packaged (only present in the source repo)"
+    )
+    log_sh <- normalizePath(log_sh_candidate)
 
     system2(
         "bash",

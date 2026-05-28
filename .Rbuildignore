@@ -1,0 +1,43 @@
+^\.Rproj\.user$
+^\.lintr$
+^\.gitignore$
+^\.github$
+^\.git$
+
+# Project-level dirs that aren't part of the R package surface.
+^figures$
+^tables$
+^lib$
+^logs$
+^manifests$
+^python$
+^tex$
+^tikz$
+^preview$
+^omnipath_metabo_case1$
+^omnipath_metabo_case[0-9]+$
+^omnipath-build$
+^omnipathr-log$
+^out$
+^test-output$
+
+# Top-level project docs that aren't R-package docs.
+^CONFIGURATION\.md$
+^README\.md$
+^shell\.nix$
+^connection\.yaml$
+^db-version\.txt$
+^rebuild\.R$
+^rebuild\.sh$
+^manifest-config\.yaml$
+
+# Editor / OS noise.
+^\.vscode$
+^\.idea$
+^\.DS_Store$
+^texput\.log$
+^.*\.aux$
+^.*\.fdb_latexmk$
+
+# .gitkeep markers inside the package inst/ tree.
+inst/extdata/.*\.gitkeep$

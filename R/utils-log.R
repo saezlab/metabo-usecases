@@ -44,13 +44,36 @@ setup_pipeline_log <- function(component) {
         )
     }
 
-    layout <-
-        logger::layout_glue_generator(
-            format = paste0(
-                "{format(time, '%Y-%m-%dT%H:%M:%S%z')} ",
-                "[R][{level}][", component, "] {msg}"
-            )
+    base_layout <- logger::layout_glue_generator(
+        format = paste0(
+            "{format(time, '%Y-%m-%dT%H:%M:%S%z')} ",
+            "[R][{level}][", component, "] {msg}"
         )
+    )
+
+    # Truncate each formatted line to the 4 KiB POSIX-O_APPEND
+    # atomicity envelope (contracts/log-format.md). Reserve one byte
+    # for the trailing newline the appender writes.
+    layout <- structure(
+        function(level, msg, namespace, .logcall, .topcall, .topenv) {
+            line <- base_layout(
+                level     = level,
+                msg       = msg,
+                namespace = namespace,
+                .logcall  = .logcall,
+                .topcall  = .topcall,
+                .topenv   = .topenv
+            )
+            # The ellipsis is 3 bytes (U+2026); reserve room for it
+            # and for the trailing newline the appender writes.
+            ifelse(
+                nchar(line, type = "bytes") > 4095L,
+                paste0(substr(line, 1L, 4093L), "..."),
+                line
+            )
+        },
+        generator = deparse(sys.call())
+    )
 
     logger::log_appender(logger::appender_file(log_path))
     logger::log_layout(layout)
