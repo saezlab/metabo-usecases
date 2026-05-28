@@ -1,46 +1,78 @@
 % tex/compose_fig01.tex
 %
-% Figure 1 composite — Panel A (TikZ-built architecture) on top, with
-% Panels B–F (ggplot-rendered PDFs) below in a 3-row × 2-column grid.
-% Uses pdfpages for vector-native PDF placement (research.md R-2).
+% Figure 1 composite — single page, double-column manuscript width.
 %
-% Invoked by figures/fig01-overview/build.R via the rebuild driver →
-% R/compose/mixed_source.R::compose_mixed_source(mode = "pdf", ...).
+% Layout:
+%   ┌──────────────────────────────────────────┐
+%   │  A  Panel A — architecture (full width)  │
+%   ├──────────────────┬───────────────────────┤
+%   │  B  panelB.pdf   │  C  panelC.pdf        │
+%   ├──────────────────┼───────────────────────┤
+%   │  D  panelD.pdf   │  E  panelE.pdf        │
+%   ├──────────────────┴───────────────────────┤
+%   │  F  panelF.pdf   (single column, hsv)    │
+%   └──────────────────────────────────────────┘
 %
-% Panel input paths are written relative to the repo root; the rebuild
-% driver runs xelatex with -output-directory pointed at the figure's
-% out/ folder.
+% build.R copies this file into the figure's out/ directory and runs
+% xelatex with that as CWD, so each panel is referenced by its bare
+% basename.
 
-\documentclass[letterpaper]{article}
+\documentclass[border = 4mm]{standalone}
 
-\usepackage[letterpaper, margin = 8mm]{geometry}
 \usepackage{compose_helpers}
-\usepackage{pdfpages}
-
-\pagestyle{empty}
+\usepackage{graphicx}
+\usepackage{tikz}
 
 \begin{document}
 
-% Each panel is included as a single page; build.R copies this file
-% into the figure's out/ directory before invoking xelatex, so the
-% panel paths are bare basenames resolving from there.
+\begin{tikzpicture}[remember picture]
 
-\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{A}},
-    width=\doublecolwidth]{panelA.pdf}
+    % ---- Panel A — full width ------------------------------------------
+    \node[anchor = north west, inner sep = 0pt]
+        (panela) at (0, 0)
+        {\includegraphics[width = 180mm]{panelA.pdf}};
+    \node[anchor = north west,
+          font = \sffamily\bfseries,
+          inner sep = 2pt]
+        at ($(panela.north west) + (-2mm, 2mm)$)
+        {A};
 
-\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{B}},
-    width=\singlecolwidth]{panelB.pdf}
+    % ---- Panels B + C (row 2) ------------------------------------------
+    \node[anchor = north west, inner sep = 0pt,
+          below = 4mm of panela.south west]
+        (panelb)
+        {\includegraphics[width = 87mm]{panelB.pdf}};
+    \node[anchor = north west, inner sep = 0pt,
+          right = 4mm of panelb]
+        (panelc)
+        {\includegraphics[width = 87mm]{panelC.pdf}};
+    \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
+        at ($(panelb.north west) + (-2mm, 2mm)$) {B};
+    \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
+        at ($(panelc.north west) + (-2mm, 2mm)$) {C};
 
-\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{C}},
-    width=\singlecolwidth]{panelC.pdf}
+    % ---- Panels D + E (row 3) ------------------------------------------
+    \node[anchor = north west, inner sep = 0pt,
+          below = 4mm of panelb.south west]
+        (paneld)
+        {\includegraphics[width = 87mm]{panelD.pdf}};
+    \node[anchor = north west, inner sep = 0pt,
+          right = 4mm of paneld]
+        (panele)
+        {\includegraphics[width = 87mm]{panelE.pdf}};
+    \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
+        at ($(paneld.north west) + (-2mm, 2mm)$) {D};
+    \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
+        at ($(panele.north west) + (-2mm, 2mm)$) {E};
 
-\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{D}},
-    width=\singlecolwidth]{panelD.pdf}
+    % ---- Panel F (row 4, single column) --------------------------------
+    \node[anchor = north west, inner sep = 0pt,
+          below = 4mm of paneld.south west]
+        (panelf)
+        {\includegraphics[width = 87mm]{panelF.pdf}};
+    \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
+        at ($(panelf.north west) + (-2mm, 2mm)$) {F};
 
-\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{E}},
-    width=\singlecolwidth]{panelE.pdf}
-
-\includepdf[pages=1, fitpaper=false, pagecommand={\panellabel{F}},
-    width=\singlecolwidth]{panelF.pdf}
+\end{tikzpicture}
 
 \end{document}

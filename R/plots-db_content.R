@@ -10,25 +10,31 @@
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom ggplot2 ggplot aes geom_col coord_flip scale_fill_manual
-#' @importFrom ggplot2 labs scale_y_continuous expansion
+#' @importFrom ggplot2 ggplot aes geom_col coord_flip scale_fill_identity
+#' @importFrom ggplot2 labs scale_y_continuous expansion theme
+#' @importFrom dplyr mutate
 #' @importFrom rlang .data
 #' @export
 plot_entities_by_resource <- function(data, width_mm = 89L) {
 
-    assert_category_known("resources", data$resource)
-    fills <- category_colour("resources", data$resource)
+    # NSE workaround
+    resource <- n_entities <- fill_hex <- NULL
+
+    data <- dplyr::mutate(
+        data,
+        fill_hex = category_colour("resources", resource)
+    )
 
     ggplot2::ggplot(
         data,
         ggplot2::aes(
             x    = stats::reorder(.data$resource, .data$n_entities),
             y    = .data$n_entities,
-            fill = .data$resource
+            fill = .data$fill_hex
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_manual(values = setNames(fills, data$resource)) +
+        ggplot2::scale_fill_identity() +
         ggplot2::scale_y_continuous(
             expand = ggplot2::expansion(mult = c(0, 0.05))
         ) +
@@ -48,25 +54,30 @@ plot_entities_by_resource <- function(data, width_mm = 89L) {
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom ggplot2 ggplot aes geom_col coord_flip scale_fill_manual
+#' @importFrom ggplot2 ggplot aes geom_col coord_flip scale_fill_identity
 #' @importFrom ggplot2 labs scale_y_continuous expansion theme
+#' @importFrom dplyr mutate
 #' @importFrom rlang .data
 #' @export
 plot_interactions_by_resource <- function(data, width_mm = 89L) {
 
-    assert_category_known("resources", data$resource)
-    fills <- category_colour("resources", data$resource)
+    resource <- n_relations <- fill_hex <- NULL
+
+    data <- dplyr::mutate(
+        data,
+        fill_hex = category_colour("resources", resource)
+    )
 
     ggplot2::ggplot(
         data,
         ggplot2::aes(
             x    = stats::reorder(.data$resource, .data$n_relations),
             y    = .data$n_relations,
-            fill = .data$resource
+            fill = .data$fill_hex
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_manual(values = setNames(fills, data$resource)) +
+        ggplot2::scale_fill_identity() +
         ggplot2::scale_y_continuous(
             expand = ggplot2::expansion(mult = c(0, 0.05))
         ) +
@@ -87,15 +98,18 @@ plot_interactions_by_resource <- function(data, width_mm = 89L) {
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
+#' @importFrom ggplot2 ggplot aes geom_col scale_fill_identity labs
 #' @importFrom ggplot2 scale_y_continuous expansion theme element_text
+#' @importFrom dplyr mutate
 #' @importFrom rlang .data
 #' @export
 plot_interactions_by_type <- function(data, width_mm = 89L) {
 
-    assert_category_known("interaction_types", data$interaction_type)
-    fills <- category_colour(
-        "interaction_types", data$interaction_type
+    interaction_type <- n <- fill_hex <- NULL
+
+    data <- dplyr::mutate(
+        data,
+        fill_hex = category_colour("interaction_types", interaction_type)
     )
 
     ggplot2::ggplot(
@@ -103,13 +117,11 @@ plot_interactions_by_type <- function(data, width_mm = 89L) {
         ggplot2::aes(
             x    = stats::reorder(.data$interaction_type, -.data$n),
             y    = .data$n,
-            fill = .data$interaction_type
+            fill = .data$fill_hex
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_manual(
-            values = setNames(fills, data$interaction_type)
-        ) +
+        ggplot2::scale_fill_identity() +
         ggplot2::scale_y_continuous(
             expand = ggplot2::expansion(mult = c(0, 0.05))
         ) +
@@ -124,32 +136,48 @@ plot_interactions_by_type <- function(data, width_mm = 89L) {
 
 #' Panel E — annotation classes by resource
 #'
+#' Empty-data case emits a single-bar placeholder so the panel layout
+#' remains stable when the snapshot has no annotation relations yet
+#' (spec Edge Case: zero-row queries get an explicit placeholder).
+#'
 #' @param data Tibble from \code{\link{annotation_classes_by_resource}}.
 #' @param width_mm Numeric.
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom ggplot2 ggplot aes geom_col coord_flip scale_fill_manual
+#' @importFrom ggplot2 ggplot aes geom_col coord_flip scale_fill_identity
 #' @importFrom ggplot2 labs scale_y_continuous expansion theme
+#' @importFrom dplyr mutate
+#' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
 plot_annotation_classes_by_resource <- function(data, width_mm = 89L) {
 
-    assert_category_known("resources", data$resource)
-    fills <- category_colour("resources", data$resource)
+    resource <- n_classes <- fill_hex <- NULL
+
+    if (nrow(data) == 0L) {
+        data <- tibble::tibble(
+            resource   = "(none)",
+            n_classes  = 0L,
+            fill_hex   = "#BEBEBE"
+        )
+    } else {
+        data <- dplyr::mutate(
+            data,
+            fill_hex = category_colour("resources", resource)
+        )
+    }
 
     ggplot2::ggplot(
         data,
         ggplot2::aes(
             x    = stats::reorder(.data$resource, .data$n_classes),
             y    = .data$n_classes,
-            fill = .data$resource
+            fill = .data$fill_hex
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_manual(
-            values = setNames(fills, data$resource)
-        ) +
+        ggplot2::scale_fill_identity() +
         ggplot2::scale_y_continuous(
             expand = ggplot2::expansion(mult = c(0, 0.05))
         ) +
@@ -162,29 +190,38 @@ plot_annotation_classes_by_resource <- function(data, width_mm = 89L) {
 
 #' Panel F — ontology terms by ontology
 #'
+#' Ontologies are not currently tracked in the category-colour
+#' registry; cycle through the lead palette deterministically.
+#'
 #' @param data Tibble from \code{\link{ontology_terms_by_ontology}}.
 #' @param width_mm Numeric.
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
+#' @importFrom ggplot2 ggplot aes geom_col scale_fill_identity labs
 #' @importFrom ggplot2 scale_y_continuous expansion theme element_text
+#' @importFrom dplyr mutate
 #' @importFrom rlang .data
 #' @export
 plot_ontology_terms_by_ontology <- function(data, width_mm = 89L) {
 
-    fills <- palette_n(nrow(data), unknown = FALSE)
+    ontology <- n_terms <- fill_hex <- NULL
+
+    n_rows <- max(nrow(data), 1L)
+    fills <- palette_n(n_rows, unknown = (n_rows >= length(palette_lead())))
+
+    data <- dplyr::mutate(data, fill_hex = fills[seq_len(nrow(data))])
 
     ggplot2::ggplot(
         data,
         ggplot2::aes(
             x    = stats::reorder(.data$ontology, -.data$n_terms),
             y    = .data$n_terms,
-            fill = .data$ontology
+            fill = .data$fill_hex
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_manual(values = setNames(fills, data$ontology)) +
+        ggplot2::scale_fill_identity() +
         ggplot2::scale_y_continuous(
             expand = ggplot2::expansion(mult = c(0, 0.05))
         ) +

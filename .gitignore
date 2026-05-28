@@ -64,3 +64,6 @@ Thumbs.db
 !logs/.gitkeep
 !manifests/.gitkeep
 !**/out/.gitkeep
+
+# Local-preview drop zone (rsync'd from beauty for visual inspection)
+preview/
