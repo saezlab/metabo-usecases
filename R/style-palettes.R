@@ -80,28 +80,50 @@ palette_n <- function(n, unknown = FALSE) {
     }
 
     lead <- palette_lead()
+    lead_colour <- lead[names(lead) != "unknown"]    # 8 distinct colours
 
     if (n == 1L) {
-        unname(lead["unknown"])
-    } else if (isTRUE(unknown)) {
+        return(unname(lead["unknown"]))
+    }
+
+    if (isTRUE(unknown)) {
         if (n > length(lead)) {
-            rlang::abort(sprintf(
-                "n = %d exceeds lead-palette size (%d)",
-                n, length(lead)
-            ))
+            return(unname(c(
+                extend_palette(n - 1L, lead_colour),
+                lead[["unknown"]]
+            )))
         }
-        unname(c(lead[seq_len(n - 1L)], lead["unknown"]))
+        return(unname(c(lead[seq_len(n - 1L)], lead["unknown"])))
+    }
+
+    if (n <= length(lead_colour)) {
+        unname(lead_colour[seq_len(n)])
     } else {
-        if (n >= length(lead)) {
-            rlang::abort(sprintf(
-                paste0(
-                    "n = %d would reach the reserved unknown slot; ",
-                    "set unknown = TRUE if that's intended"
-                ),
-                n
-            ))
-        }
-        unname(lead[seq_len(n)])
+        unname(extend_palette(n, lead_colour))
+    }
+}
+
+
+#' Extend a base palette with rwth for overflow
+#'
+#' Used by \code{\link{palette_n}} when the requested N exceeds the
+#' lead palette. Concatenates lead colours followed by the rwth
+#' palette (deduplicated) and recycles if still short.
+#'
+#' @param n Integer: total colours needed.
+#' @param base Named character vector of the base palette.
+#' @return Character vector of length \code{n}.
+#' @keywords internal
+#' @noRd
+extend_palette <- function(n, base) {
+
+    extra <- unname(palette_rwth())
+    pool  <- unique(c(unname(base), extra))
+
+    if (n <= length(pool)) {
+        pool[seq_len(n)]
+    } else {
+        rep(pool, length.out = n)
     }
 }
 
