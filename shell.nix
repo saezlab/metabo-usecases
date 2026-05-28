@@ -60,7 +60,7 @@ pkgs.mkShell {
     # Composition + manuscript-bundle tooling.
     texEnv
     pdftk
-    poppler_utils    # pdftoppm for --png PNG companions
+    poppler-utils    # pdftoppm for --png PNG companions
 
     # Quality-of-life tools used by quickstart.md / docs.
     git
