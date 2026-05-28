@@ -50,12 +50,12 @@ pkgs.mkShell {
 
     # System libs for R packages that won't build without them.
     postgresql.dev   # libpq for RPostgres
-    nodejs           # backs V8
-    v8               # for jsonvalidate / juicyjuice (transitive: gt)
+    nodejs           # provides V8 for jsonvalidate / juicyjuice / gt
     icu              # text utilities used by stringi / R
     libxml2
     openssl
     curl
+    pkg-config
 
     # Composition + manuscript-bundle tooling.
     texEnv
