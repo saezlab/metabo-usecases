@@ -112,9 +112,9 @@ setup_run_log <- function(args, snapshot_label = "pending") {
 
     setup_pipeline_log("rebuild")
 
+    dep_label <- if (is.na(args$deployment)) "(default)" else args$deployment
     logger::log_info(
-        "Starting rebuild (deployment={args$deployment %||% '(default)'} ",
-        "jobs={args$jobs})"
+        "Starting rebuild (deployment={dep_label} jobs={args$jobs})"
     )
     if (length(args$targets) > 0L) {
         logger::log_info(
