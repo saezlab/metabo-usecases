@@ -40,9 +40,9 @@ pkgs.mkShell {
   name = "metabo-figures";
 
   buildInputs = with pkgs; [
-    # R is installed system-wide on beauty already, but pin here for
-    # laptops that lack it.
-    R
+    # R is intentionally NOT pinned here so we inherit the system R
+    # (and its user library) on beauty. Laptops without R installed
+    # can still run the non-R parts of the pipeline.
 
     # Python helpers via uv (kept out of nix — uv manages its own venv).
     uv
@@ -76,5 +76,10 @@ pkgs.mkShell {
     echo "  pdftk:    $(pdftk --version 2>&1 | head -1)"
     echo "  Postgres include path for RPostgres: ${pkgs.postgresql.dev}/include"
     export PKG_CONFIG_PATH="${pkgs.postgresql.dev}/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+    # The system R on beauty lives at /run/current-system/sw/bin/R and
+    # carries the user's ~/R library; prepend system PATH so it wins
+    # over any R we accidentally pull in transitively.
+    export PATH="/run/current-system/sw/bin:$PATH"
   '';
 }
