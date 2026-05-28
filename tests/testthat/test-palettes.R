@@ -41,7 +41,13 @@ test_that("rwth palette parses to hex codes", {
     expect_match(unname(rwth), "^#[0-9A-F]{6}$")
 })
 
-test_that("category_colour returns registered hex codes", {
+test_that("category_colour returns the registered hex code", {
+
+    withr::defer(init_category_colours())
+    register_category_colours(
+        "interaction_types",
+        c(signaling = "#006384", transport = "#D03293")
+    )
 
     expect_equal(
         category_colour("interaction_types", "signaling"),

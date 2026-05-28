@@ -94,8 +94,11 @@ palette_n <- function(n, unknown = FALSE) {
     } else {
         if (n >= length(lead)) {
             rlang::abort(sprintf(
-                "n = %d would reach the reserved unknown slot; ",
-                "set unknown = TRUE if that's intended"
+                paste0(
+                    "n = %d would reach the reserved unknown slot; ",
+                    "set unknown = TRUE if that's intended"
+                ),
+                n
             ))
         }
         unname(lead[seq_len(n)])
