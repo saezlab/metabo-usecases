@@ -1,0 +1,26 @@
+[
+  {
+    "figure_type": "main_fig3_panel",
+    "panel": "C",
+    "title": "Interaction type by source",
+    "path": "../outputs/figures/fig3_panel_C_interaction_type_barplot.png"
+  },
+  {
+    "figure_type": "main_fig3_panel",
+    "panel": "D",
+    "title": "Cancer associations by sample type",
+    "path": "../outputs/figures/fig3_panel_D_cancer_associations_sample_type.png"
+  },
+  {
+    "figure_type": "extra",
+    "panel": "",
+    "title": "Evidence atlas mindmap",
+    "path": "../outputs/figures/extra_evidence_atlas_mindmap.png"
+  },
+  {
+    "figure_type": "extra",
+    "panel": "",
+    "title": "Target type by source",
+    "path": "../outputs/figures/extra_target_type_composition_by_source.png"
+  }
+]

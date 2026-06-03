@@ -1,0 +1,11 @@
+interaction_type,source,query_entity_label,entity_resolution_status,relation_count
+associated_with,macdb,Azelate,resolved,20
+associated_with,hmdb,Azelate,resolved,7
+associated_with,pfocr,Azelate,resolved,6
+interacts_with,chembl,Azelate,resolved,5
+has_member,foodb,Azelate,resolved,3
+has_participant,metatlas,Azelate,resolved,3
+interacts_with,stitch,Azelate,resolved,3
+negatively_regulates,stitch,Azelate,resolved,2
+interacts_with,drugcentral,Azelate,resolved,1
+transforms_to,metatlas,Azelate,resolved,1

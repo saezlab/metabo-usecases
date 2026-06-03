@@ -1,0 +1,55 @@
+{
+  "api_base": "https://dev.omnipathdb.org/api",
+  "run_utc": "2026-06-03T13:02:34.927232+00:00",
+  "output_dir": "../outputs",
+  "csv_dir": "../outputs/csvs",
+  "workbook_path": "../outputs/azelaic_acid_tables.xlsx",
+  "figures": {},
+  "selected_entity_pks": [
+    "834f4132-7b63-4502-d458-6dc442371796",
+    "65c227ae-c250-c609-e519-395d821b1c62",
+    "dae8e667-770c-5d34-a381-8fd25179bc58"
+  ],
+  "table_counts": {
+    "summary": {
+      "rows": 3,
+      "columns": 14
+    },
+    "entity_annotations": {
+      "rows": 52,
+      "columns": 10
+    },
+    "relations": {
+      "rows": 183,
+      "columns": 16
+    },
+    "hmdb_classes": {
+      "rows": 7,
+      "columns": 11
+    },
+    "food_occurrence": {
+      "rows": 133,
+      "columns": 11
+    },
+    "metabolic_reactions": {
+      "rows": 11,
+      "columns": 20
+    },
+    "macdb_associations": {
+      "rows": 54,
+      "columns": 23
+    },
+    "fig3_panel_C_data": {
+      "rows": 10,
+      "columns": 5
+    },
+    "fig3_panel_D_data": {
+      "rows": 14,
+      "columns": 3
+    },
+    "fig_mindmap_data": {
+      "rows": 97,
+      "columns": 11
+    }
+  }
+}

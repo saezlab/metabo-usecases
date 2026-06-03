@@ -1,0 +1,15 @@
+disease_type,sample_type,evidence_count
+colorectal cancer,Stool,12
+lung cancer,Blood,5
+lung cancer,Serum,5
+lung cancer,Tissue,4
+kidney cancer,Tissue,3
+breast cancer,Serum,2
+lung cancer,Plasma,2
+prostate cancer,Urine,2
+colorectal cancer,Urine,1
+liver cancer,Plasma,1
+lung cancer,Sweat,1
+lymphoma,Serum,1
+ovarian cancer,Cells,1
+thyroid cancer,Serum,1

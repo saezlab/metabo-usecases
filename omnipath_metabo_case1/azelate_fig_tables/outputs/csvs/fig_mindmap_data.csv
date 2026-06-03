@@ -1,0 +1,98 @@
+record_type,node_id,label,category,evidence,source_node,target_node,target_label,weight,source_table,entity_resolution_status
+node,Azelaic acid / Azelate,Azelaic acid / Azelate,Center,1,,,,,selected_entities,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::CAS::123-99-9,CAS: 123-99-9,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::ChEBI::2949,ChEBI: 2949,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::ChEBI::40912,ChEBI: 40912,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::ChEBI::48131,ChEBI: 48131,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::ChEMBL Compound::CHEMBL1238,ChEMBL Compound: CHEMBL1238,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::DrugBank::DB00548,DrugBank: DB00548,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Drugcentral::270,Drugcentral: 270,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::FooDB::FDB012192,FooDB: FDB012192,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::HMDB::HMDB0000784,HMDB: HMDB0000784,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Human-GEM Metabolite::MAM01372,Human-GEM Metabolite: MAM01372,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::IUPAC Name::nonanedioic acid,IUPAC Name: nonanedioic acid,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::IUPAC Name::Nonanedioic acid,IUPAC Name: Nonanedioic acid,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::IUPAC Traditional Name::azelaic acid,IUPAC Traditional Name: azelaic acid,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::KEGG Compound::C08261,KEGG Compound: C08261,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::LIPID MAPS::LMFA01170054,LIPID MAPS: LMFA01170054,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Molecular Formula::C9H14O4,Molecular Formula: C9H14O4,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Molecular Formula::C9H16O4,Molecular Formula: C9H16O4,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelaic acid,Name: azelaic acid,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelaicacid,Name: azelaicacid,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Azelaic acid,Name: Azelaic acid,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::AZELAIC ACID,Name: AZELAIC ACID,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Azelate,Name: Azelate,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelate (C9-DC),Name: azelate (C9-DC),ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelate (nonanedioate),Name: azelate (nonanedioate),ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Azelate (nonanedioate),Name: Azelate (nonanedioate),ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::C08261_Azelate,Name: C08261_Azelate,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::nonanedioic acid,Name: nonanedioic acid,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Nonanedioic acid,Name: Nonanedioic acid,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::PubChem Compound::19347555,PubChem Compound: 19347555,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::PubChem Compound::2266,PubChem Compound: 2266,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::RefMet::RM0153048,RefMet: RM0153048,ID,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::SMILES::C(CCCCCCCC(=O)O)(=O)O,SMILES: C(CCCCCCCC(=O)O)(=O)O,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::SMILES::O=C(O)CCCCCCCC(=O)O,SMILES: O=C(O)CCCCCCCC(=O)O,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::SMILES::OC(=O)CCCCCCCC(O)=O,SMILES: OC(=O)CCCCCCCC(O)=O,Structure,1,,,,,entity_identifiers,resolved
+node,dae8e667-770c-5d34-a381-8fd25179bc58::Standard InChI Key::BDJRBEYXGGNYIS-UHFFFAOYSA-N,Standard InChI Key: BDJRBEYXGGNYIS-UHFFFAOYSA-N,Structure,1,,,,,entity_identifiers,resolved
+node,efda21f1-e46f-9d51-c849-28cb109af115,Carbonyl compounds,Class,1,,,,,hmdb_classes,resolved
+node,5add5897-50ab-04c2-4dba-3a483ea0d238,Carboxylic acids,Class,1,,,,,hmdb_classes,resolved
+node,f387e487-b943-4779-0777-802e9170e17c,Dicarboxylic acids and derivatives,Class,1,,,,,hmdb_classes,resolved
+node,a329a719-0055-10b4-ab1f-703dbecaeb11,Fatty acids and conjugates,Class,1,,,,,hmdb_classes,resolved
+node,71820721-859c-28e6-e7c0-351495f5617e,Hydrocarbon derivatives,Class,1,,,,,hmdb_classes,resolved
+node,5326b446-efc9-3ad6-9d87-6b603b88ecbe,Medium-chain fatty acids,Class,1,,,,,hmdb_classes,resolved
+node,61ac853b-6ab0-4b82-8bba-7f02d04c0803,Organic oxides,Class,1,,,,,hmdb_classes,resolved
+node,61d0a0e5-9d1b-0338-60f4-95b957b25efd,Asparagus,Food,1,,,,,food_occurrence,resolved
+node,c824abb6-4fb5-da8c-5b67-dd1e848c0d40,Potato,Food,1,,,,,food_occurrence,resolved
+node,f15d027b-3505-0d13-a0ce-03515eabae86,Common bean,Food,1,,,,,food_occurrence,resolved
+node,12601c30-c071-098b-f031-2dad3964fba6,819ff94dd91d27dc9786584783e681a3f4410c69f72b656c86125d7c1c284c53,Metabolic reaction,1,,,,,metabolic_reactions,resolved
+node,2d9bfcef-4a69-ad3a-afb2-a2742375d7bc,4abebd2ada10598dcae04ff6a50f9362305d4e35a3c7b9ed4055582d4f82ccf0,Metabolic reaction,1,,,,,metabolic_reactions,resolved
+node,5138c355-47eb-0ffc-b7f5-61b266cc64d3,"Transport of Azelaic Acid (C08261, Azelate), Extracellular",Metabolic reaction,1,,,,,metabolic_reactions,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::CAS::123-99-9,CAS: 123-99-9,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::ChEBI::2949,ChEBI: 2949,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::ChEBI::40912,ChEBI: 40912,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::ChEBI::48131,ChEBI: 48131,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::ChEMBL Compound::CHEMBL1238,ChEMBL Compound: CHEMBL1238,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::DrugBank::DB00548,DrugBank: DB00548,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Drugcentral::270,Drugcentral: 270,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::FooDB::FDB012192,FooDB: FDB012192,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::HMDB::HMDB0000784,HMDB: HMDB0000784,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Human-GEM Metabolite::MAM01372,Human-GEM Metabolite: MAM01372,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::IUPAC Name::nonanedioic acid,IUPAC Name: nonanedioic acid,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::IUPAC Name::Nonanedioic acid,IUPAC Name: Nonanedioic acid,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::IUPAC Traditional Name::azelaic acid,IUPAC Traditional Name: azelaic acid,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::KEGG Compound::C08261,KEGG Compound: C08261,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::LIPID MAPS::LMFA01170054,LIPID MAPS: LMFA01170054,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Molecular Formula::C9H14O4,Molecular Formula: C9H14O4,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Molecular Formula::C9H16O4,Molecular Formula: C9H16O4,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelaic acid,Name: azelaic acid,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelaicacid,Name: azelaicacid,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Azelaic acid,Name: Azelaic acid,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::AZELAIC ACID,Name: AZELAIC ACID,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Azelate,Name: Azelate,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelate (C9-DC),Name: azelate (C9-DC),1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::azelate (nonanedioate),Name: azelate (nonanedioate),1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Azelate (nonanedioate),Name: Azelate (nonanedioate),1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::C08261_Azelate,Name: C08261_Azelate,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::nonanedioic acid,Name: nonanedioic acid,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Name::Nonanedioic acid,Name: Nonanedioic acid,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::PubChem Compound::19347555,PubChem Compound: 19347555,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::PubChem Compound::2266,PubChem Compound: 2266,1,entity_identifiers,resolved
+edge,,,ID,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::RefMet::RM0153048,RefMet: RM0153048,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::SMILES::C(CCCCCCCC(=O)O)(=O)O,SMILES: C(CCCCCCCC(=O)O)(=O)O,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::SMILES::O=C(O)CCCCCCCC(=O)O,SMILES: O=C(O)CCCCCCCC(=O)O,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::SMILES::OC(=O)CCCCCCCC(O)=O,SMILES: OC(=O)CCCCCCCC(O)=O,1,entity_identifiers,resolved
+edge,,,Structure,,Azelaic acid / Azelate,dae8e667-770c-5d34-a381-8fd25179bc58::Standard InChI Key::BDJRBEYXGGNYIS-UHFFFAOYSA-N,Standard InChI Key: BDJRBEYXGGNYIS-UHFFFAOYSA-N,1,entity_identifiers,resolved
+edge,,,Class,,Azelaic acid / Azelate,efda21f1-e46f-9d51-c849-28cb109af115,Carbonyl compounds,1,hmdb_classes,resolved
+edge,,,Class,,Azelaic acid / Azelate,5add5897-50ab-04c2-4dba-3a483ea0d238,Carboxylic acids,1,hmdb_classes,resolved
+edge,,,Class,,Azelaic acid / Azelate,f387e487-b943-4779-0777-802e9170e17c,Dicarboxylic acids and derivatives,1,hmdb_classes,resolved
+edge,,,Class,,Azelaic acid / Azelate,a329a719-0055-10b4-ab1f-703dbecaeb11,Fatty acids and conjugates,1,hmdb_classes,resolved
+edge,,,Class,,Azelaic acid / Azelate,71820721-859c-28e6-e7c0-351495f5617e,Hydrocarbon derivatives,1,hmdb_classes,resolved
+edge,,,Class,,Azelaic acid / Azelate,5326b446-efc9-3ad6-9d87-6b603b88ecbe,Medium-chain fatty acids,1,hmdb_classes,resolved
+edge,,,Class,,Azelaic acid / Azelate,61ac853b-6ab0-4b82-8bba-7f02d04c0803,Organic oxides,1,hmdb_classes,resolved
+edge,,,Food,,Azelaic acid / Azelate,61d0a0e5-9d1b-0338-60f4-95b957b25efd,Asparagus,1,food_occurrence,resolved
+edge,,,Food,,Azelaic acid / Azelate,c824abb6-4fb5-da8c-5b67-dd1e848c0d40,Potato,1,food_occurrence,resolved
+edge,,,Food,,Azelaic acid / Azelate,f15d027b-3505-0d13-a0ce-03515eabae86,Common bean,1,food_occurrence,resolved
+edge,,,Metabolic reaction,,Azelaic acid / Azelate,12601c30-c071-098b-f031-2dad3964fba6,819ff94dd91d27dc9786584783e681a3f4410c69f72b656c86125d7c1c284c53,1,metabolic_reactions,resolved
+edge,,,Metabolic reaction,,Azelaic acid / Azelate,2d9bfcef-4a69-ad3a-afb2-a2742375d7bc,4abebd2ada10598dcae04ff6a50f9362305d4e35a3c7b9ed4055582d4f82ccf0,1,metabolic_reactions,resolved
+edge,,,Metabolic reaction,,Azelaic acid / Azelate,5138c355-47eb-0ffc-b7f5-61b266cc64d3,"Transport of Azelaic Acid (C08261, Azelate), Extracellular",1,metabolic_reactions,resolved

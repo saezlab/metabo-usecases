@@ -1,0 +1,53 @@
+seed_order,query_entity_label,entity_resolution_status,entity_pk,api_entity_label,canonical_identifier,annotation_group,annotation_category,annotation_type,annotation_value
+1,Azelaic acid (PTF52203),unresolved,834f4132-7b63-4502-d458-6dc442371796,Azelaic acid (PTF52203),99dc50de28b8375557636161b32e44ad,identifier,ID,Ptfi,PTF52203
+1,Azelaic acid (PTF52203),unresolved,834f4132-7b63-4502-d458-6dc442371796,Azelaic acid (PTF52203),99dc50de28b8375557636161b32e44ad,identifier,ID,omnipath,99dc50de28b8375557636161b32e44ad
+1,Azelaic acid (PTF52203),unresolved,834f4132-7b63-4502-d458-6dc442371796,Azelaic acid (PTF52203),99dc50de28b8375557636161b32e44ad,identifier,Name,Name,Azelaic acid (PTF52203)
+1,Azelaic acid (PTF52203),unresolved,834f4132-7b63-4502-d458-6dc442371796,Azelaic acid (PTF52203),99dc50de28b8375557636161b32e44ad,identifier,Structure,Molecular Formula,Az
+1,Azelaic acid (PTF52203),unresolved,834f4132-7b63-4502-d458-6dc442371796,Azelaic acid (PTF52203),99dc50de28b8375557636161b32e44ad,source,Source,source_membership,ptfi
+2,Azelaic acid; nonanedioic acid,unresolved,65c227ae-c250-c609-e519-395d821b1c62,Azelaic acid; nonanedioic acid,7a0fb608ae02e11f72bfb80eac7fa3a5,identifier,ID,Bigg Metabolite,C08261
+2,Azelaic acid; nonanedioic acid,unresolved,65c227ae-c250-c609-e519-395d821b1c62,Azelaic acid; nonanedioic acid,7a0fb608ae02e11f72bfb80eac7fa3a5,identifier,ID,Metanetx,MNXM164574
+2,Azelaic acid; nonanedioic acid,unresolved,65c227ae-c250-c609-e519-395d821b1c62,Azelaic acid; nonanedioic acid,7a0fb608ae02e11f72bfb80eac7fa3a5,identifier,ID,omnipath,7a0fb608ae02e11f72bfb80eac7fa3a5
+2,Azelaic acid; nonanedioic acid,unresolved,65c227ae-c250-c609-e519-395d821b1c62,Azelaic acid; nonanedioic acid,7a0fb608ae02e11f72bfb80eac7fa3a5,identifier,Name,Name,Azelaic acid; nonanedioic acid
+2,Azelaic acid; nonanedioic acid,unresolved,65c227ae-c250-c609-e519-395d821b1c62,Azelaic acid; nonanedioic acid,7a0fb608ae02e11f72bfb80eac7fa3a5,identifier,Structure,Molecular Formula,C9H12O4
+2,Azelaic acid; nonanedioic acid,unresolved,65c227ae-c250-c609-e519-395d821b1c62,Azelaic acid; nonanedioic acid,7a0fb608ae02e11f72bfb80eac7fa3a5,source,Source,source_membership,recon3d
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,CAS,123-99-9
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,ChEBI,2949
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,ChEBI,40912
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,ChEBI,48131
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,ChEMBL Compound,CHEMBL1238
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,DrugBank,DB00548
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,Drugcentral,270
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,FooDB,FDB012192
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,HMDB,HMDB0000784
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,Human-GEM Metabolite,MAM01372
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,KEGG Compound,C08261
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,LIPID MAPS,LMFA01170054
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,PubChem Compound,19347555
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,PubChem Compound,2266
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,ID,RefMet,RM0153048
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,Azelate
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,C08261_Azelate
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,azelaic acid
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,azelaicacid
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,azelate (C9-DC)
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,azelate (nonanedioate)
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Name,Name,nonanedioic acid
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,IUPAC Name,nonanedioic acid
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,IUPAC Traditional Name,azelaic acid
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,Molecular Formula,C9H14O4
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,Molecular Formula,C9H16O4
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,SMILES,C(CCCCCCCC(=O)O)(=O)O
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,SMILES,O=C(O)CCCCCCCC(=O)O
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,SMILES,OC(=O)CCCCCCCC(O)=O
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,identifier,Structure,Standard InChI Key,BDJRBEYXGGNYIS-UHFFFAOYSA-N
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,chebi
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,chembl
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,drugcentral
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,foodb
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,hmdb
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,lipidmaps
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,macdb
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,metatlas
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,pfocr
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,refmet
+3,Azelate,resolved,dae8e667-770c-5d34-a381-8fd25179bc58,azelaic acid,BDJRBEYXGGNYIS-UHFFFAOYSA-N,source,Source,source_membership,stitch
