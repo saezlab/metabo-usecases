@@ -48,7 +48,8 @@ build_manifest_for <- function(con) {
         ))
     }
 
-    packages <- parse_jsonb(rows$package_commits[[1L]])
+    packages_raw <- parse_jsonb(rows$package_commits[[1L]])
+    packages <- flatten_package_commits(packages_raw)
     resources <- parse_jsonb(rows$resources[[1L]])
     build_kind <- infer_build_kind(packages)
 
@@ -57,6 +58,7 @@ build_manifest_for <- function(con) {
         built_at      = format(rows$built_at[[1L]], "%Y-%m-%dT%H:%M:%S%z"),
         build         = build_kind,
         packages      = packages,
+        packages_raw  = packages_raw,
         resources     = resources,
         partial_build = isTRUE(as.logical(rows$partial_build[[1L]]))
     )
@@ -135,9 +137,18 @@ write_manifest <- function(manifest, deployment, dir = "manifests") {
         dir, sprintf("%s.%s.SHA256", deployment, sid)
     )
 
+    # Archive the FAITHFUL DB shape — rich packages (with dirty flag
+    # when present). The sidecar's package_commits stays flat (per the
+    # FR-032 schema), the archive preserves the dirty-flag detail.
+    archive <- manifest
+    if (!is.null(manifest$packages_raw)) {
+        archive$packages <- manifest$packages_raw
+    }
+    archive$packages_raw <- NULL
+
     writeLines(
         jsonlite::toJSON(
-            manifest, auto_unbox = TRUE, pretty = TRUE, null = "null"
+            archive, auto_unbox = TRUE, pretty = TRUE, null = "null"
         ),
         json_path
     )
@@ -176,7 +187,11 @@ packages_for_build <- function(build) {
 #'
 #' Mirrors the per-build package sets in FR-032: \code{metabo} when
 #' \code{omnipath-metabo} appears; otherwise \code{main} when
-#' \code{omnipath-build} appears; otherwise \code{utils}.
+#' \code{omnipath-build} appears; otherwise \code{utils}. The
+#' canonical FR-032 form uses hyphens (\code{omnipath-build}); the
+#' live cycle-001 \code{build_manifest} stores keys with underscores
+#' (\code{omnipath_build}). Both forms are accepted — keys are
+#' normalised to hyphen-form before classification.
 #'
 #' @param packages Named list of package → commit hash.
 #'
@@ -187,7 +202,7 @@ packages_for_build <- function(build) {
 #' @noRd
 infer_build_kind <- function(packages) {
 
-    names_set <- names(packages)
+    names_set <- gsub("_", "-", names(packages))
     if ("omnipath-metabo" %in% names_set) {
         "metabo"
     } else if ("omnipath-build" %in% names_set) {
@@ -195,6 +210,46 @@ infer_build_kind <- function(packages) {
     } else {
         "utils"
     }
+}
+
+
+#' Flatten the build_manifest.package_commits column to name → hash
+#'
+#' The cycle-001 \code{build_manifest} stores each commit as
+#' \code{{"commit": "<sha>", "dirty": <bool>}}; the FR-032 contract
+#' (build-manifest.schema.json) and the provenance sidecar schema
+#' both require a flat name → hash string mapping. This helper
+#' flattens the rich shape to the contract's flat shape so the
+#' sidecar's \code{package_commits} field is schema-compliant. The
+#' rich shape is preserved as \code{packages_raw} on the manifest so
+#' the archived manifest JSON in \code{manifests/} keeps the
+#' \code{dirty} flag.
+#'
+#' Tolerates the legacy flat shape: when a value is already a
+#' character scalar, it is returned unchanged.
+#'
+#' @param packages_raw A named list as produced by
+#'     \code{\link{parse_jsonb}} over the \code{package_commits}
+#'     column.
+#'
+#' @return Named list of name → commit hash string.
+#'
+#' @keywords internal
+#' @noRd
+flatten_package_commits <- function(packages_raw) {
+
+    lapply(packages_raw, function(value) {
+        if (is.character(value) && length(value) == 1L) {
+            value
+        } else if (is.list(value) && !is.null(value$commit)) {
+            as.character(value$commit)
+        } else {
+            # Defensive fall-through: jsonlite serializer represents
+            # this as the string "unknown" so downstream schema
+            # validation can still pass.
+            "unknown"
+        }
+    })
 }
 
 
