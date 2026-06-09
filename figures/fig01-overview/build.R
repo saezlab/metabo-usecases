@@ -134,6 +134,33 @@ for (name in names(panels)) {
     )
 }
 
+# ---- FR-007a — 6-facet resource overview (stand-alone artifact) -----------
+#
+# Heavy SQL (~145s end-to-end against dev3+dev4); the v1 path uses
+# row-scan queries. A follow-up commit will swap this for the
+# facet_*_bitmap path (expected ~10s) per the cycle-001 contract.
+
+logger::log_info("FR-007a — running 6-facet overview")
+fr007a_data <- fr007a_overview()
+
+# Append the queries to the sidecar's queries list so every value
+# traces back. Use a single placeholder record at the moment — each
+# per-facet query is logged via pg_query_panel and its hash is
+# captured there; we don't currently combine them into one record.
+queries <- c(queries, list(
+    list(sql = "fr007a_overview()", row_count = nrow(fr007a_data),
+         result_hash = substr(
+             digest::digest(fr007a_data, algo = "sha256"), 1L, 12L
+         ))
+))
+
+fr007a_plot <- plot_fr007a_overview(fr007a_data, width_mm = 180L)
+ggsave(file.path(out_dir, "fr007a-overview.pdf"), fr007a_plot,
+       width = 180, height = 220, units = "mm")
+ggsave(file.path(out_dir, "fr007a-overview.svg"), fr007a_plot,
+       width = 180, height = 220, units = "mm")
+logger::log_info("FR-007a overview written to {out_dir}/fr007a-overview.{{pdf,svg}}")
+
 # ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
 
 architecture_dir <- "inst/extdata/manual/architecture"
