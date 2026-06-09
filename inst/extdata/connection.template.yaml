@@ -2,7 +2,25 @@
 # `connection.yaml` — gitignored — for project-local override).
 #
 # See CONFIGURATION.md for the full schema.
+#
+# The 2026-06-09 cycle-001 + 002 handover put the figure pipeline on a
+# per-panel deployment matrix:
+#   dev3 (port 5403, gene-centric + entity labels) is the default.
+#   dev4 (port 5404, protein-centric + RDKit structural specificity +
+#         RaMP-conflict tables) is required for FR-007a Structures facet,
+#         FR-007e, FR-007f, FR-015.
+#   dev5 is reserved for the ongoing integrated build and is refused.
+#   prod / dev2 are excluded from the active rotation (opt-in only).
 
-deployment: dev3                # prod | dev2 | dev3 | dev4 | dev5
-credentials_source: env         # env | file | pgpass
-credentials_path: null          # required when credentials_source == "file"
+default_deployment: dev3
+
+overrides:
+  fig01-overview:
+    structures: dev4         # FR-007a Structures facet
+    panel_e: dev4            # FR-007e structural specificity × chemical category
+    ramp_conflict: dev4      # FR-007f RaMP conflict bar plot
+  tab02-ramp-comparison:
+    default: dev4            # FR-015 Methods RaMP comparison table
+
+credentials_source: env      # env | file | pgpass
+credentials_path: null       # required when credentials_source == "file"
