@@ -20,15 +20,16 @@ set.seed(pipeline_seed())
 out_dir <- "figures/fig01-overview/out"
 fs::dir_create(out_dir)
 
-deployment <- load_connection()
-con <- pg_connect()
+# ---- Deployment + manifest -----------------------------------------------
+#
+# Phase-3 (US1) MVP: only dev3 is touched. T014a's per-panel resolver
+# routes the Structures facet / FR-007e / FR-007f panels to dev4 — when
+# those renderers land they add a `dep4 <- deployment_provenance("dev4")`
+# call here and list both in the `deployments`/`manifests` args below.
 
-# ---- Manifest --------------------------------------------------------------
-
-logger::log_info("Deriving main build manifest")
-main_manifest <- build_manifest_for(con, "main")
-sid_main <- write_manifest(main_manifest)
-logger::log_info("Using main snapshot {sid_main}")
+logger::log_info("Resolving dev3 deployment + reading build_manifest")
+dep3 <- deployment_provenance("dev3")
+con  <- pg_connect_panel("dev3")
 
 # ---- Data ------------------------------------------------------------------
 
@@ -176,8 +177,8 @@ compose_mixed_source(
 write_sidecar(
     artifact_id    = "fig01-overview",
     artifact_path  = file.path(out_dir, "fig01-overview.pdf"),
-    deployment     = deployment,
-    manifests      = list(main_manifest),
+    deployments    = list(dep3$deployment),
+    manifests      = list(dep3$manifest),
     script_path    = "figures/fig01-overview/build.R",
     queries        = queries,
     external_inputs = list(
@@ -195,5 +196,5 @@ write_sidecar(
     seed           = pipeline_seed()
 )
 
-DBI::dbDisconnect(con)
+pg_close_all_panel()
 logger::log_info("fig01-overview complete")

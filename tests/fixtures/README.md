@@ -8,11 +8,16 @@ real `beauty` Postgres deployment is not reachable.
 A minimal subset of the OmniPath public schema (4 resources, ~50 rows
 total) sufficient to exercise:
 
-- `R/data/postgres.R::pg_query` (returns rows + records the result hash).
-- `R/provenance/manifest.R::build_manifest_for` (introspects
-  `data_source` and produces a stable Snapshot Identifier).
+- `R/data-postgres.R::pg_query` (returns rows + records the result hash).
+- `R/provenance-manifest.R::build_manifest_for` (reads the cycle-001
+  single-row `build_manifest` table natively and returns the Snapshot
+  Identifier from its `build_id` column).
 - The Figure 1 quantitative panels' query shape (so the rebuild driver
   can exercise the end-to-end path during CI without beauty access).
+
+The fixture MUST carry a single-row `build_manifest` with a recognisable
+`build_id` so the tests in `test-manifest.R` and
+`test-sidecar-schema.R` can pin against a known value.
 
 Load into a local Postgres for `R CMD check`:
 

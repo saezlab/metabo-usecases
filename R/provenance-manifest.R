@@ -1,158 +1,139 @@
-#' Derive a Build Manifest from a live OmniPath deployment
+#' Read a Build Manifest natively from a live OmniPath deployment
 #'
-#' Introspects the Postgres at \code{con} to capture
-#' \code{Resource State} (loaded resources + per-resource record
-#' counts), then merges in the package commit hashes for the
-#' targeted build (\code{utils}, \code{main}, or \code{metabo}). The
-#' returned manifest is suitable for canonical-JSON serialization and
-#' SHA-256 hashing into a Snapshot Identifier
-#' (\code{\link{snapshot_id}}).
+#' Reads the single-row \code{build_manifest} table on the target
+#' deployment (cycle-001 deliverable from
+#' \code{omnipath-build}). Returns a list shaped to
+#' \code{contracts/build-manifest.schema.json}. The
+#' \code{build_id} (12-hex SHA-256 truncation of canonicalised
+#' \code{package_commits + resources}) is read from the column, not
+#' re-derived — by construction it equals what the FR-032a
+#' standalone extractor would compute.
 #'
-#' Package set per build is fixed by spec FR-032:
-#' \itemize{
-#'     \item \code{utils}: \code{omnipath-utils} + \code{omnipath-resources}
-#'     \item \code{main}: \code{omnipath-build} + \code{omnipath-utils} +
-#'         \code{omnipath-resources}
-#'     \item \code{metabo}: \code{omnipath-metabo} + \code{omnipath-build}
-#'         + \code{omnipath-utils} + \code{omnipath-resources}
-#' }
-#' \code{omnipath-present} is excluded (the pipeline queries Postgres
-#' directly).
+#' Per the 2026-06-09 cycle-001 + 002 handover, every deployment the
+#' figure pipeline targets (\code{dev3} + \code{dev4}) carries this
+#' table; the legacy post-hoc derivation track (the original FR-032b
+#' fallback) is not implemented here per developer's direction.
 #'
-#' Where commit hashes are not supplied via \code{package_commits},
-#' they are read from \code{manifest-config.yaml} at the project root,
-#' falling back to the env vars \code{OMNIPATH_BUILD_COMMIT},
-#' \code{OMNIPATH_UTILS_COMMIT}, etc. -- and finally to the placeholder
-#' string \code{"unknown"} (the manifest's \code{partial_build} flag
-#' becomes \code{TRUE} in that case so consumers know the identifier
-#' is not authoritative).
+#' @param con A DBI Postgres connection from
+#'     \code{\link{pg_connect_panel}} (or \code{\link{pg_connect}}).
 #'
-#' @param con A DBI Postgres connection from \code{\link{pg_connect}}.
-#' @param build Character: one of \code{"utils"}, \code{"main"},
-#'     \code{"metabo"}.
-#' @param package_commits Optional named character vector overriding
-#'     the package commit lookup.
-#'
-#' @return A named list conforming to
-#'     \code{contracts/build-manifest.schema.json}.
+#' @return A named list with elements \code{build_id},
+#'     \code{built_at}, \code{build}, \code{packages},
+#'     \code{resources}, \code{partial_build}. The \code{build} field
+#'     is inferred from \code{packages}: \code{"metabo"} when
+#'     \code{omnipath-metabo} is present; \code{"main"} when
+#'     \code{omnipath-build} is present; \code{"utils"} otherwise.
 #'
 #' @examples
 #' \dontrun{
-#' con <- pg_connect()
-#' m <- build_manifest_for(con, "main")
-#' snapshot_id(m)
+#' con <- pg_connect_panel("dev3")
+#' m <- build_manifest_for(con)
+#' m$build_id        # e.g. "a3f9c2e74b81"
 #' }
 #'
 #' @importFrom DBI dbGetQuery
-#' @importFrom dplyr arrange
-#' @importFrom tibble as_tibble
-#' @importFrom purrr map
+#' @importFrom jsonlite fromJSON
 #' @importFrom logger log_info
 #' @importFrom rlang abort
 #' @export
-build_manifest_for <- function(con, build, package_commits = NULL) {
+build_manifest_for <- function(con) {
 
-    # NSE workaround
-    name <- record_count <- NULL
+    rows <- DBI::dbGetQuery(con, "SELECT * FROM build_manifest LIMIT 1")
 
-    if (!build %in% c("utils", "main", "metabo")) {
-        rlang::abort(sprintf("Unknown build: '%s'", build))
+    if (nrow(rows) == 0L) {
+        rlang::abort(paste0(
+            "build_manifest table is empty on the target deployment — ",
+            "expected the cycle-001 single-row schema. Re-run the ",
+            "database build's manifest-emit step."
+        ))
     }
 
-    resources <- resource_state(con) %>% dplyr::arrange(name)
+    packages <- parse_jsonb(rows$package_commits[[1L]])
+    resources <- parse_jsonb(rows$resources[[1L]])
+    build_kind <- infer_build_kind(packages)
 
-    package_set <- packages_for_build(build)
-    commits <- resolve_package_commits(package_set, package_commits)
-
-    partial <- has_partial_records(resources) ||
-        any(commits == "unknown")
-
-    list(
-        build         = build,
-        built_at      = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
-        packages      = commits,
-        resources     = purrr::map(seq_len(nrow(resources)), function(i) {
-            list(
-                name           = resources$name[[i]],
-                version        = resources$version[[i]] %||% "unknown",
-                record_count   = as.integer(resources$record_count[[i]]),
-                expected_count = if (is.na(resources$expected_count[[i]])) {
-                    NULL
-                } else {
-                    as.integer(resources$expected_count[[i]])
-                }
-            )
-        }),
-        partial_build = isTRUE(partial)
+    manifest <- list(
+        build_id      = as.character(rows$build_id[[1L]]),
+        built_at      = format(rows$built_at[[1L]], "%Y-%m-%dT%H:%M:%S%z"),
+        build         = build_kind,
+        packages      = packages,
+        resources     = resources,
+        partial_build = isTRUE(as.logical(rows$partial_build[[1L]]))
     )
+
+    logger::log_info(
+        "build_manifest read: build_id={manifest$build_id} ",
+        "(build={build_kind}, resources={length(resources)}, ",
+        "partial_build={manifest$partial_build})"
+    )
+
+    manifest
 }
 
 
-#' Compute the Snapshot Identifier from a Build Manifest
+#' Snapshot Identifier accessor
 #'
-#' Serializes the manifest to deterministic canonical JSON (sorted
-#' keys, excluding the cosmetic \code{built_at}), SHA-256 hashes the
-#' result, and returns the first 12 hex chars (research.md R-7).
+#' Returns the manifest's \code{build_id}. The cycle-001
+#' \code{build_manifest} column is defined as the SHA-256 of
+#' canonicalised \code{package_commits + resources} truncated to 12
+#' hex chars (FR-032a), so this is the Snapshot Identifier by
+#' construction — no in-pipeline re-derivation.
+#'
+#' The function is kept for backwards compatibility; new code should
+#' read \code{manifest$build_id} directly.
 #'
 #' @param manifest A list as produced by \code{\link{build_manifest_for}}.
 #'
-#' @return Character scalar -- 12 hex chars.
+#' @return Character scalar — 12 hex chars.
 #'
 #' @examples
-#' m <- list(
-#'     build = "metabo",
-#'     packages = list(`omnipath-metabo` = "abc1234"),
-#'     resources = list(),
-#'     partial_build = FALSE
-#' )
-#' snapshot_id(m)
+#' \dontrun{
+#' snapshot_id(build_manifest_for(con))
+#' }
 #'
-#' @importFrom jsonlite toJSON
-#' @importFrom digest digest
 #' @export
 snapshot_id <- function(manifest) {
 
-    hash_input <- manifest
-    hash_input$built_at <- NULL
+    if (is.null(manifest$build_id)) {
+        rlang::abort(
+            "Manifest is missing build_id (post-cycle-001 schema)"
+        )
+    }
 
-    canonical <- jsonlite::toJSON(
-        hash_input,
-        auto_unbox = TRUE,
-        digits     = NA,
-        null       = "null",
-        na         = "null",
-        pretty     = FALSE
-    )
-
-    substr(
-        digest::digest(canonical, algo = "sha256", serialize = FALSE),
-        1L, 12L
-    )
+    as.character(manifest$build_id)
 }
 
 
-#' Write a manifest + its identifier to manifests/
+#' Archive a manifest + its identifier to manifests/
 #'
-#' Emits \code{manifests/<build>.<snapshot-id>.json} (canonical JSON
-#' form) and \code{manifests/<build>.<snapshot-id>.SHA256} (one-line
-#' hex digest). Returns the resolved identifier.
+#' Emits \code{manifests/<deployment>.<build_id>.json} (canonical JSON
+#' form) and \code{manifests/<deployment>.<build_id>.SHA256} (one-line
+#' hex digest). Returns the build_id.
 #'
 #' @param manifest A list as produced by \code{\link{build_manifest_for}}.
+#' @param deployment Character: deployment label that produced the
+#'     manifest (e.g. \code{"dev3"}, \code{"dev4"}). Used as the
+#'     filename prefix so a multi-deployment rebuild keeps each
+#'     archive distinct.
 #' @param dir Output directory; defaults to \code{"manifests"}.
 #'
-#' @return The Snapshot Identifier (character scalar).
+#' @return The build_id (character scalar).
 #'
 #' @importFrom jsonlite toJSON
 #' @importFrom fs dir_create path
 #' @importFrom logger log_info
 #' @export
-write_manifest <- function(manifest, dir = "manifests") {
+write_manifest <- function(manifest, deployment, dir = "manifests") {
 
     fs::dir_create(dir)
     sid <- snapshot_id(manifest)
 
-    json_path  <- fs::path(dir, sprintf("%s.%s.json",  manifest$build, sid))
-    sha_path   <- fs::path(dir, sprintf("%s.%s.SHA256", manifest$build, sid))
+    json_path <- fs::path(
+        dir, sprintf("%s.%s.json", deployment, sid)
+    )
+    sha_path  <- fs::path(
+        dir, sprintf("%s.%s.SHA256", deployment, sid)
+    )
 
     writeLines(
         jsonlite::toJSON(
@@ -162,91 +143,20 @@ write_manifest <- function(manifest, dir = "manifests") {
     )
     writeLines(sid, sha_path)
 
-    logger::log_info("Wrote manifest {json_path} (snapshot={sid})")
+    logger::log_info(
+        "Wrote manifest {json_path} (build_id={sid})"
+    )
+
     sid
 }
 
 
-#' Query the live OmniPath schema for resource state
-#'
-#' Joins \code{data_source} with the per-table record counts (entity,
-#' relation, annotation, ontology_terms). Implementation note: when a
-#' resource has no entries in a given table, the count is zero (not
-#' missing). Expected counts are not currently tracked in the schema
-#' and default to \code{NA_integer_}.
-#'
-#' @param con DBI connection.
-#' @return A tibble with columns \code{name}, \code{version},
-#'     \code{record_count}, \code{expected_count}.
-#'
-#' @importFrom DBI dbGetQuery
-#' @importFrom tibble as_tibble
-#' @keywords internal
-#' @noRd
-resource_state <- function(con) {
-
-    # Conservative shape that works against the current dev3 schema:
-    # data_source is the resource registry; counts come from
-    # entity_evidence (partitioned by source_id, so the count query is
-    # cheap). Other per-source totals (relations, annotations) are
-    # added back once the corresponding schema-side joins are stable --
-    # this is sufficient for distinguishing snapshots today.
-    sql <- "
-        SELECT ds.name AS name,
-               'unknown' AS version,
-               COALESCE((
-                   SELECT COUNT(*) FROM entity_evidence ee
-                   WHERE ee.source_id = ds.source_id
-               ), 0) AS record_count,
-               NULL::bigint AS expected_count
-        FROM data_source ds
-        ORDER BY ds.name
-    "
-
-    tibble::as_tibble(DBI::dbGetQuery(con, sql))
-}
-
-
-#' Read package commit hashes from config / env / fallback
-#'
-#' @param wanted Character: the package names this build requires.
-#' @param override Optional named character vector taking precedence.
-#'
-#' @importFrom yaml read_yaml
-#' @keywords internal
-#' @noRd
-resolve_package_commits <- function(wanted, override = NULL) {
-
-    cfg <- if (file.exists("manifest-config.yaml")) {
-        yaml::read_yaml("manifest-config.yaml")$packages %||% list()
-    } else {
-        list()
-    }
-
-    env_lookup <- list(
-        `omnipath-resources` = "OMNIPATH_RESOURCES_COMMIT",
-        `omnipath-utils`     = "OMNIPATH_UTILS_COMMIT",
-        `omnipath-build`     = "OMNIPATH_BUILD_COMMIT",
-        `omnipath-metabo`    = "OMNIPATH_METABO_COMMIT"
-    )
-
-    out <- vapply(wanted, function(pkg) {
-        if (!is.null(override) && pkg %in% names(override)) {
-            return(unname(override[[pkg]]))
-        }
-        if (pkg %in% names(cfg)) return(cfg[[pkg]])
-        env_val <- Sys.getenv(env_lookup[[pkg]] %||% "", unset = "")
-        if (nzchar(env_val)) return(env_val)
-        "unknown"
-    }, character(1L), USE.NAMES = FALSE)
-
-    stats::setNames(as.list(out), wanted)
-}
-
-
-#' Per-build set of relevant package names
+#' Per-build set of relevant package names (FR-032)
 #'
 #' @param build Character: one of \code{utils}, \code{main}, \code{metabo}.
+#'
+#' @return Character vector of package names.
+#'
 #' @keywords internal
 #' @noRd
 packages_for_build <- function(build) {
@@ -262,21 +172,54 @@ packages_for_build <- function(build) {
 }
 
 
-#' Whether any resource was partially loaded
+#' Infer build kind from a package_commits map
 #'
-#' @param resources Tibble with \code{record_count}, \code{expected_count}.
-#' @importFrom dplyr filter
+#' Mirrors the per-build package sets in FR-032: \code{metabo} when
+#' \code{omnipath-metabo} appears; otherwise \code{main} when
+#' \code{omnipath-build} appears; otherwise \code{utils}.
+#'
+#' @param packages Named list of package → commit hash.
+#'
+#' @return Character scalar: \code{"utils"} | \code{"main"} |
+#'     \code{"metabo"}.
+#'
 #' @keywords internal
 #' @noRd
-has_partial_records <- function(resources) {
+infer_build_kind <- function(packages) {
 
-    # NSE workaround
-    record_count <- expected_count <- NULL
+    names_set <- names(packages)
+    if ("omnipath-metabo" %in% names_set) {
+        "metabo"
+    } else if ("omnipath-build" %in% names_set) {
+        "main"
+    } else {
+        "utils"
+    }
+}
 
-    if (nrow(resources) == 0L) return(FALSE)
-    partial <- resources %>%
-        dplyr::filter(
-            !is.na(expected_count) & record_count < expected_count
-        )
-    nrow(partial) > 0L
+
+#' Parse a jsonb column value into an R list
+#'
+#' RPostgres returns jsonb as character; this helper trims whitespace,
+#' parses with \code{simplifyVector = FALSE}, and returns an empty
+#' list on null / empty input.
+#'
+#' @param value Character or list (raw column value).
+#'
+#' @return List — empty when the column was null / empty.
+#'
+#' @importFrom jsonlite fromJSON
+#' @keywords internal
+#' @noRd
+parse_jsonb <- function(value) {
+
+    if (is.null(value) || (is.character(value) && !nzchar(value))) {
+        return(list())
+    }
+
+    if (is.list(value)) {
+        return(value)
+    }
+
+    jsonlite::fromJSON(as.character(value), simplifyVector = FALSE)
 }

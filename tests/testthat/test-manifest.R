@@ -1,55 +1,60 @@
-test_that("snapshot_id is deterministic across identical manifests", {
+test_that("snapshot_id returns the manifest's build_id", {
 
-    m1 <- list(
-        build         = "metabo",
+    manifest <- list(
+        build_id      = "a3f9c2e74b81",
         built_at      = "2026-05-28T09:00:00+0000",
-        packages      = list(
-            `omnipath-metabo`    = "abcd123",
-            `omnipath-build`     = "ef45678",
-            `omnipath-utils`     = "9876543",
-            `omnipath-resources` = "1234567"
-        ),
-        resources     = list(
-            list(name = "chebi",  version = "230",
-                 record_count = 198432L, expected_count = 198432L),
-            list(name = "signor", version = "2024-03",
-                 record_count = 9001L, expected_count = NULL)
-        ),
-        partial_build = FALSE
-    )
-    m2 <- m1
-    m2$built_at <- "2027-01-01T00:00:00+0000"   # cosmetic only
-
-    expect_equal(snapshot_id(m1), snapshot_id(m2))
-    expect_match(snapshot_id(m1), "^[0-9a-f]{12}$")
-})
-
-test_that("snapshot_id changes when packages or resources change", {
-
-    m1 <- list(
         build         = "main",
-        packages      = list(`omnipath-build` = "111"),
+        packages      = list(
+            `omnipath-build`     = "aaa1111",
+            `omnipath-utils`     = "bbb2222",
+            `omnipath-resources` = "ccc3333"
+        ),
         resources     = list(),
         partial_build = FALSE
     )
-    m2 <- m1; m2$packages$`omnipath-build` <- "222"
-    m3 <- m1; m3$resources <- list(
-        list(name = "x", version = "v1", record_count = 1L,
-             expected_count = NULL)
-    )
 
-    expect_false(identical(snapshot_id(m1), snapshot_id(m2)))
-    expect_false(identical(snapshot_id(m1), snapshot_id(m3)))
+    expect_equal(snapshot_id(manifest), "a3f9c2e74b81")
+    expect_match(snapshot_id(manifest), "^[0-9a-f]{12}$")
 })
 
-test_that("packages_for_build excludes omnipath-present everywhere", {
+test_that("snapshot_id refuses a pre-cycle-001 manifest", {
 
-    for (b in c("utils", "main", "metabo")) {
-        expect_false(
-            "omnipath-present" %in% packages_for_build(b),
-            info = sprintf("build = %s", b)
-        )
-    }
+    manifest <- list(
+        build    = "main",
+        packages = list(`omnipath-build` = "aaa1111"),
+        resources = list(),
+        partial_build = FALSE
+    )
+
+    expect_error(snapshot_id(manifest), "build_id")
+})
+
+test_that("infer_build_kind maps package sets to FR-032 build labels", {
+
+    expect_equal(
+        infer_build_kind(list(
+            `omnipath-utils`     = "u",
+            `omnipath-resources` = "r"
+        )),
+        "utils"
+    )
+    expect_equal(
+        infer_build_kind(list(
+            `omnipath-build`     = "b",
+            `omnipath-utils`     = "u",
+            `omnipath-resources` = "r"
+        )),
+        "main"
+    )
+    expect_equal(
+        infer_build_kind(list(
+            `omnipath-metabo`    = "m",
+            `omnipath-build`     = "b",
+            `omnipath-utils`     = "u",
+            `omnipath-resources` = "r"
+        )),
+        "metabo"
+    )
 })
 
 test_that("packages_for_build returns expected sets per FR-032", {
@@ -71,12 +76,41 @@ test_that("packages_for_build returns expected sets per FR-032", {
     )
 })
 
+test_that("packages_for_build excludes omnipath-present everywhere", {
+
+    for (b in c("utils", "main", "metabo")) {
+        expect_false(
+            "omnipath-present" %in% packages_for_build(b),
+            info = sprintf("build = %s", b)
+        )
+    }
+})
+
+test_that("parse_jsonb handles character / list / empty / null shapes", {
+
+    expect_equal(parse_jsonb(NULL), list())
+    expect_equal(parse_jsonb(""), list())
+
+    parsed <- parse_jsonb('{"a": 1, "b": "two"}')
+    expect_equal(parsed$a, 1)
+    expect_equal(parsed$b, "two")
+
+    # When the column is already an R list (e.g. RPostgres deserialized
+    # the jsonb upstream), return it unchanged.
+    expect_equal(
+        parse_jsonb(list(a = 1L)),
+        list(a = 1L)
+    )
+})
+
 test_that("write_manifest emits canonical JSON and SHA256 files", {
 
     skip_if_not_installed("fs")
 
     withr::with_tempdir({
         m <- list(
+            build_id      = "abcdef012345",
+            built_at      = "2026-05-28T09:00:00+0000",
             build         = "utils",
             packages      = list(
                 `omnipath-utils`     = "aaa1111",
@@ -85,42 +119,72 @@ test_that("write_manifest emits canonical JSON and SHA256 files", {
             resources     = list(),
             partial_build = FALSE
         )
-        sid <- write_manifest(m, dir = "manifests")
+        sid <- write_manifest(m, deployment = "dev3", dir = "manifests")
 
-        expect_match(sid, "^[0-9a-f]{12}$")
+        expect_equal(sid, "abcdef012345")
         expect_true(file.exists(
-            file.path("manifests", sprintf("utils.%s.json", sid))
+            file.path("manifests", "dev3.abcdef012345.json")
         ))
         expect_true(file.exists(
-            file.path("manifests", sprintf("utils.%s.SHA256", sid))
+            file.path("manifests", "dev3.abcdef012345.SHA256")
         ))
         expect_equal(
-            readLines(file.path("manifests", sprintf("utils.%s.SHA256", sid))),
+            readLines(file.path("manifests", "dev3.abcdef012345.SHA256")),
             sid
         )
     })
 })
 
-test_that("partial_build flag fires on missing commit hashes", {
+test_that("build_manifest_for parses a build_manifest row natively", {
 
-    skip_on_cran()
-
-    m <- list(
-        build         = "main",
-        packages      = resolve_package_commits(
-            packages_for_build("main"),
-            override = NULL
+    # Synthetic DBI fixture so we don't need a live Postgres.
+    fake_con <- structure(list(), class = "MockConnection")
+    mock_row <- data.frame(
+        build_id        = "a3f9c2e74b81",
+        built_at        = as.POSIXct(
+            "2026-05-28T09:00:00", tz = "UTC", format = "%Y-%m-%dT%H:%M:%S"
         ),
-        resources     = list(),
-        partial_build = any(
-            resolve_package_commits(
-                packages_for_build("main"),
-                override = NULL
-            ) == "unknown"
-        )
+        package_commits = '{"omnipath-build": "aaa1111", "omnipath-utils": "bbb2222", "omnipath-resources": "ccc3333"}',
+        resources       = '[{"name": "chebi", "version": "230", "record_count": 198432, "expected_count": 198432}]',
+        partial_build   = FALSE,
+        stringsAsFactors = FALSE
     )
 
-    if (any(unlist(m$packages) == "unknown")) {
-        expect_true(m$partial_build)
-    }
+    # Stub DBI::dbGetQuery via local mocking.
+    withr::local_envvar(c("R_TESTS" = ""))
+    with_mocked_bindings(
+        dbGetQuery = function(con, sql, ...) mock_row,
+        .package = "DBI",
+        {
+            manifest <- build_manifest_for(fake_con)
+        }
+    )
+
+    expect_equal(manifest$build_id, "a3f9c2e74b81")
+    expect_equal(manifest$build, "main")
+    expect_equal(manifest$packages$`omnipath-build`, "aaa1111")
+    expect_equal(length(manifest$resources), 1L)
+    expect_equal(manifest$resources[[1L]]$name, "chebi")
+    expect_false(manifest$partial_build)
+})
+
+test_that("build_manifest_for errors when the table is empty", {
+
+    fake_con <- structure(list(), class = "MockConnection")
+    empty <- data.frame(
+        build_id        = character(),
+        built_at        = as.POSIXct(character()),
+        package_commits = character(),
+        resources       = character(),
+        partial_build   = logical(),
+        stringsAsFactors = FALSE
+    )
+
+    with_mocked_bindings(
+        dbGetQuery = function(con, sql, ...) empty,
+        .package = "DBI",
+        {
+            expect_error(build_manifest_for(fake_con), "build_manifest table is empty")
+        }
+    )
 })
