@@ -29,24 +29,23 @@ fs::dir_create(out_dir)
 
 logger::log_info("Resolving dev3 deployment + reading build_manifest")
 dep3 <- deployment_provenance("dev3")
-con  <- pg_connect_panel("dev3")
 
-# ---- Data ------------------------------------------------------------------
+# ---- Data (cycle-001 derived shapes, dispatched via T014a) ----------------
 
 logger::log_info("Querying Panel B (entities_by_resource)")
-data_b <- entities_by_resource(con)
+data_b <- entities_by_resource()
 
 logger::log_info("Querying Panel C (interactions_by_resource)")
-data_c <- interactions_by_resource(con)
+data_c <- interactions_by_resource()
 
 logger::log_info("Querying Panel D (interactions_by_type)")
-data_d <- interactions_by_type(con)
+data_d <- interactions_by_type()
 
-logger::log_info("Querying Panel E (annotation_classes_by_resource)")
-data_e <- annotation_classes_by_resource(con)
+logger::log_info("Querying Panel E (associations_by_resource)")
+data_e <- associations_by_resource()
 
 logger::log_info("Querying Panel F (ontology_terms_by_ontology)")
-data_f <- ontology_terms_by_ontology(con)
+data_f <- ontology_terms_by_ontology()
 
 queries <- list(
     query_record(data_b),
@@ -71,20 +70,20 @@ if (length(all_resources) > 0L) {
     )
 }
 
-all_interactions <- unique(data_d$interaction_type)
-new_interactions <- setdiff(
-    all_interactions,
+all_interaction_classes <- unique(data_d$interaction_class)
+new_interaction_classes <- setdiff(
+    all_interaction_classes,
     registered_category_values("interaction_types")
 )
-if (length(new_interactions) > 0L) {
+if (length(new_interaction_classes) > 0L) {
     register_category_colours(
         "interaction_types",
         setNames(
             palette_n(
-                length(new_interactions),
+                length(new_interaction_classes),
                 unknown = FALSE
             ),
-            new_interactions
+            new_interaction_classes
         )
     )
 }
@@ -95,7 +94,7 @@ panels <- list(
     panelB = plot_entities_by_resource(data_b, width_mm = 89L),
     panelC = plot_interactions_by_resource(data_c, width_mm = 89L),
     panelD = plot_interactions_by_type(data_d, width_mm = 89L),
-    panelE = plot_annotation_classes_by_resource(data_e, width_mm = 89L),
+    panelE = plot_associations_by_resource(data_e, width_mm = 89L),
     panelF = plot_ontology_terms_by_ontology(data_f, width_mm = 89L)
 )
 

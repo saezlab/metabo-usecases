@@ -14,5 +14,5 @@
 \figpanel{b}{Number of distinct molecular entities contributed by each upstream resource (\texttt{dev3}, gene-centric build).}
 \figpanel{c}{Number of distinct interactions contributed by each upstream resource (\texttt{dev3}).}
 \figpanel{d}{Number of interactions per interaction-type vocabulary class (\texttt{Signaling}, \texttt{Transport}, \texttt{Other}); the cycle-001 predicate vocabulary surfaces only these three classes — finer categories (TF-target, allosteric, ligand-receptor, drug-target) collapse into \texttt{Other} until the next vocabulary refresh.}
-\figpanel{e}{Number of distinct annotation classes contributed by each upstream resource.}
-\figpanel{f}{Number of ontology terms per ontology, read from the entity-relations \texttt{Cv Term:OM:0012} entity family (the legacy \texttt{ontology\_terms} table was deprecated in cycle-001).}
+\figpanel{e}{Number of associations contributed by each upstream resource — read from the cycle-001 \texttt{resources.association\_count} pre-computed column.}
+\figpanel{f}{Number of ontology terms per ontology, read from the entity-relations \texttt{entity\_ontology\_term} table (the legacy \texttt{ontology\_terms} table was deprecated in cycle-001).}

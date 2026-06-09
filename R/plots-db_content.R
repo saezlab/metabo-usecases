@@ -88,12 +88,16 @@ plot_interactions_by_resource <- function(data, width_mm = 89L) {
 }
 
 
-#' Panel D -- interactions by type
+#' Panel D -- interactions by interaction class
 #'
 #' Vertical bar chart coloured by interaction-type registry. Uniform
-#' bar widths matching panels B and C.
+#' bar widths matching panels B and C. Renders the coarse cycle-001
+#' classes honestly (\code{Signaling} / \code{Transport} /
+#' \code{Other}) per the 2026-06-09 handover — no synthesised finer
+#' categories.
 #'
-#' @param data Tibble from \code{\link{interactions_by_type}}.
+#' @param data Tibble from \code{\link{interactions_by_type}} with
+#'     \code{interaction_class}, \code{predicates}, \code{n}.
 #' @param width_mm Numeric.
 #'
 #' @return A ggplot object.
@@ -105,17 +109,17 @@ plot_interactions_by_resource <- function(data, width_mm = 89L) {
 #' @export
 plot_interactions_by_type <- function(data, width_mm = 89L) {
 
-    interaction_type <- n <- fill_hex <- NULL
+    interaction_class <- n <- fill_hex <- NULL
 
     data <- dplyr::mutate(
         data,
-        fill_hex = category_colour("interaction_types", interaction_type)
+        fill_hex = category_colour("interaction_types", interaction_class)
     )
 
     ggplot2::ggplot(
         data,
         ggplot2::aes(
-            x    = stats::reorder(.data$interaction_type, -.data$n),
+            x    = stats::reorder(.data$interaction_class, -.data$n),
             y    = .data$n,
             fill = .data$fill_hex
         )
@@ -134,13 +138,15 @@ plot_interactions_by_type <- function(data, width_mm = 89L) {
 }
 
 
-#' Panel E -- annotation classes by resource
+#' Panel E -- associations by resource
 #'
 #' Empty-data case emits a single-bar placeholder so the panel layout
-#' remains stable when the snapshot has no annotation relations yet
+#' remains stable when the snapshot has no associations yet
 #' (spec Edge Case: zero-row queries get an explicit placeholder).
+#' Replaces the pre-handover \code{plot_annotation_classes_by_resource()}
+#' renderer.
 #'
-#' @param data Tibble from \code{\link{annotation_classes_by_resource}}.
+#' @param data Tibble from \code{\link{associations_by_resource}}.
 #' @param width_mm Numeric.
 #'
 #' @return A ggplot object.
@@ -151,15 +157,15 @@ plot_interactions_by_type <- function(data, width_mm = 89L) {
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-plot_annotation_classes_by_resource <- function(data, width_mm = 89L) {
+plot_associations_by_resource <- function(data, width_mm = 89L) {
 
-    resource <- n_classes <- fill_hex <- NULL
+    resource <- n_associations <- fill_hex <- NULL
 
     if (nrow(data) == 0L) {
         data <- tibble::tibble(
-            resource   = "(none)",
-            n_classes  = 0L,
-            fill_hex   = "#BEBEBE"
+            resource        = "(none)",
+            n_associations  = 0L,
+            fill_hex        = "#BEBEBE"
         )
     } else {
         data <- dplyr::mutate(
@@ -171,8 +177,8 @@ plot_annotation_classes_by_resource <- function(data, width_mm = 89L) {
     ggplot2::ggplot(
         data,
         ggplot2::aes(
-            x    = stats::reorder(.data$resource, .data$n_classes),
-            y    = .data$n_classes,
+            x    = stats::reorder(.data$resource, .data$n_associations),
+            y    = .data$n_associations,
             fill = .data$fill_hex
         )
     ) +
@@ -182,7 +188,7 @@ plot_annotation_classes_by_resource <- function(data, width_mm = 89L) {
             expand = ggplot2::expansion(mult = c(0, 0.05))
         ) +
         ggplot2::coord_flip() +
-        ggplot2::labs(x = NULL, y = "Annotation classes") +
+        ggplot2::labs(x = NULL, y = "Associations") +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(legend.position = "none")
 }
