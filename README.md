@@ -6,8 +6,10 @@ OmniPath Postgres snapshot.
 
 The repository is structured as an R package (`metabo.figures`) with
 adjacent figure/table workspace directories, Python helpers under
-`python/`, TikZ + LaTeX sources under `tikz/` and `tex/`, and a single
-top-level rebuild entrypoint.
+`python/`, LaTeX composite-assembly + caption sources under `tex/`,
+manual vendored assets under `inst/extdata/manual/` (including the
+Figure 1 Panel A architecture PDF/SVG authored in Inkscape), and a
+single top-level rebuild entrypoint.
 
 ## Quick start
 
@@ -27,7 +29,8 @@ See the full quickstart and contracts in the saezverse spec:
 
 ## Deliverables
 
-- **Figure 1** — workflow-architecture diagram (TikZ) + quantitative
+- **Figure 1** — workflow-architecture diagram (manual Inkscape asset,
+  vendored under `inst/extdata/manual/architecture/`) + quantitative
   database-content panels
 - **Figure 2** — webapp screenshots (manual asset)
 - **Figure 3** — MetalinksDB v1 vs v2 comparison

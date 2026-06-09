@@ -4,7 +4,7 @@
 %
 % Layout:
 %   ┌──────────────────────────────────────────┐
-%   │  A  Panel A — architecture (full width)  │
+%   │  A  Vendored architecture PDF (FR-005)   │
 %   ├──────────────────┬───────────────────────┤
 %   │  B  panelB.pdf   │  C  panelC.pdf        │
 %   ├──────────────────┼───────────────────────┤
@@ -12,6 +12,14 @@
 %   ├──────────────────┴───────────────────────┤
 %   │  F  panelF.pdf   (single column, hsv)    │
 %   └──────────────────────────────────────────┘
+%
+% Panel A is the vendored manual architecture asset at
+% inst/extdata/manual/architecture/omnipath-architecture-new2026.pdf
+% (FR-005, FR-005a). figures/fig01-overview/build.R verifies the
+% SHA-256 fingerprint of the on-disk PDF against the README-pinned
+% value before copying it into out/panelA.pdf — the composer trusts
+% that copy and simply embeds it. The previous TikZ Panel A authoring
+% track (the retired FR-005..FR-006a series) is removed.
 %
 % build.R copies this file into the figure's out/ directory and runs
 % xelatex with that as CWD, so each panel is referenced by its bare
@@ -21,13 +29,14 @@
 
 \usepackage{compose_helpers}
 \usepackage{graphicx}
+\usepackage{pdfpages}
 \usepackage{tikz}
 
 \begin{document}
 
 \begin{tikzpicture}[remember picture]
 
-    % ---- Panel A — full width ------------------------------------------
+    % ---- Panel A — vendored architecture asset (FR-005) ----------------
     \node[anchor = north west, inner sep = 0pt]
         (panela) at (0, 0)
         {\includegraphics[width = 180mm]{panelA.pdf}};

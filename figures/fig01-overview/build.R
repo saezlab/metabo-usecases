@@ -1,9 +1,11 @@
 # figures/fig01-overview/build.R
 #
 # Orchestrates the full Figure 1 build: queries the OmniPath Postgres,
-# renders panels B–F via ggplot, compiles Panel A from TikZ via
-# xelatex, composes everything via tex/compose_fig01.tex, and writes
-# the provenance sidecar.
+# renders panels B–F via ggplot, vendors the manual architecture asset
+# at the Panel A position (FR-005, FR-005a — SHA-256 fingerprint
+# verified against the inst/extdata/manual/architecture/README.md pin
+# before include), composes via tex/compose_fig01.tex, and writes the
+# provenance sidecar.
 #
 # Sourced by rebuild.R; safe to source standalone too.
 
@@ -110,32 +112,51 @@ for (name in names(panels)) {
     )
 }
 
-# ---- Panel A (TikZ + xelatex) ----------------------------------------------
+# ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
 
-logger::log_info("Compiling Panel A (TikZ → xelatex)")
-xelatex_log <- file.path(out_dir, "fig1a_xelatex.log")
-rc <- system2(
-    "xelatex",
-    c(
-        "-interaction=nonstopmode",
-        sprintf("-output-directory=%s", out_dir),
-        "tikz/fig1a_architecture.tex"
-    ),
-    stdout = xelatex_log,
-    stderr = xelatex_log
+architecture_dir <- "inst/extdata/manual/architecture"
+architecture_pdf <- file.path(
+    architecture_dir, "omnipath-architecture-new2026.pdf"
 )
-if (rc != 0L) {
-    logger::log_error(
-        "Panel A xelatex failed (rc={rc}); see {xelatex_log}"
-    )
-    rlang::abort(sprintf("Panel A xelatex failed (rc = %d)", rc))
+architecture_readme <- file.path(architecture_dir, "README.md")
+
+if (!file.exists(architecture_pdf)) {
+    rlang::abort(sprintf(
+        "Vendored architecture asset missing: %s. Re-vendor per %s.",
+        architecture_pdf, architecture_readme
+    ))
 }
+
+readme_pin <- stringr::str_match(
+    paste(readLines(architecture_readme), collapse = "\n"),
+    "pdf_sha256.*?`([0-9a-f]{64})`"
+)[1L, 2L]
+if (is.na(readme_pin)) {
+    rlang::abort(sprintf(
+        "Could not parse pdf_sha256 pin from %s", architecture_readme
+    ))
+}
+
+architecture_sha256 <- digest::digest(
+    file = architecture_pdf, algo = "sha256"
+)
+if (!identical(architecture_sha256, readme_pin)) {
+    rlang::abort(sprintf(paste0(
+        "Architecture asset SHA-256 mismatch (FR-005a). ",
+        "Expected (README pin): %s\n",
+        "Got      (on disk):    %s\n",
+        "Manual asset changed — update %s and re-record fingerprint."
+    ), readme_pin, architecture_sha256, architecture_readme))
+}
+
 file.copy(
-    file.path(out_dir, "fig1a_architecture.pdf"),
+    architecture_pdf,
     file.path(out_dir, "panelA.pdf"),
     overwrite = TRUE
 )
-logger::log_info("Panel A compiled")
+logger::log_info(
+    "Panel A vendored from {architecture_pdf} (sha256={substr(architecture_sha256, 1L, 12L)})"
+)
 
 # ---- Composite -------------------------------------------------------------
 
@@ -161,22 +182,13 @@ write_sidecar(
     queries        = queries,
     external_inputs = list(
         list(
-            kind        = "vendored-asset",
-            path        = "inst/extdata/assets/postgres.svg",
-            source      = "PostgreSQL trademark, see SOURCES.md",
-            fingerprint = substr(
-                digest::digest(file = "inst/extdata/assets/postgres.svg"),
-                1L, 12L
-            )
-        ),
-        list(
-            kind        = "vendored-asset",
-            path        = "inst/extdata/assets/rdkit.png",
-            source      = "RDKit project (BSD)",
-            fingerprint = substr(
-                digest::digest(file = "inst/extdata/assets/rdkit.png"),
-                1L, 12L
-            )
+            kind        = "architecture-asset",
+            path        = architecture_pdf,
+            source      = paste0(
+                "Inkscape source on the contributor's machine; ",
+                "see ", architecture_readme
+            ),
+            fingerprint = architecture_sha256
         )
     ),
     parameters     = list(width_mm = 180L),

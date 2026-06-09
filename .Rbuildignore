@@ -12,7 +12,6 @@
 ^manifests$
 ^python$
 ^tex$
-^tikz$
 ^preview$
 ^omnipath_metabo_case1$
 ^omnipath_metabo_case[0-9]+$
