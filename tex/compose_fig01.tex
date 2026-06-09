@@ -9,9 +9,9 @@
 %   │  B  panelB.pdf   │  C  panelC.pdf        │
 %   ├──────────────────┼───────────────────────┤
 %   │  D  panelD.pdf   │  E  panelE.pdf        │
-%   ├──────────────────┴───────────────────────┤
-%   │  F  panelF.pdf   (single column, hsv)    │
-%   └──────────────────────────────────────────┘
+%   ├──────────────────┼───────────────────────┤
+%   │  F  panelF.pdf   │  G  panelG.pdf        │
+%   └──────────────────┴───────────────────────┘
 %
 % Panel A is the vendored manual architecture asset at
 % inst/extdata/manual/architecture/omnipath-architecture-new2026.pdf
@@ -74,13 +74,19 @@
     \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
         at ($(panele.north west) + (-2mm, 2mm)$) {E};
 
-    % ---- Panel F (row 4, single column) --------------------------------
+    % ---- Panels F + G (row 4) ------------------------------------------
     \node[anchor = north west, inner sep = 0pt,
           below = 4mm of paneld.south west]
         (panelf)
         {\includegraphics[width = 87mm]{panelF.pdf}};
+    \node[anchor = north west, inner sep = 0pt,
+          right = 4mm of panelf]
+        (panelg)
+        {\includegraphics[width = 87mm]{panelG.pdf}};
     \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
         at ($(panelf.north west) + (-2mm, 2mm)$) {F};
+    \node[anchor = north west, font = \sffamily\bfseries, inner sep = 2pt]
+        at ($(panelg.north west) + (-2mm, 2mm)$) {G};
 
 \end{tikzpicture}
 

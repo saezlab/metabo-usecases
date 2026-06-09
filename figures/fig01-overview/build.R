@@ -20,15 +20,16 @@ set.seed(pipeline_seed())
 out_dir <- "figures/fig01-overview/out"
 fs::dir_create(out_dir)
 
-# ---- Deployment + manifest -----------------------------------------------
+# ---- Deployment + manifests -----------------------------------------------
 #
-# Phase-3 (US1) MVP: only dev3 is touched. T014a's per-panel resolver
-# routes the Structures facet / FR-007e / FR-007f panels to dev4 — when
-# those renderers land they add a `dep4 <- deployment_provenance("dev4")`
-# call here and list both in the `deployments`/`manifests` args below.
+# dev3 = gene-centric build (default); supplies Panels B–F.
+# dev4 = structural-specificity + RaMP-conflict build; supplies the
+# FR-007f RaMP renderer (Panel G). T014a's per-panel resolver routes
+# the ramp_conflict facet to dev4 automatically.
 
-logger::log_info("Resolving dev3 deployment + reading build_manifest")
+logger::log_info("Resolving dev3 + dev4 deployments")
 dep3 <- deployment_provenance("dev3")
+dep4 <- deployment_provenance("dev4")
 
 # ---- Data (cycle-001 derived shapes, dispatched via T014a) ----------------
 
@@ -47,12 +48,32 @@ data_e <- associations_by_resource()
 logger::log_info("Querying Panel F (ontology_terms_by_ontology)")
 data_f <- ontology_terms_by_ontology()
 
+logger::log_info("Querying Panel G (ramp_conflict_counts → dev4)")
+data_g <- ramp_conflict_counts()
+
+# Register the RaMP-conflict reasons in the colour registry on first
+# encounter (FR-022, SC-004).
+new_reasons <- setdiff(
+    unique(data_g$conflict_reason),
+    registered_category_values("ramp_conflict_reasons")
+)
+if (length(new_reasons) > 0L) {
+    register_category_colours(
+        "ramp_conflict_reasons",
+        setNames(
+            palette_n(length(new_reasons), unknown = FALSE),
+            new_reasons
+        )
+    )
+}
+
 queries <- list(
     query_record(data_b),
     query_record(data_c),
     query_record(data_d),
     query_record(data_e),
-    query_record(data_f)
+    query_record(data_f),
+    query_record(data_g)
 )
 
 # Register the categories that appear in this snapshot. The
@@ -88,14 +109,15 @@ if (length(new_interaction_classes) > 0L) {
     )
 }
 
-# ---- Panels B–F ------------------------------------------------------------
+# ---- Panels B–G ------------------------------------------------------------
 
 panels <- list(
     panelB = plot_entities_by_resource(data_b, width_mm = 89L),
     panelC = plot_interactions_by_resource(data_c, width_mm = 89L),
     panelD = plot_interactions_by_type(data_d, width_mm = 89L),
     panelE = plot_associations_by_resource(data_e, width_mm = 89L),
-    panelF = plot_ontology_terms_by_ontology(data_f, width_mm = 89L)
+    panelF = plot_ontology_terms_by_ontology(data_f, width_mm = 89L),
+    panelG = plot_ramp_conflict(data_g, width_mm = 89L)
 )
 
 for (name in names(panels)) {
@@ -183,7 +205,7 @@ caption_info <- compose_caption(
     composite_pdf  = file.path(out_dir, "fig01-overview.pdf"),
     caption_source = "figures/fig01-overview/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 6L
+    panel_count    = 7L
 )
 
 # ---- Provenance sidecar ----------------------------------------------------
@@ -191,8 +213,8 @@ caption_info <- compose_caption(
 write_sidecar(
     artifact_id    = "fig01-overview",
     artifact_path  = file.path(out_dir, "fig01-overview.pdf"),
-    deployments    = list(dep3$deployment),
-    manifests      = list(dep3$manifest),
+    deployments    = list(dep3$deployment, dep4$deployment),
+    manifests      = list(dep3$manifest, dep4$manifest),
     script_path    = "figures/fig01-overview/build.R",
     queries        = queries,
     external_inputs = list(
