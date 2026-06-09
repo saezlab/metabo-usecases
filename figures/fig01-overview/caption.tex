@@ -1,0 +1,18 @@
+% figures/fig01-overview/caption.tex
+%
+% Figure 1 caption source (FR-040, FR-040a). Edit by hand; the
+% pipeline reads this file at build time and produces:
+%   out/fig01-overview-with-caption.pdf   (typeset composite + caption)
+%   out/caption.txt                       (plain-text caption)
+%
+% Sub-letter (a)/(b)/... count MUST equal the composite's panel
+% count or the rebuild fails (FR-041b). Until composition.yaml lands
+% the panel count is hard-coded to 6 in figures/fig01-overview/build.R.
+
+\textbf{Figure 1: Quantitative characterization of the OmniPath Metabo database contents.}\space
+\figpanel{a}{Workflow architecture of the OmniPath ecosystem — upstream resources flow through download / processing in \texttt{omnipath-resources}, three parallel database builds (\texttt{omnipath-utils}, \texttt{omnipath-build}, \texttt{omnipath-metabo}), three web services (\texttt{utils.omnipathdb.org}, \texttt{omnipathdb.org}, \texttt{metabo.omnipathdb.org}), and the R + Python clients. The Metabo column features MetalinksDB, the COSMOS PKN, and the server-side RDKit cheminformatics layer; MetalinksDB is built as a materialised view inside the main OmniPath Postgres database during the main build and exposed by the Metabo web service.}
+\figpanel{b}{Number of distinct molecular entities contributed by each upstream resource (\texttt{dev3}, gene-centric build).}
+\figpanel{c}{Number of distinct interactions contributed by each upstream resource (\texttt{dev3}).}
+\figpanel{d}{Number of interactions per interaction-type vocabulary class (\texttt{Signaling}, \texttt{Transport}, \texttt{Other}); the cycle-001 predicate vocabulary surfaces only these three classes — finer categories (TF-target, allosteric, ligand-receptor, drug-target) collapse into \texttt{Other} until the next vocabulary refresh.}
+\figpanel{e}{Number of distinct annotation classes contributed by each upstream resource.}
+\figpanel{f}{Number of ontology terms per ontology, read from the entity-relations \texttt{Cv Term:OM:0012} entity family (the legacy \texttt{ontology\_terms} table was deprecated in cycle-001).}

@@ -172,6 +172,21 @@ compose_mixed_source(
     work_dir = out_dir
 )
 
+# ---- Caption (FR-040..FR-041a, SC-011) -------------------------------------
+#
+# Panel count is hard-coded to 6 (A=architecture + B/C/D/E/F
+# quantitative panels) until composition.yaml lands; the rebuild
+# fails if caption.tex declares a different number of (a)/(b)/...
+# sub-letters (FR-041b).
+
+caption_info <- compose_caption(
+    figure_id      = "fig01-overview",
+    composite_pdf  = file.path(out_dir, "fig01-overview.pdf"),
+    caption_source = "figures/fig01-overview/caption.tex",
+    out_dir        = out_dir,
+    panel_count    = 6L
+)
+
 # ---- Provenance sidecar ----------------------------------------------------
 
 write_sidecar(
@@ -193,7 +208,13 @@ write_sidecar(
         )
     ),
     parameters     = list(width_mm = 180L),
-    seed           = pipeline_seed()
+    seed           = pipeline_seed(),
+    caption        = list(
+        source_path           = caption_info$caption_source,
+        source_kind           = if (endsWith(caption_info$caption_source, ".md")) "md" else "tex",
+        panel_letter_count    = caption_info$panel_letter_count,
+        composite_panel_count = caption_info$composite_panel_count
+    )
 )
 
 pg_close_all_panel()

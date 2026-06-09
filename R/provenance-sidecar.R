@@ -42,6 +42,11 @@
 #' @param parameters Optional named list of filter / contrast /
 #'     threshold values used by the script.
 #' @param seed Optional integer if the script used randomness.
+#' @param caption Optional named list with the FR-040..FR-041b
+#'     caption-pipeline metadata: \code{source_path},
+#'     \code{source_kind}, \code{panel_letter_count},
+#'     \code{composite_panel_count}. Typically the
+#'     \code{\link{compose_caption}} return value.
 #'
 #' @return Invisibly the sidecar list (same shape as written to disk).
 #'
@@ -72,7 +77,8 @@ write_sidecar <- function(artifact_id,
                           queries        = list(),
                           external_inputs = list(),
                           parameters     = list(),
-                          seed           = NULL) {
+                          seed           = NULL,
+                          caption        = NULL) {
 
     if (length(deployments) == 0L) {
         rlang::abort(
@@ -107,6 +113,12 @@ write_sidecar <- function(artifact_id,
     # JSON array `[]` (which would fail the schema's `type: object`).
     if (length(parameters) > 0L) sidecar$parameters <- parameters
     if (!is.null(seed))          sidecar$seed       <- as.integer(seed)
+    if (!is.null(caption))       sidecar$caption    <- list(
+        source_path           = caption$source_path,
+        source_kind           = caption$source_kind,
+        panel_letter_count    = as.integer(caption$panel_letter_count),
+        composite_panel_count = as.integer(caption$composite_panel_count)
+    )
 
     out_path <- paste0(artifact_path, ".provenance.json")
     writeLines(

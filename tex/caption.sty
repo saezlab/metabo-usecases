@@ -1,0 +1,56 @@
+% tex/caption.sty
+%
+% Shared caption-and-figure layout used by every figure's
+% <slug>-with-caption.pdf (FR-041). Loaded by the per-figure
+% caption.tex via \usepackage{caption}.
+%
+% Layout:
+%   ┌───────────────────────────────────────┐
+%   │  composite figure (embedded PDF)      │
+%   │                                       │
+%   ├───────────────────────────────────────┤
+%   │  Figure N: Main title in bold.        │
+%   │  (a) Sub-caption a. (b) Sub-caption b.│
+%   │  …                                    │
+%   └───────────────────────────────────────┘
+%
+% Body font: sans-serif Arial/Helvetica-compatible at 8pt (≥6pt
+% per FR-017a). Figure label rendered bold; (a)/(b)/... rendered
+% in the same body font for visual uniformity. Body justified.
+%
+% caption.tex must define two macros consumed below:
+%   \figurelabel  — e.g. "Figure 1"
+%   \figuretitle  — e.g. "Quantitative characterization of the …"
+% Sub-captions follow as plain prose using \figpanel{a}{…} which
+% emits "(a) …" with consistent spacing.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{caption}[2026/06/09 v0.1 metabo.figures caption layout]
+
+\RequirePackage{graphicx}
+\RequirePackage{geometry}
+\RequirePackage{fontspec}
+\RequirePackage{ragged2e}
+\RequirePackage{xparse}
+
+% Body font — sans-serif, Arial/Helvetica-compatible.
+\setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand{\rmdefault}{\sfdefault}
+
+% Body font size — 8pt is well above the FR-017a 6pt floor and a
+% common manuscript caption size. Adjust per journal in this file
+% only — never per-figure.
+\renewcommand{\normalsize}{\fontsize{8pt}{10pt}\selectfont}
+\normalsize
+
+% \figpanel{<letter>}{<text>} — emit "(a) text" with consistent
+% spacing. Trailing space between panels is the caller's job
+% (i.e. caption.tex just lists \figpanel{a}{...} \figpanel{b}{...}).
+\NewDocumentCommand{\figpanel}{m m}{(#1)~#2\space}
+
+% \figurelabel + \figuretitle paint the bold "Figure N: Main
+% title." preamble at the start of the caption paragraph.
+\NewDocumentCommand{\captionintro}{}{%
+  \textbf{\figurelabel:\space\figuretitle}\space%
+}
