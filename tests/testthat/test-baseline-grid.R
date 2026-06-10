@@ -11,12 +11,12 @@
 library(ggplot2)
 
 panel_y_origins_from_svg <- function(svg_path) {
-    svg_text <- paste(readLines(svg_path, warn = FALSE), collapse = "
-")
-    m <- gregexpr("translate\([^,]+,\s*([0-9.]+)\)", svg_text, perl = TRUE)
+    svg_text <- paste(readLines(svg_path, warn = FALSE), collapse = "\n")
+    pat <- "translate\\([^,]+,\\s*([0-9.]+)\\)"
+    m <- gregexpr(pat, svg_text, perl = TRUE)
     matches <- regmatches(svg_text, m)[[1L]]
     if (length(matches) == 0L) return(numeric(0L))
-    as.numeric(sub(".*translate\([^,]+,\s*([0-9.]+)\).*", "\1", matches))
+    as.numeric(sub(paste0(".*", pat, ".*"), "\\1", matches))
 }
 
 test_that("FR-009a: two-row patchwork respects baseline grid", {
