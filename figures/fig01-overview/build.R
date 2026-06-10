@@ -164,6 +164,27 @@ ggsave(file.path(out_dir, "fr007a-overview.svg"), fr007a_plot,
        width = 320, height = 200, units = "mm")
 logger::log_info("FR-007a overview written to {out_dir}/fr007a-overview.{{pdf,svg}}")
 
+# ---- FR-007e — structural specificity × chemical category (dev4) ----------
+#
+# Bitmap intersection of structural_specificity x chemical_class/
+# metabolic_domain on dev4 (~25 ms data layer). Stand-alone artifact.
+
+logger::log_info("FR-007e — running specificity x category")
+fr007e_data <- fr007e_specificity_by_category()
+queries <- c(queries, list(
+    list(sql = "fr007e_specificity_by_category()",
+         row_count = nrow(fr007e_data),
+         result_hash = substr(
+             digest::digest(fr007e_data, algo = "sha256"), 1L, 12L
+         ))
+))
+fr007e_plot <- plot_fr007e(fr007e_data, width_mm = 180L)
+ggsave(file.path(out_dir, "fr007e-specificity.pdf"), fr007e_plot,
+       width = 180, height = 110, units = "mm")
+ggsave(file.path(out_dir, "fr007e-specificity.svg"), fr007e_plot,
+       width = 180, height = 110, units = "mm")
+logger::log_info("FR-007e specificity written to {out_dir}/fr007e-specificity.{{pdf,svg}}")
+
 # ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
 
 architecture_dir <- "inst/extdata/manual/architecture"
