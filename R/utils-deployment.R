@@ -100,8 +100,15 @@ deployment_registry <- function() {
             panel_e        = "dev4",
             ramp_conflict  = "dev4"
         ),
+        `tab01-id-resolving` = list(
+            default = "dev3"
+        ),
         `tab02-ramp-comparison` = list(
             default = "dev4"
+        ),
+        `tab03-record-coverage` = list(
+            default    = "dev3",
+            structures = "dev4"
         ),
         `fig03-metalinks-versions` = list(
             default = "dev4"

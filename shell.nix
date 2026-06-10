@@ -32,6 +32,9 @@ let
       xcolor
       geometry
       l3packages
+      multirow       # required by gt's LaTeX backend (tables)
+      anyfontsize    # required by gt's LaTeX backend (tables)
+      ragged2e       # \justifying for caption pipeline
       ;
   };
 in
