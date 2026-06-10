@@ -2,18 +2,28 @@
 #'
 #' One ggplot with \code{facet_grid(rows = magnitude_band, cols =
 #' facet, scales = "free", space = "free_y")}: 6 facet columns,
-#' 2–3 rows split by resource magnitude so a single mega-resource
-#' (ChEMBL with 2.5 M entities) does not squash everyone else onto
-#' an invisible scale. Within each panel, every resource has TWO
-#' adjacent horizontal bars at the same length: top = shared/unique
-#' split, bottom = major-class breakdown.
+#' 3 rows (large / medium / small) so the ChEMBL-sized tail does
+#' not squash everyone onto an invisible scale. Within each panel
+#' every resource has TWO adjacent horizontal bars at the same
+#' x-length: top = shared/unique, bottom = major-class breakdown.
 #'
-#' @param data Tibble from \code{\link{fr007a_overview}}: must
-#'     include \code{resource_label} and \code{magnitude_band}
-#'     columns (the data layer adds them).
+#' Each (magnitude_band, facet) panel auto-zooms its own x axis via
+#' \code{scales = "free"} — the small band shows counts at 10x
+#' lower magnitude than the large band so its bars are not crushed.
+#' Each band's panel height is proportional to the resource count
+#' in that band via \code{space = "free_y"}, so bars look the same
+#' physical width across bands.
+#'
+#' Resource ordering: rank globally as (band ASC, total DESC). The
+#' Total row gets rank 1 (top of the figure). All resources have a
+#' unique \code{global_rank}, so the y-axis breaks vector contains
+#' no duplicates — fixes v3/v4 where per-band ranks collided in the
+#' shared scale.
+#'
+#' @param data Tibble from \code{\link{fr007a_overview}}.
 #' @param facet_order Character vector: facet column order.
 #' @param resource_order_facet Character: which facet's totals drive
-#'     the ranking within each band. Default \code{"Entities"}.
+#'     within-band ordering. Default \code{"Entities"}.
 #' @param width_mm Numeric: target physical width.
 #'
 #' @return A ggplot object.
@@ -24,7 +34,8 @@
 #' @importFrom ggplot2 scale_x_continuous scale_y_continuous expansion
 #' @importFrom ggplot2 position_stack
 #' @importFrom dplyr group_by summarise arrange filter mutate desc ungroup
-#' @importFrom dplyr left_join
+#' @importFrom dplyr left_join bind_rows select distinct row_number
+#' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
 plot_fr007a_overview <- function(data,
@@ -38,56 +49,67 @@ plot_fr007a_overview <- function(data,
 
     # NSE workaround
     facet <- resource <- bar_type <- category <- n <- NULL
-    resource_label <- magnitude_band <- band_rank <- y_pos <- NULL
+    resource_label <- magnitude_band <- global_rank <- y_pos <- NULL
     total <- NULL
 
     facet_order <- intersect(facet_order, unique(data$facet))
     data$facet <- factor(data$facet, levels = facet_order)
 
-    # Resource ranking within each magnitude band: descending by
-    # ranking-facet shared/unique total.
     ranking_facet <- if (resource_order_facet %in% facet_order) {
         resource_order_facet
     } else {
         facet_order[[1L]]
     }
 
+    # Globally-unique rank — large-band resources first (descending
+    # total), then medium, then small. The magnitude_band factor
+    # levels (set in the data layer) drive the band ordering.
     rank_tbl <- data %>%
         dplyr::filter(.data$facet == ranking_facet,
                       .data$bar_type == "shared_unique") %>%
         dplyr::group_by(.data$resource_label, .data$magnitude_band) %>%
-        dplyr::summarise(total = sum(.data$n), .groups = "drop") %>%
-        dplyr::group_by(.data$magnitude_band) %>%
-        dplyr::arrange(dplyr::desc(.data$total), .by_group = TRUE) %>%
-        dplyr::mutate(band_rank = dplyr::row_number()) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(.data$resource_label, .data$band_rank)
+        dplyr::summarise(
+            total = sum(as.numeric(.data$n)),
+            .groups = "drop"
+        ) %>%
+        dplyr::arrange(.data$magnitude_band, dplyr::desc(.data$total)) %>%
+        dplyr::mutate(global_rank = dplyr::row_number()) %>%
+        dplyr::select(.data$resource_label, .data$magnitude_band,
+                      .data$global_rank)
 
-    # Fallback for resources that don't appear in the ranking facet
-    # (e.g. ontology-only resources for Associations). Append them at
-    # the end of their band with arbitrary order.
-    extras <- setdiff(data$resource_label, rank_tbl$resource_label)
-    if (length(extras) > 0L) {
+    # Resources that don't appear in the ranking facet (e.g. ontology-
+    # only contributors for Associations). Drop them in at the tail
+    # of their band so nothing is silently lost.
+    extras_lbl <- setdiff(data$resource_label, rank_tbl$resource_label)
+    if (length(extras_lbl) > 0L) {
+        extras_band <- vapply(extras_lbl, function(lbl) {
+            as.character(unique(
+                data$magnitude_band[data$resource_label == lbl]
+            ))[[1L]]
+        }, character(1L))
         rank_tbl <- dplyr::bind_rows(
             rank_tbl,
             tibble::tibble(
-                resource_label = extras,
-                band_rank      = max(rank_tbl$band_rank,
-                                     na.rm = TRUE) + seq_along(extras)
+                resource_label = extras_lbl,
+                magnitude_band = extras_band,
+                global_rank    = max(rank_tbl$global_rank) +
+                                 seq_along(extras_lbl)
             )
         )
     }
 
     data <- data %>%
-        dplyr::left_join(rank_tbl, by = "resource_label") %>%
+        dplyr::left_join(
+            dplyr::select(rank_tbl, .data$resource_label,
+                          .data$global_rank),
+            by = "resource_label"
+        ) %>%
         dplyr::mutate(
-            # Within-panel two-bar layout: top = shared_unique, bottom
-            # = major_class. Continuous y so we can offset bars by
-            # +/-0.22 around each resource's integer slot. Bands flip
-            # the sign so the highest-rank resource sits at the TOP
-            # of the panel (largest y).
-            y_pos = -.data$band_rank
-                + ifelse(.data$bar_type == "shared_unique", 0.22, -0.22)
+            # Continuous y so we can offset the two bar types around
+            # each resource's integer slot. Negative so that rank 1
+            # (Total) sits at the TOP of the y axis (largest y value).
+            y_pos = -.data$global_rank +
+                ifelse(.data$bar_type == "shared_unique", 0.22, -0.22)
         )
 
     fill_map <- fr007a_fill_map(data)
@@ -96,17 +118,12 @@ plot_fr007a_overview <- function(data,
             category = factor(.data$category, levels = fill_map$levels)
         )
 
-    # Per-band y-axis labels — derived from band_rank → resource_label.
-    # scale_y_continuous can't carry different labels per panel row,
-    # so we use a custom labeller via scale_y_continuous(breaks=,
-    # labels=) computed from the FULL data and rely on
-    # `space="free_y"` to drop unused rows in each panel.
-    label_tbl <- rank_tbl %>%
-        dplyr::distinct(.data$resource_label, .data$band_rank) %>%
-        dplyr::arrange(.data$band_rank)
-
-    breaks <- -label_tbl$band_rank
-    labels <- label_tbl$resource_label
+    # Scale's breaks/labels are GLOBAL (one entry per resource at its
+    # unique global_rank). Each panel auto-clips to its data's y
+    # range via scales = "free", so only the labels for that band's
+    # resources appear in each band-row.
+    breaks <- -rank_tbl$global_rank
+    labels <- rank_tbl$resource_label
 
     ggplot2::ggplot(
         data,
@@ -123,12 +140,13 @@ plot_fr007a_overview <- function(data,
         ggplot2::scale_fill_manual(values = fill_map$hex,
                                    breaks = fill_map$levels) +
         ggplot2::scale_x_continuous(
-            expand = ggplot2::expansion(mult = c(0, 0.05))
+            expand = ggplot2::expansion(mult = c(0, 0.05)),
+            labels = scales::label_number(scale_cut = scales::cut_short_scale())
         ) +
         ggplot2::scale_y_continuous(
             breaks = breaks,
             labels = labels,
-            expand = ggplot2::expansion(add = 0.6)
+            expand = ggplot2::expansion(add = 0.5)
         ) +
         ggplot2::facet_grid(
             rows   = ggplot2::vars(.data$magnitude_band),
@@ -159,16 +177,9 @@ plot_fr007a_overview <- function(data,
 
 #' Build the FR-007a category → hex colour mapping
 #'
-#' Produces a named character vector keyed by every category value
-#' present in the data. \code{shared} and \code{unique} get a fixed
-#' light / dark pair; major-class values cycle through the lead
-#' palette deterministically (same value across facets gets the same
-#' colour).
-#'
-#' @param data Tibble from \code{\link{fr007a_overview}}.
-#'
-#' @return A list with \code{hex} (named character vector) and
-#'     \code{levels} (categories in factor order).
+#' \code{shared} and \code{unique} get a fixed light / dark pair;
+#' major-class values cycle through the lead palette
+#' deterministically.
 #'
 #' @keywords internal
 #' @noRd
