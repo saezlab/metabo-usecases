@@ -26,6 +26,7 @@
 #' @importFrom ggplot2 facet_grid vars element_text element_blank
 #' @importFrom ggplot2 element_rect scale_x_continuous scale_y_continuous
 #' @importFrom ggplot2 expansion position_stack margin
+#' @importFrom ggnewscale new_scale_fill
 #' @importFrom dplyr filter group_by summarise arrange mutate desc
 #' @importFrom dplyr left_join
 #' @importFrom patchwork wrap_plots plot_layout
@@ -52,8 +53,21 @@ plot_fr007a_overview <- function(data,
         facet_order[[1L]]
     }
 
-    fill_map <- fr007a_fill_map(data)
-    data$category <- factor(data$category, levels = fill_map$levels)
+    # Per-facet major-class colour map (cycle the lead palette so the
+    # same value across facets gets the same colour).
+    facet_class_colours <- lapply(facet_order, function(f) {
+        classes <- unique(as.character(
+            data$category[data$facet == f &
+                          data$bar_type == "major_class"]
+        ))
+        if (length(classes) == 0L) {
+            return(stats::setNames(character(0L), character(0L)))
+        }
+        cols <- palette_n(min(length(classes), length(palette_lead())))
+        cols <- rep(cols, length.out = length(classes))
+        stats::setNames(cols, classes)
+    })
+    names(facet_class_colours) <- facet_order
 
     bands <- levels(data$magnitude_band)
     bands <- bands[bands %in% unique(data$magnitude_band)]
@@ -66,17 +80,16 @@ plot_fr007a_overview <- function(data,
         band_data <- data[as.character(data$magnitude_band) == band, ,
                           drop = FALSE]
         plots[[i]] <- fr007a_band_plot(
-            band_data     = band_data,
-            band_label    = band,
-            fill_map      = fill_map,
-            ranking_facet = ranking_facet,
-            show_strip_x  = i == 1L,
+            band_data           = band_data,
+            band_label          = band,
+            facet_order         = facet_order,
+            facet_class_colours = facet_class_colours,
+            ranking_facet       = ranking_facet,
+            show_strip_x        = i == 1L,
             # Show x-axis tick labels on EVERY band so the per-band
-            # x scale (each row has its own) is readable; an x-axis
-            # only on the bottom row would force the reader to guess
-            # what the top-row magnitudes are.
-            show_axis_x   = TRUE,
-            width_mm      = width_mm
+            # x scale (each row has its own) is readable.
+            show_axis_x         = TRUE,
+            width_mm            = width_mm
         )
         # Height proportional to resource count in the band.
         heights[[i]] <- length(unique(band_data$resource_label))
@@ -84,7 +97,11 @@ plot_fr007a_overview <- function(data,
 
     patchwork::wrap_plots(plots, ncol = 1L) +
         patchwork::plot_layout(heights = heights, guides = "collect") &
-        ggplot2::theme(legend.position = "bottom")
+        ggplot2::theme(
+            legend.position = "bottom",
+            legend.box      = "vertical",
+            legend.spacing  = grid::unit(1, "mm")
+        )
 }
 
 
@@ -111,7 +128,8 @@ plot_fr007a_overview <- function(data,
 #' @noRd
 fr007a_band_plot <- function(band_data,
                              band_label,
-                             fill_map,
+                             facet_order,
+                             facet_class_colours,
                              ranking_facet,
                              show_strip_x,
                              show_axis_x,
@@ -145,32 +163,90 @@ fr007a_band_plot <- function(band_data,
     breaks <- -seq_along(ordered_lbl)
     labels <- ordered_lbl
 
-    p <- ggplot2::ggplot(
-        band_data,
-        ggplot2::aes(
-            y     = .data$y_pos,
-            x     = .data$n,
-            fill  = .data$category,
-            # With continuous y, ggplot doesn't auto-group bars
-            # together for position_stack, so cumulative widths cross
-            # resources and most bars end up with ~zero width. Force
-            # the stacking group to be (resource, bar_type).
-            group = interaction(.data$resource_label, .data$bar_type)
-        )
-    ) +
+    # Shared/unique data: factor order with unique first so
+    # position_stack(reverse = FALSE) puts unique at x = 0 (closer
+    # to the y axis) and shared stacks outward — consistent across
+    # every panel.
+    data_su <- band_data[
+        as.character(band_data$bar_type) == "shared_unique", , drop = FALSE
+    ]
+    data_su$category <- factor(data_su$category,
+                               levels = c("unique", "shared"))
+
+    p <- ggplot2::ggplot() +
+        # ---- Shared/unique layer + scale -------------------------------
         ggplot2::geom_col(
-            position    = ggplot2::position_stack(reverse = TRUE),
+            data        = data_su,
+            mapping     = ggplot2::aes(
+                y     = .data$y_pos,
+                x     = .data$n,
+                fill  = .data$category,
+                group = interaction(.data$resource_label, .data$bar_type)
+            ),
+            position    = ggplot2::position_stack(reverse = FALSE),
             width       = 0.4,
-            # Force horizontal orientation: with continuous y_pos AND
-            # continuous x = n, ggplot's auto-detection picks vertical
-            # bars (flipped_aes = FALSE) and draws every bar as a
-            # 0.4-unit-wide needle at x = n, instead of a 0.4-unit-tall
-            # horizontal bar that extends from x = 0 to x = n.
             orientation = "y"
         ) +
-        ggplot2::scale_fill_manual(values = fill_map$hex,
-                                   breaks = fill_map$levels,
-                                   drop   = FALSE) +
+        ggplot2::scale_fill_manual(
+            name   = "Occurrence across resources",
+            values = c(unique = "#1B5E73", shared = "#A6D8E5"),
+            breaks = c("unique", "shared"),
+            limits = c("unique", "shared"),
+            drop   = FALSE
+        )
+
+    # ---- Per-facet major-class layers + scales ----------------------
+    # Always add ALL facets' scales (even when this band has no
+    # data for one) so the ggnewscale aesthetic-rename chain has the
+    # SAME length across all 3 band plots → patchwork's guides =
+    # "collect" sees identical scale identities and dedups across
+    # bands.
+    for (f in facet_order) {
+        class_colours <- facet_class_colours[[f]]
+        if (length(class_colours) == 0L) next
+
+        data_mc <- band_data[
+            as.character(band_data$facet) == f &
+                as.character(band_data$bar_type) == "major_class", ,
+            drop = FALSE
+        ]
+        # When this band has no data for the facet, use an empty
+        # tibble with the correct columns so the geom + scale still
+        # add to the plot.
+        if (nrow(data_mc) == 0L) {
+            data_mc <- band_data[FALSE, , drop = FALSE]
+            data_mc$category <- factor(character(0L),
+                                       levels = names(class_colours))
+        } else {
+            data_mc$category <- factor(data_mc$category,
+                                       levels = names(class_colours))
+        }
+
+        p <- p +
+            ggnewscale::new_scale_fill() +
+            ggplot2::geom_col(
+                data        = data_mc,
+                mapping     = ggplot2::aes(
+                    y     = .data$y_pos,
+                    x     = .data$n,
+                    fill  = .data$category,
+                    group = interaction(.data$resource_label,
+                                        .data$bar_type)
+                ),
+                position    = ggplot2::position_stack(reverse = FALSE),
+                width       = 0.4,
+                orientation = "y"
+            ) +
+            ggplot2::scale_fill_manual(
+                name   = paste0(f, " types"),
+                values = class_colours,
+                breaks = names(class_colours),
+                limits = names(class_colours),
+                drop   = FALSE
+            )
+    }
+
+    p <- p +
         ggplot2::scale_x_continuous(
             expand = ggplot2::expansion(mult = c(0, 0.05)),
             labels = scales::label_number(

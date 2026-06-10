@@ -28,6 +28,7 @@ Imports:
     digest,
     dplyr,
     fs,
+    ggnewscale,
     ggplot2,
     gt,
     jsonlite,
