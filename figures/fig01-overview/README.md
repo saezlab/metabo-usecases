@@ -55,10 +55,9 @@ FR-039) — the rest stay as supplementary artifacts.
 Composite + caption pipeline:
 
 - `out/fig01-overview.{pdf,svg}` — bare composite (Panel A vendored
-  + panels B–G whose layout is in `tex/compose_fig01.tex`; the
-  composite-selection still references the prior milestone's
-  single-bar `panel{B..F}.pdf` until `composition.yaml` is
-  updated).
+  + panels B–G whose layout is in `tex/compose_fig01.tex`; B–F now
+  reference the FR-007a–e artifacts via `composition.yaml`, G is
+  the legacy `panelG.pdf` RaMP-conflict slug).
 - `out/fig01-overview-with-caption.pdf` — composite + typeset
   caption (xelatex + `tex/caption.sty`, FR-041).
 - `out/caption.txt` — plain-text caption (deterministic strip,

@@ -21,29 +21,24 @@ panels:
     file: fr007a-overview.pdf
     label: B
 
-  # Position C: coverage profiles (FR-007b) - placeholder until renderer lands
-  # - id: coverage_profiles
-  #   file: panelB.pdf
-  #   label: C
-
-  # Position C: resource-overlap networks (FR-007c)
-  - id: resource_overlap_networks
-    file: panelC.pdf
+  # Position C: coverage profiles (FR-007b)
+  - id: coverage_profiles
+    file: fr007b-coverage.pdf
     label: C
 
-  # Position D: entity × interaction-type matrix (FR-007d)
-  - id: entity_interaction_matrix
-    file: panelD.pdf
+  # Position D: resource-overlap networks (FR-007c)
+  - id: resource_overlap_networks
+    file: fr007c-networks.pdf
     label: D
 
-  # Position E: structural specificity × chemical category (FR-007e, dev4)
-  - id: structural_specificity
-    file: panelE.pdf
+  # Position E: entity × interaction-type matrix (FR-007d)
+  - id: entity_interaction_matrix
+    file: fr007d-matrix.pdf
     label: E
 
-  # Position F: ontology terms (FR-007a Associations facet)
-  - id: ontology_terms
-    file: panelF.pdf
+  # Position F: structural specificity × chemical category (FR-007e, dev4)
+  - id: structural_specificity
+    file: fr007e-specificity.pdf
     label: F
 
   # Position G: RaMP InChIKey-conflict analysis (FR-007f, dev4)
