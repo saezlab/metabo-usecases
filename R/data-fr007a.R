@@ -617,24 +617,29 @@ fr007a_overview <- function(panel_id = "fig01-overview",
 
     # Magnitude band — based on each resource's shared/unique total
     # in the Entities facet. Used by the renderer to split the panel
-    # into row bands so a 1-resource-with-2.5M-entities tail doesn't
+    # into row bands so a 1-resource-with-1M-entities tail doesn't
     # squash the rest onto an invisible scale.
+    #
+    # Critical: RPostgres returns BIGINT as bit64::integer64. cut()
+    # and max() on integer64 silently misclassify (the bit pattern
+    # gets reinterpreted as ~1e-317). Coerce to double FIRST.
     entities_total <- combined[
         combined$facet == "Entities" &
             combined$bar_type == "shared_unique",
         c("resource", "n"), drop = FALSE
     ]
+    entities_total$n <- as.numeric(entities_total$n)
     entities_total <- stats::aggregate(
         n ~ resource, data = entities_total, FUN = sum
     )
+
     band_of <- function(value) {
         cut(
-            value,
-            breaks = c(-Inf, 0L, 1e3L, 1e5L, Inf),
+            as.numeric(value),
+            breaks = c(-Inf, 1e4, 1e5, Inf),
             labels = c(
-                "0 entities",
-                "small (< 1K)",
-                "medium (1K – 100K)",
+                "small (< 10K)",
+                "medium (10K – 100K)",
                 "large (>= 100K)"
             ),
             right = FALSE
@@ -650,14 +655,13 @@ fr007a_overview <- function(panel_id = "fig01-overview",
     combined$magnitude_band <- factor(
         ifelse(
             is.na(band_lookup[combined$resource]),
-            "small (< 1K)",
+            "small (< 10K)",
             band_lookup[combined$resource]
         ),
         levels = c(
             "large (>= 100K)",
-            "medium (1K – 100K)",
-            "small (< 1K)",
-            "0 entities"
+            "medium (10K – 100K)",
+            "small (< 10K)"
         )
     )
 
