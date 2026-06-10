@@ -37,7 +37,7 @@ test_that("renderer with registered colours produces a valid ggplot", {
         "resources",
         c(my_resource = "#006384")
     )
-    withr::defer(init_category_colours())
+    withr::defer(metabo.figures:::init_category_colours())
 
     rows <- tibble::tibble(
         resource   = "my_resource",

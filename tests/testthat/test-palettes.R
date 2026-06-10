@@ -43,7 +43,7 @@ test_that("rwth palette parses to hex codes", {
 
 test_that("category_colour returns the registered hex code", {
 
-    withr::defer(init_category_colours())
+    withr::defer(metabo.figures:::init_category_colours())
     register_category_colours(
         "interaction_types",
         c(signaling = "#006384", transport = "#D03293")
@@ -80,7 +80,7 @@ test_that("category_colour fails fast on unknown value (spec Edge Case)", {
 
 test_that("register_category_colours appends but refuses overwrites", {
 
-    withr::defer(init_category_colours())
+    withr::defer(metabo.figures:::init_category_colours())
 
     register_category_colours(
         "resources",

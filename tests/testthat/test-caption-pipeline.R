@@ -4,13 +4,13 @@ test_that("parse_panel_letters reads the \\figpanel macro form", {
             \\figpanel{a}{Aaa}
             \\figpanel{b}{Bbb}
             \\figpanel{c}{Ccc}"
-    expect_equal(parse_panel_letters(src), c("a", "b", "c"))
+    expect_equal(metabo.figures:::parse_panel_letters(src), c("a", "b", "c"))
 })
 
 test_that("parse_panel_letters falls back to prose `(a) ` form", {
 
     src <- "Figure 1: title.\n(a) First. (b) Second. (c) Third."
-    expect_equal(parse_panel_letters(src), c("a", "b", "c"))
+    expect_equal(metabo.figures:::parse_panel_letters(src), c("a", "b", "c"))
 })
 
 test_that("strip_latex handles markup and produces deterministic output", {
@@ -22,14 +22,14 @@ test_that("strip_latex handles markup and produces deterministic output", {
         "\\figpanel{b}{Special \\& \\% chars.}",
         sep = "\n"
     )
-    plain <- strip_latex(src)
+    plain <- metabo.figures:::strip_latex(src)
 
     expect_match(plain, "^\\*\\*Figure 1: Title\\.\\*\\* \\(a\\) A panel")
     expect_match(plain, "code and \\*italic\\*")
     expect_match(plain, "Special & %")
 
     # Determinism: same input → byte-identical output.
-    expect_identical(strip_latex(src), plain)
+    expect_identical(metabo.figures:::strip_latex(src), plain)
 })
 
 test_that("compose_caption fails when (a)/(b)/... count != panel_count", {

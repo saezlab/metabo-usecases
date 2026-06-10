@@ -14,7 +14,7 @@ test_that("fig01 quantitative panels are deterministic across re-renders", {
         c(signor = "#006384", chebi = "#9F0162",
           omnipath_metabo = "#FEAF16")
     )
-    withr::defer(init_category_colours())
+    withr::defer(metabo.figures:::init_category_colours())
 
     set.seed(pipeline_seed())
     p1 <- plot_entities_by_resource(fake_data, width_mm = 89L)

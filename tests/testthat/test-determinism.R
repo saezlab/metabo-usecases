@@ -1,8 +1,14 @@
-test_that("snapshot_id is byte-stable across re-serialization", {
+test_that("snapshot_id reads build_id directly (post-cycle-001)", {
 
+    # Cycle-001 build_manifest stores the snapshot identifier
+    # directly as `build_id` (12-hex SHA-256). snapshot_id() is now
+    # a thin accessor on that column — no in-pipeline re-derivation,
+    # so the identifier is constant regardless of any other manifest
+    # field changes.
     m <- list(
-        build         = "main",
+        build_id      = "a3f9c2e74b81",
         built_at      = "2026-05-28T10:00:00+0000",
+        build         = "main",
         packages      = list(
             `omnipath-build`     = "5a3e6a2",
             `omnipath-utils`     = "7b21cc9",
@@ -17,12 +23,26 @@ test_that("snapshot_id is byte-stable across re-serialization", {
         partial_build = FALSE
     )
 
+    expect_equal(snapshot_id(m), "a3f9c2e74b81")
     expect_equal(snapshot_id(m), snapshot_id(m))
 
     # Cosmetic field changes do not change the identifier.
     m2 <- m
     m2$built_at <- "2027-01-01T00:00:00+0000"
     expect_equal(snapshot_id(m), snapshot_id(m2))
+})
+
+
+test_that("snapshot_id refuses a pre-cycle-001 manifest", {
+
+    m <- list(
+        build         = "main",
+        packages      = list(`omnipath-build` = "aaa1111"),
+        resources     = list(),
+        partial_build = FALSE
+    )
+
+    expect_error(snapshot_id(m), "build_id")
 })
 
 

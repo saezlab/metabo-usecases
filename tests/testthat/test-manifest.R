@@ -32,14 +32,14 @@ test_that("snapshot_id refuses a pre-cycle-001 manifest", {
 test_that("infer_build_kind maps package sets to FR-032 build labels", {
 
     expect_equal(
-        infer_build_kind(list(
+        metabo.figures:::infer_build_kind(list(
             `omnipath-utils`     = "u",
             `omnipath-resources` = "r"
         )),
         "utils"
     )
     expect_equal(
-        infer_build_kind(list(
+        metabo.figures:::infer_build_kind(list(
             `omnipath-build`     = "b",
             `omnipath-utils`     = "u",
             `omnipath-resources` = "r"
@@ -47,7 +47,7 @@ test_that("infer_build_kind maps package sets to FR-032 build labels", {
         "main"
     )
     expect_equal(
-        infer_build_kind(list(
+        metabo.figures:::infer_build_kind(list(
             `omnipath-metabo`    = "m",
             `omnipath-build`     = "b",
             `omnipath-utils`     = "u",
@@ -64,14 +64,14 @@ test_that("infer_build_kind accepts the cycle-001 underscore key form", {
     # canonical form uses hyphens. The classifier MUST recognise both.
 
     expect_equal(
-        infer_build_kind(list(
+        metabo.figures:::infer_build_kind(list(
             omnipath_build     = "b",
             omnipath_resources = "r"
         )),
         "main"
     )
     expect_equal(
-        infer_build_kind(list(
+        metabo.figures:::infer_build_kind(list(
             omnipath_metabo    = "m",
             omnipath_build     = "b",
             omnipath_resources = "r"
@@ -83,15 +83,15 @@ test_that("infer_build_kind accepts the cycle-001 underscore key form", {
 test_that("packages_for_build returns expected sets per FR-032", {
 
     expect_setequal(
-        packages_for_build("utils"),
+        metabo.figures:::packages_for_build("utils"),
         c("omnipath-utils", "omnipath-resources")
     )
     expect_setequal(
-        packages_for_build("main"),
+        metabo.figures:::packages_for_build("main"),
         c("omnipath-build", "omnipath-utils", "omnipath-resources")
     )
     expect_setequal(
-        packages_for_build("metabo"),
+        metabo.figures:::packages_for_build("metabo"),
         c(
             "omnipath-metabo", "omnipath-build",
             "omnipath-utils", "omnipath-resources"
@@ -103,7 +103,7 @@ test_that("packages_for_build excludes omnipath-present everywhere", {
 
     for (b in c("utils", "main", "metabo")) {
         expect_false(
-            "omnipath-present" %in% packages_for_build(b),
+            "omnipath-present" %in% metabo.figures:::packages_for_build(b),
             info = sprintf("build = %s", b)
         )
     }
@@ -111,17 +111,17 @@ test_that("packages_for_build excludes omnipath-present everywhere", {
 
 test_that("parse_jsonb handles character / list / empty / null shapes", {
 
-    expect_equal(parse_jsonb(NULL), list())
-    expect_equal(parse_jsonb(""), list())
+    expect_equal(metabo.figures:::parse_jsonb(NULL), list())
+    expect_equal(metabo.figures:::parse_jsonb(""), list())
 
-    parsed <- parse_jsonb('{"a": 1, "b": "two"}')
+    parsed <- metabo.figures:::parse_jsonb('{"a": 1, "b": "two"}')
     expect_equal(parsed$a, 1)
     expect_equal(parsed$b, "two")
 
     # When the column is already an R list (e.g. RPostgres deserialized
     # the jsonb upstream), return it unchanged.
     expect_equal(
-        parse_jsonb(list(a = 1L)),
+        metabo.figures:::parse_jsonb(list(a = 1L)),
         list(a = 1L)
     )
 })
@@ -171,7 +171,7 @@ test_that("flatten_package_commits handles both rich + legacy shapes", {
             dirty  = TRUE
         )
     )
-    flat <- flatten_package_commits(rich)
+    flat <- metabo.figures:::flatten_package_commits(rich)
     expect_equal(flat$omnipath_build,
                  "f5ac1f4514fd5995f3a4ff9c7716e5586f73a7e2")
     expect_equal(flat$omnipath_resources,
@@ -182,11 +182,11 @@ test_that("flatten_package_commits handles both rich + legacy shapes", {
 
     # Legacy flat shape: bare hash strings — preserved as-is.
     legacy <- list(`omnipath-build` = "abc1234", `omnipath-utils` = "def5678")
-    expect_equal(flatten_package_commits(legacy), legacy)
+    expect_equal(metabo.figures:::flatten_package_commits(legacy), legacy)
 
     # Anything else falls back to "unknown" so schema validation passes.
     expect_equal(
-        flatten_package_commits(list(weird = list(no_commit = "bug"))),
+        metabo.figures:::flatten_package_commits(list(weird = list(no_commit = "bug"))),
         list(weird = "unknown")
     )
 })
