@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-db_content.R
 \name{plot_entities_by_resource}
 \alias{plot_entities_by_resource}
-\title{Panel B — entities by resource}
+\title{Panel B -- entities by resource}
 \usage{
 plot_entities_by_resource(data, width_mm = 89L)
 }

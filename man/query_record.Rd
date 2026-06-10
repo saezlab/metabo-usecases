@@ -7,16 +7,21 @@
 query_record(rows)
 }
 \arguments{
-\item{rows}{A tibble returned by \code{\link{pg_query}}.}
+\item{rows}{A tibble returned by \code{\link{pg_query}} or
+\code{\link{pg_query_panel}}.}
 }
 \value{
 A named list with \code{sql}, \code{row_count},
-\code{result_hash}.
+\code{result_hash}, and optionally \code{deployment}.
 }
 \description{
 Helper to convert one of the tibbles returned by
-\code{\link{pg_query}} into the dict shape expected by
-\code{\link{write_sidecar}}'s \code{queries} argument.
+\code{\link{pg_query}} (or \code{\link{pg_query_panel}}) into the
+dict shape expected by \code{\link{write_sidecar}}'s
+\code{queries} argument. When the input tibble carries a
+\code{"deployment"} attribute (always set by
+\code{\link{pg_query_panel}}), it is preserved on the record so
+the orchestrator can audit which deployment each query touched.
 }
 \examples{
 \dontrun{

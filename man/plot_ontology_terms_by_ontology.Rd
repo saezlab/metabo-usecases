@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-db_content.R
 \name{plot_ontology_terms_by_ontology}
 \alias{plot_ontology_terms_by_ontology}
-\title{Panel F — ontology terms by ontology}
+\title{Panel F -- ontology terms by ontology}
 \usage{
 plot_ontology_terms_by_ontology(data, width_mm = 89L)
 }
@@ -15,5 +15,6 @@ plot_ontology_terms_by_ontology(data, width_mm = 89L)
 A ggplot object.
 }
 \description{
-Panel F — ontology terms by ontology
+Ontologies are not currently tracked in the category-colour
+registry; cycle through the lead palette deterministically.
 }

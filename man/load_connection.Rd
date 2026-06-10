@@ -4,35 +4,58 @@
 \alias{load_connection}
 \title{Read and validate the pipeline's deployment connection config}
 \usage{
-load_connection(config_path = NULL)
+load_connection(deployment = NULL, config_path = NULL, allow_optin = FALSE)
 }
 \arguments{
+\item{deployment}{Character: explicit deployment name. \code{NULL}
+(default) → read \code{default_deployment} (or legacy
+\code{deployment}) from \code{connection.yaml}.}
+
 \item{config_path}{Character: explicit path to a connection.yaml
 file. \code{NULL} (default) → check project-local
 \code{connection.yaml}, then user config.}
+
+\item{allow_optin}{Logical: when \code{TRUE}, permit loading an
+opt-in deployment (\code{prod} / \code{dev2}). Default
+\code{FALSE}: opt-in deployments fail-fast with a clear
+diagnostic.}
 }
 \value{
 A list with elements \code{name}, \code{url},
 \code{db_host}, \code{db_port}, \code{db_name},
-\code{credentials_source}, \code{credentials_path}.
+\code{role}, \code{credentials_source},
+\code{credentials_path}.
 }
 \description{
 Reads \code{~/.config/metabo-figures/connection.yaml} (or a
-project-local \code{connection.yaml}, or env-only) and resolves it
-into a deployment record. Refuses \code{dev5} as long as it is
-marked unpopulated in \code{\link{known_deployments}} (spec edge
-case: unreachable deployment).
+project-local \code{connection.yaml}, or env-only) and resolves a
+deployment name into a connection record. The 2026-06-09 cycle-001
+\itemize{
+\item 002 handover put the figure pipeline on a per-panel deployment
+matrix: \code{dev3} (gene-centric + labels) is the default;
+\code{dev4} (protein-centric + RDKit structural specificity +
+RaMP-conflict tables) is the required override for the panels
+driven by FR-007a Structures facet, FR-007e, FR-007f, FR-015.
+\code{dev5} is reserved for the ongoing integrated build and is
+refused. \code{prod} / \code{dev2} are excluded from the active
+rotation and require \code{allow_optin = TRUE} to load.
+}
 }
 \details{
+Per-deployment port overrides are read from the env vars
+\code{PGPORT_DEV3}, \code{PGPORT_DEV4}, \code{PGPORT_DEV5},
+\code{PGPORT_PROD}, \code{PGPORT_DEV2} — useful when the pipeline
+runs against tunnelled deployments. \code{PGPORT} (the libpq
+default) is honoured only when no per-deployment override is set.
+
 Credential fields are NOT returned in the deployment record — they
 are resolved at query time from the environment, a credentials
 file, or \code{~/.pgpass}, depending on \code{credentials_source}.
 }
 \examples{
 \dontrun{
-conn <- load_connection()
-conn$name        # e.g. "dev3"
-conn$db_port     # e.g. 5403
+conn <- load_connection()           # → dev3 by default
+conn <- load_connection("dev4")     # → structural-specificity build
 }
 
 }

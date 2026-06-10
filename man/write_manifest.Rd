@@ -2,20 +2,25 @@
 % Please edit documentation in R/provenance-manifest.R
 \name{write_manifest}
 \alias{write_manifest}
-\title{Write a manifest + its identifier to manifests/}
+\title{Archive a manifest + its identifier to manifests/}
 \usage{
-write_manifest(manifest, dir = "manifests")
+write_manifest(manifest, deployment, dir = "manifests")
 }
 \arguments{
 \item{manifest}{A list as produced by \code{\link{build_manifest_for}}.}
 
+\item{deployment}{Character: deployment label that produced the
+manifest (e.g. \code{"dev3"}, \code{"dev4"}). Used as the
+filename prefix so a multi-deployment rebuild keeps each
+archive distinct.}
+
 \item{dir}{Output directory; defaults to \code{"manifests"}.}
 }
 \value{
-The Snapshot Identifier (character scalar).
+The build_id (character scalar).
 }
 \description{
-Emits \code{manifests/<build>.<snapshot-id>.json} (canonical JSON
-form) and \code{manifests/<build>.<snapshot-id>.SHA256} (one-line
-hex digest). Returns the resolved identifier.
+Emits \code{manifests/<deployment>.<build_id>.json} (canonical JSON
+form) and \code{manifests/<deployment>.<build_id>.SHA256} (one-line
+hex digest). Returns the build_id.
 }

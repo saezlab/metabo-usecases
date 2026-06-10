@@ -102,6 +102,9 @@ deployment_registry <- function() {
         ),
         `tab02-ramp-comparison` = list(
             default = "dev4"
+        ),
+        `fig03-metalinks-versions` = list(
+            default = "dev4"
         )
     )
 }

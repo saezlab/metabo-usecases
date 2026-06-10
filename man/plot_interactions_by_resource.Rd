@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-db_content.R
 \name{plot_interactions_by_resource}
 \alias{plot_interactions_by_resource}
-\title{Panel C — interactions by resource}
+\title{Panel C -- interactions by resource}
 \usage{
 plot_interactions_by_resource(data, width_mm = 89L)
 }

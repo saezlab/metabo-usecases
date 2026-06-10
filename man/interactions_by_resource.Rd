@@ -4,14 +4,20 @@
 \alias{interactions_by_resource}
 \title{Number of interactions per upstream resource}
 \usage{
-interactions_by_resource(con)
+interactions_by_resource(panel_id = "fig01-overview")
 }
 \arguments{
-\item{con}{A DBI connection.}
+\item{panel_id}{Character: panel identifier (default
+\code{"fig01-overview"}). Passed to
+\code{\link{pg_query_panel}} so the deployment routing is
+recorded in the result's \code{"deployment"} attribute
+(which surfaces in the sidecar).}
 }
 \value{
-A tibble with columns \code{resource} and \code{n_relations}.
+A tibble with \code{resource} and \code{n_relations},
+ordered by \code{n_relations} descending.
 }
 \description{
-Figure 1 Panel C.
+Figure 1 Panel C. Reads the pre-computed
+\code{resources.interaction_count}.
 }

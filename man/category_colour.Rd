@@ -19,6 +19,10 @@ Character vector of hex codes, same length as \code{value}.
 Get the colour for a (category, value) pair
 }
 \examples{
+register_category_colours(
+    "interaction_types",
+    c(signaling = "#006384", transport = "#D03293")
+)
 category_colour("interaction_types", c("signaling", "transport"))
 
 }

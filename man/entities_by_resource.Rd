@@ -2,18 +2,25 @@
 % Please edit documentation in R/data-db_content.R
 \name{entities_by_resource}
 \alias{entities_by_resource}
-\title{Number of molecular entities per upstream resource}
+\title{Number of distinct molecular entities per upstream resource}
 \usage{
-entities_by_resource(con)
+entities_by_resource(panel_id = "fig01-overview")
 }
 \arguments{
-\item{con}{A DBI connection from \code{\link{pg_connect}}.}
+\item{panel_id}{Character: panel identifier (default
+\code{"fig01-overview"}). Passed to
+\code{\link{pg_query_panel}} so the deployment routing is
+recorded in the result's \code{"deployment"} attribute
+(which surfaces in the sidecar).}
 }
 \value{
-A tibble with columns \code{resource} and \code{n_entities},
+A tibble with \code{resource} and \code{n_entities},
 ordered by \code{n_entities} descending.
 }
 \description{
-Figure 1 Panel B. One row per resource, joined via
-\code{entity_evidence -> data_source}.
+Figure 1 Panel B. Reads the per-resource entity_count from the
+cycle-001 \code{resources} table (pre-computed by the derive
+phase), so this is a single sequential scan instead of a
+\code{COUNT(DISTINCT entity_id)} join across tens of millions of
+rows.
 }

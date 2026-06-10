@@ -2,16 +2,31 @@
 % Please edit documentation in R/data-db_content.R
 \name{ontology_terms_by_ontology}
 \alias{ontology_terms_by_ontology}
-\title{Number of ontology terms per ontology}
+\title{Number of ontology terms per ontology prefix}
 \usage{
-ontology_terms_by_ontology(con)
+ontology_terms_by_ontology(panel_id = "fig01-overview", top_n = 10L)
 }
 \arguments{
-\item{con}{A DBI connection.}
+\item{panel_id}{Character: panel identifier (default
+\code{"fig01-overview"}). Passed to
+\code{\link{pg_query_panel}} so the deployment routing is
+recorded in the result's \code{"deployment"} attribute
+(which surfaces in the sidecar).}
+
+\item{top_n}{Integer: how many ontologies to keep before the
+\code{Misc} collapse. Default \code{10L} (≤ FR-009c cap).}
 }
 \value{
-A tibble with columns \code{ontology} and \code{n_terms}.
+A tibble with \code{ontology} and \code{n_terms},
+ordered by \code{n_terms} descending. At most
+\code{top_n + 1} rows (the trailing \code{Misc} appears only
+when the long tail exists).
 }
 \description{
-Figure 1 Panel F.
+Figure 1 Panel F. Replaces the deprecated \code{ontology_terms}
+table read with a scan of the cycle-001 entity-relations
+\code{entity_ontology_term} table. The top-N ontologies are
+returned as-is; everything below the cap collapses into a single
+\code{Misc} bucket so the panel honours the FR-009c distinct-colour
+cap (10–12 categories).
 }

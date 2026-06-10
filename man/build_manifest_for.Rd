@@ -2,57 +2,43 @@
 % Please edit documentation in R/provenance-manifest.R
 \name{build_manifest_for}
 \alias{build_manifest_for}
-\title{Derive a Build Manifest from a live OmniPath deployment}
+\title{Read a Build Manifest natively from a live OmniPath deployment}
 \usage{
-build_manifest_for(con, build, package_commits = NULL)
+build_manifest_for(con)
 }
 \arguments{
-\item{con}{A DBI Postgres connection from \code{\link{pg_connect}}.}
-
-\item{build}{Character: one of \code{"utils"}, \code{"main"},
-\code{"metabo"}.}
-
-\item{package_commits}{Optional named character vector overriding
-the package commit lookup.}
+\item{con}{A DBI Postgres connection from
+\code{\link{pg_connect_panel}} (or \code{\link{pg_connect}}).}
 }
 \value{
-A named list conforming to
-\code{contracts/build-manifest.schema.json}.
+A named list with elements \code{build_id},
+\code{built_at}, \code{build}, \code{packages},
+\code{resources}, \code{partial_build}. The \code{build} field
+is inferred from \code{packages}: \code{"metabo"} when
+\code{omnipath-metabo} is present; \code{"main"} when
+\code{omnipath-build} is present; \code{"utils"} otherwise.
 }
 \description{
-Introspects the Postgres at \code{con} to capture
-\code{Resource State} (loaded resources + per-resource record
-counts), then merges in the package commit hashes for the
-targeted build (\code{utils}, \code{main}, or \code{metabo}). The
-returned manifest is suitable for canonical-JSON serialization and
-SHA-256 hashing into a Snapshot Identifier
-(\code{\link{snapshot_id}}).
+Reads the single-row \code{build_manifest} table on the target
+deployment (cycle-001 deliverable from
+\code{omnipath-build}). Returns a list shaped to
+\code{contracts/build-manifest.schema.json}. The
+\code{build_id} (12-hex SHA-256 truncation of canonicalised
+\code{package_commits + resources}) is read from the column, not
+re-derived — by construction it equals what the FR-032a
+standalone extractor would compute.
 }
 \details{
-Package set per build is fixed by spec FR-032:
-\itemize{
-\item \code{utils}: \code{omnipath-utils} + \code{omnipath-resources}
-\item \code{main}: \code{omnipath-build} + \code{omnipath-utils} +
-\code{omnipath-resources}
-\item \code{metabo}: \code{omnipath-metabo} + \code{omnipath-build}
-+ \code{omnipath-utils} + \code{omnipath-resources}
-}
-\code{omnipath-present} is excluded (the pipeline queries Postgres
-directly).
-
-Where commit hashes are not supplied via \code{package_commits},
-they are read from \code{manifest-config.yaml} at the project root,
-falling back to the env vars \code{OMNIPATH_BUILD_COMMIT},
-\code{OMNIPATH_UTILS_COMMIT}, etc. — and finally to the placeholder
-string \code{"unknown"} (the manifest's \code{partial_build} flag
-becomes \code{TRUE} in that case so consumers know the identifier
-is not authoritative).
+Per the 2026-06-09 cycle-001 + 002 handover, every deployment the
+figure pipeline targets (\code{dev3} + \code{dev4}) carries this
+table; the legacy post-hoc derivation track (the original FR-032b
+fallback) is not implemented here per developer's direction.
 }
 \examples{
 \dontrun{
-con <- pg_connect()
-m <- build_manifest_for(con, "main")
-snapshot_id(m)
+con <- pg_connect_panel("dev3")
+m <- build_manifest_for(con)
+m$build_id        # e.g. "a3f9c2e74b81"
 }
 
 }

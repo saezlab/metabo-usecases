@@ -2,17 +2,30 @@
 % Please edit documentation in R/data-db_content.R
 \name{interactions_by_type}
 \alias{interactions_by_type}
-\title{Number of interactions per predicate (interaction type)}
+\title{Number of interactions per interaction-class vocabulary}
 \usage{
-interactions_by_type(con)
+interactions_by_type(panel_id = "fig01-overview")
 }
 \arguments{
-\item{con}{A DBI connection.}
+\item{panel_id}{Character: panel identifier (default
+\code{"fig01-overview"}). Passed to
+\code{\link{pg_query_panel}} so the deployment routing is
+recorded in the result's \code{"deployment"} attribute
+(which surfaces in the sidecar).}
 }
 \value{
-A tibble with columns \code{interaction_type} and \code{n}.
+A tibble with \code{interaction_class}, \code{predicate}
+(text array), and \code{n} per class, ordered by \code{n}
+descending.
 }
 \description{
-Figure 1 Panel D. Uses the canonical \code{predicate} column on
-\code{relation}.
+Figure 1 Panel D. Joins \code{vocab_relation_predicate} to
+\code{vocab_interaction_class} so the rows surface the coarse
+interaction class (\code{Signaling} / \code{Transport} /
+\code{Other}) per the 2026-06-09 handover: the cycle-001
+predicate vocabulary populates only those three classes; finer
+categories (TF-target, allosteric, ligand-receptor, drug-target)
+collapse into \code{Other}. The query also returns the per-class
+\emph{predicate} list so a renderer can surface predicate-level
+detail without a second query.
 }

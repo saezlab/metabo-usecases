@@ -2,21 +2,25 @@
 % Please edit documentation in R/utils-config.R
 \name{check_deployment}
 \alias{check_deployment}
-\title{Quick sanity-check of the configured deployment}
+\title{Quick sanity-check of the figure-pipeline deployments}
 \usage{
-check_deployment()
+check_deployment(deployments = c("dev3", "dev4"))
+}
+\arguments{
+\item{deployments}{Character vector of deployment names to probe.
+Defaults to the figure-pipeline pair \code{c("dev3", "dev4")}.}
 }
 \value{
-Invisibly the resolved deployment list.
+Invisibly a list keyed by deployment name with the
+resolved connection record.
 }
 \description{
-Loads the connection, opens a Postgres handle, prints the resolved
-deployment and (if implemented) the per-build snapshot identifiers
-and partial-build flags. Intended for use during configuration of a
-fresh checkout (see CONFIGURATION.md and quickstart.md).
-}
-\details{
-Phase 2A note: the Postgres connection step and snapshot derivation
-land in Phases 2C (T025–T026); this function logs the resolved
-deployment and exits successfully without attempting the query.
+Resolves the per-deployment connection records the figure pipeline
+will touch — by default \code{dev3} (gene-centric + labels, the
+default per FR-030's matrix) and \code{dev4} (protein-centric
+build, required for FR-007a Structures facet, FR-007e, FR-007f,
+FR-015) — and logs a one-line summary per deployment. The full
+\code{build_manifest} probe lives in
+\code{\link{build_manifest_for}}; this helper does not open a
+Postgres handle.
 }

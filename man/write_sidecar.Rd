@@ -7,13 +7,14 @@
 write_sidecar(
   artifact_id,
   artifact_path,
-  deployment,
+  deployments,
   manifests,
   script_path,
   queries = list(),
   external_inputs = list(),
   parameters = list(),
-  seed = NULL
+  seed = NULL,
+  caption = NULL
 )
 }
 \arguments{
@@ -24,11 +25,16 @@ write_sidecar(
 this is — the sidecar file is written to
 \code{paste0(artifact_path, ".provenance.json")}.}
 
-\item{deployment}{Deployment record from
-\code{\link{load_connection}}.}
+\item{deployments}{List of deployment-provenance records (see
+\code{\link{deployment_provenance}}). Each entry has
+\code{name}, \code{url}, \code{db_host}, \code{db_port},
+\code{db_name}, \code{build_id}, and optionally
+\code{build_manifest_source}. At least one entry is required.}
 
-\item{manifests}{List of Build Manifests (one per build the artifact
-touched).}
+\item{manifests}{List of build manifests (one per deployment in
+\code{deployments}, parallel index). The sidecar's
+\code{package_commits} is the union of every manifest's
+\code{packages}; \code{partial_build = any}.}
 
 \item{script_path}{Character: path to the generating script
 relative to the repo root.}
@@ -36,16 +42,24 @@ relative to the repo root.}
 \item{queries}{List of query records — each list element has
 \code{sql}, \code{row_count}, \code{result_hash}. Typically
 accumulated via the \code{attr(rows, "sql")} +
-\code{attr(rows, "result_hash")} produced by \code{\link{pg_query}}.}
+\code{attr(rows, "result_hash")} produced by \code{\link{pg_query}}
+or \code{\link{pg_query_panel}}.}
 
 \item{external_inputs}{Optional list of non-Postgres inputs (manual
-assets, palettes, vendored RData). Each entry has \code{kind},
-\code{path}, \code{fingerprint}, optional \code{source}.}
+assets, palettes, vendored RData, the Figure 1 architecture
+asset). Each entry has \code{kind}, \code{path}, optional
+\code{source}, and \code{fingerprint}.}
 
-\item{parameters}{Optional named list of filter / contrast / threshold
-values used by the script.}
+\item{parameters}{Optional named list of filter / contrast /
+threshold values used by the script.}
 
 \item{seed}{Optional integer if the script used randomness.}
+
+\item{caption}{Optional named list with the FR-040..FR-041b
+caption-pipeline metadata: \code{source_path},
+\code{source_kind}, \code{panel_letter_count},
+\code{composite_panel_count}. Typically the
+\code{\link{compose_caption}} return value.}
 }
 \value{
 Invisibly the sidecar list (same shape as written to disk).
@@ -57,15 +71,26 @@ documented in
 Every pipeline figure / table / extra plot emits one sidecar
 alongside its output file at \code{<artifact>.provenance.json}.
 }
+\details{
+Per the 2026-06-09 handover the sidecar carries
+\code{deployments: array} — a panel that combines records from
+\code{dev3} and \code{dev4} (e.g. FR-007a Entities facet from dev3
+joined with the Structures facet from dev4) records BOTH
+deployments here. Each entry carries the \code{build_id} read
+natively from that deployment's \code{build_manifest} table
+(FR-032, FR-032a).
+}
 \examples{
 \dontrun{
-sc <- write_sidecar(
-    artifact_id  = "fig01-overview/panelB",
+con3 <- pg_connect_panel("dev3")
+dep3 <- deployment_provenance(con3, "dev3")
+write_sidecar(
+    artifact_id   = "fig01-overview/panelB",
     artifact_path = "figures/fig01-overview/out/panelB.pdf",
-    deployment   = load_connection(),
-    manifests    = list(main_manifest),
-    script_path  = "figures/fig01-overview/build.R",
-    queries      = list()
+    deployments   = list(dep3$deployment),
+    manifests     = list(dep3$manifest),
+    script_path   = "figures/fig01-overview/build.R",
+    queries       = list()
 )
 }
 

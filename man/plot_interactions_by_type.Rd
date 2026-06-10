@@ -2,12 +2,13 @@
 % Please edit documentation in R/plots-db_content.R
 \name{plot_interactions_by_type}
 \alias{plot_interactions_by_type}
-\title{Panel D — interactions by type}
+\title{Panel D -- interactions by interaction class}
 \usage{
 plot_interactions_by_type(data, width_mm = 89L)
 }
 \arguments{
-\item{data}{Tibble from \code{\link{interactions_by_type}}.}
+\item{data}{Tibble from \code{\link{interactions_by_type}} with
+\code{interaction_class}, \code{predicates}, \code{n}.}
 
 \item{width_mm}{Numeric.}
 }
@@ -16,5 +17,8 @@ A ggplot object.
 }
 \description{
 Vertical bar chart coloured by interaction-type registry. Uniform
-bar widths matching panels B and C.
+bar widths matching panels B and C. Renders the coarse cycle-001
+classes honestly (\code{Signaling} / \code{Transport} /
+\code{Other}) per the 2026-06-09 handover — no synthesised finer
+categories.
 }

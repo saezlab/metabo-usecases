@@ -2,7 +2,7 @@
 % Please edit documentation in R/provenance-manifest.R
 \name{snapshot_id}
 \alias{snapshot_id}
-\title{Compute the Snapshot Identifier from a Build Manifest}
+\title{Snapshot Identifier accessor}
 \usage{
 snapshot_id(manifest)
 }
@@ -13,17 +13,19 @@ snapshot_id(manifest)
 Character scalar — 12 hex chars.
 }
 \description{
-Serializes the manifest to deterministic canonical JSON (sorted
-keys, excluding the cosmetic \code{built_at}), SHA-256 hashes the
-result, and returns the first 12 hex chars (research.md R-7).
+Returns the manifest's \code{build_id}. The cycle-001
+\code{build_manifest} column is defined as the SHA-256 of
+canonicalised \code{package_commits + resources} truncated to 12
+hex chars (FR-032a), so this is the Snapshot Identifier by
+construction — no in-pipeline re-derivation.
+}
+\details{
+The function is kept for backwards compatibility; new code should
+read \code{manifest$build_id} directly.
 }
 \examples{
-m <- list(
-    build = "metabo",
-    packages = list(`omnipath-metabo` = "abc1234"),
-    resources = list(),
-    partial_build = FALSE
-)
-snapshot_id(m)
+\dontrun{
+snapshot_id(build_manifest_for(con))
+}
 
 }
