@@ -221,6 +221,26 @@ ggsave(file.path(out_dir, "fr007d-matrix.svg"), fr007d_plot,
        width = 180, height = 110, units = "mm")
 logger::log_info("FR-007d matrix written to {out_dir}/fr007d-matrix.{{pdf,svg}}")
 
+# ---- FR-007c — resource-overlap networks (Molecular entities, Interactions)
+
+logger::log_info("FR-007c — running resource overlap networks")
+fr007c_data <- fr007c_overlap()
+queries <- c(queries, list(
+    list(sql = "fr007c_overlap()",
+         row_count = nrow(fr007c_data),
+         result_hash = substr(
+             digest::digest(fr007c_data, algo = "sha256"), 1L, 12L
+         ))
+))
+fr007c_plot <- plot_fr007c_networks(fr007c_data,
+                                    min_overlap = 100L,
+                                    width_mm    = 320L)
+ggsave(file.path(out_dir, "fr007c-networks.pdf"), fr007c_plot,
+       width = 320, height = 160, units = "mm")
+ggsave(file.path(out_dir, "fr007c-networks.svg"), fr007c_plot,
+       width = 320, height = 160, units = "mm")
+logger::log_info("FR-007c networks written to {out_dir}/fr007c-networks.{{pdf,svg}}")
+
 # ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
 
 architecture_dir <- "inst/extdata/manual/architecture"
