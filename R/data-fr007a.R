@@ -539,6 +539,32 @@ fr007a_literature <- function(panel_id = "fig01-overview") {
 }
 
 
+#' Resource short-label lookup
+#'
+#' Reads \code{resources.resource_id} + \code{resources.resource_short}
+#' (with \code{resource_id} as a fallback) so figure labels show
+#' "ChEMBL", "RaMP", "SwissLipids" rather than the lowercase
+#' \code{chembl} / \code{ramp} / \code{swisslipids} slugs.
+#'
+#' @inheritParams fr007a_entities
+#'
+#' @return Named character vector mapping \code{resource_id} →
+#'     display label.
+#'
+#' @importFrom DBI dbGetQuery
+#' @export
+resources_label_map <- function(panel_id = "fig01-overview") {
+
+    sql <- "
+        SELECT resource_id,
+               COALESCE(NULLIF(resource_short, ''), resource_id) AS label
+        FROM   resources
+    "
+    rows <- pg_query_panel(panel_id, sql)
+    stats::setNames(rows$label, rows$resource_id)
+}
+
+
 #' Combine FR-007a facets into a single long-format tibble
 #'
 #' Runs the per-facet queries and concatenates the results, adding a
@@ -579,6 +605,22 @@ fr007a_overview <- function(panel_id = "fig01-overview",
         rows$facet <- facet_name
         out_list[[facet_name]] <- rows
     }
+    combined <- dplyr::bind_rows(out_list)
 
-    dplyr::bind_rows(out_list)
+    # Map resource_id → resource_short label (Total stays "Total").
+    labels <- resources_label_map(panel_id)
+    combined$resource_label <- ifelse(
+        combined$resource == "Total",
+        "Total",
+        unname(labels[combined$resource]) %|na|% combined$resource
+    )
+
+    combined
 }
+
+
+#' Local replacement-for-NA helper used by \code{fr007a_overview}
+#'
+#' @keywords internal
+#' @noRd
+`%|na|%` <- function(x, y) ifelse(is.na(x), y, x)

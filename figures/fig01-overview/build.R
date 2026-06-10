@@ -154,11 +154,14 @@ queries <- c(queries, list(
          ))
 ))
 
-fr007a_plot <- plot_fr007a_overview(fr007a_data, width_mm = 180L)
+fr007a_plot <- plot_fr007a_overview(fr007a_data, width_mm = 320L)
+# Landscape page: 6 facet columns × 2 bar-type rows; resources share
+# the y axis, so width carries the categorical density and height
+# carries the per-resource vertical resolution.
 ggsave(file.path(out_dir, "fr007a-overview.pdf"), fr007a_plot,
-       width = 180, height = 220, units = "mm")
+       width = 320, height = 200, units = "mm")
 ggsave(file.path(out_dir, "fr007a-overview.svg"), fr007a_plot,
-       width = 180, height = 220, units = "mm")
+       width = 320, height = 200, units = "mm")
 logger::log_info("FR-007a overview written to {out_dir}/fr007a-overview.{{pdf,svg}}")
 
 # ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
