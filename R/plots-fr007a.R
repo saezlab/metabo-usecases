@@ -95,48 +95,118 @@ plot_fr007a_overview <- function(data,
         heights[[i]] <- length(unique(band_data$resource_label))
     }
 
-    # Extract the legend grob from the first band plot — it carries
-    # all 7 fill scales (1 shared/unique + 6 per-facet major-class
-    # via ggnewscale chains). Suppress legends on every band plot
-    # and append the extracted grob as its own row.
-    #
-    # cowplot::get_plot_component (with the GuideBox return) is the
-    # supported public-API path; falls back to get_legend on older
-    # cowplot.
-    legend_grob <- if (utils::packageVersion("cowplot") >= "1.1.3") {
-        cowplot::get_plot_component(
-            plots[[1L]] + ggplot2::theme(
-                legend.position = "bottom",
-                legend.box      = "vertical",
-                legend.title    = ggplot2::element_text(
-                    size = 5, face = "bold"
-                ),
-                legend.text     = ggplot2::element_text(size = 5),
-                legend.key.size = grid::unit(2.5, "mm"),
-                legend.spacing  = grid::unit(1, "mm")
-            ),
-            "guide-box-bottom",
-            return_all = FALSE
-        )
-    } else {
-        cowplot::get_legend(plots[[1L]])
-    }
-
-    # Suppress legends on all band plots (the extracted grob is now
-    # rendered separately as its own row).
+    # Suppress legends on all band plots — we'll extract each scale's
+    # legend individually and arrange them in a grid below the plots.
     plots <- lapply(plots, function(p) {
         p + ggplot2::theme(legend.position = "none")
     })
 
-    # Heights now include a legend slot; relative weight ~30 % of the
-    # smallest band so the legend area stays compact.
-    leg_h <- max(1L, as.integer(min(heights) * 0.5))
+    # Build one legend-only plot per scale, extract its guide-box,
+    # then arrange the 7 legend grobs so the shared/unique legend
+    # sits at the top of the legend area and the 6 per-facet
+    # legends form a row that aligns with the plot's 6 facet
+    # columns (each legend directly below its facet's plot column).
+    su_legend <- fr007a_extract_legend(
+        name   = "Occurrence across resources",
+        values = c(unique = "#1B5E73", shared = "#A6D8E5"),
+        ncol   = 2L
+    )
+    facet_legends <- lapply(facet_order, function(f) {
+        cols <- facet_class_colours[[f]]
+        if (length(cols) == 0L) {
+            return(patchwork::plot_spacer())
+        }
+        grob <- fr007a_extract_legend(
+            name   = paste0(f, " types"),
+            values = cols,
+            ncol   = if (length(cols) <= 4L) 1L else 2L
+        )
+        patchwork::wrap_elements(full = grob)
+    })
+
+    facet_legend_row <- patchwork::wrap_plots(
+        facet_legends, nrow = 1L
+    )
+
+    # Heights: bands + shared/unique row + per-facet legends row.
+    # Per-facet legends are taller because they have more entries.
+    su_h    <- max(1L, as.integer(min(heights) * 0.25))
+    facet_h <- max(2L, as.integer(min(heights) * 0.5))
 
     patchwork::wrap_plots(
-        c(plots, list(patchwork::wrap_elements(full = legend_grob))),
+        c(plots, list(
+            patchwork::wrap_elements(full = su_legend),
+            facet_legend_row
+        )),
         ncol = 1L
     ) +
-        patchwork::plot_layout(heights = c(heights, leg_h))
+        patchwork::plot_layout(heights = c(heights, su_h, facet_h))
+}
+
+
+#' Build a legend-only ggplot for one fill scale and return its grob
+#'
+#' Renders a tiny dummy plot with the requested scale, then extracts
+#' the bottom guide-box via \code{cowplot::get_plot_component}. The
+#' guide is configured with the title above the entries (per user's
+#' wish) and entries laid out in 1-2 columns depending on how many
+#' there are.
+#'
+#' @param name Character: legend title.
+#' @param values Named character vector: category → hex colour.
+#' @param ncol Integer: number of columns the legend entries lay out
+#'     into.
+#'
+#' @return A grob.
+#'
+#' @importFrom ggplot2 ggplot aes geom_tile scale_fill_manual
+#' @importFrom ggplot2 guide_legend theme_void theme element_text
+#' @importFrom ggplot2 element_blank margin guides
+#' @importFrom cowplot get_plot_component
+#' @keywords internal
+#' @noRd
+fr007a_extract_legend <- function(name, values, ncol = 2L) {
+
+    df <- data.frame(
+        x = seq_along(values),
+        y = 1L,
+        c = factor(names(values), levels = names(values))
+    )
+
+    p <- ggplot2::ggplot(df, ggplot2::aes(.data$x, .data$y, fill = .data$c)) +
+        ggplot2::geom_tile() +
+        ggplot2::scale_fill_manual(
+            name   = name,
+            values = values,
+            limits = names(values),
+            drop   = FALSE
+        ) +
+        ggplot2::guides(
+            fill = ggplot2::guide_legend(
+                ncol           = ncol,
+                title.position = "top",
+                title.hjust    = 0
+            )
+        ) +
+        ggplot2::theme_void() +
+        ggplot2::theme(
+            legend.position    = "bottom",
+            legend.title       = ggplot2::element_text(
+                size = 5, face = "bold", hjust = 0,
+                margin = ggplot2::margin(0, 0, 1, 0)
+            ),
+            legend.text        = ggplot2::element_text(size = 4.5),
+            legend.key.size    = grid::unit(2.5, "mm"),
+            legend.spacing.y   = grid::unit(0.5, "mm"),
+            legend.box.spacing = grid::unit(0, "mm"),
+            plot.margin        = ggplot2::margin(0, 1, 0, 1, "mm")
+        )
+
+    if (utils::packageVersion("cowplot") >= "1.1.3") {
+        cowplot::get_plot_component(p, "guide-box-bottom", return_all = FALSE)
+    } else {
+        cowplot::get_legend(p)
+    }
 }
 
 
