@@ -56,20 +56,18 @@ plot_fr007e <- function(data, width_mm = 180L) {
     # Replace n = 0 with NA so log10 doesn't choke; geom_col skips NA.
     data$n <- ifelse(data$n == 0, NA_real_, as.numeric(data$n))
 
-    fill_colours <- stats::setNames(
-        palette_n(length(spec_levels), unknown = FALSE),
-        spec_levels
-    )
+    # Single fill colour — the x-axis already encodes specificity, so a
+    # categorical fill scale would be redundant.
+    bar_fill <- palette_lead()[[1L]]
 
     ggplot2::ggplot(
         data,
         ggplot2::aes(
-            x    = .data$specificity,
-            y    = .data$n,
-            fill = .data$specificity
+            x = .data$specificity,
+            y = .data$n
         )
     ) +
-        ggplot2::geom_col() +
+        ggplot2::geom_col(fill = bar_fill) +
         ggplot2::facet_wrap(~ .data$category, nrow = 2L,
                             scales = "free_y") +
         ggplot2::scale_y_log10(
@@ -78,19 +76,18 @@ plot_fr007e <- function(data, width_mm = 180L) {
             )
         ) +
         ggplot2::scale_x_discrete(labels = spec_labels) +
-        ggplot2::scale_fill_manual(
-            values = fill_colours,
-            limits = spec_levels,
-            drop   = FALSE
-        ) +
-        ggplot2::labs(x = NULL, y = "Entities (log scale)", fill = NULL) +
+        ggplot2::labs(x = NULL, y = "Entities (log scale)") +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "none",
+            # 2.5x scale-up from the prior 5/6 pt — these panels go
+            # into a large composite figure so they need to read at
+            # composite scale.
             axis.text.x     = ggplot2::element_text(
-                angle = 35, hjust = 1, size = 5
+                angle = 35, hjust = 1, size = 13
             ),
-            axis.text.y     = ggplot2::element_text(size = 5),
-            strip.text      = ggplot2::element_text(face = "bold", size = 6)
+            axis.text.y     = ggplot2::element_text(size = 13),
+            axis.title      = ggplot2::element_text(size = 14),
+            strip.text      = ggplot2::element_text(face = "bold", size = 15)
         )
 }
