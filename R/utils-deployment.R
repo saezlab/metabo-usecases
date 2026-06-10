@@ -134,13 +134,20 @@ pg_connect_panel <- function(deployment) {
             record$credentials_source,
             record$credentials_path
         )
+        # bigint = "numeric" forces RPostgres to return BIGINT columns
+        # as R double instead of the default bit64::integer64. The
+        # latter silently misbehaves in base R (`max`, `cut`, ggplot
+        # scale transforms etc. reinterpret the bit pattern as ~1e-317
+        # / ~2e-23) and is the root cause of multiple FR-007a band /
+        # bar-width bugs.
         handle <- DBI::dbConnect(
             RPostgres::Postgres(),
             host     = record$db_host,
             port     = record$db_port,
             dbname   = record$db_name,
             user     = creds$user,
-            password = creds$password
+            password = creds$password,
+            bigint   = "numeric"
         )
         pool[[deployment]] <- handle
         logger::log_info(

@@ -23,13 +23,17 @@ pg_connect <- function() {
     conn <- load_connection()
     creds <- resolve_credentials(conn$credentials_source, conn$credentials_path)
 
+    # bigint = "numeric" returns BIGINT as R double, avoiding the
+    # bit64::integer64 default which silently misbehaves in base R
+    # and ggplot scale transforms (see pg_connect_panel docstring).
     handle <- DBI::dbConnect(
         RPostgres::Postgres(),
         host     = conn$db_host,
         port     = conn$db_port,
         dbname   = conn$db_name,
         user     = creds$user,
-        password = creds$password
+        password = creds$password,
+        bigint   = "numeric"
     )
 
     logger::log_info(

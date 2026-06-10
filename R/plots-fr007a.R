@@ -71,7 +71,11 @@ plot_fr007a_overview <- function(data,
             fill_map      = fill_map,
             ranking_facet = ranking_facet,
             show_strip_x  = i == 1L,
-            show_axis_x   = i == n_bands,
+            # Show x-axis tick labels on EVERY band so the per-band
+            # x scale (each row has its own) is readable; an x-axis
+            # only on the bottom row would force the reader to guess
+            # what the top-row magnitudes are.
+            show_axis_x   = TRUE,
             width_mm      = width_mm
         )
         # Height proportional to resource count in the band.
@@ -144,14 +148,25 @@ fr007a_band_plot <- function(band_data,
     p <- ggplot2::ggplot(
         band_data,
         ggplot2::aes(
-            y    = .data$y_pos,
-            x    = .data$n,
-            fill = .data$category
+            y     = .data$y_pos,
+            x     = .data$n,
+            fill  = .data$category,
+            # With continuous y, ggplot doesn't auto-group bars
+            # together for position_stack, so cumulative widths cross
+            # resources and most bars end up with ~zero width. Force
+            # the stacking group to be (resource, bar_type).
+            group = interaction(.data$resource_label, .data$bar_type)
         )
     ) +
         ggplot2::geom_col(
-            position = ggplot2::position_stack(reverse = TRUE),
-            width    = 0.4
+            position    = ggplot2::position_stack(reverse = TRUE),
+            width       = 0.4,
+            # Force horizontal orientation: with continuous y_pos AND
+            # continuous x = n, ggplot's auto-detection picks vertical
+            # bars (flipped_aes = FALSE) and draws every bar as a
+            # 0.4-unit-wide needle at x = n, instead of a 0.4-unit-tall
+            # horizontal bar that extends from x = 0 to x = n.
+            orientation = "y"
         ) +
         ggplot2::scale_fill_manual(values = fill_map$hex,
                                    breaks = fill_map$levels,
