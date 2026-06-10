@@ -203,6 +203,24 @@ ggsave(file.path(out_dir, "fr007b-coverage.svg"), fr007b_plot,
        width = 180, height = 100, units = "mm")
 logger::log_info("FR-007b coverage written to {out_dir}/fr007b-coverage.{{pdf,svg}}")
 
+# ---- FR-007d — entity x interaction-type matrix (top participant types) ---
+
+logger::log_info("FR-007d — running entity x interaction-type matrix")
+fr007d_data <- fr007d_entity_x_interaction(n_types = 8L)
+queries <- c(queries, list(
+    list(sql = "fr007d_entity_x_interaction()",
+         row_count = nrow(fr007d_data),
+         result_hash = substr(
+             digest::digest(fr007d_data, algo = "sha256"), 1L, 12L
+         ))
+))
+fr007d_plot <- plot_fr007d_matrix(fr007d_data, width_mm = 180L)
+ggsave(file.path(out_dir, "fr007d-matrix.pdf"), fr007d_plot,
+       width = 180, height = 110, units = "mm")
+ggsave(file.path(out_dir, "fr007d-matrix.svg"), fr007d_plot,
+       width = 180, height = 110, units = "mm")
+logger::log_info("FR-007d matrix written to {out_dir}/fr007d-matrix.{{pdf,svg}}")
+
 # ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
 
 architecture_dir <- "inst/extdata/manual/architecture"
