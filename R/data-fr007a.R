@@ -615,6 +615,52 @@ fr007a_overview <- function(panel_id = "fig01-overview",
         unname(labels[combined$resource]) %|na|% combined$resource
     )
 
+    # Magnitude band — based on each resource's shared/unique total
+    # in the Entities facet. Used by the renderer to split the panel
+    # into row bands so a 1-resource-with-2.5M-entities tail doesn't
+    # squash the rest onto an invisible scale.
+    entities_total <- combined[
+        combined$facet == "Entities" &
+            combined$bar_type == "shared_unique",
+        c("resource", "n"), drop = FALSE
+    ]
+    entities_total <- stats::aggregate(
+        n ~ resource, data = entities_total, FUN = sum
+    )
+    band_of <- function(value) {
+        cut(
+            value,
+            breaks = c(-Inf, 0L, 1e3L, 1e5L, Inf),
+            labels = c(
+                "0 entities",
+                "small (< 1K)",
+                "medium (1K – 100K)",
+                "large (>= 100K)"
+            ),
+            right = FALSE
+        )
+    }
+    band_lookup <- stats::setNames(
+        as.character(band_of(entities_total$n)),
+        entities_total$resource
+    )
+    # Total row always sits in the "large" band so it heads the
+    # top-magnitude row.
+    band_lookup["Total"] <- "large (>= 100K)"
+    combined$magnitude_band <- factor(
+        ifelse(
+            is.na(band_lookup[combined$resource]),
+            "small (< 1K)",
+            band_lookup[combined$resource]
+        ),
+        levels = c(
+            "large (>= 100K)",
+            "medium (1K – 100K)",
+            "small (< 1K)",
+            "0 entities"
+        )
+    )
+
     combined
 }
 
