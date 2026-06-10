@@ -95,13 +95,48 @@ plot_fr007a_overview <- function(data,
         heights[[i]] <- length(unique(band_data$resource_label))
     }
 
-    patchwork::wrap_plots(plots, ncol = 1L) +
-        patchwork::plot_layout(heights = heights, guides = "collect") &
-        ggplot2::theme(
-            legend.position = "bottom",
-            legend.box      = "vertical",
-            legend.spacing  = grid::unit(1, "mm")
+    # Extract the legend grob from the first band plot — it carries
+    # all 7 fill scales (1 shared/unique + 6 per-facet major-class
+    # via ggnewscale chains). Suppress legends on every band plot
+    # and append the extracted grob as its own row.
+    #
+    # cowplot::get_plot_component (with the GuideBox return) is the
+    # supported public-API path; falls back to get_legend on older
+    # cowplot.
+    legend_grob <- if (utils::packageVersion("cowplot") >= "1.1.3") {
+        cowplot::get_plot_component(
+            plots[[1L]] + ggplot2::theme(
+                legend.position = "bottom",
+                legend.box      = "vertical",
+                legend.title    = ggplot2::element_text(
+                    size = 5, face = "bold"
+                ),
+                legend.text     = ggplot2::element_text(size = 5),
+                legend.key.size = grid::unit(2.5, "mm"),
+                legend.spacing  = grid::unit(1, "mm")
+            ),
+            "guide-box-bottom",
+            return_all = FALSE
         )
+    } else {
+        cowplot::get_legend(plots[[1L]])
+    }
+
+    # Suppress legends on all band plots (the extracted grob is now
+    # rendered separately as its own row).
+    plots <- lapply(plots, function(p) {
+        p + ggplot2::theme(legend.position = "none")
+    })
+
+    # Heights now include a legend slot; relative weight ~30 % of the
+    # smallest band so the legend area stays compact.
+    leg_h <- max(1L, as.integer(min(heights) * 0.5))
+
+    patchwork::wrap_plots(
+        c(plots, list(patchwork::wrap_elements(full = legend_grob))),
+        ncol = 1L
+    ) +
+        patchwork::plot_layout(heights = c(heights, leg_h))
 }
 
 
