@@ -185,6 +185,24 @@ ggsave(file.path(out_dir, "fr007e-specificity.svg"), fr007e_plot,
        width = 180, height = 110, units = "mm")
 logger::log_info("FR-007e specificity written to {out_dir}/fr007e-specificity.{{pdf,svg}}")
 
+# ---- FR-007b — coverage profile (Entities / Molecular / Structures) -------
+
+logger::log_info("FR-007b — running coverage profile (all variants)")
+fr007b_data <- fr007b_coverage("all")
+queries <- c(queries, list(
+    list(sql = "fr007b_coverage(\"all\")",
+         row_count = nrow(fr007b_data),
+         result_hash = substr(
+             digest::digest(fr007b_data, algo = "sha256"), 1L, 12L
+         ))
+))
+fr007b_plot <- plot_fr007b_coverage(fr007b_data, width_mm = 180L)
+ggsave(file.path(out_dir, "fr007b-coverage.pdf"), fr007b_plot,
+       width = 180, height = 100, units = "mm")
+ggsave(file.path(out_dir, "fr007b-coverage.svg"), fr007b_plot,
+       width = 180, height = 100, units = "mm")
+logger::log_info("FR-007b coverage written to {out_dir}/fr007b-coverage.{{pdf,svg}}")
+
 # ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
 
 architecture_dir <- "inst/extdata/manual/architecture"
