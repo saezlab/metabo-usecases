@@ -94,14 +94,14 @@ cosmos_plus_data <- function(
     by_resource <- combined |>
         dplyr::group_by(resource) |>
         dplyr::summarise(
-            n_metabolites  = dplyr::n_distinct(
+            n_metabolites  = dplyr::n_distinct(c(
                 source[source_type == "metabolite"],
                 target[target_type == "metabolite"]
-            ),
-            n_proteins     = dplyr::n_distinct(
+            )),
+            n_proteins     = dplyr::n_distinct(c(
                 source[source_type == "protein"],
                 target[target_type == "protein"]
-            ),
+            )),
             n_interactions = dplyr::n_distinct(source, target),
             .groups        = "drop"
         ) |>
