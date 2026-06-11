@@ -1,59 +1,139 @@
-#' Build script for Figure 4 — COSMOS PKN comparison
-#'
-#' Produces panelB (edge-count grouped bar) and panelC (proportional
-#' stacked bar) via \code{\link{cosmos_old_vs_new}}. Manual schematics
-#' (panels A, D, E) must exist under \code{manual/} before the
-#' xelatex composite step runs.
-#'
-#' @return Invisible NULL; outputs written to \code{out/}.
-#' @importFrom logger log_info log_error
-#' @importFrom here here
-#' @importFrom ggplot2 ggsave
-#' @export
-build_fig04 <- function() {
+# figures/fig04-cosmos-pkn/build.R
+#
+# Figure 4: COSMOS+ prior-knowledge network — scope extension,
+# compartment coverage, resource contributions, and comparison with
+# MetaLinksDB 2.0.
 
-    out_dir <- here::here("figures", "fig04-cosmos-pkn", "out")
-    if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+suppressPackageStartupMessages({
+    library(metabo.figures)
+    library(ggplot2)
+})
 
-    logger::log_info("[fig04] loading old COSMOS PKN")
-    old_pkn <- cosmos_old_pkn()
+setup_pipeline_log('build:fig04-cosmos-pkn')
+set.seed(pipeline_seed())
 
-    logger::log_info("[fig04] loading new OmniPath Metabo PKN edge counts")
-    conn <- connect_deployment("dev3")
-    on.exit(DBI::dbDisconnect(conn), add = TRUE)
-    new_pkn <- cosmos_new_pkn_counts(conn)
+out_dir <- 'figures/fig04-cosmos-pkn/out'
+fs::dir_create(out_dir)
 
-    logger::log_info("[fig04] rendering panelB (grouped bar)")
-    panels <- cosmos_old_vs_new(old_pkn, new_pkn)
+# Load old COSMOS PKN
+logger::log_info('Loading old COSMOS PKN')
+old_pkn <- cosmos_old_pkn()
 
-    panel_b_pdf <- file.path(out_dir, "panelB.pdf")
-    panel_b_svg <- file.path(out_dir, "panelB.svg")
-    ggplot2::ggsave(panel_b_pdf, panels$panel_b,
-        width = 89, height = 70, units = "mm", device = "pdf")
-    ggplot2::ggsave(panel_b_svg, panels$panel_b,
-        width = 89, height = 70, units = "mm", device = "svg")
+# Load COSMOS+ data (requires T052a CSVs to be vendored)
+logger::log_info('Loading COSMOS+ data')
+cosmos_plus <- cosmos_plus_data()
 
-    logger::log_info("[fig04] rendering panelC (proportional stacked bar)")
-    panel_c_pdf <- file.path(out_dir, "panelC.pdf")
-    panel_c_svg <- file.path(out_dir, "panelC.svg")
-    ggplot2::ggsave(panel_c_pdf, panels$panel_c,
-        width = 89, height = 70, units = "mm", device = "pdf")
-    ggplot2::ggsave(panel_c_svg, panels$panel_c,
-        width = 89, height = 70, units = "mm", device = "svg")
+# Load MetaLinksDB v2 interaction-type counts from dev4 for Panel D
+dep4 <- deployment_provenance('dev4')
+metalinks_v2_sql <- paste(
+    'SELECT',
+    '  coalesce(rt.relation_type, \'interaction\') AS interaction_type,',
+    '  COUNT(DISTINCT r.compound_canonical_id || \'::\'',
+    '       || r.protein_uniprot) AS n_interactions',
+    'FROM custom_views.metalinksdb_relations r',
+    'LEFT JOIN LATERAL unnest(r.relation_types) AS rt(relation_type) ON TRUE',
+    'WHERE r.compound_canonical_id IS NOT NULL',
+    '  AND r.protein_uniprot IS NOT NULL',
+    'GROUP BY coalesce(rt.relation_type, \'interaction\')',
+    'ORDER BY n_interactions DESC'
+)
 
-    logger::log_info("[fig04] writing provenance sidecar")
-    sidecar_path <- file.path(out_dir, "fig04-cosmos-pkn.pdf.provenance.json")
-    write_sidecar(
-        artifact_id  = "fig04-cosmos-pkn",
-        script_path  = "figures/fig04-cosmos-pkn/build.R",
-        deployments  = list(list(name = "dev3")),
-        parameters   = list(
-            old_pkn_source = attr(old_pkn, "source_path"),
-            old_pkn_md5    = attr(old_pkn, "fingerprint")
-        ),
-        sidecar_path = sidecar_path
+logger::log_info('Querying MetaLinksDB v2 interaction types from dev4')
+metalinks_v2_types <- pg_query_panel(
+    'fig04-cosmos-pkn',
+    metalinks_v2_sql,
+    facet = 'metalinks'
+)
+
+# Render panels
+logger::log_info('Rendering Panel A (old COSMOS vs. COSMOS+)')
+panel_a <- fig04_cosmos_comparison_panel(
+    old_pkn_tally            = old_pkn,
+    cosmos_plus_by_type_species = cosmos_plus$by_type_species,
+    width_mm                 = 120L
+)
+
+logger::log_info('Rendering Panel B (compartment coverage)')
+panel_b <- fig04_compartment_panel(
+    cosmos_plus_by_compartment = cosmos_plus$by_compartment,
+    width_mm                   = 89L
+)
+
+logger::log_info('Rendering Panel C (resource contributions)')
+panel_c <- fig04_resource_contribution_panel(
+    cosmos_plus_by_resource = cosmos_plus$by_resource,
+    width_mm                = 89L
+)
+
+panels <- list(
+    panel_a = panel_a,
+    panel_b = panel_b,
+    panel_c = panel_c
+)
+
+for (name in names(panels)) {
+    ggsave(
+        filename = file.path(out_dir, paste0(name, '.pdf')),
+        plot     = panels[[name]],
+        width    = 120,
+        height   = 90,
+        units    = 'mm'
     )
-
-    logger::log_info("[fig04] done — outputs in {out_dir}")
-    invisible(NULL)
+    ggsave(
+        filename = file.path(out_dir, paste0(name, '.svg')),
+        plot     = panels[[name]],
+        width    = 120,
+        height   = 90,
+        units    = 'mm'
+    )
 }
+
+# Composite of the three pipeline panels
+composite <- compose_patchwork(panels, layout = list(ncol = 2L))
+ggsave(
+    filename = file.path(out_dir, 'fig04-cosmos-pkn.pdf'),
+    plot     = composite,
+    width    = 240,
+    height   = 190,
+    units    = 'mm'
+)
+ggsave(
+    filename = file.path(out_dir, 'fig04-cosmos-pkn.svg'),
+    plot     = composite,
+    width    = 240,
+    height   = 190,
+    units    = 'mm'
+)
+
+caption_info <- compose_caption(
+    figure_id     = 'fig04-cosmos-pkn',
+    composite_pdf = file.path(out_dir, 'fig04-cosmos-pkn.pdf'),
+    caption_source = 'figures/fig04-cosmos-pkn/caption.tex',
+    out_dir       = out_dir,
+    panel_count   = 3L
+)
+
+write_sidecar(
+    artifact_id    = 'fig04-cosmos-pkn',
+    artifact_path  = file.path(out_dir, 'fig04-cosmos-pkn.pdf'),
+    deployments    = list(dep4$deployment),
+    manifests      = list(dep4$manifest),
+    script_path    = 'figures/fig04-cosmos-pkn/build.R',
+    queries        = list(query_record(metalinks_v2_types)),
+    external_inputs = c(
+        cosmos_plus$external_inputs,
+        list(list(
+            kind        = 'old-cosmos-pkn',
+            path        = attr(old_pkn, 'source_path'),
+            fingerprint = attr(old_pkn, 'fingerprint'),
+            species_assumption = 'human-only-or-unspecified'
+        ))
+    ),
+    parameters = list(
+        old_cosmos_species_assumption = 'human-only-or-unspecified'
+    ),
+    seed    = pipeline_seed(),
+    caption = caption_info
+)
+
+logger::log_info('Figure 4 build complete')

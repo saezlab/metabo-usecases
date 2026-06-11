@@ -99,30 +99,32 @@ normalize_mpi_resource <- function(resource,
 
     if (!is.null(metabolite_class)) {
         metabolite_class <- tibble::as_tibble(metabolite_class)
-        data <- dplyr::left_join(
-            data,
+        met_lookup <- dplyr::distinct(
             dplyr::transmute(
                 metabolite_class,
                 hmdb_id = .data[[metabolite_class_key]],
                 metabolite_class_label = .data[[metabolite_class_col]]
             ),
-            by = 'hmdb_id'
+            .data$hmdb_id,
+            .keep_all = TRUE
         )
+        data <- dplyr::left_join(data, met_lookup, by = 'hmdb_id')
     } else {
         data$metabolite_class_label <- NA_character_
     }
 
     if (!is.null(protein_class)) {
         protein_class <- tibble::as_tibble(protein_class)
-        data <- dplyr::left_join(
-            data,
+        prot_lookup <- dplyr::distinct(
             dplyr::transmute(
                 protein_class,
                 uniprot_id = .data[[protein_class_key]],
                 protein_class_label = .data[[protein_class_col]]
             ),
-            by = 'uniprot_id'
+            .data$uniprot_id,
+            .keep_all = TRUE
         )
+        data <- dplyr::left_join(data, prot_lookup, by = 'uniprot_id')
     } else {
         data$protein_class_label <- NA_character_
     }

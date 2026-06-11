@@ -112,6 +112,9 @@ deployment_registry <- function() {
         ),
         `fig03-metalinks-versions` = list(
             default = "dev4"
+        ),
+        `fig04-cosmos-pkn` = list(
+            metalinks = "dev4"
         )
     )
 }
