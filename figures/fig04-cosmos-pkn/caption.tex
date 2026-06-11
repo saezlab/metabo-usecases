@@ -1,17 +1,9 @@
-\textbf{Figure 4: Comparison of old and new COSMOS prior-knowledge networks.}
-The OmniPath Metabo database provides a substantially expanded prior-knowledge
-network (PKN) for COSMOS relative to the legacy cosmosR PKN (v1.18.1).
-\textbf{(a)} Schematic of PKN construction: the signed, directed OmniPath
-Metabo network is collapsed to a binary network encoding activating (+1) and
-inhibitory (\textminus{}1) edges across six interaction-type categories.
-\textbf{(b)} Absolute edge counts by interaction-type category for the old PKN
-(grey) and the new OmniPath Metabo PKN (colour-coded); the new PKN adds
-coverage across signalling, transport, and ligand-receptor categories absent in
-the legacy resource.
-\textbf{(c)} Proportional composition of each PKN by category; the old PKN is
-dominated by metabolic reactions while the new PKN distributes across a broader
-mechanistic repertoire, enabling more comprehensive causal reasoning in COSMOS.
-\textbf{(d)} Interaction-type legend.
-\textbf{(e)} Simplified MOON activity-inference diagram: signed PKN edges
-propagate observed metabolomics and transcriptomics constraints to infer
-upstream node activities.
+\textbf{Figure 4: COSMOS+ prior-knowledge network --- scope extension, compartment coverage, resource contributions, and comparison with MetaLinksDB~2.0.}
+The OmniPath Metabo COSMOS+ PKN substantially extends the legacy cosmosR PKN (v1.18.1) in both species coverage and interaction-type repertoire.
+\textbf{(a)} Edge counts per interaction-type category for the old COSMOS PKN (human, species-unspecified) and COSMOS+ (human and mouse separately); categories present in COSMOS+ but absent from the old PKN appear with an empty baseline bar, making the scope extension explicit.
+\textbf{(b)} COSMOS+ interactions tallied per annotated subcellular compartment; the \textit{locations} field encodes the compartment(s) associated with each edge --- if the field is unpopulated at build time, a single ``unannotated'' bar is shown as a build-state placeholder.
+\textbf{(c)} Unique metabolite (ChEBI), protein (UniProt), and interaction counts contributed by each resource to the COSMOS+ network, illustrating the relative contribution and entity-coverage footprint of each data source.
+\textbf{(d)} Side-by-side comparison of MetaLinksDB~2.0 (from the OmniPath Metabo Postgres deployment) and COSMOS+ by interaction type, highlighting the complementarity of the two resources.
+\textbf{(S1)} Schematic of PKN construction: the signed, directed OmniPath Metabo network is collapsed to a binary network encoding activating (+1) and inhibitory (\textminus{}1) edges across interaction-type categories.
+\textbf{(S2)} Regulation-type legend: visual key for the signed interaction categories used across the PKN.
+\textbf{(S3)} Simplified MOON activity-inference diagram: signed PKN edges propagate observed metabolomics and transcriptomics constraints to infer upstream node activities via recursive scoring.
