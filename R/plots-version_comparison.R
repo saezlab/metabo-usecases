@@ -528,3 +528,65 @@ fig04_resource_contribution_panel <- function(
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(legend.position = "top")
 }
+
+
+#' Figure 4 Panel D: MetaLinksDB 2.0 vs. COSMOS+ by interaction type
+#'
+#' @param metalinks_counts Tibble with columns \code{interaction_type} and
+#'     \code{n_interactions} from \code{pg_query_panel()}.
+#' @param cosmos_plus_by_type_species Tibble from
+#'     \code{cosmos_plus_data()$by_type_species}.
+#' @param width_mm Numeric panel width in mm.
+#' @return A ggplot object.
+#' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
+#'     coord_flip position_dodge
+#' @importFrom dplyr group_by summarise mutate bind_rows
+#' @importFrom rlang .data
+#' @export
+fig04_metalinks_cosmos_panel <- function(
+    metalinks_counts,
+    cosmos_plus_by_type_species,
+    width_mm = 120L
+) {
+    cosmos_agg <- dplyr::group_by(
+        cosmos_plus_by_type_species,
+        .data$interaction_type
+    ) |>
+        dplyr::summarise(
+            n_interactions = sum(.data$n_interactions),
+            .groups = "drop"
+        ) |>
+        dplyr::mutate(source = "COSMOS+")
+
+    metalinks_long <- dplyr::mutate(metalinks_counts, source = "MetaLinksDB 2.0")
+    combined <- dplyr::bind_rows(cosmos_agg, metalinks_long)
+
+    fills <- c(
+        "COSMOS+"          = palette_lead()[["teal"]],
+        "MetaLinksDB 2.0"  = palette_lead()[["amber"]]
+    )
+    register_category_colours("metalinks_cosmos", fills)
+
+    ggplot2::ggplot(
+        combined,
+        ggplot2::aes(
+            x    = .data$interaction_type,
+            y    = .data$n_interactions,
+            fill = .data$source
+        )
+    ) +
+        ggplot2::geom_col(
+            position = ggplot2::position_dodge(width = 0.8),
+            width    = 0.7
+        ) +
+        ggplot2::scale_fill_manual(values = fills) +
+        ggplot2::coord_flip() +
+        ggplot2::labs(
+            x     = NULL,
+            y     = "Interactions",
+            fill  = NULL,
+            title = "MetaLinksDB 2.0 vs. COSMOS+"
+        ) +
+        theme_bw_metabo(width_mm = width_mm) +
+        ggplot2::theme(legend.position = "top")
+}
