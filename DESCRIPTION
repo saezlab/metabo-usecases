@@ -35,6 +35,7 @@ Imports:
     logger,
     magrittr,
     patchwork,
+    qgraph,
     purrr,
     readr,
     rlang,
