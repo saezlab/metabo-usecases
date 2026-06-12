@@ -28,8 +28,9 @@
 #'
 #' @importFrom readr read_csv
 #' @importFrom dplyr filter mutate bind_rows count n_distinct group_by
-#'     summarise arrange desc
-#' @importFrom tidyr separate_rows
+#'     summarise arrange desc if_else
+#' @importFrom tidyr unnest
+#' @importFrom stringr str_extract_all
 #' @importFrom tibble tibble
 #' @importFrom digest digest
 #' @importFrom rlang abort
@@ -73,14 +74,23 @@ cosmos_plus_data <- function(
         dplyr::arrange(dplyr::desc(n_interactions))
 
     # Shape (b): counts per compartment
+    # locations column stores Python tuple repr strings e.g. "('c',)", "()"
+    # Extract single-quoted codes; "()" (empty tuple) → "unannotated"
     locs <- combined$locations
     has_locations <- any(!is.na(locs) & nzchar(trimws(locs)))
     if (has_locations) {
         by_compartment <- combined |>
-            dplyr::filter(!is.na(locations), nzchar(trimws(locations))) |>
-            tidyr::separate_rows(locations, sep = ",\\s*") |>
-            dplyr::filter(nzchar(trimws(locations))) |>
-            dplyr::mutate(compartment = trimws(locations)) |>
+            dplyr::mutate(
+                compartment = stringr::str_extract_all(
+                    locations, "(?<=')[^']+(?=')"
+                )
+            ) |>
+            tidyr::unnest(compartment, keep_empty = TRUE) |>
+            dplyr::mutate(
+                compartment = dplyr::if_else(
+                    is.na(compartment), "unannotated", compartment
+                )
+            ) |>
             dplyr::count(compartment, name = "n_interactions") |>
             dplyr::arrange(dplyr::desc(n_interactions))
     } else {
@@ -95,8 +105,8 @@ cosmos_plus_data <- function(
         dplyr::group_by(resource) |>
         dplyr::summarise(
             n_metabolites  = dplyr::n_distinct(c(
-                source[source_type == "metabolite"],
-                target[target_type == "metabolite"]
+                source[source_type == "small_molecule"],
+                target[target_type == "small_molecule"]
             )),
             n_proteins     = dplyr::n_distinct(c(
                 source[source_type == "protein"],
