@@ -31,12 +31,12 @@ plot_fr007e <- function(data, width_mm = 180L) {
         "no_structure"
     )
     spec_labels <- c(
-        "stereo",
-        "cis/trans",
-        "constitution",
-        "variable",
-        "unknown",
-        "no structure"
+        "Stereospecific",
+        "Cis/trans",
+        "Constitution",
+        "Variable",
+        "Unknown",
+        "No structure"
     )
 
     # Category ordering: chemical_class first, then metabolic_domain,
@@ -47,9 +47,20 @@ plot_fr007e <- function(data, width_mm = 180L) {
         "amino-acid metabolism", "nucleic-acid metabolism",
         "carbohydrates"
     )
+    cat_labels <- c(
+        "drugs"                   = "Drugs",
+        "metabolites"             = "Metabolites",
+        "lipids"                  = "Lipids",
+        "food compounds"          = "Food compounds",
+        "amino-acid metabolism"   = "Amino-acid metabolism",
+        "nucleic-acid metabolism" = "Nucleic-acid metabolism",
+        "carbohydrates"           = "Carbohydrates"
+    )
+    keep <- intersect(cat_levels, unique(as.character(data$category)))
     data$category <- factor(
         data$category,
-        levels = intersect(cat_levels, unique(as.character(data$category)))
+        levels = keep,
+        labels = cat_labels[keep]
     )
     data$specificity <- factor(data$specificity, levels = spec_levels)
 
@@ -76,18 +87,22 @@ plot_fr007e <- function(data, width_mm = 180L) {
             )
         ) +
         ggplot2::scale_x_discrete(labels = spec_labels) +
-        ggplot2::labs(x = NULL, y = "Entities (log scale)") +
+        ggplot2::labs(
+            x = "Level of structural specificity",
+            y = "Entities (log scale)"
+        ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "none",
             # 2.5x scale-up from the prior 5/6 pt — these panels go
             # into a large composite figure so they need to read at
-            # composite scale.
+            # composite scale. Facet strip text drops to 11 pt so
+            # "Nucleic-acid metabolism" fits without wrap.
             axis.text.x     = ggplot2::element_text(
                 angle = 35, hjust = 1, size = 13
             ),
             axis.text.y     = ggplot2::element_text(size = 13),
             axis.title      = ggplot2::element_text(size = 14),
-            strip.text      = ggplot2::element_text(face = "bold", size = 15)
+            strip.text      = ggplot2::element_text(face = "bold", size = 11)
         )
 }
