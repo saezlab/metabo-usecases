@@ -28,7 +28,7 @@
 #'
 #' @importFrom readr read_csv
 #' @importFrom dplyr filter mutate bind_rows count n_distinct group_by
-#'     summarise arrange desc if_else
+#'     summarise arrange desc if_else case_match
 #' @importFrom tidyr unnest
 #' @importFrom stringr str_extract_all
 #' @importFrom tibble tibble
@@ -40,7 +40,7 @@ cosmos_plus_data <- function(
     mouse_csv = cosmos_plus_csv_path("mouse")
 ) {
     interaction_type <- species <- n_interactions <- NULL
-    locations <- compartment <- resource <- NULL
+    locations <- compartment <- compartment_name <- resource <- NULL
     source_type <- target_type <- source <- target <- NULL
 
     if (!file.exists(human_csv)) {
@@ -73,11 +73,29 @@ cosmos_plus_data <- function(
         dplyr::count(interaction_type, species, name = "n_interactions") |>
         dplyr::arrange(dplyr::desc(n_interactions))
 
-    # Shape (b): counts per compartment
-    # locations column stores Python tuple repr strings e.g. "('c',)", "()"
-    # Extract single-quoted codes; "()" (empty tuple) → "unannotated"
+    # Shape (b): interactions per (compartment_name, interaction_type)
+    # locations stores Python tuple repr strings e.g. "('c',)", "()"
+    # Single-letter codes are expanded to full RECON/BiGG names.
     locs <- combined$locations
-    has_locations <- any(!is.na(locs) & nzchar(trimws(locs)))
+    has_locations <- any(!is.na(locs) & nzchar(trimws(locs)) & locs != "()")
+
+    expand_compartment_code <- function(code) {
+        dplyr::case_match(
+            code,
+            "c"           ~ "Cytoplasm",
+            "e"           ~ "Extracellular",
+            "m"           ~ "Mitochondria",
+            "r"           ~ "Endoplasmic reticulum",
+            "x"           ~ "Peroxisome",
+            "n"           ~ "Nucleus",
+            "l"           ~ "Lysosome",
+            "g"           ~ "Golgi apparatus",
+            "v"           ~ "Vacuole/vesicle",
+            "unannotated" ~ "Unannotated",
+            .default      = code
+        )
+    }
+
     if (has_locations) {
         by_compartment <- combined |>
             dplyr::mutate(
@@ -87,17 +105,21 @@ cosmos_plus_data <- function(
             ) |>
             tidyr::unnest(compartment, keep_empty = TRUE) |>
             dplyr::mutate(
-                compartment = dplyr::if_else(
+                compartment      = dplyr::if_else(
                     is.na(compartment), "unannotated", compartment
-                )
+                ),
+                compartment_name = expand_compartment_code(compartment)
             ) |>
-            dplyr::count(compartment, name = "n_interactions") |>
+            dplyr::count(
+                compartment_name, interaction_type,
+                name = "n_interactions"
+            ) |>
             dplyr::arrange(dplyr::desc(n_interactions))
     } else {
-        by_compartment <- tibble::tibble(
-            compartment    = "unannotated",
-            n_interactions = nrow(combined)
-        )
+        by_compartment <- combined |>
+            dplyr::count(interaction_type, name = "n_interactions") |>
+            dplyr::mutate(compartment_name = "Unannotated") |>
+            dplyr::select(compartment_name, interaction_type, n_interactions)
     }
 
     # Shape (c): metabolites, proteins, interactions per resource

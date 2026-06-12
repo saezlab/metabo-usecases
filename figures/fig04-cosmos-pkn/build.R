@@ -37,19 +37,34 @@ old_pkn <- cosmos_old_pkn()
 logger::log_info('[fig04] loading COSMOS+ data from vendored CSVs')
 cosmos_plus <- cosmos_plus_data()
 
-logger::log_info('[fig04] querying MetaLinksDB 2.0 relation-type counts from dev4')
+logger::log_info('[fig04] querying MetaLinksDB 2.0 by GtP protein class from dev4')
 dep4 <- deployment_provenance('dev4')
 
+# Join metalinksdb_relations with metalinksdb_protein_annotations to get
+# per-interaction GtP functional class, then map to canonical panel categories.
+# A protein with multiple GtP classes is counted in each matching category;
+# COUNT(DISTINCT ...) prevents double-counting within a category.
 metalinks_v2_sql <- paste(
     'SELECT',
-    '  coalesce(rt.relation_type, \'interaction\') AS interaction_type,',
+    '  CASE',
+    '    WHEN gtp.gtp_class LIKE \'Transporter%\'           THEN \'Transport\'',
+    '    WHEN gtp.gtp_class LIKE \'Gpcr%\'',
+    '      OR gtp.gtp_class LIKE \'Catalytic Receptor%\'',
+    '      OR gtp.gtp_class LIKE \'Vgic%\'',
+    '      OR gtp.gtp_class LIKE \'Lgic%\'                  THEN \'Ligand receptor\'',
+    '    WHEN gtp.gtp_class LIKE \'Enzyme%\'                THEN \'Catalysis\'',
+    '    WHEN gtp.gtp_class LIKE \'Nuclear Hormone%\'       THEN \'Gene regulation\'',
+    '    ELSE \'Other\'',
+    '  END AS interaction_type,',
     '  COUNT(DISTINCT r.compound_canonical_id || \'::\'',
     '       || r.protein_uniprot) AS n_interactions',
     'FROM custom_views.metalinksdb_relations r',
-    'LEFT JOIN LATERAL unnest(r.relation_types) AS rt(relation_type) ON TRUE',
+    'JOIN custom_views.metalinksdb_protein_annotations a',
+    '  ON r.protein_uniprot = a.protein_uniprot',
+    'CROSS JOIN LATERAL unnest(a.gtp_functional_classes) AS gtp(gtp_class)',
     'WHERE r.compound_canonical_id IS NOT NULL',
     '  AND r.protein_uniprot IS NOT NULL',
-    'GROUP BY coalesce(rt.relation_type, \'interaction\')',
+    'GROUP BY 1',
     'ORDER BY n_interactions DESC'
 )
 

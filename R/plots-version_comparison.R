@@ -330,8 +330,15 @@ fig04_cosmos_comparison_panel <- function(
         n_interactions = .data$n_edges
     )
 
+    # Alias catalysis → metabolic_reactions so COSMOS+ GEM interactions
+    # align with the old PKN's metabolic_reactions bar group.
     new_rows <- dplyr::mutate(
         cosmos_plus_by_type_species,
+        interaction_type = dplyr::case_match(
+            interaction_type,
+            "catalysis" ~ "metabolic_reactions",
+            .default    = interaction_type
+        ),
         panel_group = dplyr::case_when(
             species == "human" ~ "COSMOS+ (human)",
             species == "mouse" ~ "COSMOS+ (mouse)",
@@ -394,16 +401,20 @@ fig04_cosmos_comparison_panel <- function(
 }
 
 
-#' Figure 4 Panel B: COSMOS+ interactions per compartment
+#' Figure 4 Panel B: COSMOS+ interactions per compartment, stacked by type
 #'
 #' @param cosmos_plus_by_compartment Tibble from
-#'     \code{cosmos_plus_data()$by_compartment}.
-#' @param top_n Integer: keep the top N compartments, collapsing the
-#'     rest to "Other" per FR-009c. Default 12.
+#'     \code{cosmos_plus_data()$by_compartment} with columns
+#'     \code{compartment_name}, \code{interaction_type},
+#'     \code{n_interactions}.
+#' @param top_n Integer: keep the top N compartments by total count,
+#'     collapsing the rest to "Other" per FR-009c. Default 12.
 #' @param width_mm Numeric panel width in mm.
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col labs scale_fill_manual
-#' @importFrom dplyr mutate if_else slice_head summarise
+#'     position_stack coord_flip
+#' @importFrom dplyr mutate filter group_by summarise bind_rows arrange desc
+#' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
 fig04_compartment_panel <- function(
@@ -411,46 +422,95 @@ fig04_compartment_panel <- function(
     top_n    = 12L,
     width_mm = 89L
 ) {
-    compartment <- n_interactions <- NULL
+    compartment_name <- interaction_type <- n_interactions <- total <- NULL
+
+    type_labels <- c(
+        catalysis             = "Metabolic reaction (enzyme–metabolite)",
+        transport             = "Transport (transporter–metabolite)",
+        gene_regulation       = "Gene regulation (TF–target, GRN)",
+        signaling             = "Signaling (PPI)",
+        allosteric_regulation = "Allosteric regulation (metabolite–enzyme)",
+        ligand_receptor       = "Ligand receptor (receptor–metabolite)"
+    )
 
     data <- cosmos_plus_by_compartment
 
-    if (nrow(data) > top_n) {
-        top    <- data[seq_len(top_n), ]
-        others <- sum(data$n_interactions[seq(top_n + 1L, nrow(data))])
-        other_row <- tibble::tibble(
-            compartment    = "Other",
-            n_interactions = others
-        )
-        data <- dplyr::bind_rows(top, other_row)
-    }
+    # Compute per-compartment totals for ordering and top-N collapsing
+    totals <- data |>
+        dplyr::group_by(compartment_name) |>
+        dplyr::summarise(total = sum(n_interactions), .groups = "drop") |>
+        dplyr::arrange(dplyr::desc(total))
 
-    data$compartment <- factor(
-        data$compartment,
-        levels = rev(data$compartment)
+    unannotated_only <- all(
+        data$compartment_name %in% c("Unannotated", NA_character_)
     )
 
-    unannotated <- identical(data$compartment[[1L]], "unannotated")
+    if (nrow(totals) > top_n) {
+        keep <- totals$compartment_name[seq_len(top_n)]
+        other_rows <- data |>
+            dplyr::filter(!compartment_name %in% keep) |>
+            dplyr::group_by(interaction_type) |>
+            dplyr::summarise(
+                n_interactions = sum(n_interactions), .groups = "drop"
+            ) |>
+            dplyr::mutate(compartment_name = "Other")
+        data <- dplyr::bind_rows(
+            data |> dplyr::filter(compartment_name %in% keep),
+            other_rows
+        )
+        other_total <- sum(totals$total[seq(top_n + 1L, nrow(totals))])
+        totals <- dplyr::bind_rows(
+            totals[seq_len(top_n), ],
+            tibble::tibble(compartment_name = "Other", total = other_total)
+        )
+    }
 
-    fill_col <- if (unannotated) "#BEBEBE" else palette_n(1L, unknown = FALSE)
+    comp_levels <- rev(totals$compartment_name)
+    data$compartment_name <- factor(data$compartment_name, levels = comp_levels)
+
+    # Apply display labels to interaction_type
+    data$interaction_type <- dplyr::case_match(
+        data$interaction_type,
+        "catalysis"             ~ type_labels[["catalysis"]],
+        "transport"             ~ type_labels[["transport"]],
+        "gene_regulation"       ~ type_labels[["gene_regulation"]],
+        "signaling"             ~ type_labels[["signaling"]],
+        "allosteric_regulation" ~ type_labels[["allosteric_regulation"]],
+        "ligand_receptor"       ~ type_labels[["ligand_receptor"]],
+        .default = data$interaction_type
+    )
+
+    type_vals <- unique(data$interaction_type[!is.na(data$interaction_type)])
+    fills <- setNames(
+        palette_n(as.integer(length(type_vals)), unknown = FALSE),
+        type_vals
+    )
+    if (unannotated_only) fills["Unannotated"] <- "#BEBEBE"
 
     p <- ggplot2::ggplot(
-        data,
+        data[!is.na(data$interaction_type), ],
         ggplot2::aes(
-            x = .data$compartment,
-            y = .data$n_interactions
+            x    = .data$compartment_name,
+            y    = .data$n_interactions,
+            fill = .data$interaction_type
         )
     ) +
-        ggplot2::geom_col(fill = fill_col[[1L]], width = 0.7) +
+        ggplot2::geom_col(
+            position = ggplot2::position_stack(),
+            width    = 0.7
+        ) +
+        ggplot2::scale_fill_manual(values = fills) +
         ggplot2::coord_flip() +
         ggplot2::labs(
             x     = NULL,
-            y     = "Edges",
-            title = "COSMOS+ edges per compartment"
+            y     = "Interactions",
+            fill  = NULL,
+            title = "COSMOS+ interactions per compartment"
         ) +
-        theme_bw_metabo(width_mm = width_mm)
+        theme_bw_metabo(width_mm = width_mm) +
+        ggplot2::theme(legend.position = "right")
 
-    if (unannotated) {
+    if (unannotated_only) {
         p <- p + ggplot2::labs(
             subtitle = "Location annotations not yet available for this build"
         )
@@ -462,43 +522,67 @@ fig04_compartment_panel <- function(
 
 #' Figure 4 Panel C: entity and interaction count per resource
 #'
+#' Shows the top 15 resources by total interaction count as stacked bars
+#' (metabolites + proteins). Resource names are abbreviated via
+#' \code{.abbreviate_resource()} before plotting. Remaining resources
+#' beyond top 15 are collapsed into a single "Other" bar.
+#'
 #' @param cosmos_plus_by_resource Tibble from
 #'     \code{cosmos_plus_data()$by_resource}.
+#' @param top_n Integer: number of individual resources to show.
+#'     Default 15.
 #' @param width_mm Numeric panel width in mm.
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
-#'     position_stack
+#'     position_stack coord_flip
 #' @importFrom tidyr pivot_longer
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate bind_rows slice_head
+#' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
 fig04_resource_contribution_panel <- function(
     cosmos_plus_by_resource,
+    top_n    = 15L,
     width_mm = 89L
 ) {
-    resource <- entity_type <- count <- NULL
+    resource <- entity_type <- count <- n_metabolites <- n_proteins <- NULL
+    n_interactions <- NULL
 
     data <- cosmos_plus_by_resource
-    resources <- data$resource
 
-    fills <- setNames(
-        palette_n(as.integer(length(resources)), unknown = FALSE),
-        resources
-    )
-    register_category_colours("resources", fills)
+    # Collapse tail into "Other"
+    if (nrow(data) > top_n) {
+        top   <- data[seq_len(top_n), ]
+        other <- data[seq(top_n + 1L, nrow(data)), ]
+        other_row <- tibble::tibble(
+            resource       = "Other",
+            n_metabolites  = sum(other$n_metabolites),
+            n_proteins     = sum(other$n_proteins),
+            n_interactions = sum(other$n_interactions)
+        )
+        data <- dplyr::bind_rows(top, other_row)
+    }
 
+    # Apply short abbreviations
+    data$resource_label <- .abbreviate_resource(data$resource)
+
+    resources_ordered <- data$resource_label
     long <- tidyr::pivot_longer(
         data,
         cols      = c("n_metabolites", "n_proteins"),
         names_to  = "entity_type",
         values_to = "count"
     )
-    long$entity_type <- dplyr::case_when(
-        long$entity_type == "n_metabolites" ~ "Metabolites",
-        long$entity_type == "n_proteins"    ~ "Proteins",
-        .default = long$entity_type
+    long$entity_type <- dplyr::case_match(
+        long$entity_type,
+        "n_metabolites" ~ "Metabolites",
+        "n_proteins"    ~ "Proteins",
+        .default        = long$entity_type
     )
-    long$resource <- factor(long$resource, levels = rev(resources))
+    long$resource_label <- factor(
+        long$resource_label,
+        levels = rev(resources_ordered)
+    )
 
     entity_fills <- c(
         Metabolites = palette_n(1L)[[1L]],
@@ -508,7 +592,7 @@ fig04_resource_contribution_panel <- function(
     ggplot2::ggplot(
         long,
         ggplot2::aes(
-            x    = .data$resource,
+            x    = .data$resource_label,
             y    = .data$count,
             fill = .data$entity_type
         )
@@ -532,15 +616,23 @@ fig04_resource_contribution_panel <- function(
 
 #' Figure 4 Panel D: MetaLinksDB 2.0 vs. COSMOS+ by interaction type
 #'
+#' Compares MetaLinksDB 2.0 (GtP-class-mapped categories from the Panel D
+#' SQL) with COSMOS+ (internal interaction types mapped to the same
+#' canonical categories). An "Allosteric regulation" row with zero
+#' MetaLinksDB count is appended to make the COSMOS+-only scope visible.
+#'
 #' @param metalinks_counts Tibble with columns \code{interaction_type} and
-#'     \code{n_interactions} from \code{pg_query_panel()}.
+#'     \code{n_interactions} from \code{pg_query_panel()}, where
+#'     \code{interaction_type} already uses the canonical panel-D category
+#'     labels (Transport, Ligand receptor, Catalysis, Gene regulation, Other).
 #' @param cosmos_plus_by_type_species Tibble from
 #'     \code{cosmos_plus_data()$by_type_species}.
 #' @param width_mm Numeric panel width in mm.
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
 #'     coord_flip position_dodge
-#' @importFrom dplyr group_by summarise mutate bind_rows
+#' @importFrom dplyr group_by summarise mutate bind_rows case_match
+#' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
 fig04_metalinks_cosmos_panel <- function(
@@ -548,22 +640,60 @@ fig04_metalinks_cosmos_panel <- function(
     cosmos_plus_by_type_species,
     width_mm = 120L
 ) {
+    interaction_type <- n_interactions <- source <- NULL
+
+    # Map COSMOS+ internal types to canonical panel-D categories
     cosmos_agg <- dplyr::group_by(
         cosmos_plus_by_type_species,
         .data$interaction_type
     ) |>
         dplyr::summarise(
             n_interactions = sum(.data$n_interactions),
-            .groups = "drop"
+            .groups        = "drop"
         ) |>
-        dplyr::mutate(source = "COSMOS+")
+        dplyr::mutate(
+            interaction_type = dplyr::case_match(
+                interaction_type,
+                "catalysis"             ~ "Catalysis",
+                "transport"             ~ "Transport",
+                "ligand_receptor"       ~ "Ligand receptor",
+                "gene_regulation"       ~ "Gene regulation",
+                "allosteric_regulation" ~ "Allosteric regulation",
+                "signaling"             ~ "Signaling",
+                .default = interaction_type
+            ),
+            source = "COSMOS+"
+        )
 
     metalinks_long <- dplyr::mutate(metalinks_counts, source = "MetaLinksDB 2.0")
+
+    # Add zero rows for COSMOS+-only categories not present in MetaLinksDB
+    cosmos_types    <- unique(cosmos_agg$interaction_type)
+    metalinks_types <- unique(metalinks_long$interaction_type)
+    cosmos_only     <- setdiff(cosmos_types, metalinks_types)
+
+    if (length(cosmos_only) > 0L) {
+        zero_rows <- tibble::tibble(
+            interaction_type = cosmos_only,
+            n_interactions   = 0L,
+            source           = "MetaLinksDB 2.0"
+        )
+        metalinks_long <- dplyr::bind_rows(metalinks_long, zero_rows)
+    }
+
     combined <- dplyr::bind_rows(cosmos_agg, metalinks_long)
 
+    all_types <- sort(unique(combined$interaction_type))
+    combined$interaction_type <- factor(
+        combined$interaction_type, levels = rev(all_types)
+    )
+    combined$source <- factor(
+        combined$source, levels = c("MetaLinksDB 2.0", "COSMOS+")
+    )
+
     fills <- c(
-        "COSMOS+"          = palette_lead()[["teal"]],
-        "MetaLinksDB 2.0"  = palette_lead()[["amber"]]
+        "COSMOS+"         = palette_lead()[["teal"]],
+        "MetaLinksDB 2.0" = palette_lead()[["amber"]]
     )
     register_category_colours("metalinks_cosmos", fills)
 
@@ -589,4 +719,31 @@ fig04_metalinks_cosmos_panel <- function(
         ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(legend.position = "top")
+}
+
+
+# ── Internal helpers ──────────────────────────────────────────────────────────
+
+# Canonical abbreviation rules for COSMOS+ resource name strings.
+.resource_abbrev_single <- c(
+    "GEM_transporter:Human-GEM"     = "hGEM-T",
+    "GEM_transporter:Mouse-GEM"     = "mGEM-T",
+    "GEM:Human-GEM"                 = "hGEM",
+    "GEM:Mouse-GEM"                 = "mGEM",
+    "GEM:Recon3D"                   = "R3D",
+    "OmniPath:omnipath,ligrecextra" = "OmniPath-LR",
+    "OmniPath:collectri"            = "Collectri",
+    "MRCLinksDB"                    = "MRCLinks"
+)
+
+.abbreviate_resource <- function(x) {
+    vapply(x, function(name) {
+        parts  <- strsplit(name, ";", fixed = TRUE)[[1L]]
+        abbrevs <- ifelse(
+            parts %in% names(.resource_abbrev_single),
+            unname(.resource_abbrev_single[parts]),
+            parts
+        )
+        paste(abbrevs, collapse = "+")
+    }, character(1L), USE.NAMES = FALSE)
 }
