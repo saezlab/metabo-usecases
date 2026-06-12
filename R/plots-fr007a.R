@@ -438,3 +438,104 @@ fr007a_fill_map <- function(data) {
         levels = c(su_levels, class_levels)
     )
 }
+
+
+#' Render the FR-007a tiny Total-only variant
+#'
+#' Compact alternative to \code{\link{plot_fr007a_overview}}: instead
+#' of the band-resource matrix, show only the \code{Total} row across
+#' all six facets, arranged vertically (one facet per row). Each
+#' facet shows the two adjacent horizontal bars: the top bar is the
+#' \code{shared / unique} split, the bottom bar is the
+#' \code{major_class} stacked breakdown.
+#'
+#' This variant is what lands in the main composite Figure 1; the
+#' full faceted-resource overview from
+#' \code{\link{plot_fr007a_overview}} moves to a supplementary
+#' artifact (\code{fr007a-overview-supplementary.pdf}) per the
+#' iteration plan.
+#'
+#' @param data Tibble from \code{\link{fr007a_overview}}.
+#' @param facet_order Character vector: facet column order — same
+#'     default as \code{\link{plot_fr007a_overview}}.
+#' @param width_mm Numeric: target physical width.
+#'
+#' @return A ggplot.
+#'
+#' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs theme
+#' @importFrom ggplot2 facet_wrap vars element_text element_blank
+#' @importFrom ggplot2 scale_x_continuous scale_y_discrete expansion
+#' @importFrom ggplot2 coord_cartesian guides guide_legend
+#' @importFrom rlang .data
+#' @export
+plot_fr007a_total <- function(data,
+                              facet_order = c(
+                                  "Entities", "Associations",
+                                  "Interactions", "Identifiers",
+                                  "Structures", "Literature"
+                              ),
+                              width_mm = 180L) {
+
+    fill_map <- fr007a_fill_map(data)
+
+    total <- data[as.character(data$resource) == "Total", , drop = FALSE]
+    facet_order <- intersect(facet_order, unique(total$facet))
+    total$facet <- factor(total$facet, levels = facet_order)
+
+    # bar_type: shared_unique on the top sub-row, major_class on the
+    # bottom sub-row. Discrete y axis with labels suppressed (the two
+    # bars are visually distinguishable from the colour key alone).
+    total$bar_type <- factor(
+        total$bar_type,
+        levels = c("shared_unique", "major_class")
+    )
+
+    total$category <- factor(
+        total$category, levels = fill_map$levels
+    )
+
+    ggplot2::ggplot(
+        total,
+        ggplot2::aes(
+            x    = .data$n,
+            y    = .data$bar_type,
+            fill = .data$category
+        )
+    ) +
+        ggplot2::geom_col() +
+        ggplot2::facet_wrap(
+            ~ .data$facet, ncol = 1L,
+            scales = "free_x", strip.position = "left"
+        ) +
+        ggplot2::scale_fill_manual(
+            values = fill_map$hex,
+            name   = NULL
+        ) +
+        ggplot2::scale_x_continuous(
+            labels = scales::label_number(
+                scale_cut = scales::cut_short_scale()
+            ),
+            expand = ggplot2::expansion(mult = c(0, 0.04))
+        ) +
+        ggplot2::scale_y_discrete(labels = NULL) +
+        ggplot2::labs(x = "Items", y = NULL) +
+        theme_bw_metabo(width_mm = width_mm) +
+        ggplot2::guides(
+            fill = ggplot2::guide_legend(ncol = 2L)
+        ) +
+        ggplot2::theme(
+            legend.position    = "right",
+            legend.text        = ggplot2::element_text(size = 11),
+            legend.key.size    = grid::unit(4, "mm"),
+            strip.placement    = "outside",
+            strip.background   = ggplot2::element_blank(),
+            strip.text.y.left  = ggplot2::element_text(
+                angle = 0, hjust = 1, face = "bold", size = 12
+            ),
+            axis.ticks.y       = ggplot2::element_blank(),
+            axis.text.y        = ggplot2::element_blank(),
+            axis.text.x        = ggplot2::element_text(size = 11),
+            axis.title.x       = ggplot2::element_text(size = 12),
+            panel.spacing.y    = grid::unit(2, "mm")
+        )
+}

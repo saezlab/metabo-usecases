@@ -155,14 +155,26 @@ queries <- c(queries, list(
 ))
 
 fr007a_plot <- plot_fr007a_overview(fr007a_data, width_mm = 320L)
-# Landscape page: 6 facet columns × 2 bar-type rows; resources share
-# the y axis, so width carries the categorical density and height
-# carries the per-resource vertical resolution.
-ggsave(file.path(out_dir, "fr007a-overview.pdf"), fr007a_plot,
+# Full 6-facet × per-band resource matrix — moves to supplementary
+# in the iteration plan; still emitted as a stand-alone artifact.
+ggsave(file.path(out_dir, "fr007a-overview-supplementary.pdf"), fr007a_plot,
        width = 320, height = 200, units = "mm")
-ggsave(file.path(out_dir, "fr007a-overview.svg"), fr007a_plot,
+ggsave(file.path(out_dir, "fr007a-overview-supplementary.svg"), fr007a_plot,
        width = 320, height = 200, units = "mm")
-logger::log_info("FR-007a overview written to {out_dir}/fr007a-overview.{{pdf,svg}}")
+logger::log_info(
+    "FR-007a overview (supplementary) written to ",
+    "{out_dir}/fr007a-overview-supplementary.{{pdf,svg}}"
+)
+
+# Tiny "Total-only" variant — 6 facets stacked vertically, one pair
+# of horizontal bars each. This is the candidate for the main
+# composite Figure 1.
+fr007a_total_plot <- plot_fr007a_total(fr007a_data, width_mm = 180L)
+ggsave(file.path(out_dir, "fr007a-total.pdf"), fr007a_total_plot,
+       width = 180, height = 200, units = "mm")
+ggsave(file.path(out_dir, "fr007a-total.svg"), fr007a_total_plot,
+       width = 180, height = 200, units = "mm")
+logger::log_info("FR-007a total written to {out_dir}/fr007a-total.{{pdf,svg}}")
 
 # ---- FR-007e — structural specificity × chemical category (dev4) ----------
 #
@@ -216,9 +228,9 @@ queries <- c(queries, list(
 ))
 fr007d_plot <- plot_fr007d_matrix(fr007d_data, width_mm = 180L)
 ggsave(file.path(out_dir, "fr007d-matrix.pdf"), fr007d_plot,
-       width = 180, height = 110, units = "mm")
+       width = 180, height = 180, units = "mm")
 ggsave(file.path(out_dir, "fr007d-matrix.svg"), fr007d_plot,
-       width = 180, height = 110, units = "mm")
+       width = 180, height = 180, units = "mm")
 logger::log_info("FR-007d matrix written to {out_dir}/fr007d-matrix.{{pdf,svg}}")
 
 # ---- FR-007c — resource-overlap networks (Molecular entities, Interactions)
