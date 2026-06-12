@@ -192,12 +192,11 @@ tables_latex_wrapper <- function(body, max_width_mm = 180) {
         # the wrong font. Pin \sffamily to the same family so the
         # whole table renders consistently.
         "\\setsansfont{Helvetica Neue LT Std}",
-        # Alternating row backgrounds (light gray / white) for the
-        # gt-rendered tables. gt's LaTeX backend doesn't emit
-        # \\rowcolor — we apply it in the standalone wrapper so it
-        # affects every row in the body uniformly.
         "\\definecolor{tablerowalt}{HTML}{F2F2F2}",
-        "\\rowcolors{2}{tablerowalt}{white}",
+        # Row striping is applied by gt via opt_row_striping()
+        # (gt_metabo_style) — gt emits per-row \rowcolor directives
+        # that integrate with gt's tabular* structure (no gaps at
+        # column separators, no stub overhang).
         "\\begin{document}",
         body,
         "\\end{document}"
@@ -260,6 +259,10 @@ tables_compose_caption <- function(table_id,
         panel_count        = panel_count,
         composite_basename = sprintf("%s.pdf", table_id),
         caption_position   = "above",
-        body_width_mm      = body_width_mm
+        body_width_mm      = body_width_mm,
+        # The bare-table PDF wrapper uses border=4mm; trim it at
+        # include-time so the visible table content fills the
+        # body_width_mm minipage and aligns with the caption width.
+        trim_mm            = 4L
     )
 }

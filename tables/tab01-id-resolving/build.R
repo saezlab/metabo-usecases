@@ -40,7 +40,7 @@ queries <- list(query_record(data_long))
 
 gt_obj <- tbl_id_resolving_gt(data_wide)
 
-table_width_mm <- 280L
+table_width_mm <- 400L
 
 artifacts <- tables_save_pdf_csv(
     gt_obj       = gt_obj,

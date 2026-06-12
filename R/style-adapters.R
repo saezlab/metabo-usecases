@@ -38,6 +38,17 @@ gt_metabo_style <- function(x) {
             table_body.border.bottom.color = "black",
             table_body.border.top.color    = "black",
             column_labels.border.bottom.color = "black",
-            data_row.padding           = gt::px(2)
-        )
+            data_row.padding           = gt::px(2),
+            # gt-native alternating row colours: applies the stripe
+            # to every body cell (stub column included) without the
+            # wrapper-level \rowcolors{}{} gaps at column separators.
+            row.striping.include_table_body = TRUE,
+            row.striping.background_color   = "#F2F2F2",
+            # Drop the stub vertical rule that previously appeared
+            # as a stark | between the stub and the first data
+            # column — the row striping reads as the visual divider.
+            stub.border.style = "none",
+            stub.border.width = gt::px(0)
+        ) %>%
+        gt::opt_row_striping()
 }

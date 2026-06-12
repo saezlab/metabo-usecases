@@ -61,7 +61,8 @@ compose_caption <- function(figure_id,
                             caption_sty = "tex/caption.sty",
                             composite_basename = NULL,
                             caption_position = c("below", "above"),
-                            body_width_mm = 180) {
+                            body_width_mm = 180,
+                            trim_mm = 0) {
 
     caption_position <- match.arg(caption_position)
 
@@ -127,7 +128,8 @@ compose_caption <- function(figure_id,
         caption_wrapper_tex(
             composite_name,
             caption_position,
-            body_width_mm = body_width_mm
+            body_width_mm = body_width_mm,
+            trim_mm       = trim_mm
         ),
         wrapper_path
     )
@@ -240,17 +242,47 @@ parse_panel_letters <- function(text) {
 #' @noRd
 caption_wrapper_tex <- function(composite_basename,
                                 caption_position = c("below", "above"),
-                                body_width_mm = 180) {
+                                body_width_mm = 180,
+                                trim_mm = 0) {
 
     caption_position <- match.arg(caption_position)
     width_str <- sprintf("%dmm", as.integer(body_width_mm))
 
-    composite_block <- sprintf(
-        "  \\includegraphics[width=%s]{%s}\\par",
-        width_str, composite_basename
+    # Trim N millimetres off each side of the embedded composite PDF
+    # so the bare-PDF's standalone border doesn't leave the visible
+    # content narrower than the caption paragraph (FR-042: caption
+    # paragraph width MUST match the table content width).
+    trim_str <- sprintf(
+        "%dmm %dmm %dmm %dmm",
+        as.integer(trim_mm), as.integer(trim_mm),
+        as.integer(trim_mm), as.integer(trim_mm)
     )
+    composite_block <- if (trim_mm > 0L) {
+        sprintf(
+            "  \\includegraphics[width=%s,trim=%s,clip]{%s}\\par",
+            width_str, trim_str, composite_basename
+        )
+    } else {
+        sprintf(
+            "  \\includegraphics[width=%s]{%s}\\par",
+            width_str, composite_basename
+        )
+    }
+
+    # \raggedright + \frenchspacing + \noindent per the iteration
+    # plan: \raggedright lets long \texttt{...} tokens reach line-end
+    # without justification stretching the line off the minipage
+    # right edge; \frenchspacing removes the wide post-sentence
+    # spacing so the caption reads at normal density; \noindent
+    # suppresses the first-line indent so the caption starts flush
+    # with the table's left edge.
     caption_block <- c(
-        "  \\justifying",
+        "  \\raggedright\\frenchspacing\\noindent",
+        # \sloppy + \emergencystretch let LaTeX break inside long
+        # \texttt{} compound tokens (e.g. metabo\_ramp\_inchikey\_conflict)
+        # when no natural break fits.
+        "  \\sloppy",
+        "  \\emergencystretch=2em",
         "  \\input{caption.tex}"
     )
 
