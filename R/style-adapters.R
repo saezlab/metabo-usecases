@@ -25,16 +25,19 @@ gt_metabo_style <- function(x) {
 
     x %>%
         gt::tab_options(
-            table.font.names         = c("Arial", "Helvetica", "sans-serif"),
+            table.font.names         = c(
+                "Helvetica Neue LT Std", "Arial", "Helvetica", "sans-serif"
+            ),
             table.font.size           = gt::px(sizes$body * 1.3),
             heading.title.font.size   = gt::px(sizes$panel_title * 1.3),
             heading.subtitle.font.size = gt::px(sizes$body * 1.3),
             column_labels.font.size   = gt::px(sizes$axis_label * 1.3),
             column_labels.font.weight = "bold",
             row_group.font.weight     = "bold",
-            table_body.hlines.color   = "grey90",
+            table_body.hlines.color   = "white",
             table_body.border.bottom.color = "black",
             table_body.border.top.color    = "black",
-            column_labels.border.bottom.color = "black"
+            column_labels.border.bottom.color = "black",
+            data_row.padding           = gt::px(2)
         )
 }

@@ -33,8 +33,17 @@
 \RequirePackage{ragged2e}
 \RequirePackage{xparse}
 
-% Body font — sans-serif, Arial/Helvetica-compatible.
-\setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]
+% Body font — Helvetica Neue LT Std Condensed (installed at
+% ~/.local/share/fonts on beauty per the iteration plan). Falls back
+% silently to TeX Gyre Heros (the prior choice, a Helvetica clone)
+% when the Linotype font is not present. Using the family name
+% (\setsansfont{Helvetica Neue LT Std}) lets fontconfig auto-match
+% Bold and Italic from the Condensed-only set on disk.
+\IfFontExistsTF{Helvetica Neue LT Std}{%
+    \setsansfont{Helvetica Neue LT Std}%
+}{%
+    \setsansfont{TeX Gyre Heros}[Scale=MatchLowercase]%
+}
 \renewcommand{\familydefault}{\sfdefault}
 \renewcommand{\rmdefault}{\sfdefault}
 
