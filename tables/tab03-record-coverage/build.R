@@ -47,12 +47,14 @@ data_wide <- record_coverage_wide(
 
 tex_body <- record_coverage_latex(data_wide)
 
+table_width_mm <- 360L
+
 artifacts <- tables_save_latex_pdf_csv(
     tex_body     = tex_body,
     data         = data_wide,
     out_dir      = out_dir,
     slug         = "tab03-record-coverage",
-    max_width_mm = 280
+    max_width_mm = table_width_mm
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) ----------------------------------
@@ -62,7 +64,8 @@ caption_info <- tables_compose_caption(
     table_pdf      = artifacts$pdf,
     caption_source = "tables/tab03-record-coverage/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 1L
+    panel_count    = 1L,
+    body_width_mm  = table_width_mm
 )
 
 # ---- Provenance sidecar -------------------------------------------------

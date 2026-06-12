@@ -42,12 +42,14 @@ queries <- list(query_record(data_summary))
 
 gt_obj <- tbl_ramp_comparison_gt(data_summary)
 
+table_width_mm <- 180L
+
 artifacts <- tables_save_pdf_csv(
     gt_obj       = gt_obj,
     data         = data_summary,
     out_dir      = out_dir,
     slug         = "tab02-ramp-comparison",
-    max_width_mm = 130
+    max_width_mm = table_width_mm
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) -----------------------------------
@@ -57,7 +59,8 @@ caption_info <- tables_compose_caption(
     table_pdf      = artifacts$pdf,
     caption_source = "tables/tab02-ramp-comparison/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 1L
+    panel_count    = 1L,
+    body_width_mm  = table_width_mm
 )
 
 # ---- Provenance sidecar --------------------------------------------------

@@ -185,6 +185,13 @@ tables_latex_wrapper <- function(body, max_width_mm = 180) {
         # canonical family name so fontconfig auto-matches Bold/Italic.
         "\\usepackage{fontspec}",
         "\\setmainfont{Helvetica Neue LT Std}",
+        # fontspec's \setmainfont changes \rmfamily but leaves
+        # \sffamily / \ttfamily on the default (Computer Modern Sans),
+        # so any \sffamily in the hand-built LaTeX (e.g. the FR-015a
+        # squared-board table's column / row labels) would render in
+        # the wrong font. Pin \sffamily to the same family so the
+        # whole table renders consistently.
+        "\\setsansfont{Helvetica Neue LT Std}",
         # Alternating row backgrounds (light gray / white) for the
         # gt-rendered tables. gt's LaTeX backend doesn't emit
         # \\rowcolor — we apply it in the standalone wrapper so it
@@ -243,7 +250,8 @@ tables_compose_caption <- function(table_id,
                                    table_pdf,
                                    caption_source,
                                    out_dir,
-                                   panel_count) {
+                                   panel_count,
+                                   body_width_mm = 180) {
     compose_caption(
         figure_id          = table_id,
         composite_pdf      = table_pdf,
@@ -251,6 +259,7 @@ tables_compose_caption <- function(table_id,
         out_dir            = out_dir,
         panel_count        = panel_count,
         composite_basename = sprintf("%s.pdf", table_id),
-        caption_position   = "above"
+        caption_position   = "above",
+        body_width_mm      = body_width_mm
     )
 }

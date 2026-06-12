@@ -40,11 +40,14 @@ queries <- list(query_record(data_long))
 
 gt_obj <- tbl_id_resolving_gt(data_wide)
 
+table_width_mm <- 280L
+
 artifacts <- tables_save_pdf_csv(
-    gt_obj  = gt_obj,
-    data    = data_wide,
-    out_dir = out_dir,
-    slug    = "tab01-id-resolving"
+    gt_obj       = gt_obj,
+    data         = data_wide,
+    out_dir      = out_dir,
+    slug         = "tab01-id-resolving",
+    max_width_mm = table_width_mm
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) -----------------------------------
@@ -54,7 +57,8 @@ caption_info <- tables_compose_caption(
     table_pdf      = artifacts$pdf,
     caption_source = "tables/tab01-id-resolving/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 1L
+    panel_count    = 1L,
+    body_width_mm  = table_width_mm
 )
 
 # ---- Provenance sidecar --------------------------------------------------

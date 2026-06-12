@@ -60,7 +60,8 @@ compose_caption <- function(figure_id,
                             panel_count,
                             caption_sty = "tex/caption.sty",
                             composite_basename = NULL,
-                            caption_position = c("below", "above")) {
+                            caption_position = c("below", "above"),
+                            body_width_mm = 180) {
 
     caption_position <- match.arg(caption_position)
 
@@ -123,7 +124,11 @@ compose_caption <- function(figure_id,
     wrapper_name <- sprintf("%s-with-caption.tex", figure_id)
     wrapper_path <- file.path(out_dir, wrapper_name)
     writeLines(
-        caption_wrapper_tex(composite_name, caption_position),
+        caption_wrapper_tex(
+            composite_name,
+            caption_position,
+            body_width_mm = body_width_mm
+        ),
         wrapper_path
     )
 
@@ -234,13 +239,15 @@ parse_panel_letters <- function(text) {
 #' @keywords internal
 #' @noRd
 caption_wrapper_tex <- function(composite_basename,
-                                caption_position = c("below", "above")) {
+                                caption_position = c("below", "above"),
+                                body_width_mm = 180) {
 
     caption_position <- match.arg(caption_position)
+    width_str <- sprintf("%dmm", as.integer(body_width_mm))
 
     composite_block <- sprintf(
-        "  \\includegraphics[width=180mm]{%s}\\par",
-        composite_basename
+        "  \\includegraphics[width=%s]{%s}\\par",
+        width_str, composite_basename
     )
     caption_block <- c(
         "  \\justifying",
@@ -259,7 +266,7 @@ caption_wrapper_tex <- function(composite_basename,
         "\\usepackage{graphicx}",
         "\\usepackage{caption}",
         "\\begin{document}",
-        "\\begin{minipage}{180mm}",
+        sprintf("\\begin{minipage}{%s}", width_str),
         body,
         "\\end{minipage}",
         "\\end{document}"

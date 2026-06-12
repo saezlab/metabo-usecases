@@ -289,7 +289,19 @@ tbl_id_resolving_gt <- function(wide_tibble) {
         gt::grand_summary_rows(
             columns = dplyr::all_of(id_cols),
             fns     = list(Total = ~ sum(.x, na.rm = TRUE)),
-            fmt     = list(~ gt::fmt_number(., decimals = 0, sep_mark = ","))
+            fmt     = list(~ gt::fmt_number(., decimals = 0, sep_mark = ",")),
+            missing_text = ""
+        ) %>%
+        gt::tab_style(
+            style    = list(
+                gt::cell_text(weight = "bold"),
+                gt::cell_borders(
+                    sides  = "top",
+                    color  = "black",
+                    weight = gt::px(1)
+                )
+            ),
+            locations = gt::cells_grand_summary()
         ) %>%
         gt_metabo_style()
 }
