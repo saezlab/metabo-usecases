@@ -27,16 +27,20 @@ plot_fr007d_matrix <- function(data, width_mm = 180L) {
     data$participant_type <- factor(
         data$participant_type, levels = type_order
     )
-    # Shorten the type labels for the strip (strip out :MI:/:OM:
-    # codes) to keep facet headings compact.
-    short_labels <- stats::setNames(
-        sub("\\s*:[A-Z]+:\\d+\\s*$", "", type_order),
-        type_order
-    )
+    # Strip the trailing :MI:/:OM: codes and apply per-token
+    # corrections — "Cv Term" should read "CV term" in display.
+    pretty_label <- function(x) {
+        x <- sub("\\s*:[A-Z]+:\\d+\\s*$", "", x)
+        x <- sub("^Cv Term$", "CV term", x)
+        x
+    }
+    short_labels <- stats::setNames(pretty_label(type_order), type_order)
 
-    # Interaction-class order: Signaling, Transport, Other (Other last
-    # so the longest bar / dominant class isn't always first).
-    class_order <- c("Signaling", "Transport", "Other")
+    # Interaction-class order: most concrete → most generic.
+    class_order <- c(
+        "Signaling", "Transport", "Interaction", "Reaction",
+        "Association", "Membership", "Other"
+    )
     data$interaction_class <- factor(
         data$interaction_class,
         levels = intersect(class_order, unique(data$interaction_class))
@@ -53,7 +57,7 @@ plot_fr007d_matrix <- function(data, width_mm = 180L) {
     ) +
         ggplot2::geom_col(fill = bar_fill) +
         ggplot2::facet_wrap(
-            ~ .data$participant_type, nrow = 2L,
+            ~ .data$participant_type, ncol = 2L,
             labeller = ggplot2::as_labeller(short_labels),
             scales = "free_y"
         ) +
@@ -62,15 +66,15 @@ plot_fr007d_matrix <- function(data, width_mm = 180L) {
                 scale_cut = scales::cut_short_scale()
             )
         ) +
-        ggplot2::labs(x = NULL, y = "Interactions (log scale)") +
+        ggplot2::labs(x = "Interaction type", y = "Interactions (log scale)") +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "none",
             axis.text.x     = ggplot2::element_text(
-                angle = 30, hjust = 1, size = 13
+                angle = 35, hjust = 1, size = 11
             ),
-            axis.text.y     = ggplot2::element_text(size = 13),
-            axis.title      = ggplot2::element_text(size = 15),
-            strip.text      = ggplot2::element_text(face = "bold", size = 14)
+            axis.text.y     = ggplot2::element_text(size = 11),
+            axis.title      = ggplot2::element_text(size = 13),
+            strip.text      = ggplot2::element_text(face = "bold", size = 11)
         )
 }

@@ -22,6 +22,18 @@ fr007d_entity_x_interaction <- function(
     panel_id = "fig01-overview",
     n_types  = 8L
 ) {
+    # The cycle-001 build's vocab_relation_predicate.interaction_class_id
+    # only assigns predicates to Signaling, Transport and Other (the
+    # finer classes — Allosteric, Ligand-receptor, TF-target,
+    # Drug-target, Orthosteric, Maturation — have no predicate
+    # mappings yet). To get the 5-7 categories the manuscript needs
+    # without re-using a vocabulary that doesn't exist, we re-bucket
+    # the predicates manually into broader functional categories:
+    # Signaling, Transport, Interaction, Reaction, Association,
+    # Membership, Other. These map directly to the "what kind of
+    # relation is this" question the entity × interaction matrix
+    # answers — finer than the cycle-001 class map but still derived
+    # from named predicates.
     sql <- sprintf("
         WITH
         pt_all AS (
@@ -40,11 +52,20 @@ fr007d_entity_x_interaction <- function(
             FROM   facet_relation_bitmap WHERE facet_name = 'predicate'
         ),
         pred_class AS (
-            SELECT vrp.name AS predicate,
-                   COALESCE(vic.name, 'Other') AS class
-            FROM   vocab_relation_predicate vrp
-            LEFT   JOIN vocab_interaction_class vic
-                   ON vic.interaction_class_id = vrp.interaction_class_id
+            SELECT predicate,
+                   CASE
+                     WHEN predicate IN (
+                       'controls', 'regulates',
+                       'positively_regulates', 'negatively_regulates'
+                     )                                  THEN 'Signaling'
+                     WHEN predicate = 'transports'      THEN 'Transport'
+                     WHEN predicate = 'interacts_with'  THEN 'Interaction'
+                     WHEN predicate = 'has_participant' THEN 'Reaction'
+                     WHEN predicate = 'associated_with' THEN 'Association'
+                     WHEN predicate = 'has_member'      THEN 'Membership'
+                     ELSE 'Other'
+                   END AS class
+            FROM pred_bm
         ),
         class_bm AS (
             SELECT pc.class, rb_or_agg(pb.bm) AS bm
