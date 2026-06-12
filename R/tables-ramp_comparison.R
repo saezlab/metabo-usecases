@@ -72,7 +72,41 @@ tbl_ramp_comparison_summary <- function(
         ORDER BY pr.n_conflict_pairs DESC, pr.conflict_reason
     ", as.integer(example_count))
 
-    pg_query_panel(panel_id, sql)
+    rows <- pg_query_panel(panel_id, sql)
+
+    # Replace the cycle-001 RDKit classifier's terse one-word reason
+    # codes with the manuscript-facing labels.
+    label_map <- tbl_ramp_comparison_reason_labels()
+    rows$conflict_reason <- ifelse(
+        is.na(label_map[rows$conflict_reason]),
+        rows$conflict_reason,
+        unname(label_map[rows$conflict_reason])
+    )
+    rows
+}
+
+
+#' RaMP conflict-reason code → manuscript label map
+#'
+#' The cycle-001 RDKit cartridge tags each conflict pair with a terse
+#' one-word reason code (\code{stereo}, \code{specificity},
+#' \code{tautomer}, \code{similar}, \code{unrelated}). These are
+#' opaque outside the build context; the Methods table needs to spell
+#' them out for the reader.
+#'
+#' @return Named character vector mapping the raw reason code to the
+#'     manuscript label.
+#'
+#' @keywords internal
+#' @export
+tbl_ramp_comparison_reason_labels <- function() {
+    c(
+        stereo      = "Stereochemistry only",
+        specificity = "Different specificity levels",
+        tautomer    = "Tautomeric variants",
+        similar     = "Similar structures",
+        unrelated   = "Unrelated structures"
+    )
 }
 
 
@@ -104,16 +138,10 @@ tbl_ramp_comparison_gt <- function(summary_tibble) {
 
     summary_tibble %>%
         gt::gt(rowname_col = "conflict_reason") %>%
-        gt::tab_header(
-            title = paste0(
-                "RaMP InChIKey conflicts — ",
-                "comparison against the structure-based mapping"
-            )
-        ) %>%
         gt::cols_label(
             n_ramp_ids       = "Distinct RaMP ids",
             n_conflict_pairs = "Conflict pairs",
-            share_pct        = "Share of RaMP ids (%)",
+            share_pct        = "Share (%)",
             examples         = "Example RaMP ids"
         ) %>%
         gt::fmt_number(
@@ -132,7 +160,19 @@ tbl_ramp_comparison_gt <- function(summary_tibble) {
         gt::grand_summary_rows(
             columns = c("n_ramp_ids", "n_conflict_pairs"),
             fns     = list(Total = ~ sum(.x, na.rm = TRUE)),
-            fmt     = list(~ gt::fmt_number(., decimals = 0, sep_mark = ","))
+            fmt     = list(~ gt::fmt_number(., decimals = 0, sep_mark = ",")),
+            missing_text = ""
+        ) %>%
+        gt::tab_style(
+            style    = list(
+                gt::cell_text(weight = "bold"),
+                gt::cell_borders(
+                    sides = "top",
+                    color = "black",
+                    weight = gt::px(1)
+                )
+            ),
+            locations = gt::cells_grand_summary()
         ) %>%
         gt_metabo_style()
 }

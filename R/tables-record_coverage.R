@@ -44,40 +44,93 @@ record_coverage_row_definitions <- function() {
              facet = "chemical_class", values = "drug"),
         list(label = "Food compounds", kind = "entity",
              facet = "chemical_class", values = "food"),
-        list(label = "Xenobiotics", kind = "blank",
-             note = "chemical_class.xenobiotic deferred (empty class)"),
         list(label = "Diseases", kind = "entity",
              facet = "ontology_id", values = "mondo"),
         list(label = "Phenotypes", kind = "entity",
              facet = "ontology_id", values = "hpo"),
         list(label = "Molecular classes", kind = "entity",
              facet = "entity_type", values = "Cv Term:OM:0012"),
-        list(label = "Metabolism (GEMs)", kind = "blank",
-             note = "GEM not yet exposed as a distinct facet"),
-        list(label = "Allosteric regulation", kind = "blank",
-             note = "predicate vocab collapses into Other; see FR-007d"),
+        list(label = "Metabolism (GEMs)", kind = "expert"),
+        list(label = "Allosteric regulation", kind = "expert"),
         list(label = "Transport", kind = "relation",
              facet = "predicate", values = "transports"),
-        list(label = "Ligand-receptor", kind = "blank",
-             note = "predicate vocab collapses into Other; see FR-007d"),
-        list(label = "Drug-target", kind = "blank",
-             note = "predicate vocab collapses into Other; see FR-007d"),
-        list(label = "TF-target", kind = "blank",
-             note = "predicate vocab collapses into Other; see FR-007d"),
+        list(label = "Ligand-receptor", kind = "expert"),
+        list(label = "Drug-target", kind = "expert"),
+        list(label = "TF-target", kind = "expert"),
         list(label = "Signaling", kind = "relation",
              facet = "predicate",
-             values = c("controls", "positively_regulates",
+             values = c("controls", "regulates",
+                        "positively_regulates",
                         "negatively_regulates")),
-        list(label = "Subcellular localization", kind = "blank",
-             note = "subcellular component not yet a distinct facet"),
+        list(label = "Subcellular localization", kind = "expert"),
         list(label = "Structures", kind = "entity",
              facet = "structural_specificity",
              values = c("stereospecific", "cis_trans_only",
                         "constitution_only", "variable_constitution",
                         "unknown_constitution"),
              deployment_facet = "structures"),
-        list(label = "Literature references", kind = "blank",
-             note = "facet_evidence_bitmap not yet derived")
+        list(label = "Literature references", kind = "expert")
+    )
+    # Xenobiotics row dropped: chemical_class.xenobiotic is empty in
+    # the cycle-001 build and no resource exclusively curates
+    # xenobiotics (DrugCentral / ChEBI / HMDB carry them under broader
+    # categories). Will re-add when the xenobiotic facet lands.
+}
+
+
+#' Curator-declared resource → record-type coverage overrides
+#'
+#' The cycle-001 \code{vocab_relation_predicate.interaction_class_id}
+#' map only assigns predicates to \code{Signaling}, \code{Transport},
+#' and \code{Other} — finer classes (Allosteric, Ligand-receptor,
+#' TF-target, Drug-target, Maturation, Orthosteric) have no predicates
+#' assigned, so the bitmap-intersection query cannot detect them on
+#' resources that genuinely contribute those record types. This map
+#' encodes curator domain knowledge that the schema cannot yet
+#' express; each entry MUST be defensible at submission review (a
+#' reviewer who knows the resource catalogue agrees the resource
+#' contributes the record type).
+#'
+#' Cells produced by this map are tagged in the long tibble's
+#' \code{source = "expert"} column (the bitmap path tags
+#' \code{source = "db"}) and the override list is serialised into the
+#' provenance sidecar as \code{parameters.expert_overrides} for
+#' review traceability.
+#'
+#' @return A list of \code{(row_label, resources)} pairs.
+#'
+#' @keywords internal
+#' @export
+record_coverage_expert_overrides <- function() {
+    list(
+        list(row = "Allosteric regulation",
+             resources = c("brenda")),
+        list(row = "TF-target",
+             resources = c("signor")),
+        list(row = "Ligand-receptor",
+             resources = c(
+                 "cellchat", "cellinker", "cellphonedb",
+                 "connectomedb", "guidetopharma", "icellnet",
+                 "mebocost", "mrclinksdb", "neuronchat", "nichenet"
+             )),
+        list(row = "Drug-target",
+             resources = c(
+                 "bindingdb", "chembl", "drugcentral", "guidetopharma",
+                 "stitch"
+             )),
+        list(row = "Metabolism (GEMs)",
+             resources = c("metatlas", "recon3d")),
+        list(row = "Subcellular localization",
+             resources = c("go", "uniprot", "reactome")),
+        list(row = "Literature references",
+             resources = c(
+                 "intact", "reactome", "signor", "wikipathways",
+                 "chembl", "drugcentral", "hmdb", "chebi", "stitch",
+                 "guidetopharma", "bindingdb", "brenda", "mirbase",
+                 "phenol_explorer", "foodb", "pfocr", "go", "mondo",
+                 "hpo", "rhea", "lipidmaps", "swisslipids", "macdb",
+                 "uniprot"
+             ))
     )
 }
 
@@ -197,14 +250,28 @@ record_coverage_long <- function(
     queries <- list(query_record(resources_dev3))
     all_long <- list()
 
+    overrides <- record_coverage_expert_overrides()
+    override_map <- stats::setNames(
+        lapply(overrides, function(o) o$resources),
+        vapply(overrides, function(o) o$row, character(1L))
+    )
+
     for (row_def in rows) {
-        if (identical(row_def$kind, "blank")) {
+        if (identical(row_def$kind, "expert")) {
             cells <- tibble::tibble(
                 row_label = row_def$label,
-                row_kind  = "blank",
+                row_kind  = "expert",
                 resource  = resources_dev3$resource,
-                n         = 0L,
-                note      = row_def$note %||% ""
+                n         = ifelse(
+                    resources_dev3$resource %in%
+                        (override_map[[row_def$label]] %||% character()),
+                    1L, 0L
+                ),
+                source    = ifelse(
+                    resources_dev3$resource %in%
+                        (override_map[[row_def$label]] %||% character()),
+                    "expert", ""
+                )
             )
             all_long <- c(all_long, list(cells))
             next
@@ -213,18 +280,32 @@ record_coverage_long <- function(
         cell_rows <- record_coverage_row_counts(row_def, panel_id)
         queries <- c(queries, list(query_record(cell_rows)))
 
+        # Merge DB cell counts with any expert overrides that target
+        # the same row (a cell can be marked by either source; "db"
+        # takes precedence when present).
+        expert_resources <- override_map[[row_def$label]] %||% character()
+        n_db <- as.integer(cell_rows$n)
+        is_expert <- cell_rows$resource %in% expert_resources & n_db == 0L
+        n_final <- ifelse(is_expert, 1L, n_db)
+        source_tag <- ifelse(
+            n_db > 0L,
+            "db",
+            ifelse(is_expert, "expert", "")
+        )
+
         cells <- tibble::tibble(
             row_label = row_def$label,
             row_kind  = row_def$kind,
             resource  = cell_rows$resource,
-            n         = as.integer(cell_rows$n),
-            note      = ""
+            n         = n_final,
+            source    = source_tag
         )
         all_long <- c(all_long, list(cells))
     }
 
     out <- dplyr::bind_rows(all_long)
     attr(out, "queries") <- queries
+    attr(out, "expert_overrides") <- overrides
     out
 }
 
@@ -264,11 +345,42 @@ record_coverage_queries <- function(long_tibble) {
 #' @return A wide-format tibble with the cell values as \code{"X"}
 #'     when checked and empty string otherwise (CSV-friendly).
 #'
-#' @importFrom dplyr mutate select
+#' @param resource_labels Named character: optional resource_id →
+#'     display label map (e.g. \code{resources_label_map()} output) so
+#'     the wide-table column headers read "ChEMBL" rather than the
+#'     lowercase \code{chembl} slug.
+#' @param exclude_resources Character: resources to drop from the
+#'     wide pivot. Defaults to the cycle-001 internal scaffold
+#'     resource \code{"omnipath_ontology"}.
+#'
+#' @importFrom dplyr mutate select filter
 #' @importFrom tidyr pivot_wider
 #' @importFrom rlang .data
 #' @export
-record_coverage_wide <- function(long_tibble, threshold = 1L) {
+record_coverage_wide <- function(long_tibble,
+                                 threshold = 1L,
+                                 resource_labels = NULL,
+                                 exclude_resources = "omnipath_ontology") {
+
+    if (length(exclude_resources) > 0L) {
+        long_tibble <- dplyr::filter(
+            long_tibble,
+            !.data$resource %in% exclude_resources
+        )
+    }
+
+    if (!is.null(resource_labels)) {
+        long_tibble <- dplyr::mutate(
+            long_tibble,
+            resource = unname(
+                ifelse(
+                    is.na(resource_labels[.data$resource]),
+                    .data$resource,
+                    resource_labels[.data$resource]
+                )
+            )
+        )
+    }
 
     long_tibble %>%
         dplyr::mutate(
@@ -304,20 +416,35 @@ record_coverage_latex <- function(wide_tibble) {
     resources <- setdiff(names(wide_tibble), "row_label")
     n_res <- length(resources)
 
-    col_spec <- sprintf("l|%s", paste(rep("c", n_res), collapse = ""))
+    # Squared-board layout: light-gray body cells, white separators
+    # (thick \arrayrulewidth) — the cells render as a grid of gray
+    # squares with the checkmark glyphs sitting inside the populated
+    # ones. The header row stays white so the rotated resource names
+    # are easy to read.
+    col_spec <- sprintf(
+        ">{\\columncolor{white}}l|*{%d}{>{\\columncolor{tablecellbg}}M}",
+        n_res
+    )
 
     header_cells <- vapply(resources, function(r) {
         sprintf(
-            "\\rotatebox{60}{\\sffamily\\fontsize{8pt}{10pt}\\selectfont %s}",
+            paste0(
+                "\\multicolumn{1}{c}{",
+                "\\rotatebox{90}{\\sffamily\\fontsize{8pt}{10pt}\\selectfont %s}",
+                "}"
+            ),
             latex_escape_text(r)
         )
     }, character(1L))
-    header_row <- paste(c("", header_cells), collapse = " & ")
+    header_row <- paste(
+        c("", header_cells),
+        collapse = " & "
+    )
 
     body_rows <- vapply(seq_len(nrow(wide_tibble)), function(i) {
         row <- wide_tibble[i, ]
         cells <- vapply(resources, function(r) {
-            if (identical(row[[r]], "X")) "\\checkmark" else ""
+            if (identical(row[[r]], "X")) "$\\checkmark$" else ""
         }, character(1L))
         sprintf(
             "%s & %s \\\\",
@@ -331,14 +458,20 @@ record_coverage_latex <- function(wide_tibble) {
 
     paste(c(
         "\\begingroup",
+        # Squared-board styling: white grout between gray tiles.
+        "\\definecolor{tablecellbg}{HTML}{E8E8E8}",
+        "\\arrayrulecolor{white}",
+        "\\setlength{\\arrayrulewidth}{2pt}",
         "\\setlength{\\tabcolsep}{3pt}",
+        "\\renewcommand{\\arraystretch}{1.6}",
+        # >{...}M means: vector column type with fixed width &
+        # centered horizontally. Define M alias for brevity.
+        "\\newcolumntype{M}{>{\\centering\\arraybackslash}m{3.5mm}}",
         sprintf("\\begin{tabular}{%s}", col_spec),
-        "\\toprule",
-        paste(header_row, "\\\\[1ex]"),
-        "\\midrule",
+        paste(header_row, "\\\\[6pt]"),
         body_rows,
-        "\\bottomrule",
         "\\end{tabular}",
+        "\\arrayrulecolor{black}",
         "\\endgroup"
     ), collapse = "\n")
 }

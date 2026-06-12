@@ -34,17 +34,25 @@ logger::log_info(
 )
 data_long <- record_coverage_long()
 queries   <- record_coverage_queries(data_long)
-data_wide <- record_coverage_wide(data_long, threshold = threshold)
+overrides <- attr(data_long, "expert_overrides")
+
+resource_labels <- resources_label_map("tab03-record-coverage")
+data_wide <- record_coverage_wide(
+    data_long,
+    threshold       = threshold,
+    resource_labels = resource_labels
+)
 
 # ---- Render + save ------------------------------------------------------
 
 tex_body <- record_coverage_latex(data_wide)
 
 artifacts <- tables_save_latex_pdf_csv(
-    tex_body = tex_body,
-    data     = data_wide,
-    out_dir  = out_dir,
-    slug     = "tab03-record-coverage"
+    tex_body     = tex_body,
+    data         = data_wide,
+    out_dir      = out_dir,
+    slug         = "tab03-record-coverage",
+    max_width_mm = 280
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) ----------------------------------
@@ -66,7 +74,10 @@ write_sidecar(
     manifests      = list(dep3$manifest,   dep4$manifest),
     script_path    = "tables/tab03-record-coverage/build.R",
     queries        = queries,
-    parameters     = list(threshold = threshold),
+    parameters     = list(
+        threshold        = threshold,
+        expert_overrides = overrides
+    ),
     seed           = pipeline_seed(),
     caption        = list(
         source_path           = caption_info$caption_source,

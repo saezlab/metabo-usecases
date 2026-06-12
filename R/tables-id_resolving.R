@@ -2,27 +2,30 @@
 #'
 #' Queries \code{identifier_evidence} joined to
 #' \code{vocab_identifier_type} and \code{entity_evidence_identifier}
-#' on \code{dev3} (default for \code{tab01-id-resolving}). The top-N
-#' identifier types by global frequency are kept as named columns;
-#' the long tail collapses into a single \code{Misc} bucket so the
-#' table stays inside the page width.
+#' on \code{dev3} (default for \code{tab01-id-resolving}). The
+#' identifier types are bucketed into a hand-picked set of
+#' manuscript-relevant categories (chemical structure, chemical names,
+#' resource-specific chemical ids, gene/protein ids) rather than the
+#' raw top-N — the original top-N output mixed populated chemical ids
+#' with `Synonym` / `Name` columns of unclear distinction and left no
+#' room for the gene-side ids the manuscript needs. The long tail
+#' collapses into a single \code{Misc} bucket.
 #'
 #' Performance note: the underlying join is the same shape as the
 #' FR-007a Identifiers facet of Figure 1, which has no
 #' \code{facet_identifier_bitmap} yet (see
 #' \code{saezverse/human/plans/omnipath-improvements-2026-06-identifier-source-count.md}
 #' — proposes an \code{identifier_source_count} derived table).
-#' Expect ~60-90 s on dev3 against the cycle-001 build until that
+#' Expect ~30 minutes on dev3 against the cycle-001 build until that
 #' derived table lands.
 #'
 #' @param panel_id Character: panel identifier (default
 #'     \code{"tab01-id-resolving"} — routes to \code{dev3}).
-#' @param top_n Integer: number of identifier types to keep before
-#'     collapsing the tail into \code{Misc}. Default \code{10L}.
 #'
 #' @return A long-format tibble with columns \code{resource},
-#'     \code{id_type}, \code{n_identifiers}. Carries the
-#'     \code{"deployment"} attribute set by \code{\link{pg_query_panel}}.
+#'     \code{id_type} (the hand-picked bucket label),
+#'     \code{n_identifiers}. Carries the \code{"deployment"}
+#'     attribute set by \code{\link{pg_query_panel}}.
 #'
 #' @examples
 #' \dontrun{
@@ -32,27 +35,35 @@
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-tbl_id_resolving_counts <- function(panel_id = "tab01-id-resolving",
-                                    top_n = 10L) {
+tbl_id_resolving_counts <- function(panel_id = "tab01-id-resolving") {
+
+    buckets <- tbl_id_resolving_buckets()
+    case_when <- vapply(seq_along(buckets), function(i) {
+        b <- buckets[[i]]
+        sql_vals <- paste(sprintf("'%s'", b$values), collapse = ", ")
+        sprintf("WHEN vit.name IN (%s) THEN '%s'", sql_vals, b$label)
+    }, character(1L))
+    case_sql <- paste(c(
+        "CASE",
+        paste0("    ", case_when),
+        "    ELSE 'Misc'",
+        "END AS id_type"
+    ), collapse = "\n")
+
+    excluded <- paste(
+        sprintf("'%s'", tbl_id_resolving_excluded_types()),
+        collapse = ", "
+    )
 
     sql <- sprintf("
-        WITH ranked_types AS (
-            SELECT vit.name AS id_type, COUNT(*) AS n,
-                   ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) AS rk
-            FROM   identifier_evidence ie
-            JOIN   vocab_identifier_type vit
-                   ON vit.identifier_type_id = ie.identifier_type_id
-            GROUP  BY vit.name
-        ),
-        id_classified AS (
+        WITH id_classified AS (
             SELECT DISTINCT
                 ie.identifier_id,
-                CASE WHEN rt.rk <= %d
-                     THEN rt.id_type ELSE 'Misc' END AS id_type
+                %s
             FROM   identifier_evidence ie
             JOIN   vocab_identifier_type vit
                    ON vit.identifier_type_id = ie.identifier_type_id
-            JOIN   ranked_types rt ON rt.id_type = vit.name
+            WHERE  vit.name NOT IN (%s)
         )
         SELECT
             ds.name AS resource,
@@ -61,11 +72,91 @@ tbl_id_resolving_counts <- function(panel_id = "tab01-id-resolving",
         FROM   id_classified ic
         JOIN   entity_evidence_identifier eei USING (identifier_id)
         JOIN   data_source ds ON ds.source_id = eei.source_id
+        WHERE  ds.name <> 'omnipath_ontology'
         GROUP  BY ds.name, ic.id_type
         ORDER  BY ds.name, ic.id_type
-    ", as.integer(top_n))
+    ", case_sql, excluded)
 
     pg_query_panel(panel_id, sql)
+}
+
+
+#' Manuscript-relevant identifier-type buckets for the FR-014 table
+#'
+#' Each entry maps a manuscript-facing column label to the set of raw
+#' \code{vocab_identifier_type.name} values that contribute to it.
+#' Buckets are stable, ordered, and chosen for the Methods-table
+#' audience — they cover the major chemical structural ids
+#' (\code{SMILES}, \code{InChIKey}), the chemical names (\code{Name}
+#' combines \code{Name} + \code{Synonym}), the most-populated
+#' resource-specific chemical ids, and the gene / protein ids the
+#' manuscript needs (\code{UniProt}, \code{Entrez}, \code{Ensembl},
+#' \code{Gene Name}, \code{HGNC}). Any id type not matching is rolled
+#' into \code{Misc} by the consuming query.
+#'
+#' @return A list of named lists, each with \code{label} (column
+#'     header) and \code{values} (raw \code{vit.name} strings).
+#'
+#' @keywords internal
+#' @export
+tbl_id_resolving_buckets <- function() {
+    list(
+        list(label = "SMILES",
+             values = "Smiles:MI:0239"),
+        list(label = "InChIKey",
+             values = "Standard Inchi Key:MI:1101"),
+        list(label = "Name",
+             values = c(
+                 "Name:OM:0202",
+                 "Synonym:OM:0203",
+                 "Iupac Name:OM:0210",
+                 "Iupac Traditional Name:OM:0211"
+             )),
+        list(label = "ChEMBL",
+             values = c("Chembl Compound:MI:0967",
+                        "Chembl Target:MI:1348")),
+        list(label = "PubChem",
+             values = c("Pubchem Compound:OM:0002",
+                        "Pubchem:MI:0730")),
+        list(label = "ChEBI",
+             values = "Chebi:MI:0474"),
+        list(label = "HMDB",
+             values = "Hmdb:OM:0004"),
+        list(label = "SwissLipids",
+             values = "Swisslipids:OM:0009"),
+        list(label = "LIPID MAPS",
+             values = "Lipidmaps:OM:0003"),
+        list(label = "MetaNetX",
+             values = "Metanetx:OM:0005"),
+        list(label = "UniProt",
+             values = c("Uniprot:MI:1097", "Uniprot Trembl:MI:1099",
+                        "Uniprot Entry Name:OM:0221")),
+        list(label = "Entrez",
+             values = "Entrez:MI:0477"),
+        list(label = "Gene Symbol",
+             values = c("Gene Name Primary:OM:0200",
+                        "Gene Name Synonym:OM:0201"))
+    )
+}
+
+
+#' Identifier-type vocab values to exclude from the FR-014 query
+#'
+#' Internal scaffold keys the cycle-001 build emits to glue
+#' identifier_evidence rows together (\code{omnipath:unresolved_entity_key},
+#' \code{omnipath:reaction_member_hash}) inflate the \code{Misc}
+#' bucket if not filtered. They are pipeline-internal and have no
+#' manuscript meaning.
+#'
+#' @return Character vector of vocab_identifier_type.name values.
+#'
+#' @keywords internal
+#' @export
+tbl_id_resolving_excluded_types <- function() {
+    c(
+        "omnipath:unresolved_entity_key",
+        "omnipath:reaction_member_hash"
+    )
 }
 
 
@@ -88,44 +179,47 @@ tbl_id_resolving_counts <- function(panel_id = "tab01-id-resolving",
 #' wide <- tbl_id_resolving_wide(tbl_id_resolving_counts())
 #' }
 #'
+#' @param resource_labels Named character: optional resource_id →
+#'     display label map (as returned by
+#'     \code{\link{resources_label_map}}). When supplied, the
+#'     \code{resource} column is replaced with the resource_short
+#'     display label so the Methods table shows e.g. "ChEMBL" rather
+#'     than the lowercase \code{chembl} slug.
+#'
 #' @importFrom dplyr arrange desc group_by summarise ungroup mutate select
 #' @importFrom dplyr left_join across all_of
 #' @importFrom tidyr pivot_wider replace_na
-#' @importFrom stringr str_replace_all
 #' @importFrom rlang .data
 #' @export
-tbl_id_resolving_wide <- function(long_tibble) {
+tbl_id_resolving_wide <- function(long_tibble,
+                                  resource_labels = NULL) {
 
     if (nrow(long_tibble) == 0L) {
         return(tibble::tibble(resource = character(), Total = integer()))
     }
 
-    # Strip the trailing ":NS:NNNN" CV suffix (e.g.
-    # "Standard Inchi Key:MI:1101" → "Standard Inchi Key") so the
-    # column headers stay readable in the Methods table without
-    # losing the SQL-level traceability — the raw vocab name is
-    # still in the sidecar via the recorded query result hash.
-    long_tibble <- dplyr::mutate(
-        long_tibble,
-        id_type = stringr::str_replace_all(
-            .data$id_type, ":[A-Za-z]{2}:\\d+$", ""
-        )
+    # Bucket order follows tbl_id_resolving_buckets() declaration —
+    # SMILES, InChIKey, Name, then chemical IDs by resource then
+    # gene/protein IDs; Misc pinned last.
+    bucket_labels <- vapply(
+        tbl_id_resolving_buckets(),
+        function(b) b$label,
+        character(1L)
     )
+    type_order <- intersect(c(bucket_labels, "Misc"), unique(long_tibble$id_type))
 
-    type_totals <- long_tibble %>%
-        dplyr::group_by(.data$id_type) %>%
-        dplyr::summarise(
-            type_total = sum(.data$n_identifiers),
-            .groups    = "drop"
+    if (!is.null(resource_labels)) {
+        long_tibble <- dplyr::mutate(
+            long_tibble,
+            resource = unname(
+                ifelse(
+                    is.na(resource_labels[.data$resource]),
+                    .data$resource,
+                    resource_labels[.data$resource]
+                )
+            )
         )
-
-    misc <- type_totals$id_type == "Misc"
-    type_order <- c(
-        type_totals$id_type[!misc][
-            order(type_totals$type_total[!misc], decreasing = TRUE)
-        ],
-        type_totals$id_type[misc]
-    )
+    }
 
     wide <- long_tibble %>%
         tidyr::pivot_wider(
@@ -183,9 +277,6 @@ tbl_id_resolving_gt <- function(wide_tibble) {
 
     wide_tibble %>%
         gt::gt(rowname_col = "resource") %>%
-        gt::tab_header(
-            title = "Identifier resolving across the integrated resources"
-        ) %>%
         gt::fmt_number(
             columns  = dplyr::all_of(id_cols),
             decimals = 0,

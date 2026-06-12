@@ -24,14 +24,15 @@ dep3 <- deployment_provenance("dev3")
 
 # ---- Data layer ----------------------------------------------------------
 
-top_n <- 10L
-
 logger::log_info(
-    "Querying identifier counts (top_n={top_n}); ",
+    "Querying identifier counts (15 hand-picked buckets); ",
     "expect ~30 minutes until identifier_source_count lands"
 )
-data_long <- tbl_id_resolving_counts(top_n = top_n)
-data_wide <- tbl_id_resolving_wide(data_long)
+data_long <- tbl_id_resolving_counts()
+resource_labels <- resources_label_map("tab01-id-resolving")
+data_wide <- tbl_id_resolving_wide(
+    data_long, resource_labels = resource_labels
+)
 
 queries <- list(query_record(data_long))
 
@@ -65,7 +66,11 @@ write_sidecar(
     manifests      = list(dep3$manifest),
     script_path    = "tables/tab01-id-resolving/build.R",
     queries        = queries,
-    parameters     = list(top_n = top_n),
+    parameters     = list(buckets = vapply(
+        tbl_id_resolving_buckets(),
+        function(b) b$label,
+        character(1L)
+    )),
     seed           = pipeline_seed(),
     caption        = list(
         source_path           = caption_info$caption_source,

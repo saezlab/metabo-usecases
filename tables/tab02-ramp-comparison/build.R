@@ -43,10 +43,11 @@ queries <- list(query_record(data_summary))
 gt_obj <- tbl_ramp_comparison_gt(data_summary)
 
 artifacts <- tables_save_pdf_csv(
-    gt_obj  = gt_obj,
-    data    = data_summary,
-    out_dir = out_dir,
-    slug    = "tab02-ramp-comparison"
+    gt_obj       = gt_obj,
+    data         = data_summary,
+    out_dir      = out_dir,
+    slug         = "tab02-ramp-comparison",
+    max_width_mm = 130
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) -----------------------------------
