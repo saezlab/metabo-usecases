@@ -38,16 +38,19 @@ plot_fr007b_coverage <- function(data, width_mm = 180L) {
             group  = .data$variant
         )
     ) +
-        ggplot2::geom_line(linewidth = 0.5) +
-        ggplot2::geom_point(size = 1.2) +
+        ggplot2::geom_line(linewidth = 1.2) +
+        ggplot2::geom_point(size = 2.5) +
         ggplot2::scale_y_log10(
             labels = scales::label_number(
                 scale_cut = scales::cut_short_scale()
             )
         ) +
         ggplot2::scale_x_continuous(
-            breaks = scales::breaks_extended(8L),
-            expand = ggplot2::expansion(mult = c(0.02, 0.02))
+            # n_resources is an integer count; force integer breaks +
+            # minor gridlines so the eye reads the curve at 1/2/3/...
+            breaks       = scales::breaks_width(1L),
+            minor_breaks = NULL,
+            expand       = ggplot2::expansion(mult = c(0.02, 0.02))
         ) +
         ggplot2::scale_colour_manual(
             values = cols,

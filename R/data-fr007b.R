@@ -65,9 +65,25 @@ fr007b_coverage <- function(
     # filter, plus the source_count window.
     src <- switch(
         variant,
+        # Whole-DB view. The cycle-001 entity_source_count table only
+        # populates resolved Chemical / Gene / Complex / Pathway /
+        # Reaction rows (the long tail of Cv Terms, Mirna, Protein,
+        # Physical Entity, Tissue, Phenotype etc. has no row in
+        # entity_source_count). To honour the "all entities" semantic
+        # the curve includes those tail entities at source_count = 1
+        # — they exist in the DB so their cumulative-coverage curve
+        # contribution starts at the 1-source bucket.
         entities = "
+            WITH all_entity_source AS (
+                SELECT entity_id, source_count FROM entity_source_count
+                UNION ALL
+                SELECT e.entity_id, 1 AS source_count
+                FROM   entity e
+                LEFT   JOIN entity_source_count esc USING (entity_id)
+                WHERE  esc.entity_id IS NULL
+            )
             SELECT source_count, COUNT(*)::bigint AS n
-            FROM   entity_source_count
+            FROM   all_entity_source
             GROUP  BY source_count
         ",
         molecular_entities = "
