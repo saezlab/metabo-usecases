@@ -291,7 +291,12 @@ bottom_row <- (
     patchwork::wrap_elements(full = fr007e_plot) |
     patchwork::wrap_elements(full = fr007d_plot)
 ) +
-    patchwork::plot_layout(widths = c(1, 2))
+    # C : D = 2 : 3 (≈72 mm : 108 mm at 180 mm composite width).
+    # Slightly wider C than the previous 1 : 2 split so the
+    # specificity facet titles + Y-axis title breathe; D drops
+    # from 120 mm → 108 mm but stays large enough for the 2 x 4
+    # entity-type facet grid.
+    patchwork::plot_layout(widths = c(2, 3))
 
 composite <- (
     patchwork::wrap_elements(full = fr007a_total_plot)

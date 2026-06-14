@@ -511,6 +511,13 @@ fr007a_pretty_label <- function(x) {
     #    Interactions abbreviations that keep the per-facet legend
     #    within the 30 mm facet column at 6 pt.
     renames <- c(
+        # Entities facet — collapse the three-token name to its
+        # most-discriminating single word (the figure is gene-
+        # centric per cycle-001 M-Genes work).
+        "Proteins/genes/RNA"    = "Genes",
+        # Associations facet — drop the "enzymes /" half: the
+        # underlying records are predominantly pathway entries.
+        "enzymes / pathways"    = "Pathways",
         # Identifiers facet
         "Standard Inchi Key"    = "InChI key",
         "Chembl Compound"       = "ChEMBL",
@@ -538,6 +545,56 @@ fr007a_pretty_label <- function(x) {
     rest_chars <- substr(out[needs_cap], 2L, nchar(out[needs_cap]))
     out[needs_cap] <- paste0(toupper(first_char), rest_chars)
     out
+}
+
+
+#' Build the global \emph{unique / shared} legend grob for Figure 2 Panel A
+#'
+#' Per the 2026-06-14 review, the \emph{unique} / \emph{shared}
+#' colour pair sits at the LEFT of the per-facet legend row as a
+#' single titleless legend — it applies identically to every
+#' facet's top bar, so repeating it inside each per-facet legend
+#' (the previous behaviour) was redundant.
+#'
+#' The returned object is a ggplot with the bar / title areas
+#' emptied via \code{theme_void()}; only its legend renders, and it
+#' is composed into the same patchwork row as the six facet
+#' sub-plots so the legends line up vertically with the per-facet
+#' legends underneath each facet column.
+#'
+#' @return A ggplot whose only meaningful output is its bottom
+#'   legend.
+#' @keywords internal
+#' @noRd
+fr007a_su_legend_plot <- function() {
+    df <- data.frame(
+        x = 1L,
+        cat = factor(c("Unique", "Shared"), levels = c("Unique", "Shared"))
+    )
+    ggplot2::ggplot(df, ggplot2::aes(x = .data$x, fill = .data$cat)) +
+        ggplot2::geom_col() +
+        ggplot2::scale_fill_manual(
+            values = c(Unique = "#1B5E73", Shared = "#A6D8E5"),
+            breaks = c("Unique", "Shared")
+        ) +
+        ggplot2::guides(
+            fill = ggplot2::guide_legend(
+                title    = NULL,
+                ncol     = 1L,
+                keywidth = grid::unit(1.8, "mm"),
+                keyheight = grid::unit(1.8, "mm")
+            )
+        ) +
+        ggplot2::theme_void() +
+        ggplot2::theme(
+            legend.position      = "bottom",
+            legend.justification  = c(0, 1),
+            legend.text          = ggplot2::element_text(size = 6),
+            legend.key.size      = grid::unit(1.8, "mm"),
+            legend.box.margin    = ggplot2::margin(t = 0.5, r = 0,
+                                                   b = 0, l = 0),
+            plot.margin          = ggplot2::margin(1, 1, 1, 1)
+        )
 }
 
 
@@ -636,7 +693,11 @@ plot_fr007a_total <- function(data,
                 values = hex_f,
                 name   = facet_title,
                 labels = pretty_levels,
-                breaks = levels_f
+                # Drop the unique/shared levels from the per-facet
+                # legend keys: those two values now appear in the
+                # single global unique/shared legend at the left
+                # of the row (see fr007a_su_legend_plot()).
+                breaks = setdiff(levels_f, c("unique", "shared"))
             ) +
             ggplot2::scale_x_continuous(
                 labels = scales::label_number(
@@ -693,6 +754,13 @@ plot_fr007a_total <- function(data,
             )
     })
 
-    patchwork::wrap_plots(sub_plots, nrow = 1L) +
+    # Prepend the global unique/shared legend (Session 2026-06-14
+    # review): single titleless legend at the LEFT of the row, so
+    # the per-facet legends only carry the class-colour keys.
+    all_plots <- c(list(fr007a_su_legend_plot()), sub_plots)
+    # Width allocation: leading SU legend ≈ 0.6 unit (~15 mm at
+    # 180 mm composite), each facet sub-plot 1 unit (~28 mm).
+    widths <- c(0.6, rep(1, length(sub_plots)))
+    patchwork::wrap_plots(all_plots, nrow = 1L, widths = widths) +
         patchwork::plot_layout(guides = "keep")
 }

@@ -217,10 +217,14 @@ plot_fr007c_networks <- function(data,
 
     plots <- list(
         make_kind_plot("entity",   show_singletons = TRUE),
-        # FR-007c iteration: remove singleton nodes in the
-        # Interactions panel (resources with no edges crowd the rim
-        # and don't contribute to the comparison).
-        make_kind_plot("relation", show_singletons = FALSE)
+        # Session 2026-06-14 (R7 review): both networks share the
+        # union-graph node set so the layout is *identical*. Nodes
+        # without interaction edges show up as isolated dots at the
+        # same screen position they occupy in the Molecular-entities
+        # panel — the reader can visually pair every resource
+        # between the two networks without doing a node-by-node
+        # cross-reference.
+        make_kind_plot("relation", show_singletons = TRUE)
     )
     plots <- Filter(Negate(is.null), plots)
 
