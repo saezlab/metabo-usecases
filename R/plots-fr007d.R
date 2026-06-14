@@ -56,8 +56,10 @@ plot_fr007d_matrix <- function(data, width_mm = 180L) {
         ggplot2::aes(x = .data$interaction_class, y = .data$n)
     ) +
         ggplot2::geom_col(fill = bar_fill) +
+        # 2 rows × 4 cols so the 8 participant-entity facets sit
+        # in a compact rectangle (Session 2026-06-14 layout).
         ggplot2::facet_wrap(
-            ~ .data$participant_type, ncol = 2L,
+            ~ .data$participant_type, nrow = 2L,
             labeller = ggplot2::as_labeller(short_labels),
             scales = "free_y"
         ) +
@@ -66,15 +68,30 @@ plot_fr007d_matrix <- function(data, width_mm = 180L) {
                 scale_cut = scales::cut_short_scale()
             )
         ) +
-        ggplot2::labs(x = "Interaction type", y = "Interactions (log scale)") +
+        ggplot2::labs(x = "Interaction type", y = "Interactions (log)") +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "none",
+            plot.margin     = ggplot2::margin(2, 2, 2, 2),
+            # Composite slot is ~120 mm wide × 50 mm tall (2/3 of
+            # the bottom row). Sizes match Panel C (fr007e) so the
+            # two panels read as a coordinated barplot row.
             axis.text.x     = ggplot2::element_text(
-                angle = 35, hjust = 1, size = 11
+                angle = 35, hjust = 1, size = 6
             ),
-            axis.text.y     = ggplot2::element_text(size = 11),
-            axis.title      = ggplot2::element_text(size = 13),
-            strip.text      = ggplot2::element_text(face = "bold", size = 11)
+            axis.text.y     = ggplot2::element_text(size = 6),
+            axis.title.x    = ggplot2::element_text(
+                size = 7, margin = ggplot2::margin(t = 1)
+            ),
+            axis.title.y    = ggplot2::element_text(
+                size = 7, margin = ggplot2::margin(r = 1)
+            ),
+            strip.text      = ggplot2::element_text(
+                face = "bold", size = 7,
+                margin = ggplot2::margin(t = 0.5, b = 0.5)
+            ),
+            strip.background = ggplot2::element_blank(),
+            panel.spacing.x  = grid::unit(1, "mm"),
+            panel.spacing.y  = grid::unit(1, "mm")
         )
 }

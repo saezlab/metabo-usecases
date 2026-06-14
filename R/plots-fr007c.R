@@ -160,22 +160,18 @@ plot_fr007c_networks <- function(data,
             ) +
             ggraph::geom_node_text(
                 ggplot2::aes(label = .data$name),
-                size = 4.5, repel = TRUE,
-                max.overlaps = 30L
+                size = 2.2, repel = TRUE,
+                max.overlaps = 30L,
+                box.padding   = 0.1,
+                point.padding = 0.1
             ) +
             ggraph::scale_edge_width(
-                range = c(0.3, 3.5),
+                range = c(0.2, 2.2),
                 trans = "log10",
                 name  = "Resource\noverlap"
             ) +
-            # Session 2026-06-14: widen the node-size range so 1k is
-            # a tiny dot and 1M is clearly bigger. The previous
-            # range (2.5–9) compressed 10k..1M into nearly the same
-            # visual size; the wider range (1.2–14) restores the
-            # 1k → dot, 1M → meaningfully bigger gradient on a
-            # log10 scale.
             ggplot2::scale_size(
-                range = c(1.2, 14),
+                range = c(0.8, 8),
                 trans = "log10",
                 labels = scales::label_number(
                     scale_cut = scales::cut_short_scale()
@@ -184,8 +180,16 @@ plot_fr007c_networks <- function(data,
                          else "Interactions"
             ) +
             ggplot2::guides(
-                size = ggplot2::guide_legend(order = 1L),
-                edge_width = ggplot2::guide_legend(order = 2L)
+                size = ggplot2::guide_legend(
+                    order = 1L,
+                    keywidth  = grid::unit(2, "mm"),
+                    keyheight = grid::unit(2, "mm")
+                ),
+                edge_width = ggplot2::guide_legend(
+                    order = 2L,
+                    keywidth  = grid::unit(4, "mm"),
+                    keyheight = grid::unit(1.5, "mm")
+                )
             ) +
             ggplot2::labs(title = kind_labels[[kind]]) +
             ggplot2::theme(
@@ -194,13 +198,20 @@ plot_fr007c_networks <- function(data,
                 axis.text        = ggplot2::element_blank(),
                 axis.title       = ggplot2::element_blank(),
                 axis.ticks       = ggplot2::element_blank(),
+                plot.margin      = ggplot2::margin(2, 2, 2, 2),
                 plot.title       = ggplot2::element_text(
-                    face = "bold", size = 15, hjust = 0.5
+                    face = "bold", size = 9, hjust = 0.5,
+                    margin = ggplot2::margin(b = 1)
                 ),
                 legend.position  = "right",
-                legend.text      = ggplot2::element_text(size = 10),
-                legend.title     = ggplot2::element_text(size = 11),
-                legend.key.size  = grid::unit(4, "mm")
+                legend.justification = c(0, 0.5),
+                legend.box.margin    = ggplot2::margin(l = 1),
+                legend.text      = ggplot2::element_text(size = 6),
+                legend.title     = ggplot2::element_text(
+                    size = 7, face = "bold"
+                ),
+                legend.key.size  = grid::unit(2, "mm"),
+                legend.spacing.y = grid::unit(0.3, "mm")
             )
     }
 
@@ -213,11 +224,11 @@ plot_fr007c_networks <- function(data,
     )
     plots <- Filter(Negate(is.null), plots)
 
-    patchwork::wrap_plots(plots, nrow = 1L) +
-        patchwork::plot_annotation(
-            caption = sprintf(
-                "Shared Fruchterman-Reingold layout (qgraph); edges with overlap >= %d shown.",
-                as.integer(min_overlap)
-            )
-        )
+    # No inner plot_annotation here — when this patchwork is
+    # composed into Figure 2 by figures/fig02-overview/build.R,
+    # the outer plot_annotation(tag_levels = "A") owns the figure
+    # caption + tag styling. The methodological detail (shared
+    # qgraph FR layout, min_overlap = 100) lives in caption.tex
+    # instead.
+    patchwork::wrap_plots(plots, nrow = 1L)
 }

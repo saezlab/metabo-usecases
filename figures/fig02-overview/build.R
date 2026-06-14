@@ -272,46 +272,56 @@ logger::log_info("Composing Figure 2 (patchwork: A wide / B,C,D row)")
 # auto-tagged. Outer-level plot_annotation(tag_levels = "A") then
 # assigns A / B / C / D to the four top-level slots.
 # Wrap every nested patchwork (fr007a-total is a 6-facet row;
-# fr007c is a 3-network row) in wrap_elements() so the outer
+# fr007c is a 2-network row) in wrap_elements() so the outer
 # composite treats them as atomic cells. Without this, the inner
 # plot_layout / plot_annotation calls bleed up into the outer
-# grid, causing C and D to shrink to zero in earlier renders.
+# grid.
 #
-# Layout (180 × 220 mm, portrait):
-#   row 1 — Panel A (fr007a-total)  full width × 100 mm
-#   row 2 — Panel C (fr007c networks) full width × 70 mm
-#   row 3 — Panel B (fr007e) | Panel D (fr007d)  90 mm each × 50 mm
+# Layout (180 × 180 mm, portrait):
+#   row 1 — A: fr007a-total           full width × ~45 mm
+#   row 2 — B: fr007c networks        full width × ~80 mm
+#   row 3 — C: fr007e | D: fr007d     1/3 + 2/3 width × ~55 mm
 #
-# This gives fr007c the full 180 mm width its three side-by-side
-# networks need (60 mm per network), and lets B and D sit at a
-# legible 90 mm wide. Total ~220 mm tall = 2/3 portrait page.
+# The top row is flat by design — each facet has just 2 bars,
+# so a thicker top row would make those bars top-heavy. Row 3's
+# 1:2 width split gives fr007d (8 entity-type facets, 2x4 grid)
+# the room it needs while fr007e (6 chemical-category facets,
+# 2x3 grid) compresses comfortably.
+bottom_row <- (
+    patchwork::wrap_elements(full = fr007e_plot) |
+    patchwork::wrap_elements(full = fr007d_plot)
+) +
+    patchwork::plot_layout(widths = c(1, 2))
+
 composite <- (
     patchwork::wrap_elements(full = fr007a_total_plot)
     /
     patchwork::wrap_elements(full = fr007c_plot)
     /
-    (patchwork::wrap_elements(full = fr007e_plot) |
-     patchwork::wrap_elements(full = fr007d_plot))
+    bottom_row
 ) +
-    patchwork::plot_layout(heights = c(10, 7, 5)) +
+    patchwork::plot_layout(heights = c(45, 80, 55)) +
     patchwork::plot_annotation(
         tag_levels = "A",
         theme = ggplot2::theme(
+            # Larger + bolder panel letters per FR-024 (capital
+            # labels) and Session 2026-06-14 feedback.
             plot.tag = ggplot2::element_text(
-                size = 14, face = "bold"
-            )
+                size = 18, face = "bold"
+            ),
+            plot.tag.position = c(0.01, 0.99)
         )
     )
 
-# 180 × 220 mm composite (rows: A 100 mm, C 70 mm, B/D 50 mm).
+# 180 × 180 mm composite (rows: A 45 mm, B 80 mm, C/D 55 mm).
 ggsave(
     file.path(out_dir, "fig02-overview.pdf"), composite,
-    width = 180, height = 220, units = "mm"
+    width = 180, height = 180, units = "mm"
 )
 try(
     ggsave(
         file.path(out_dir, "fig02-overview.svg"), composite,
-        width = 180, height = 220, units = "mm"
+        width = 180, height = 180, units = "mm"
     ),
     silent = FALSE
 )

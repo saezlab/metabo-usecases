@@ -88,24 +88,33 @@ plot_fr007e <- function(data, width_mm = 180L) {
         ) +
         ggplot2::scale_x_discrete(labels = spec_labels) +
         ggplot2::labs(
-            x = "Level of structural specificity",
-            y = "Entities (log scale)"
+            x = "Structural specificity",
+            y = "Entities (log)"
         ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "none",
-            # 2.5x scale-up from the prior 5/6 pt — these panels go
-            # into a large composite figure so they need to read at
-            # composite scale. Facet strip text was 11 pt; Session
-            # 2026-06-14 nudges it down to 10 pt so the longest
-            # chemical-category label ("Nucleic-acid metabolism")
-            # fits without truncation. Still well above the FR-017a
-            # 6 pt minimum.
+            plot.margin     = ggplot2::margin(2, 2, 2, 2),
+            # Composite slot is ~60 mm wide × 50 mm tall; every text
+            # element drops to the FR-017a 6 pt floor (or just
+            # above) so the plot area dominates and the rotated
+            # y-axis title stays within the panel height.
             axis.text.x     = ggplot2::element_text(
-                angle = 35, hjust = 1, size = 13
+                angle = 35, hjust = 1, size = 6
             ),
-            axis.text.y     = ggplot2::element_text(size = 13),
-            axis.title      = ggplot2::element_text(size = 14),
-            strip.text      = ggplot2::element_text(face = "bold", size = 10)
+            axis.text.y     = ggplot2::element_text(size = 6),
+            axis.title.x    = ggplot2::element_text(
+                size = 7, margin = ggplot2::margin(t = 1)
+            ),
+            axis.title.y    = ggplot2::element_text(
+                size = 7, margin = ggplot2::margin(r = 1)
+            ),
+            strip.text      = ggplot2::element_text(
+                face = "bold", size = 7,
+                margin = ggplot2::margin(t = 0.5, b = 0.5)
+            ),
+            strip.background = ggplot2::element_blank(),
+            panel.spacing.x  = grid::unit(1, "mm"),
+            panel.spacing.y  = grid::unit(1, "mm")
         )
 }

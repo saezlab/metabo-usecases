@@ -473,6 +473,65 @@ fr007a_fill_map <- function(data) {
 }
 
 
+#' Prettify a raw FR-007a category label for the legend
+#'
+#' Cleans the raw category strings stored in the long-format data
+#' (`category` column) before they're shown in the per-facet legend
+#' of \code{\link{plot_fr007a_total}}:
+#'   \itemize{
+#'     \item strip trailing `:OM:NNNN` / `:MI:NNNN` identifier-code
+#'       suffixes (e.g. \code{"Pubchem Compound:OM:0002"} → \code{"Pubchem Compound"});
+#'     \item apply specific identifier renames per the manuscript style
+#'       (\code{"Standard Inchi Key"} → \code{"InChI key"};
+#'       \code{"Chembl Compound"} → \code{"ChEMBL"};
+#'       \code{"Pubchem Compound"} → \code{"PubChem"};
+#'       \code{"Swisslipids"} → \code{"SwissLipids"});
+#'     \item convert underscores to spaces
+#'       (\code{"no_structure"} → \code{"no structure"});
+#'     \item sentence-capitalize the first character
+#'       (\code{"drugs"} → \code{"Drugs"}; \code{"no structure"}
+#'       → \code{"No structure"}).
+#'   }
+#' Already-camelcased values (\code{"ChEMBL"}, \code{"SwissLipids"},
+#' \code{"InChI key"}, \code{"DOI"}, \code{"PMC"}, \code{"PubMed"})
+#' are preserved as-is.
+#'
+#' @param x Character vector.
+#' @return Character vector of cleaned labels (same length as
+#'   \code{x}).
+#' @keywords internal
+#' @noRd
+fr007a_pretty_label <- function(x) {
+
+    out <- as.character(x)
+    # 1. Strip trailing :OM:.../:MI:... identifier-code suffixes.
+    out <- sub("\\s*:[A-Z]+:\\d+\\s*$", "", out)
+    # 2. Specific identifier renames (must run before generic
+    #    underscore / capitalize transforms; trim leading/trailing
+    #    whitespace because the suffix-strip may leave a trailing
+    #    space).
+    out <- trimws(out)
+    renames <- c(
+        "Standard Inchi Key" = "InChI key",
+        "Chembl Compound"    = "ChEMBL",
+        "Pubchem Compound"   = "PubChem",
+        "Swisslipids"        = "SwissLipids"
+    )
+    hits <- match(tolower(out), tolower(names(renames)))
+    has_rename <- !is.na(hits)
+    out[has_rename] <- renames[hits[has_rename]]
+    # 3. Underscore → space + sentence-capitalize, but skip already
+    #    renamed entries.
+    rest <- !has_rename
+    out[rest] <- gsub("_", " ", out[rest])
+    needs_cap <- rest & nchar(out) > 0L
+    first_char <- substr(out[needs_cap], 1L, 1L)
+    rest_chars <- substr(out[needs_cap], 2L, nchar(out[needs_cap]))
+    out[needs_cap] <- paste0(toupper(first_char), rest_chars)
+    out
+}
+
+
 #' Render the FR-007a tiny Total-only variant
 #'
 #' Compact alternative to \code{\link{plot_fr007a_overview}}: instead
@@ -535,6 +594,15 @@ plot_fr007a_total <- function(data,
         d <- total[as.character(total$facet) == f, , drop = FALSE]
         levels_f <- fill_map$facet_levels[[f]]
         hex_f    <- fill_map$facet_hex[[f]]
+        # Build a parallel pretty-label map for the legend keys.
+        # Keep the FACTOR levels (matching the raw `category`
+        # values) but display the cleaned labels via the
+        # scale_fill_manual `labels = ...` argument.
+        pretty_levels <- fr007a_pretty_label(levels_f)
+        names(pretty_levels) <- levels_f
+        # Pretty-print the facet title too ("Literature" stays,
+        # but consistent capitalization across facets).
+        facet_title <- fr007a_pretty_label(f)
         d$category <- factor(d$category, levels = levels_f)
 
         ggplot2::ggplot(
@@ -548,21 +616,18 @@ plot_fr007a_total <- function(data,
             # reverse=TRUE puts the FIRST factor level (e.g. "unique")
             # at the BASE of the stacked bar (x=0, next to the
             # y-axis) instead of the default last-first stacking.
+            # width = 0.55 keeps each horizontal bar visually flat
+            # so the two-bar facets don't look top-heavy after the
+            # composite squeezes the top row.
             ggplot2::geom_col(
-                position = ggplot2::position_stack(reverse = TRUE)
+                position = ggplot2::position_stack(reverse = TRUE),
+                width    = 0.55
             ) +
             ggplot2::scale_fill_manual(
                 values = hex_f,
-                name   = f,
-                # Drop the shared/unique levels from the legend keys:
-                # those two values appear only on the upper bar and
-                # use a fixed dark/light grayscale that the caption
-                # describes ("unique dark at base, shared light
-                # stacked above"). Showing them as legend entries
-                # alongside class colours bloats the legend to
-                # ~7 rows per facet and breaks the 30 mm-per-facet
-                # layout (Session 2026-06-14 viewport fix).
-                breaks = setdiff(levels_f, c("unique", "shared"))
+                name   = facet_title,
+                labels = pretty_levels,
+                breaks = levels_f
             ) +
             ggplot2::scale_x_continuous(
                 labels = scales::label_number(
@@ -571,44 +636,51 @@ plot_fr007a_total <- function(data,
                 expand = ggplot2::expansion(mult = c(0, 0.04))
             ) +
             ggplot2::scale_y_discrete(labels = NULL) +
-            ggplot2::labs(x = NULL, y = NULL, title = f) +
+            ggplot2::labs(x = NULL, y = NULL, title = facet_title) +
             theme_bw_metabo(width_mm = width_mm / length(facet_order)) +
             ggplot2::guides(
                 fill = ggplot2::guide_legend(
                     title.position = "top",
-                    title.hjust    = 0.5,
-                    # Cap each legend column at 4 entries. Facets
-                    # with up to 4 categories stay single-column;
-                    # the busier Identifiers facet wraps to 2 cols
-                    # so the legend doesn't spill into the row
-                    # below.
+                    title.hjust    = 0,
+                    # Cap each legend column at 4 entries. Busier
+                    # facets (Entities = 7, Identifiers = 9, …) wrap
+                    # to additional columns rather than spilling
+                    # vertically out of the panel area.
                     nrow           = 4L,
-                    byrow          = TRUE,
-                    keywidth       = grid::unit(2, "mm"),
-                    keyheight      = grid::unit(2, "mm")
+                    byrow          = FALSE,
+                    keywidth       = grid::unit(1.8, "mm"),
+                    keyheight      = grid::unit(1.8, "mm")
                 )
             ) +
             ggplot2::theme(
                 plot.title         = ggplot2::element_text(
-                    size = 10, face = "bold", hjust = 0.5,
-                    margin = ggplot2::margin(b = 1)
+                    size = 8, face = "bold", hjust = 0.5,
+                    margin = ggplot2::margin(b = 0.5)
                 ),
-                plot.margin        = ggplot2::margin(2, 2, 2, 2),
-                legend.position    = "bottom",
-                legend.title       = ggplot2::element_text(
-                    size = 9, face = "bold",
-                    margin = ggplot2::margin(b = 1)
+                plot.margin        = ggplot2::margin(1, 1, 1, 1),
+                # legend.position = "bottom" puts the legend BELOW the
+                # plot; legend.justification = c(0, 1) anchors the
+                # legend box to the top-left of its slot so multi-row
+                # legends align to the top across facets (rather than
+                # centering vertically, which mis-aligns shorter and
+                # longer legends).
+                legend.position      = "bottom",
+                legend.justification  = c(0, 1),
+                legend.title         = ggplot2::element_text(
+                    size = 7, face = "bold",
+                    margin = ggplot2::margin(b = 0.5)
                 ),
-                legend.text        = ggplot2::element_text(size = 8),
-                legend.key.size    = grid::unit(2.5, "mm"),
-                legend.spacing.y   = grid::unit(0.5, "mm"),
-                legend.box.margin  = ggplot2::margin(t = 1, r = 0,
-                                                    b = 0, l = 0),
-                strip.background   = ggplot2::element_blank(),
-                axis.ticks.y       = ggplot2::element_blank(),
-                axis.text.y        = ggplot2::element_blank(),
-                axis.text.x        = ggplot2::element_text(size = 8),
-                panel.spacing.y    = grid::unit(2, "mm")
+                legend.text          = ggplot2::element_text(size = 6),
+                legend.key.size      = grid::unit(1.8, "mm"),
+                legend.spacing.x     = grid::unit(0.5, "mm"),
+                legend.spacing.y     = grid::unit(0.3, "mm"),
+                legend.box.margin    = ggplot2::margin(t = 0.5, r = 0,
+                                                       b = 0, l = 0),
+                strip.background     = ggplot2::element_blank(),
+                axis.ticks.y         = ggplot2::element_blank(),
+                axis.text.y          = ggplot2::element_blank(),
+                axis.text.x          = ggplot2::element_text(size = 6),
+                panel.spacing.y      = grid::unit(1, "mm")
             )
     })
 

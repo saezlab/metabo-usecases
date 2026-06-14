@@ -247,12 +247,29 @@ fr007a_interactions <- function(panel_id = "fig02-overview") {
             SELECT facet_value AS predicate, relation_bitmap AS bm
             FROM   facet_relation_bitmap WHERE facet_name = 'predicate'
         ),
+        -- The cycle-001 build's vocab_relation_predicate
+        -- .interaction_class_id only buckets predicates into
+        -- Signaling / Transport / Other. To get the 7-class
+        -- vocabulary the manuscript figure uses (Signaling,
+        -- Transport, Interaction, Reaction, Association,
+        -- Membership, Other), re-bucket predicates by name using
+        -- the same CASE statement as fr007d_entity_x_interaction.
         pred_class AS (
-            SELECT vrp.name AS predicate,
-                   COALESCE(vic.name, 'Other') AS class
-            FROM   vocab_relation_predicate vrp
-            LEFT   JOIN vocab_interaction_class vic
-                   ON vic.interaction_class_id = vrp.interaction_class_id
+            SELECT facet_value AS predicate,
+                   CASE
+                     WHEN facet_value IN (
+                       'controls', 'regulates',
+                       'positively_regulates', 'negatively_regulates'
+                     )                                  THEN 'Signaling'
+                     WHEN facet_value = 'transports'    THEN 'Transport'
+                     WHEN facet_value = 'interacts_with' THEN 'Interaction'
+                     WHEN facet_value = 'has_participant' THEN 'Reaction'
+                     WHEN facet_value = 'associated_with' THEN 'Association'
+                     WHEN facet_value = 'has_member'    THEN 'Membership'
+                     ELSE 'Other'
+                   END AS class
+            FROM   facet_relation_bitmap
+            WHERE  facet_name = 'predicate'
         ),
         class_bm AS (
             SELECT pc.class, rb_or_agg(pb.bm) AS bm
