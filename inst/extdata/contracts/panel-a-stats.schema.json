@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://saezlab.org/schemas/metabo-figures/panel-a-stats.schema.json",
+  "title": "Figure 1 Panel A Statistics Digest (FR-043 family)",
+  "description": "JSON file written at `figures/fig01-overview/panel-a-stats/stats.json`. Carries the five-section headline counts (Entities, Metabolite-Protein Interactions, Interactions, Structures, Annotation) plus per-section contributing-resource counts that back the numbers the author hand-transcribes into the manually-authored Panel A diagram. The digest is bound to the same snapshot identifier as Figure 1's other artifacts (FR-043h) and its provenance lives in the sibling `stats.provenance.json`. Added 2026-06-14.",
+  "type": "object",
+  "required": ["metadata", "sections"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Top-level provenance + binding block. Replicates the snapshot identifier(s) and deployments so a reader of `stats.json` alone can audit the digest without opening the sidecar.",
+      "required": [
+        "schema_version",
+        "produced_at",
+        "deployments",
+        "snapshot_ids",
+        "script_path",
+        "script_commit",
+        "definitions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0.0",
+          "description": "Schema version. Bump on any incompatible change to the digest's structure."
+        },
+        "produced_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this digest was written. EXCLUDED from any byte-identical comparison between rebuilds."
+        },
+        "deployments": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["name", "section_ids", "build_id"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["dev3", "dev4", "dev5"],
+                "description": "Deployment label. Post-2026-06-14 dev5 integrated-build promotion: `dev5` is the only active rotation deployment, carrying all five sections (FR-043h). `dev3` and `dev4` remain valid enum values for historical-sidecar compatibility with pre-promotion rebuilds."
+              },
+              "section_ids": {
+                "type": "array",
+                "items": { "type": "integer", "minimum": 1, "maximum": 5 },
+                "minItems": 1,
+                "description": "Section numbers this deployment served. Together the two `section_ids` arrays MUST cover {1, 2, 3, 4, 5}."
+              },
+              "build_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{12}$",
+                "description": "12-hex SHA-256 from this deployment's `build_manifest` row."
+              }
+            }
+          }
+        },
+        "snapshot_ids": {
+          "type": "object",
+          "description": "Map `{ build → snapshot_id }` for every build touched. MUST equal the Figure 1 composite's `snapshot_ids` in the same rebuild. A mismatch fails the rebuild (FR-043h, SC-012).",
+          "patternProperties": {
+            "^(utils|main|metabo)$": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{12}$"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1
+        },
+        "script_path": {
+          "type": "string",
+          "description": "Path to the digest builder relative to repo root (typically `R/stats/panel_a_digest.R`)."
+        },
+        "script_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "description": "Full git commit hash of the digest builder at rebuild time."
+        },
+        "definitions": {
+          "type": "object",
+          "description": "The exact definition variant chosen by the digest where FR-043 allows alternatives. Mirrors `digest-config.yaml` at rebuild time so a reader can trace the variant back to the config revision.",
+          "required": ["transporter", "receptor", "pathway", "reaction", "annotation_slot3"],
+          "additionalProperties": false,
+          "properties": {
+            "transporter": {
+              "type": "object",
+              "required": ["resources", "uniprot_keywords"],
+              "properties": {
+                "resources": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Curated `data_source.name` list used to identify transporter proteins (default `[tcdb, slctables]`)."
+                },
+                "uniprot_keywords": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            },
+            "receptor": {
+              "type": "object",
+              "required": ["resources", "uniprot_keywords"],
+              "properties": {
+                "resources": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Curated `data_source.name` list used to identify receptor proteins (default `[guidetopharma, connectomedb, cellphonedb]`). The cycle-001 predicate vocabulary collapses `Ligand-receptor` into `Other` so `interaction_class_id` is not a sufficient signal."
+                },
+                "uniprot_keywords": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            },
+            "pathway": {
+              "type": "string",
+              "enum": ["Pathway:OM:0014", "annotation"],
+              "description": "Which definition fired for Section 3's pathway count. Preferred is `Pathway:OM:0014` (distinct pathway entities with ≥ 1 member protein/gene participating in an interaction); fallback `annotation` switches to pathway-annotation lookup when the preferred branch returns fewer than the configured minimum."
+            },
+            "reaction": {
+              "type": "string",
+              "enum": ["Reaction:OM:0015", "predicate-classification"],
+              "description": "Which definition fired for Section 3's reaction count."
+            },
+            "annotation_slot3": {
+              "type": "string",
+              "enum": ["diseases", "phenotypes", "tissues", "go_biological_process"],
+              "description": "The annotation category that occupied Section 5 slot 3. Default `diseases`; falls back deterministically per FR-043e when the disease row count is below the configured threshold."
+            }
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "description": "Five sections in fixed order — Entities, Metabolite-Protein Interactions, Interactions, Structures, Annotation.",
+      "items": {
+        "type": "object",
+        "required": ["section_id", "name", "metrics", "resource_count", "resources"],
+        "additionalProperties": false,
+        "properties": {
+          "section_id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "Entities",
+              "Metabolite-Protein Interactions",
+              "Interactions",
+              "Structures",
+              "Annotation"
+            ]
+          },
+          "metrics": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/DigestMetric" }
+          },
+          "resource_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of distinct `data_source.name` values contributing ≥ 1 row to this section's underlying join (FR-043f)."
+          },
+          "resources": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "The explicit per-section resource list (FR-043f) so the author can cross-check which resources back each headline number."
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "DigestMetric": {
+      "type": "object",
+      "required": [
+        "metric_name",
+        "value",
+        "definition_label",
+        "state",
+        "deployment",
+        "sql_hash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "metric_name": {
+          "type": "string",
+          "description": "Stable identifier — e.g. `n_metabolites`, `n_proteins_or_genes`, `n_transporters`, `n_receptors`, `n_mpi_relations`, `n_interactions`, `n_pathways`, `n_reactions`, `n_structures_total`, `n_structures_stereospecific`, `n_constitutional_skeletons`, `n_full_inchikey`, `n_ramp_conflicts`, `n_annotation_records`, `n_organisms`, `n_diseases`, `n_localizations`, `n_pathways_annotation`. Names are case-insensitive but kebab/snake casing MUST be consistent within a digest."
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "definition_label": {
+          "type": "string",
+          "description": "Names the definition variant chosen — e.g. `transporter:tcdb+slctables+uniprot_kw`, `receptor:guidetopharma+connectomedb+cellphonedb+uniprot_kw`, `pathway:Pathway:OM:0014`, `reaction:Reaction:OM:0015`. Mirrors `metadata.definitions` so each metric stands alone."
+        },
+        "state": {
+          "type": "string",
+          "enum": ["populated", "empty", "fallback"],
+          "description": "`populated` for normal metrics; `empty` for known-empty buckets like `xenobiotic` on current builds; `fallback` for Section 5 slot 3 when the disease threshold triggered the chain."
+        },
+        "deployment": {
+          "type": "string",
+          "enum": ["dev3", "dev4", "dev5"]
+        },
+        "sql_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 of the canonicalised SQL text that produced this metric. The verbatim SQL is stored in the digest sidecar (`stats.provenance.json → queries`); this hash lets a reader of `stats.json` alone verify the query without opening the sidecar."
+        }
+      }
+    }
+  }
+}

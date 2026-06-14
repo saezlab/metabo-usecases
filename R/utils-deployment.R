@@ -1,16 +1,19 @@
 #' Per-panel deployment resolver
 #'
 #' Maps a (panel, facet) pair to the OmniPath deployment label that
-#' SHOULD serve its data. Encodes the FR-030 deployment matrix from
-#' the 2026-06-09 cycle-001 + 002 handover: \code{dev3} is the
-#' default; \code{dev4} is required for FR-007a Structures facet,
-#' FR-007e (structural specificity × chemical category), FR-007f
-#' (RaMP comparison), and FR-015 (Methods table — RaMP comparison).
+#' SHOULD serve its data. Encodes the FR-030 deployment matrix.
+#' Post-2026-06-14 dev5 integrated-build promotion every panel
+#' resolves to the global \code{default_deployment}
+#' (\code{dev5}) — the built-in registry is empty and no facet
+#' override fires. The function signature is retained so callers can
+#' keep passing \code{facet = "structures"} / \code{"ramp_conflict"}
+#' / etc. without code change; the routing simply no longer changes
+#' based on the facet.
 #'
-#' User overrides from \code{connection.yaml::overrides} win over the
-#' built-in registry — useful when a fresh integrated build lands on
-#' \code{dev5} or a future port and the team wants to collapse the
-#' per-panel split without a code change.
+#' User overrides from \code{connection.yaml::overrides} still win
+#' over the built-in registry — useful when an instance cycles out
+#' and the team wants to re-point a panel without a code change, or
+#' when a future build cycle re-introduces a per-panel split.
 #'
 #' @param panel_id Character: panel identifier
 #'     (e.g. \code{"fig01-overview"} or
@@ -26,14 +29,14 @@
 #'     candidates.
 #'
 #' @return Character: deployment label
-#'     (e.g. \code{"dev3"}, \code{"dev4"}).
+#'     (e.g. \code{"dev5"}, or historical \code{"dev3"} / \code{"dev4"}).
 #'
 #' @examples
 #' \dontrun{
-#' panel_deployment("fig01-overview")                          # "dev3"
-#' panel_deployment("fig01-overview", "structures")            # "dev4"
-#' panel_deployment("fig01-overview", "ramp_conflict")         # "dev4"
-#' panel_deployment("tab02-ramp-comparison")                   # "dev4"
+#' panel_deployment("fig01-overview")                          # "dev5"
+#' panel_deployment("fig01-overview", "structures")            # "dev5"
+#' panel_deployment("fig01-overview", "ramp_conflict")         # "dev5"
+#' panel_deployment("tab02-ramp-comparison")                   # "dev5"
 #' }
 #'
 #' @importFrom logger log_trace
@@ -89,34 +92,26 @@ panel_deployment <- function(panel_id, facet = NULL, config = NULL) {
 #' panel maps to a list whose \code{default} (optional) is the
 #' panel-level default and whose other keys are facet-level overrides.
 #'
-#' @return Named list of named character vectors.
+#' Post-2026-06-14 dev5 integrated-build promotion the registry is
+#' empty — every panel falls through to the global
+#' \code{default_deployment} from \code{connection.yaml}
+#' (\code{dev5}). The empty-list shape is retained so a future cycle
+#' can re-introduce per-panel routing without a function rewrite.
+#' Historical sidecars from the pre-promotion (2026-06-09 cycles
+#' 001 + 002) per-panel split — \code{dev3} default + \code{dev4}
+#' overrides for FR-007a Structures facet, FR-007e, FR-007f, FR-015,
+#' the MetaLinksDB queries for Fig 3 / Fig 4, the record-coverage
+#' Structures row — remain valid against
+#' \code{contracts/provenance-sidecar.schema.json}; this registry no
+#' longer produces such routings.
+#'
+#' @return Named list of named character vectors (empty
+#'     post-2026-06-14).
 #'
 #' @keywords internal
 #' @noRd
 deployment_registry <- function() {
-    list(
-        `fig01-overview` = list(
-            structures     = "dev4",
-            panel_e        = "dev4",
-            ramp_conflict  = "dev4"
-        ),
-        `tab01-id-resolving` = list(
-            default = "dev3"
-        ),
-        `tab02-ramp-comparison` = list(
-            default = "dev4"
-        ),
-        `tab03-record-coverage` = list(
-            default    = "dev3",
-            structures = "dev4"
-        ),
-        `fig03-metalinks-versions` = list(
-            default = "dev4"
-        ),
-        `fig04-cosmos-pkn` = list(
-            metalinks = "dev4"
-        )
-    )
+    list()
 }
 
 
@@ -128,7 +123,7 @@ deployment_registry <- function() {
 #' tears the pool down at the end of the rebuild.
 #'
 #' @param deployment Character: deployment label
-#'     (\code{"dev3"} | \code{"dev4"} | …).
+#'     (\code{"dev5"} | historical \code{"dev3"} | \code{"dev4"} | …).
 #'
 #' @return A live DBI handle.
 #'
@@ -197,7 +192,7 @@ pg_connect_panel <- function(deployment) {
 #' rows <- pg_query_panel(
 #'     "fig01-overview",
 #'     "SELECT COUNT(*) FROM entity",
-#'     facet = "structures"      # routes to dev4
+#'     facet = "structures"      # routes to dev5 (post-2026-06-14)
 #' )
 #' attr(rows, "deployment")
 #' }

@@ -3,24 +3,24 @@
 #
 # See CONFIGURATION.md for the full schema.
 #
-# The 2026-06-09 cycle-001 + 002 handover put the figure pipeline on a
-# per-panel deployment matrix:
-#   dev3 (port 5403, gene-centric + entity labels) is the default.
-#   dev4 (port 5404, protein-centric + RDKit structural specificity +
-#         RaMP-conflict tables) is required for FR-007a Structures facet,
-#         FR-007e, FR-007f, FR-015.
-#   dev5 is reserved for the ongoing integrated build and is refused.
+# The 2026-06-14 dev5 integrated-build promotion collapsed the previous
+# (2026-06-09) per-panel deployment matrix into a single-deployment
+# regime:
+#   dev5 (port 5405, integrated build — gene-centric entities + stored
+#         labels including Goslin lipid names + chemical-fallback
+#         resolution + RDKit-derived structural specificity +
+#         RaMP-conflict tables + cycle-001 derived family) is the only
+#         deployment in the active rotation; every panel routes here.
+#   dev3 (5403) and dev4 (5404) remain valid in the deployment enum for
+#         historical-sidecar compatibility but the registry does not
+#         route any current panel to them.
 #   prod / dev2 are excluded from the active rotation (opt-in only).
 
-default_deployment: dev3
+default_deployment: dev5
 
-overrides:
-  fig01-overview:
-    structures: dev4         # FR-007a Structures facet
-    panel_e: dev4            # FR-007e structural specificity × chemical category
-    ramp_conflict: dev4      # FR-007f RaMP conflict bar plot
-  tab02-ramp-comparison:
-    default: dev4            # FR-015 Methods RaMP comparison table
+# overrides: (none needed — every panel routes to the default
+# post-2026-06-14; the per-panel split is retired.)
+overrides: {}
 
 credentials_source: env      # env | file | pgpass
 credentials_path: null       # required when credentials_source == "file"

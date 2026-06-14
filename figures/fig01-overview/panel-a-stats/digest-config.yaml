@@ -1,0 +1,96 @@
+# Figure 1 Panel A statistics digest configuration (FR-043 family)
+#
+# Two top-level namespaces:
+#
+# - `definitions:` carries values that ARE mirrored into
+#   stats.json -> metadata.definitions and therefore MUST stay in
+#   sync with contracts/panel-a-stats.schema.json (additionalProperties
+#   false over the keys here).
+# - `runtime:` carries implementation tunables (column names, fallback
+#   thresholds, etc.) that are NOT mirrored into the metadata block.
+#
+# Edits to either namespace are deliberate and tracked in git.
+
+definitions:
+  transporter:
+    # FR-043b — curated transporter-resource list.
+    resources:
+      - tcdb
+      - slctables
+    # FR-043b — UniProt keywords indicating transporter membership.
+    uniprot_keywords:
+      - KW-0813   # Transport
+      - KW-0769   # Symport
+      - KW-0917   # Antiport
+
+  receptor:
+    # FR-043b — curated receptor-resource list. The cycle-001
+    # predicate vocabulary collapsed Ligand-receptor into Other; the
+    # dev5 integrated build may expand this but the curated-resource
+    # OR-of-memberships path remains the primary classification route
+    # for digest stability.
+    resources:
+      - guidetopharma
+      - connectomedb
+      - cellphonedb
+    # FR-043b — UniProt keyword indicating receptor membership.
+    uniprot_keywords:
+      - KW-0675   # Receptor
+
+  pathway:
+    # FR-043c — Section 3 pathway definition. `Pathway:OM:0014` is
+    # the preferred entity-anchored definition; falls back to
+    # `annotation` (curated pathway-annotation lookup) if the
+    # preferred branch returns < pathway.min_rows_for_preferred.
+    preferred: "Pathway:OM:0014"
+    fallback: "annotation"
+
+  reaction:
+    # FR-043c — Section 3 reaction definition. `Reaction:OM:0015`
+    # is the preferred entity-anchored definition; falls back to
+    # `predicate-classification` (orthosteric / enzyme-substrate
+    # edges from BRENDA / KEGG / Rhea) if the preferred branch
+    # returns < reaction.min_rows_for_preferred.
+    preferred: "Reaction:OM:0015"
+    fallback: "predicate-classification"
+
+  # FR-043e — Section 5 slot 3 choice. Default `diseases`; the
+  # orchestrator may flip this to a fallback category at runtime if
+  # the disease count falls below runtime.annotation.disease_min_rows.
+  # The chosen variant IS mirrored into metadata.definitions; the
+  # threshold and the fallback-order list are runtime tunables.
+  annotation_slot3: diseases
+
+runtime:
+  structures:
+    # FR-043d — InChIKey column name in
+    # `metabo_entity_structural_specificity`. Isolated here so a
+    # build-side rename is a one-line config edit. NOT mirrored to
+    # metadata.definitions (per panel-a-stats.schema.json the
+    # `metadata.definitions` block has additionalProperties: false
+    # over a fixed key set that does not include a `structures` key).
+    inchikey_column: inchikey
+
+  pathway:
+    # FR-043c — minimum row count below which the preferred
+    # `Pathway:OM:0014` branch falls back to `annotation`.
+    min_rows_for_preferred: 10
+
+  reaction:
+    # FR-043c — minimum row count below which the preferred
+    # `Reaction:OM:0015` branch falls back to
+    # `predicate-classification`.
+    min_rows_for_preferred: 10
+
+  annotation:
+    # FR-043e — minimum disease-row threshold. If the MONDO + DOID
+    # disease count is below this, the orchestrator walks
+    # slot3_fallback_order until one category meets the threshold;
+    # the chosen slot is recorded in metadata.definitions.annotation_slot3
+    # with state = "fallback".
+    disease_min_rows: 100
+    slot3_fallback_order:
+      - diseases
+      - phenotypes
+      - tissues
+      - go_biological_process

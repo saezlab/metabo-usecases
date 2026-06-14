@@ -22,14 +22,15 @@ fs::dir_create(out_dir)
 
 # ---- Deployment + manifests -----------------------------------------------
 #
-# dev3 = gene-centric build (default); supplies Panels B–F.
-# dev4 = structural-specificity + RaMP-conflict build; supplies the
-# FR-007f RaMP renderer (Panel G). T014a's per-panel resolver routes
-# the ramp_conflict facet to dev4 automatically.
+# Post-2026-06-14 dev5 integrated-build promotion: every panel runs
+# against dev5 (integrated build — gene-centric entities + stored
+# labels including Goslin lipid names + chemical-fallback resolution
+# + RDKit-derived structural specificity + RaMP-conflict tables +
+# cycle-001 derived family). The per-panel dev3/dev4 split is
+# retired; the registry's overrides block is empty.
 
-logger::log_info("Resolving dev3 + dev4 deployments")
-dep3 <- deployment_provenance("dev3")
-dep4 <- deployment_provenance("dev4")
+logger::log_info("Resolving dev5 deployment")
+dep5 <- deployment_provenance("dev5")
 
 # ---- Data (cycle-001 derived shapes, dispatched via T014a) ----------------
 
@@ -48,7 +49,7 @@ data_e <- associations_by_resource()
 logger::log_info("Querying Panel F (ontology_terms_by_ontology)")
 data_f <- ontology_terms_by_ontology()
 
-logger::log_info("Querying Panel G (ramp_conflict_counts → dev4)")
+logger::log_info("Querying Panel G (ramp_conflict_counts on dev5)")
 data_g <- ramp_conflict_counts()
 
 # Register the RaMP-conflict reasons in the colour registry on first
@@ -136,7 +137,7 @@ for (name in names(panels)) {
 
 # ---- FR-007a — 6-facet resource overview (stand-alone artifact) -----------
 #
-# Heavy SQL (~145s end-to-end against dev3+dev4); the v1 path uses
+# Heavy SQL (~145s end-to-end against dev5); the v1 path uses
 # row-scan queries. A follow-up commit will swap this for the
 # facet_*_bitmap path (expected ~10s) per the cycle-001 contract.
 
@@ -176,10 +177,10 @@ ggsave(file.path(out_dir, "fr007a-total.svg"), fr007a_total_plot,
        width = 180, height = 200, units = "mm")
 logger::log_info("FR-007a total written to {out_dir}/fr007a-total.{{pdf,svg}}")
 
-# ---- FR-007e — structural specificity × chemical category (dev4) ----------
+# ---- FR-007e — structural specificity × chemical category (dev5) ----------
 #
 # Bitmap intersection of structural_specificity x chemical_class/
-# metabolic_domain on dev4 (~25 ms data layer). Stand-alone artifact.
+# metabolic_domain on dev5 (~25 ms data layer). Stand-alone artifact.
 
 logger::log_info("FR-007e — running specificity x category")
 fr007e_data <- fr007e_specificity_by_category()
@@ -327,13 +328,29 @@ caption_info <- compose_caption(
     panel_count    = 7L
 )
 
+# ---- Panel A statistics digest (FR-043 family) -----------------------------
+#
+# Side-output of the Figure 1 build: queries dev5 for the five
+# sections of headline counts that back the numbers the author
+# hand-transcribes into the Inkscape-authored Panel A diagram.
+# Validates against contracts/panel-a-stats.schema.json (FR-043g)
+# and asserts the FR-043h snapshot binding (digest's snapshot id
+# MUST equal the composite's).
+
+logger::log_info("Building Panel A statistics digest (FR-043)")
+digest_result <- build_panel_a_digest(
+    snapshot_id = snapshot_id(dep5$manifest),
+    out_dir     = "figures/fig01-overview/panel-a-stats",
+    caption_sty = "tex/caption.sty"
+)
+
 # ---- Provenance sidecar ----------------------------------------------------
 
 write_sidecar(
     artifact_id    = "fig01-overview",
     artifact_path  = file.path(out_dir, "fig01-overview.pdf"),
-    deployments    = list(dep3$deployment, dep4$deployment),
-    manifests      = list(dep3$manifest, dep4$manifest),
+    deployments    = list(dep5$deployment),
+    manifests      = list(dep5$manifest),
     script_path    = "figures/fig01-overview/build.R",
     queries        = queries,
     external_inputs = list(
@@ -345,6 +362,15 @@ write_sidecar(
                 "see ", architecture_readme
             ),
             fingerprint = architecture_sha256
+        ),
+        list(
+            kind        = "panel-a-stats-digest",
+            path        = digest_result$sidecar,
+            source      = paste0(
+                "Pipeline-generated FR-043 digest; ",
+                "config sha256=", digest_result$config_sha256
+            ),
+            fingerprint = digest_result$snapshot_id
         )
     ),
     parameters     = list(width_mm = 180L),
