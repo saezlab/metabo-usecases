@@ -19,7 +19,7 @@
 #' @importFrom DBI dbGetQuery
 #' @export
 fr007d_entity_x_interaction <- function(
-    panel_id = "fig01-overview",
+    panel_id = "fig02-overview",
     n_types  = 8L
 ) {
     # The cycle-001 build's vocab_relation_predicate.interaction_class_id

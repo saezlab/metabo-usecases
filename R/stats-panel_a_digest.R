@@ -87,7 +87,7 @@ panel_a_section_names <- function() {
 #'     \code{NULL}, the digest reads the snapshot id from
 #'     \code{dev5.build_manifest} and records it.
 #' @param out_dir Character: output directory. Defaults to
-#'     \code{figures/fig01-overview/panel-a-stats/} relative to the
+#'     \code{figures/fig01-architecture/panel-a-stats/} relative to the
 #'     repo root.
 #' @param config_path Character or \code{NULL}: digest-config.yaml
 #'     path. \code{NULL} → default location next to \code{out_dir}.
@@ -121,7 +121,7 @@ panel_a_section_names <- function() {
 #' @export
 build_panel_a_digest <- function(
     snapshot_id = NULL,
-    out_dir = "figures/fig01-overview/panel-a-stats",
+    out_dir = "figures/fig01-architecture/panel-a-stats",
     config_path = NULL,
     caption_sty = "tex/caption.sty",
     validate_schema = TRUE
@@ -781,7 +781,7 @@ write_digest_sidecar <- function(
     })
 
     sidecar <- list(
-        artifact_id   = "fig01-overview/panel-a-stats",
+        artifact_id   = "fig01-architecture/panel-a-stats",
         produced_at   = digest_obj$metadata$produced_at,
         deployments   = digest_obj$metadata$deployments,
         snapshot_ids  = digest_obj$metadata$snapshot_ids,

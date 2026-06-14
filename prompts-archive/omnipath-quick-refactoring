@@ -1,0 +1,83 @@
+Very nice detailed documentation! A few points before going ahead:
+- The legacy omnipath-server is not really relevant for the figures pipeline at
+    all, but while you correctly see it relies on pypath.inputs, the database
+    build of it is done by pypath.core and pypath.omnipath and
+    pypath.resources, not omnipath-build. Can you please correct this in the
+    documentation? If you explored this part too, maybe you can add a separate
+    section or document about the legacy build, soon we'll need it for another
+    task.
+- You mention the resolver ID translation tables can be optionally sourced from
+    omnipath-utils: maybe, I'm not aware of this, can you double check?
+- Can you please write a separate document focusing in detail on how the ID
+    translation (resolver) and canonicalization of entities work in the current
+    omnipath-build, compare the features and properties of this resolver vs.
+    omnipath-utils, and include a brief evaluation of a potential migration
+    (omnipath-build uses omnipath-utils) or merging of the two solutions?
+- When designing your current refactor plan and the updates for the figures
+    pipeline, can you please also consider how we could either 1) optimize the
+    current Postgres schema also to OLAP queries; 2) or make a replica which is
+    optimized for OLAP while the main one for OLTP; 3) evaluate whether the
+    current DuckDB solution is the best, or would it make sense to achieve the
+    same OLAP kind of performance in database build with Postgres
+    optimizations, or even using the Postgres DuckDB plugin instead of
+    standalone DuckDB?
+- When writing MetalinksDB, you write "mrclinksdb" (at data_source, at
+    pypath.inputs) - is this a typo? In data_source records belonging to
+    metalinksdb I guess should be connected to their respective source,
+    mrclinksdb is one of many resources in metalinksdb. On the long term,
+    omnipath-metabo should also have its own database backend or connect and do
+    database build in the database of the main omnipath build. MetalinksDB is a
+    very recent development, is a materialized view, which is build already
+    inside of the main omnipath build, but intended to be exposed by the metabo
+    API. Is this already the case, is the API endpoint finished?
+- Since API services relying on cheminformatics (RDKit) we primarily want to expose by
+    the metabo API, please review your plans about the cheminformatics
+    improvements with this in mind. Please suggest a solution for the
+    connection between the main omnipath build and database vs. the metabo one.
+    For example, could we move the MetalinksDB part (creating its materialized
+    view) into omnipath-metabo, say that the metabo's Postgres database will be
+    the one built by the main, it is just an addition on top of it both in the
+    areas of build, schema, and Python and web APIs? In this case, after the
+    appropriate phase of omnipath-build database build, it should optionally
+    engage omnipath-metabo and create the RDKit/structure support in Postgres,
+    and the MetalinksDB materialized view. The COSMOS PKN build should happen
+    similarly after a next refactoring round, but for now leave that in its old
+    state. The updated omnipath-metabo web service (extended with metalinksdb
+    web API and other queries related to structures and cheminformatics) would
+    then require the connection to the main omnipath Postgres instance (besides
+    its COSMOS tables or parquet files). Do you think this is a good plan?
+    Please point to potential weaknesses or difficulties in this approach and
+    make your suggestions.
+- Related to the previous point, we need the level of structural specificity
+    also in the web app, it should be also represented as bitmaps so we can
+    easily filter for e.g. stereospecific structures. Still, I think it's fine
+    if we build it by omnipath-metabo and rely on it later in the web app. What
+    do you think?
+- The prod build on beauty was not fully complete in the time of your
+    inspection, potentially some parts which you found missing or empty got
+    populated after you checked.
+- Feel free to make suggestions of creating categorizations for the figures,
+    e.g. to categorize chemicals as lipids, drugs, food compounds, xenobiotics,
+    etc should be part of the current database build improvement plans, this
+    classification should be part of the database. It would be useful to
+    collect other annotations or ways to further classify chemicals, e.g.
+    "amino acid metabolism", "carbohydrates", etc
+- For development of the build pipeline, we have the MAX_RECORDS parameter
+    which limits the records loaded from each resource - can be useful for
+    faster iterations and testing.
+- I like the `figure-data` API endpoints, but please put there what we do only
+    for the figures, generally useful new endpoints should be placed to their
+    logical place, e.g. we can create a `stats` endpoint for database level
+    statistics, counts, etc.
+
+I'm wondering how we should do the development session: here, or should I start
+another Claude Code app? Should I use speckit and refer to your new documents?
+Should it be an entirely new speckit project (still here in the saezverse repo)?
+How should we source the recommended skills (Postgres, RDKit): can you do it
+directly from skills.sh or other repo? The dev4 instance is currently empty,
+we can use it for the development. The metabo2 and utils2 instances are free
+too, we can use these too.
+
+Please update the planning documents, and write an initial prompt for the
+development session, pointing to all the relevant documents. Should I start the
+new session with `/speckit-specify`?

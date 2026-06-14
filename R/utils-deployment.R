@@ -16,7 +16,7 @@
 #' when a future build cycle re-introduces a per-panel split.
 #'
 #' @param panel_id Character: panel identifier
-#'     (e.g. \code{"fig01-overview"} or
+#'     (e.g. \code{"fig01-architecture"} or
 #'     \code{"tab02-ramp-comparison"}).
 #' @param facet Character or \code{NULL}: facet identifier
 #'     (e.g. \code{"structures"}, \code{"ramp_conflict"},
@@ -33,9 +33,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' panel_deployment("fig01-overview")                          # "dev5"
-#' panel_deployment("fig01-overview", "structures")            # "dev5"
-#' panel_deployment("fig01-overview", "ramp_conflict")         # "dev5"
+#' panel_deployment("fig01-architecture")                          # "dev5"
+#' panel_deployment("fig01-architecture", "structures")            # "dev5"
+#' panel_deployment("fig01-architecture", "ramp_conflict")         # "dev5"
 #' panel_deployment("tab02-ramp-comparison")                   # "dev5"
 #' }
 #'
@@ -190,7 +190,7 @@ pg_connect_panel <- function(deployment) {
 #' @examples
 #' \dontrun{
 #' rows <- pg_query_panel(
-#'     "fig01-overview",
+#'     "fig01-architecture",
 #'     "SELECT COUNT(*) FROM entity",
 #'     facet = "structures"      # routes to dev5 (post-2026-06-14)
 #' )

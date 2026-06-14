@@ -1,11 +1,13 @@
-# figures/fig01-overview/build.R
+# figures/fig02-overview/build.R
 #
-# Orchestrates the full Figure 1 build: queries the OmniPath Postgres,
-# renders panels B–F via ggplot, vendors the manual architecture asset
-# at the Panel A position (FR-005, FR-005a — SHA-256 fingerprint
-# verified against the inst/extdata/manual/architecture/README.md pin
-# before include), composes via tex/compose_fig01.tex, and writes the
-# provenance sidecar.
+# Orchestrates the Figure 2 build (post-2026-06-14 six-figure
+# renumbering): queries dev5 for the FR-007 quantitative panel data,
+# renders every FR-007a..f variant + the composite-selected subset
+# (A: fr007a-total, B: fr007e, C: fr007c, D: fr007d) via ggplot,
+# composes via tex/compose_fig02.tex, and writes the provenance
+# sidecar. The architecture asset (formerly Panel A) and the FR-043
+# statistics digest moved to Figure 1 — see
+# figures/fig01-architecture/build.R.
 #
 # Sourced by rebuild.R; safe to source standalone too.
 
@@ -14,10 +16,10 @@ suppressPackageStartupMessages({
     library(ggplot2)
 })
 
-setup_pipeline_log("build:fig01-overview")
+setup_pipeline_log("build:fig02-overview")
 set.seed(pipeline_seed())
 
-out_dir <- "figures/fig01-overview/out"
+out_dir <- "figures/fig02-overview/out"
 fs::dir_create(out_dir)
 
 # ---- Deployment + manifests -----------------------------------------------
@@ -254,125 +256,51 @@ ggsave(file.path(out_dir, "fr007c-networks.svg"), fr007c_plot,
        width = 320, height = 160, units = "mm")
 logger::log_info("FR-007c networks written to {out_dir}/fr007c-networks.{{pdf,svg}}")
 
-# ---- Panel A — vendored architecture asset (FR-005, FR-005a) ---------------
-
-architecture_dir <- "inst/extdata/manual/architecture"
-architecture_pdf <- file.path(
-    architecture_dir, "omnipath-architecture-new2026.pdf"
-)
-architecture_readme <- file.path(architecture_dir, "README.md")
-
-if (!file.exists(architecture_pdf)) {
-    rlang::abort(sprintf(
-        "Vendored architecture asset missing: %s. Re-vendor per %s.",
-        architecture_pdf, architecture_readme
-    ))
-}
-
-readme_pin <- stringr::str_match(
-    paste(readLines(architecture_readme), collapse = "\n"),
-    "pdf_sha256.*?`([0-9a-f]{64})`"
-)[1L, 2L]
-if (is.na(readme_pin)) {
-    rlang::abort(sprintf(
-        "Could not parse pdf_sha256 pin from %s", architecture_readme
-    ))
-}
-
-architecture_sha256 <- digest::digest(
-    file = architecture_pdf, algo = "sha256"
-)
-if (!identical(architecture_sha256, readme_pin)) {
-    rlang::abort(sprintf(paste0(
-        "Architecture asset SHA-256 mismatch (FR-005a). ",
-        "Expected (README pin): %s\n",
-        "Got      (on disk):    %s\n",
-        "Manual asset changed — update %s and re-record fingerprint."
-    ), readme_pin, architecture_sha256, architecture_readme))
-}
-
-file.copy(
-    architecture_pdf,
-    file.path(out_dir, "panelA.pdf"),
-    overwrite = TRUE
-)
-logger::log_info(
-    "Panel A vendored from {architecture_pdf} (sha256={substr(architecture_sha256, 1L, 12L)})"
-)
-
 # ---- Composite -------------------------------------------------------------
+#
+# Post-2026-06-14 six-figure renumbering: the architecture asset moved
+# to Figure 1 (figures/fig01-architecture/) and is no longer embedded
+# here. Figure 2's composite is built from the four FR-007 panels — A:
+# fr007a-total / B: fr007e / C: fr007c / D: fr007d — via
+# tex/compose_fig02.tex (T035 in the upcoming Figure 2 composite work).
+# This script currently emits the constituent panel artifacts; the
+# four-panel composite assembler lands in a follow-up commit.
 
-logger::log_info("Composing Figure 1")
+logger::log_info("Composing Figure 2")
 compose_mixed_source(
     mode = "pdf",
     spec = list(
-        template  = "tex/compose_fig01.tex",
-        output    = file.path(out_dir, "fig01-overview.pdf"),
-        component = "compose:fig01-overview"
+        template  = "tex/compose_fig02.tex",
+        output    = file.path(out_dir, "fig02-overview.pdf"),
+        component = "compose:fig02-overview"
     ),
     work_dir = out_dir
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) -------------------------------------
 #
-# Panel count is hard-coded to 6 (A=architecture + B/C/D/E/F
-# quantitative panels) until composition.yaml lands; the rebuild
-# fails if caption.tex declares a different number of (a)/(b)/...
-# sub-letters (FR-041b).
+# Figure 2 is a four-panel composite (A: fr007a-total, B: fr007e,
+# C: fr007c, D: fr007d). FR-041b requires the caption's (a)/(b)/(c)/(d)
+# sub-letter count to equal the composite panel count (4).
 
 caption_info <- compose_caption(
-    figure_id      = "fig01-overview",
-    composite_pdf  = file.path(out_dir, "fig01-overview.pdf"),
-    caption_source = "figures/fig01-overview/caption.tex",
+    figure_id      = "fig02-overview",
+    composite_pdf  = file.path(out_dir, "fig02-overview.pdf"),
+    caption_source = "figures/fig02-overview/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 7L
-)
-
-# ---- Panel A statistics digest (FR-043 family) -----------------------------
-#
-# Side-output of the Figure 1 build: queries dev5 for the five
-# sections of headline counts that back the numbers the author
-# hand-transcribes into the Inkscape-authored Panel A diagram.
-# Validates against contracts/panel-a-stats.schema.json (FR-043g)
-# and asserts the FR-043h snapshot binding (digest's snapshot id
-# MUST equal the composite's).
-
-logger::log_info("Building Panel A statistics digest (FR-043)")
-digest_result <- build_panel_a_digest(
-    snapshot_id = snapshot_id(dep5$manifest),
-    out_dir     = "figures/fig01-overview/panel-a-stats",
-    caption_sty = "tex/caption.sty"
+    panel_count    = 4L
 )
 
 # ---- Provenance sidecar ----------------------------------------------------
 
 write_sidecar(
-    artifact_id    = "fig01-overview",
-    artifact_path  = file.path(out_dir, "fig01-overview.pdf"),
+    artifact_id    = "fig02-overview",
+    artifact_path  = file.path(out_dir, "fig02-overview.pdf"),
     deployments    = list(dep5$deployment),
     manifests      = list(dep5$manifest),
-    script_path    = "figures/fig01-overview/build.R",
+    script_path    = "figures/fig02-overview/build.R",
     queries        = queries,
-    external_inputs = list(
-        list(
-            kind        = "architecture-asset",
-            path        = architecture_pdf,
-            source      = paste0(
-                "Inkscape source on the contributor's machine; ",
-                "see ", architecture_readme
-            ),
-            fingerprint = architecture_sha256
-        ),
-        list(
-            kind        = "panel-a-stats-digest",
-            path        = digest_result$sidecar,
-            source      = paste0(
-                "Pipeline-generated FR-043 digest; ",
-                "config sha256=", digest_result$config_sha256
-            ),
-            fingerprint = digest_result$snapshot_id
-        )
-    ),
+    external_inputs = list(),
     parameters     = list(width_mm = 180L),
     seed           = pipeline_seed(),
     caption        = list(
@@ -384,4 +312,4 @@ write_sidecar(
 )
 
 pg_close_all_panel()
-logger::log_info("fig01-overview complete")
+logger::log_info("fig02-overview complete")

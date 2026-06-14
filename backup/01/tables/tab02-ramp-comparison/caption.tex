@@ -1,0 +1,13 @@
+% tables/tab02-ramp-comparison/caption.tex
+%
+% Table 2 caption source (FR-040, FR-040a; FR-042 applies to tables).
+% Edit by hand; the pipeline reads this file at build time and
+% produces:
+%   out/tab02-ramp-comparison-with-caption.pdf   (typeset table + caption)
+%   out/caption.txt                              (plain-text caption)
+%
+% Sub-letter (a)/(b)/... count MUST equal the table's panel count (1
+% for a single-panel table) or the rebuild fails (FR-041b).
+
+\textbf{Table 2: RaMP identifiers that resolve to multiple distinct structures.}\space
+\figpanel{a}{Per-reason aggregation of the \texttt{metabo\_ramp\_inchikey\_conflict} table on \texttt{dev4}, computed in-database by the cycle-001 RDKit Postgres cartridge. Each row of the source table is a conflicting pair \texttt{(ramp\_id, inchikey\_a, inchikey\_b, conflict\_reason)}; this Methods table reports per reason the distinct RaMP-id count, the conflict-pair count, the share of the conflicting-RaMP population, and two representative RaMP identifiers. The grand-summary row at the bottom carries the column sums. Reasons follow the cycle-001 classification: \textit{stereo} (stereochemistry only), \textit{specificity} (different specificity levels — e.g.\ a tetrad-uncertain vs.\ tetrad-resolved variant), \textit{tautomer} (tautomeric variants), \textit{similar} (close but non-equivalent structures), \textit{unrelated} (no chemical similarity).}

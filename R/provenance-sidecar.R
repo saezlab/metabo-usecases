@@ -15,7 +15,7 @@
 #' (FR-032, FR-032a).
 #'
 #' @param artifact_id Character: stable id, e.g.
-#'     \code{"fig01-overview/panelB"}.
+#'     \code{"fig02-overview/panelB"}.
 #' @param artifact_path Character: path of the artifact whose sidecar
 #'     this is — the sidecar file is written to
 #'     \code{paste0(artifact_path, ".provenance.json")}.
@@ -55,11 +55,11 @@
 #' con3 <- pg_connect_panel("dev3")
 #' dep3 <- deployment_provenance(con3, "dev3")
 #' write_sidecar(
-#'     artifact_id   = "fig01-overview/panelB",
-#'     artifact_path = "figures/fig01-overview/out/panelB.pdf",
+#'     artifact_id   = "fig02-overview/panelB",
+#'     artifact_path = "figures/fig02-overview/out/panelB.pdf",
 #'     deployments   = list(dep3$deployment),
 #'     manifests     = list(dep3$manifest),
-#'     script_path   = "figures/fig01-overview/build.R",
+#'     script_path   = "figures/fig02-overview/build.R",
 #'     queries       = list()
 #' )
 #' }
@@ -192,11 +192,11 @@ sidecar_deployment_entry <- function(entry) {
 #' dep3 <- deployment_provenance("dev3")
 #' dep4 <- deployment_provenance("dev4")
 #' write_sidecar(
-#'     artifact_id = "fig01-overview",
-#'     artifact_path = "figures/fig01-overview/out/fig01-overview.pdf",
+#'     artifact_id = "fig02-overview",
+#'     artifact_path = "figures/fig02-overview/out/fig02-overview.pdf",
 #'     deployments = list(dep3$deployment, dep4$deployment),
 #'     manifests   = list(dep3$manifest,   dep4$manifest),
-#'     script_path = "figures/fig01-overview/build.R"
+#'     script_path = "figures/fig02-overview/build.R"
 #' )
 #' }
 #'

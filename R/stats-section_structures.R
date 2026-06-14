@@ -47,7 +47,7 @@ structural_specificity_levels <- function() {
 #' @importFrom tibble tibble
 #' @export
 section_structures <- function(
-    panel_id = "fig01-overview",
+    panel_id = "fig01-architecture",
     runtime = NULL
 ) {
 

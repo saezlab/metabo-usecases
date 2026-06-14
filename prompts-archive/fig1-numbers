@@ -1,0 +1,65 @@
+Now Figure 1 panel A has been created manually, but we want to include a number
+of basic statistics from the database. My colleague described these in detail
+below. Please make these part of the spec and plan, we should create a script
+which queries for these numbers and saves them into an artifact.
+
+- For all sections, please also provide the number of original resources/sources contributing to that section.
+- For Metabolite–Protein Interactions, the number of transporters and receptors is a subset of the proteins, so these counts should be smaller than the total protein count.
+- For Interactions, please include metabolite–protein interactions even tough they are already part of this broader interaction category.
+- For Structures, if there are additional queries you deem important (e.g., stereoisomers/stereochemistry-related counts or similar structure-specific metrics), feel free to include them and I can add them to the figure.
+- For Annotation, I'm not sure whether we currently have disease annotations. If not, please suggest other relevant annotation categories. I have room for up to five annotation statistics in the figure, so additional useful categories would be welcome.
+
+General notes
+
+For all sections, please also report the number of original resources/sources contributing to that section.
+Unless otherwise specified, counts should correspond to unique entities/records after integration and deduplication.
+If there are ambiguities in how a category should be defined, please let me know and report the definition used.
+
+Section 1: Entities
+
+Starting from the complete integrated entity set, report:
+
+Total number of unique metabolites
+Total number of unique foods
+Total number of unique drugs
+Total number of unique lipids
+Total number of unique proteins/genes
+
+Section 2: Metabolite–Protein Interactions
+
+Starting from the complete metabolite–protein interaction dataset, report:
+
+Total number of unique metabolite–protein relationships
+Number of unique metabolites participating in at least one interaction
+Number of unique proteins participating in at least one interaction
+Number of unique transporters participating in at least one interaction
+Number of unique receptors participating in at least one interaction
+
+The transporter and receptor counts should represent subsets of the protein count.
+
+Section 3: Interactions
+
+Starting from the complete interaction dataset (including metabolite–protein interactions), report:
+
+Total number of unique relationships/interactions
+Number of unique proteins participating in at least one interaction
+Number of unique pathways represented in the interaction network
+Number of unique reactions represented in the interaction network
+
+Section 4: Structures
+
+Starting from the complete structure dataset, report:
+
+Total number of unique structure records
+
+If there are additional structure-related statistics that you think are informative for the figure (e.g., stereochemistry/stereoisomer-related counts), please include them as well.
+
+Section 5: Annotation
+
+Starting from the complete annotation dataset, report:
+
+Total number of annotation records
+Number of unique organisms represented
+Number of unique diseases represented
+
+If disease annotations are not available or not meaningful, please suggest alternative annotation categories. I have space for up to five annotation statistics in the figure.

@@ -1,0 +1,13 @@
+% tables/tab01-id-resolving/caption.tex
+%
+% Table 1 caption source (FR-040, FR-040a; FR-042 applies to tables).
+% Edit by hand; the pipeline reads this file at build time and
+% produces:
+%   out/tab01-id-resolving-with-caption.pdf   (typeset table + caption)
+%   out/caption.txt                           (plain-text caption)
+%
+% Sub-letter (a)/(b)/... count MUST equal the table's panel count (1
+% for a single-panel table) or the rebuild fails (FR-041b).
+
+\textbf{Table 1: Identifier resolving across the integrated OmniPath Metabo resources.}\space
+\figpanel{a}{Distinct identifiers contributed by each integrated resource on \texttt{dev3}, split by identifier type. The ten most-populated identifier types are shown as named columns; the long tail collapses into a single \texttt{Misc} column. The \texttt{Total} column is the row sum across all identifier types. The grand-summary row at the bottom of the body is the column sum across resources. Counts come from \texttt{identifier\_evidence} joined to \texttt{vocab\_identifier\_type} and \texttt{entity\_evidence\_identifier}; resources are sorted by \texttt{Total} descending.}

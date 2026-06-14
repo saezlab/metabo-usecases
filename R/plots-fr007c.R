@@ -42,7 +42,7 @@ plot_fr007c_networks <- function(data,
     data <- data[data$overlap >= as.integer(min_overlap), , drop = FALSE]
 
     if (is.null(node_sizes)) {
-        node_sizes <- fr007c_node_sizes("fig01-overview")
+        node_sizes <- fr007c_node_sizes("fig02-overview")
     }
 
     # Union graph for the shared layout.

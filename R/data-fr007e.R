@@ -10,11 +10,11 @@
 #' Per-cell counts via \code{rb_and_cardinality}: ~25 ms for the
 #' 6 × 6 = 36-cell cross-tab.
 #'
-#' Routes to \code{dev4} via \code{pg_query_panel("fig01-overview",
+#' Routes to \code{dev4} via \code{pg_query_panel("fig02-overview",
 #' facet = "panel_e")}.
 #'
 #' @param panel_id Character: panel identifier. Default
-#'     \code{"fig01-overview"}.
+#'     \code{"fig02-overview"}.
 #'
 #' @return Tibble with columns \code{category}, \code{specificity},
 #'     \code{n}.
@@ -27,7 +27,7 @@
 #' @importFrom DBI dbGetQuery
 #' @export
 fr007e_specificity_by_category <- function(
-    panel_id = "fig01-overview"
+    panel_id = "fig02-overview"
 ) {
     sql <- "
         WITH

@@ -1,5 +1,5 @@
 {
-  "artifact_id": "fig01-overview/panel-a-stats",
+  "artifact_id": "fig01-architecture/panel-a-stats",
   "produced_at": "2026-06-14T04:48:56+0200",
   "deployments": [
     {
@@ -14,7 +14,7 @@
   "script_path": "R/stats-panel_a_digest.R",
   "script_commit": "1ccb6f4",
   "config": {
-    "path": "/home/omnipath/dev/metabo-usecases/figures/fig01-overview/panel-a-stats/digest-config.yaml",
+    "path": "/home/omnipath/dev/metabo-usecases/figures/fig01-architecture/panel-a-stats/digest-config.yaml",
     "sha256": "cbc9cf74bdf6ca357fa3053781242fb9f35d26602b7b3f98076945b2ad4de5ff"
   },
   "section_queries": [

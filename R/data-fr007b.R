@@ -30,7 +30,7 @@
 #'     \code{"all"} to return a combined long-format tibble of every
 #'     supported variant.
 #' @param panel_id Character: panel identifier (default
-#'     \code{"fig01-overview"}).
+#'     \code{"fig02-overview"}).
 #'
 #' @return A tibble with \code{n_resources}, \code{n_items_ge_N}, and
 #'     (for \code{variant = "all"}) a \code{variant} column.
@@ -46,7 +46,7 @@
 #' @export
 fr007b_coverage <- function(
     variant = c("entities", "molecular_entities", "structures", "all"),
-    panel_id = "fig01-overview"
+    panel_id = "fig02-overview"
 ) {
     variant <- match.arg(variant)
 
