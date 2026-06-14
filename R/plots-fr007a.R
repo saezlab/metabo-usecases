@@ -506,22 +506,31 @@ fr007a_pretty_label <- function(x) {
     out <- as.character(x)
     # 1. Strip trailing :OM:.../:MI:... identifier-code suffixes.
     out <- sub("\\s*:[A-Z]+:\\d+\\s*$", "", out)
-    # 2. Specific identifier renames (must run before generic
-    #    underscore / capitalize transforms; trim leading/trailing
-    #    whitespace because the suffix-strip may leave a trailing
-    #    space).
     out <- trimws(out)
+    # 2. Specific renames — identifier styles + Structures /
+    #    Interactions abbreviations that keep the per-facet legend
+    #    within the 30 mm facet column at 6 pt.
     renames <- c(
-        "Standard Inchi Key" = "InChI key",
-        "Chembl Compound"    = "ChEMBL",
-        "Pubchem Compound"   = "PubChem",
-        "Swisslipids"        = "SwissLipids"
+        # Identifiers facet
+        "Standard Inchi Key"    = "InChI key",
+        "Chembl Compound"       = "ChEMBL",
+        "Pubchem Compound"      = "PubChem",
+        "Swisslipids"           = "SwissLipids",
+        # Structures facet — long underscore-joined values get
+        # explicit short forms instead of the generic
+        # underscore-to-space + capitalize transform.
+        "constitution_only"     = "Constitution",
+        "variable_constitution" = "Var. const.",
+        "unknown_constitution"  = "Unk. const.",
+        "cis_trans_only"        = "Cis/trans",
+        "no_structure"          = "No structure",
+        "stereospecific"        = "Stereospecific"
     )
     hits <- match(tolower(out), tolower(names(renames)))
     has_rename <- !is.na(hits)
     out[has_rename] <- renames[hits[has_rename]]
-    # 3. Underscore → space + sentence-capitalize, but skip already
-    #    renamed entries.
+    # 3. Underscore → space + sentence-capitalize for everything
+    #    not caught by the rename map.
     rest <- !has_rename
     out[rest] <- gsub("_", " ", out[rest])
     needs_cap <- rest & nchar(out) > 0L

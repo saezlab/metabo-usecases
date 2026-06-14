@@ -47,13 +47,17 @@ plot_fr007e <- function(data, width_mm = 180L) {
         "amino-acid metabolism", "nucleic-acid metabolism",
         "carbohydrates"
     )
+    # Short facet titles — each strip cell is only ~20 mm wide
+    # in the composite slot (180 mm / 3 cols / 3 facets across),
+    # so the original full-length names (e.g. "Amino-acid
+    # metabolism") overflow and get clipped.
     cat_labels <- c(
         "drugs"                   = "Drugs",
         "metabolites"             = "Metabolites",
         "lipids"                  = "Lipids",
-        "food compounds"          = "Food compounds",
-        "amino-acid metabolism"   = "Amino-acid metabolism",
-        "nucleic-acid metabolism" = "Nucleic-acid metabolism",
+        "food compounds"          = "Foods",
+        "amino-acid metabolism"   = "Amino acids",
+        "nucleic-acid metabolism" = "Nucleic acids",
         "carbohydrates"           = "Carbohydrates"
     )
     keep <- intersect(cat_levels, unique(as.character(data$category)))
