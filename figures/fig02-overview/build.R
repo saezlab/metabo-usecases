@@ -271,17 +271,29 @@ logger::log_info("Composing Figure 2 (patchwork: A wide / B,C,D row)")
 # patchwork an atomic unit so its 6 sub-facets don't get
 # auto-tagged. Outer-level plot_annotation(tag_levels = "A") then
 # assigns A / B / C / D to the four top-level slots.
+# Wrap every nested patchwork (fr007a-total is a 6-facet row;
+# fr007c is a 3-network row) in wrap_elements() so the outer
+# composite treats them as atomic cells. Without this, the inner
+# plot_layout / plot_annotation calls bleed up into the outer
+# grid, causing C and D to shrink to zero in earlier renders.
+#
+# Layout (180 × 220 mm, portrait):
+#   row 1 — Panel A (fr007a-total)  full width × 100 mm
+#   row 2 — Panel C (fr007c networks) full width × 70 mm
+#   row 3 — Panel B (fr007e) | Panel D (fr007d)  90 mm each × 50 mm
+#
+# This gives fr007c the full 180 mm width its three side-by-side
+# networks need (60 mm per network), and lets B and D sit at a
+# legible 90 mm wide. Total ~220 mm tall = 2/3 portrait page.
 composite <- (
     patchwork::wrap_elements(full = fr007a_total_plot)
     /
-    (fr007e_plot | fr007c_plot | fr007d_plot)
+    patchwork::wrap_elements(full = fr007c_plot)
+    /
+    (patchwork::wrap_elements(full = fr007e_plot) |
+     patchwork::wrap_elements(full = fr007d_plot))
 ) +
-    # Give the top row more space — the 6 sub-facets each need to
-    # fit a title + 2-row bar + axis ticks + a 3-5-entry legend
-    # below in ~30 mm of width. With heights = c(3, 2) the top row
-    # is ~108 mm and the bottom row is ~72 mm, total ~180 mm
-    # (~2/3-page composite at 180 mm wide).
-    patchwork::plot_layout(heights = c(3, 2)) +
+    patchwork::plot_layout(heights = c(10, 7, 5)) +
     patchwork::plot_annotation(
         tag_levels = "A",
         theme = ggplot2::theme(
@@ -291,14 +303,17 @@ composite <- (
         )
     )
 
-# 180 × 180 mm composite (top row 108 mm, bottom row 72 mm).
+# 180 × 220 mm composite (rows: A 100 mm, C 70 mm, B/D 50 mm).
 ggsave(
     file.path(out_dir, "fig02-overview.pdf"), composite,
-    width = 180, height = 180, units = "mm"
+    width = 180, height = 220, units = "mm"
 )
-ggsave(
-    file.path(out_dir, "fig02-overview.svg"), composite,
-    width = 180, height = 180, units = "mm"
+try(
+    ggsave(
+        file.path(out_dir, "fig02-overview.svg"), composite,
+        width = 180, height = 220, units = "mm"
+    ),
+    silent = FALSE
 )
 logger::log_info(
     "Figure 2 composite written to ",
