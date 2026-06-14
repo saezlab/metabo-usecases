@@ -568,11 +568,15 @@ fr007a_pretty_label <- function(x) {
 #' @noRd
 fr007a_su_legend_plot <- function() {
     df <- data.frame(
-        x = 1L,
+        x = c(1, 2),
+        y = 1,
         cat = factor(c("Unique", "Shared"), levels = c("Unique", "Shared"))
     )
-    ggplot2::ggplot(df, ggplot2::aes(x = .data$x, fill = .data$cat)) +
-        ggplot2::geom_col() +
+    ggplot2::ggplot(
+        df,
+        ggplot2::aes(x = .data$x, y = .data$y, fill = .data$cat)
+    ) +
+        ggplot2::geom_tile() +
         ggplot2::scale_fill_manual(
             values = c(Unique = "#1B5E73", Shared = "#A6D8E5"),
             breaks = c("Unique", "Shared")
