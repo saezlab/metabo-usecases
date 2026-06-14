@@ -1,47 +1,61 @@
-# FR-039: configurable panel-selection config for Figure 1 composite.
-# Lists the variant artifact identifiers that appear in the final composite,
-# in display order. Panel A (manual architecture asset) is always placed first
-# by compose_fig01.tex via \includegraphics; the quantitative panels follow.
-# Every generated variant listed or not listed here is always emitted as a
-# stand-alone artifact under out/ (FR-007g, FR-009d).
+# FR-039 / FR-009d / FR-007g: panel-selection config for the
+# Figure 2 composite (post-2026-06-14 six-figure renumbering).
 #
-# Change this file to swap panels without touching any figure script.
-# The composite rebuild reads this config; caption.tex (a)/(b)/... letters
-# must match the count declared here (FR-041b).
+# Figure 2 is the quantitative database-content overview. The
+# architecture diagram is its own figure now (Figure 1, see
+# figures/fig01-architecture/) and is no longer included here.
+#
+# Layout: A wide on top (~80 mm tall, full 180 mm width,
+# horizontal facets), B/C/D on the bottom row (~60 mm wide each,
+# ~80 mm tall). Total ~180 × 160 mm (half page).
+#
+# The composite is assembled by figures/fig02-overview/build.R via
+# patchwork (not by a LaTeX template). caption.tex's (a)/(b)/(c)/(d)
+# sub-letter count MUST equal the panel count below (FR-041b).
 
 figure: fig02-overview
 
-# Panel A is the vendored manual architecture asset (FR-005b) — always included
-# at slot 0; not listed here as it is injected by the LaTeX template.
-manual_panel_a: inst/extdata/manual/architecture/omnipath-architecture-new2026.pdf
-
 panels:
-  # Position B: faceted resource overview (FR-007a)
-  - id: faceted_resource_overview
-    file: fr007a-overview.pdf
-    label: B
+  # Panel A: FR-007a horizontal-facets total-only variant. Spans the
+  # full 180 mm top row. Bar order: shared_unique on top (unique
+  # dark at base, shared light stacked above), major_class on the
+  # bottom. Each facet has its own legend with a scale title below
+  # it.
+  - id: faceted_resource_total
+    file: fr007a-total.pdf
+    label: A
+    position: top
+    width_mm: 180
+    height_mm: 80
 
-  # Position C: coverage profiles (FR-007b)
-  - id: coverage_profiles
-    file: fr007b-coverage.pdf
-    label: C
-
-  # Position D: resource-overlap networks (FR-007c)
-  - id: resource_overlap_networks
-    file: fr007c-networks.pdf
-    label: D
-
-  # Position E: entity × interaction-type matrix (FR-007d)
-  - id: entity_interaction_matrix
-    file: fr007d-matrix.pdf
-    label: E
-
-  # Position F: structural specificity × chemical category (FR-007e, dev4)
+  # Panel B: FR-007e structural specificity × chemical category.
   - id: structural_specificity
     file: fr007e-specificity.pdf
-    label: F
+    label: B
+    position: bottom-left
+    width_mm: 60
+    height_mm: 80
 
-  # Position G: RaMP InChIKey-conflict analysis (FR-007f, dev4)
-  - id: ramp_comparison
-    file: panelG.pdf
-    label: G
+  # Panel C: FR-007c resource-overlap networks (entity / interaction
+  # / literature). Node-size scale widened (Session 2026-06-14) so
+  # 1k → dot, 1M → meaningfully bigger; entity-panel thin edges
+  # cut off (top-30% by overlap weight retained).
+  - id: resource_overlap_networks
+    file: fr007c-networks.pdf
+    label: C
+    position: bottom-centre
+    width_mm: 60
+    height_mm: 80
+
+  # Panel D: FR-007d entity × interaction-type matrix.
+  - id: entity_interaction_matrix
+    file: fr007d-matrix.pdf
+    label: D
+    position: bottom-right
+    width_mm: 60
+    height_mm: 80
+
+# Other FR-007 panel artifacts (fr007a per-resource supplementary,
+# fr007b coverage, fr007f RaMP-conflict) keep their stand-alone
+# emission in out/ but are not part of the main composite per
+# Session 2026-06-14.

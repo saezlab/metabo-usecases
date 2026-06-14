@@ -258,23 +258,43 @@ logger::log_info("FR-007c networks written to {out_dir}/fr007c-networks.{{pdf,sv
 
 # ---- Composite -------------------------------------------------------------
 #
-# Post-2026-06-14 six-figure renumbering: the architecture asset moved
-# to Figure 1 (figures/fig01-architecture/) and is no longer embedded
-# here. Figure 2's composite is built from the four FR-007 panels — A:
-# fr007a-total / B: fr007e / C: fr007c / D: fr007d — via
-# tex/compose_fig02.tex (T035 in the upcoming Figure 2 composite work).
-# This script currently emits the constituent panel artifacts; the
-# four-panel composite assembler lands in a follow-up commit.
+# Post-2026-06-14 six-figure renumbering: the architecture asset
+# moved to Figure 1 (figures/fig01-architecture/). Figure 2's
+# composite assembles the four FR-007 panels via patchwork —
+# A: fr007a-total spans the full 180 mm top row (~80 mm tall, six
+# horizontal facets), B/C/D fill the bottom row at ~60 mm wide each
+# (~80 mm tall). Half-page composite ~180 × 160 mm.
 
-logger::log_info("Composing Figure 2")
-compose_mixed_source(
-    mode = "pdf",
-    spec = list(
-        template  = "tex/compose_fig02.tex",
-        output    = file.path(out_dir, "fig02-overview.pdf"),
-        component = "compose:fig02-overview"
-    ),
-    work_dir = out_dir
+logger::log_info("Composing Figure 2 (patchwork: A wide / B,C,D row)")
+
+# Add capital-letter tag annotations so the composite carries the
+# A/B/C/D labels FR-024 mandates.
+panel_a_tagged <- fr007a_total_plot +
+    patchwork::plot_annotation(tag_levels = list(c("A")))
+bottom_row <- (
+    (fr007e_plot +
+        patchwork::plot_annotation(tag_levels = list(c("B")))) |
+    (fr007c_plot +
+        patchwork::plot_annotation(tag_levels = list(c("C")))) |
+    (fr007d_plot +
+        patchwork::plot_annotation(tag_levels = list(c("D"))))
+)
+
+composite <- panel_a_tagged / bottom_row +
+    patchwork::plot_layout(heights = c(1, 1))
+
+# 180 × 160 mm half-page composite per Session 2026-06-14.
+ggsave(
+    file.path(out_dir, "fig02-overview.pdf"), composite,
+    width = 180, height = 160, units = "mm"
+)
+ggsave(
+    file.path(out_dir, "fig02-overview.svg"), composite,
+    width = 180, height = 160, units = "mm"
+)
+logger::log_info(
+    "Figure 2 composite written to ",
+    "{out_dir}/fig02-overview.{{pdf,svg}}"
 )
 
 # ---- Caption (FR-040..FR-041a, SC-011) -------------------------------------

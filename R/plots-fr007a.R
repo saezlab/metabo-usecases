@@ -433,9 +433,42 @@ fr007a_fill_map <- function(data) {
     palette <- rep(palette, length.out = length(class_levels))
     class_hex <- stats::setNames(palette, class_levels)
 
+    # Per-facet class-only maps (for the horizontal-facets +
+    # per-facet-legend layout used by plot_fr007a_total).
+    facets <- unique(as.character(data$facet))
+    facet_class_hex <- stats::setNames(
+        lapply(facets, function(f) {
+            cls <- unique(as.character(
+                data[as.character(data$facet) == f &
+                         as.character(data$bar_type) == "major_class",
+                     "category", drop = TRUE]
+            ))
+            cls <- cls[!is.na(cls) & nzchar(cls)]
+            pal <- palette_n(min(length(cls), length(palette_lead())))
+            pal <- rep(pal, length.out = length(cls))
+            c(su_hex, stats::setNames(pal, cls))
+        }),
+        facets
+    )
+    facet_class_levels <- stats::setNames(
+        lapply(facets, function(f) {
+            cls <- unique(as.character(
+                data[as.character(data$facet) == f &
+                         as.character(data$bar_type) == "major_class",
+                     "category", drop = TRUE]
+            ))
+            cls <- cls[!is.na(cls) & nzchar(cls)]
+            c(su_levels, cls)
+        }),
+        facets
+    )
+
     list(
-        hex    = c(su_hex, class_hex),
-        levels = c(su_levels, class_levels)
+        hex                = c(su_hex, class_hex),
+        levels             = c(su_levels, class_levels),
+        facet_hex          = facet_class_hex,
+        facet_levels       = facet_class_levels,
+        shared_unique      = su_levels
     )
 }
 
@@ -444,28 +477,35 @@ fr007a_fill_map <- function(data) {
 #'
 #' Compact alternative to \code{\link{plot_fr007a_overview}}: instead
 #' of the band-resource matrix, show only the \code{Total} row across
-#' all six facets, arranged vertically (one facet per row). Each
-#' facet shows the two adjacent horizontal bars: the top bar is the
-#' \code{shared / unique} split, the bottom bar is the
-#' \code{major_class} stacked breakdown.
+#' all six facets, arranged HORIZONTALLY (one facet per column).
+#' Each facet shows two adjacent horizontal bars stacked along the
+#' y-axis — the \code{shared / unique} bar at the TOP and the
+#' \code{major_class} stacked breakdown at the BOTTOM. Inside the
+#' shared/unique bar, \code{unique} (dark) sits at the BASE of the
+#' bar (next to the y-axis) and \code{shared} (light) stacks on top.
 #'
-#' This variant is what lands in the main composite Figure 1; the
-#' full faceted-resource overview from
-#' \code{\link{plot_fr007a_overview}} moves to a supplementary
-#' artifact (\code{fr007a-overview-supplementary.pdf}) per the
-#' iteration plan.
+#' Each facet carries its own legend below it (Session 2026-06-14:
+#' "per-facet legends with scale titles") so a reader can decode the
+#' colour scale facet-by-facet without scanning a single global key.
+#' The six sub-plots are assembled with \pkg{patchwork} in one row.
+#'
+#' This variant is what lands in Figure 2 (post-2026-06-14 six-figure
+#' renumbering); the full faceted-resource overview from
+#' \code{\link{plot_fr007a_overview}} stays as a supplementary
+#' artifact (\code{fr007a-overview-supplementary.pdf}).
 #'
 #' @param data Tibble from \code{\link{fr007a_overview}}.
-#' @param facet_order Character vector: facet column order — same
-#'     default as \code{\link{plot_fr007a_overview}}.
-#' @param width_mm Numeric: target physical width.
+#' @param facet_order Character vector: facet column order.
+#' @param width_mm Numeric: target physical width of the combined
+#'     six-facet row (each sub-plot gets \code{width_mm / 6}).
 #'
-#' @return A ggplot.
+#' @return A patchwork composite.
 #'
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs theme
-#' @importFrom ggplot2 facet_wrap vars element_text element_blank
+#' @importFrom ggplot2 element_text element_blank
 #' @importFrom ggplot2 scale_x_continuous scale_y_discrete expansion
-#' @importFrom ggplot2 coord_cartesian guides guide_legend
+#' @importFrom ggplot2 guides guide_legend position_stack
+#' @importFrom patchwork wrap_plots plot_layout
 #' @importFrom rlang .data
 #' @export
 plot_fr007a_total <- function(data,
@@ -480,62 +520,78 @@ plot_fr007a_total <- function(data,
 
     total <- data[as.character(data$resource) == "Total", , drop = FALSE]
     facet_order <- intersect(facet_order, unique(total$facet))
-    total$facet <- factor(total$facet, levels = facet_order)
 
-    # bar_type: shared_unique on the top sub-row, major_class on the
-    # bottom sub-row. Discrete y axis with labels suppressed (the two
-    # bars are visually distinguishable from the colour key alone).
+    # bar_type levels: major_class at BOTTOM, shared_unique on TOP.
+    # The y-axis is discrete and the FIRST level appears at the
+    # bottom of the panel — so listing major_class first puts the
+    # categories bar below the unique/shared bar (Session 2026-06-14
+    # bar-order swap).
     total$bar_type <- factor(
         total$bar_type,
-        levels = c("shared_unique", "major_class")
+        levels = c("major_class", "shared_unique")
     )
 
-    total$category <- factor(
-        total$category, levels = fill_map$levels
-    )
+    sub_plots <- lapply(facet_order, function(f) {
+        d <- total[as.character(total$facet) == f, , drop = FALSE]
+        levels_f <- fill_map$facet_levels[[f]]
+        hex_f    <- fill_map$facet_hex[[f]]
+        d$category <- factor(d$category, levels = levels_f)
 
-    ggplot2::ggplot(
-        total,
-        ggplot2::aes(
-            x    = .data$n,
-            y    = .data$bar_type,
-            fill = .data$category
-        )
-    ) +
-        ggplot2::geom_col() +
-        ggplot2::facet_wrap(
-            ~ .data$facet, ncol = 1L,
-            scales = "free_x", strip.position = "left"
+        ggplot2::ggplot(
+            d,
+            ggplot2::aes(
+                x    = .data$n,
+                y    = .data$bar_type,
+                fill = .data$category
+            )
         ) +
-        ggplot2::scale_fill_manual(
-            values = fill_map$hex,
-            name   = NULL
-        ) +
-        ggplot2::scale_x_continuous(
-            labels = scales::label_number(
-                scale_cut = scales::cut_short_scale()
-            ),
-            expand = ggplot2::expansion(mult = c(0, 0.04))
-        ) +
-        ggplot2::scale_y_discrete(labels = NULL) +
-        ggplot2::labs(x = "Items", y = NULL) +
-        theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::guides(
-            fill = ggplot2::guide_legend(ncol = 2L)
-        ) +
-        ggplot2::theme(
-            legend.position    = "right",
-            legend.text        = ggplot2::element_text(size = 11),
-            legend.key.size    = grid::unit(4, "mm"),
-            strip.placement    = "outside",
-            strip.background   = ggplot2::element_blank(),
-            strip.text.y.left  = ggplot2::element_text(
-                angle = 0, hjust = 1, face = "bold", size = 12
-            ),
-            axis.ticks.y       = ggplot2::element_blank(),
-            axis.text.y        = ggplot2::element_blank(),
-            axis.text.x        = ggplot2::element_text(size = 11),
-            axis.title.x       = ggplot2::element_text(size = 12),
-            panel.spacing.y    = grid::unit(2, "mm")
-        )
+            # reverse=TRUE puts the FIRST factor level (e.g. "unique")
+            # at the BASE of the stacked bar (x=0, next to the
+            # y-axis) instead of the default last-first stacking.
+            ggplot2::geom_col(
+                position = ggplot2::position_stack(reverse = TRUE)
+            ) +
+            ggplot2::scale_fill_manual(
+                values = hex_f,
+                name   = f,
+                breaks = levels_f
+            ) +
+            ggplot2::scale_x_continuous(
+                labels = scales::label_number(
+                    scale_cut = scales::cut_short_scale()
+                ),
+                expand = ggplot2::expansion(mult = c(0, 0.04))
+            ) +
+            ggplot2::scale_y_discrete(labels = NULL) +
+            ggplot2::labs(x = NULL, y = NULL, title = f) +
+            theme_bw_metabo(width_mm = width_mm / length(facet_order)) +
+            ggplot2::guides(
+                fill = ggplot2::guide_legend(
+                    title.position = "top",
+                    title.hjust    = 0.5,
+                    ncol           = 1L
+                )
+            ) +
+            ggplot2::theme(
+                plot.title         = ggplot2::element_text(
+                    size = 12, face = "bold", hjust = 0.5
+                ),
+                legend.position    = "bottom",
+                legend.title       = ggplot2::element_text(
+                    size = 10, face = "bold"
+                ),
+                legend.text        = ggplot2::element_text(size = 9),
+                legend.key.size    = grid::unit(3, "mm"),
+                legend.box.margin  = ggplot2::margin(t = 2, r = 0,
+                                                    b = 0, l = 0),
+                strip.background   = ggplot2::element_blank(),
+                axis.ticks.y       = ggplot2::element_blank(),
+                axis.text.y        = ggplot2::element_blank(),
+                axis.text.x        = ggplot2::element_text(size = 9),
+                panel.spacing.y    = grid::unit(2, "mm")
+            )
+    })
+
+    patchwork::wrap_plots(sub_plots, nrow = 1L) +
+        patchwork::plot_layout(guides = "keep")
 }

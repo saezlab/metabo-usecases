@@ -96,13 +96,16 @@ plot_fr007e <- function(data, width_mm = 180L) {
             legend.position = "none",
             # 2.5x scale-up from the prior 5/6 pt — these panels go
             # into a large composite figure so they need to read at
-            # composite scale. Facet strip text drops to 11 pt so
-            # "Nucleic-acid metabolism" fits without wrap.
+            # composite scale. Facet strip text was 11 pt; Session
+            # 2026-06-14 nudges it down to 10 pt so the longest
+            # chemical-category label ("Nucleic-acid metabolism")
+            # fits without truncation. Still well above the FR-017a
+            # 6 pt minimum.
             axis.text.x     = ggplot2::element_text(
                 angle = 35, hjust = 1, size = 13
             ),
             axis.text.y     = ggplot2::element_text(size = 13),
             axis.title      = ggplot2::element_text(size = 14),
-            strip.text      = ggplot2::element_text(face = "bold", size = 11)
+            strip.text      = ggplot2::element_text(face = "bold", size = 10)
         )
 }

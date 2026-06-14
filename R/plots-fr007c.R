@@ -81,6 +81,17 @@ plot_fr007c_networks <- function(data,
         kdata <- data[data$content_kind == kind, , drop = FALSE]
         if (nrow(kdata) == 0L) return(NULL)
 
+        # Session 2026-06-14: the entity panel is too dense to show a
+        # pattern, so drop the thinnest edges. Keep edges in the top
+        # 30 % by overlap weight. The interactions / literature panels
+        # have fewer edges already and keep their full set.
+        if (identical(kind, "entity") && nrow(kdata) > 0L) {
+            cutoff <- stats::quantile(
+                kdata$overlap, probs = 0.70, na.rm = TRUE
+            )
+            kdata <- kdata[kdata$overlap >= cutoff, , drop = FALSE]
+        }
+
         edges <- data.frame(
             from   = kdata$label_a,
             to     = kdata$label_b,
@@ -157,8 +168,14 @@ plot_fr007c_networks <- function(data,
                 trans = "log10",
                 name  = "Resource\noverlap"
             ) +
+            # Session 2026-06-14: widen the node-size range so 1k is
+            # a tiny dot and 1M is clearly bigger. The previous
+            # range (2.5–9) compressed 10k..1M into nearly the same
+            # visual size; the wider range (1.2–14) restores the
+            # 1k → dot, 1M → meaningfully bigger gradient on a
+            # log10 scale.
             ggplot2::scale_size(
-                range = c(2.5, 9),
+                range = c(1.2, 14),
                 trans = "log10",
                 labels = scales::label_number(
                     scale_cut = scales::cut_short_scale()
