@@ -1,7 +1,7 @@
 # tables/tab01-id-resolving/build.R
 #
 # Orchestrates the FR-014 Methods table: queries the OmniPath Postgres
-# (dev3 via the panel_deployment registry), pivots to wide, renders via
+# (dev5 via the panel_deployment registry), pivots to wide, renders via
 # gt + the LaTeX backend, saves PDF + CSV, composes the caption-and-
 # table PDF + plain-text caption, and writes the provenance sidecar.
 #
@@ -19,8 +19,8 @@ fs::dir_create(out_dir)
 
 # ---- Deployment + manifest -----------------------------------------------
 
-logger::log_info("Resolving dev3 deployment for tab01-id-resolving")
-dep3 <- deployment_provenance("dev3")
+logger::log_info("Resolving dev5 deployment for tab01-id-resolving")
+dep5 <- deployment_provenance("dev5")
 
 # ---- Data layer ----------------------------------------------------------
 
@@ -66,8 +66,8 @@ caption_info <- tables_compose_caption(
 write_sidecar(
     artifact_id    = "tab01-id-resolving",
     artifact_path  = artifacts$pdf,
-    deployments    = list(dep3$deployment),
-    manifests      = list(dep3$manifest),
+    deployments    = list(dep5$deployment),
+    manifests      = list(dep5$manifest),
     script_path    = "tables/tab01-id-resolving/build.R",
     queries        = queries,
     parameters     = list(buckets = vapply(

@@ -1,11 +1,11 @@
 # tables/tab03-record-coverage/build.R
 #
 # Orchestrates the FR-015a resource × record-type checkmark table.
-# Queries the OmniPath Postgres (dev3 by default; the Structures row
-# is routed to dev4 via the panel_deployment registry), pivots to
-# wide, builds the LaTeX body with rotated column labels, saves PDF
-# + CSV, composes the caption-and-table PDF + plain-text caption, and
-# writes the provenance sidecar carrying both deployment build_ids.
+# Queries the OmniPath Postgres (dev5 integrated build — post-
+# 2026-06-14 every row, including the Structures row, resolves on
+# dev5), pivots to wide, builds the LaTeX body with rotated column
+# labels, saves PDF + CSV, composes the caption-and-table PDF +
+# plain-text caption, and writes the provenance sidecar.
 #
 # Sourced by rebuild.R; safe to source standalone too.
 
@@ -21,9 +21,8 @@ fs::dir_create(out_dir)
 
 # ---- Deployments + manifests --------------------------------------------
 
-logger::log_info("Resolving dev3 + dev4 for tab03-record-coverage")
-dep3 <- deployment_provenance("dev3")
-dep4 <- deployment_provenance("dev4")
+logger::log_info("Resolving dev5 for tab03-record-coverage")
+dep5 <- deployment_provenance("dev5")
 
 # ---- Data layer ---------------------------------------------------------
 
@@ -73,8 +72,8 @@ caption_info <- tables_compose_caption(
 write_sidecar(
     artifact_id    = "tab03-record-coverage",
     artifact_path  = artifacts$pdf,
-    deployments    = list(dep3$deployment, dep4$deployment),
-    manifests      = list(dep3$manifest,   dep4$manifest),
+    deployments    = list(dep5$deployment),
+    manifests      = list(dep5$manifest),
     script_path    = "tables/tab03-record-coverage/build.R",
     queries        = queries,
     parameters     = list(

@@ -1,8 +1,8 @@
 # tables/tab02-ramp-comparison/build.R
 #
 # Orchestrates the FR-015 Methods table: queries the OmniPath Postgres
-# (dev4 via the panel_deployment registry — metabo_ramp_inchikey_conflict
-# is dev4-only), renders via gt + the LaTeX backend, saves PDF + CSV,
+# (dev5 via the panel_deployment registry — metabo_ramp_inchikey_conflict
+# is dev5-only), renders via gt + the LaTeX backend, saves PDF + CSV,
 # composes the caption-and-table PDF + plain-text caption, and writes
 # the provenance sidecar.
 #
@@ -21,9 +21,9 @@ fs::dir_create(out_dir)
 # ---- Deployment + manifest -----------------------------------------------
 
 logger::log_info(
-    "Resolving dev4 deployment for tab02-ramp-comparison"
+    "Resolving dev5 deployment for tab02-ramp-comparison"
 )
-dep4 <- deployment_provenance("dev4")
+dep5 <- deployment_provenance("dev5")
 
 # ---- Data layer ----------------------------------------------------------
 
@@ -68,8 +68,8 @@ caption_info <- tables_compose_caption(
 write_sidecar(
     artifact_id    = "tab02-ramp-comparison",
     artifact_path  = artifacts$pdf,
-    deployments    = list(dep4$deployment),
-    manifests      = list(dep4$manifest),
+    deployments    = list(dep5$deployment),
+    manifests      = list(dep5$manifest),
     script_path    = "tables/tab02-ramp-comparison/build.R",
     queries        = queries,
     parameters     = list(example_count = example_count),

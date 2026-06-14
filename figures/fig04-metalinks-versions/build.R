@@ -1,4 +1,4 @@
-# figures/fig03-metalinks-versions/build.R
+# figures/fig04-metalinks-versions/build.R
 #
 # First implementation slice of the Figure 3 pipeline. Uses the current
 # MetaLinksDB v2 combined network contract, the OmnipathR MetaLinksDB v1
@@ -9,13 +9,13 @@ suppressPackageStartupMessages({
     library(ggplot2)
 })
 
-setup_pipeline_log('build:fig03-metalinks-versions')
+setup_pipeline_log('build:fig04-metalinks-versions')
 set.seed(pipeline_seed())
 
-out_dir <- 'figures/fig03-metalinks-versions/out'
+out_dir <- 'figures/fig04-metalinks-versions/out'
 fs::dir_create(out_dir)
 
-dep4 <- deployment_provenance('dev4')
+dep5 <- deployment_provenance('dev5')
 
 metalinks_v2_sql <- paste(
     'select',
@@ -38,9 +38,9 @@ metalinks_v2_sql <- paste(
     'where r.compound_canonical_id is not null and r.protein_uniprot is not null'
 )
 
-logger::log_info('Querying MetaLinksDB v2 from dev4')
+logger::log_info('Querying MetaLinksDB v2 from dev5')
 metalinks_v2_rows <- pg_query_panel(
-    'fig03-metalinks-versions',
+    'fig04-metalinks-versions',
     metalinks_v2_sql
 )
 metalinks_v2 <- normalize_mpi_resource(
@@ -64,7 +64,7 @@ metalinks_v2 <- normalize_mpi_resource(
     ),
     interaction_definition = 'one HMDB-UniProt-source-relation row from custom_views.metalinksdb_relations'
 )
-attr(metalinks_v2, 'deployment') <- 'dev4'
+attr(metalinks_v2, 'deployment') <- 'dev5'
 
 logger::log_info('Loading MetaLinksDB v1 baseline')
 v1 <- metalinks_v1_snapshot()
@@ -137,14 +137,14 @@ composite <- compose_patchwork(
 )
 
 ggsave(
-    filename = file.path(out_dir, 'fig03-metalinks-versions.pdf'),
+    filename = file.path(out_dir, 'fig04-metalinks-versions.pdf'),
     plot = composite,
     width = 240,
     height = 220,
     units = 'mm'
 )
 ggsave(
-    filename = file.path(out_dir, 'fig03-metalinks-versions.svg'),
+    filename = file.path(out_dir, 'fig04-metalinks-versions.svg'),
     plot = composite,
     width = 240,
     height = 220,
@@ -152,25 +152,25 @@ ggsave(
 )
 
 caption_info <- compose_caption(
-    figure_id = 'fig03-metalinks-versions',
-    composite_pdf = file.path(out_dir, 'fig03-metalinks-versions.pdf'),
-    caption_source = 'figures/fig03-metalinks-versions/caption.tex',
+    figure_id = 'fig04-metalinks-versions',
+    composite_pdf = file.path(out_dir, 'fig04-metalinks-versions.pdf'),
+    caption_source = 'figures/fig04-metalinks-versions/caption.tex',
     out_dir = out_dir,
     panel_count = 5L
 )
 
 queries <- list(query_record(metalinks_v2_rows))
 write_sidecar(
-    artifact_id = 'fig03-metalinks-versions',
-    artifact_path = file.path(out_dir, 'fig03-metalinks-versions.pdf'),
-    deployments = list(dep4$deployment),
-    manifests = list(dep4$manifest),
-    script_path = 'figures/fig03-metalinks-versions/build.R',
+    artifact_id = 'fig04-metalinks-versions',
+    artifact_path = file.path(out_dir, 'fig04-metalinks-versions.pdf'),
+    deployments = list(dep5$deployment),
+    manifests = list(dep5$manifest),
+    script_path = 'figures/fig04-metalinks-versions/build.R',
     queries = queries,
     external_inputs = c(list(v1$external_input), unname(lapply(names(baselines), function(resource) {
         list(
             kind = 'vendored-mpi-baseline',
-            path = file.path('inst/extdata/fig03-mpi-baselines', paste0(snapshot_slug(resource), '.csv')),
+            path = file.path('inst/extdata/fig04-mpi-baselines', paste0(snapshot_slug(resource), '.csv')),
             source = resource,
             fingerprint = NA_character_
         )
@@ -202,4 +202,4 @@ write_sidecar(
     caption = caption_info
 )
 
-logger::log_info('Figure 3 build complete')
+logger::log_info('Figure 4 build complete')
