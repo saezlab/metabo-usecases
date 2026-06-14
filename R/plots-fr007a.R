@@ -666,6 +666,11 @@ plot_fr007a_total <- function(data,
         # scale_fill_manual `labels = ...` argument.
         pretty_levels <- fr007a_pretty_label(levels_f)
         names(pretty_levels) <- levels_f
+        # Per-facet legend hides unique/shared (those go in the
+        # global SU legend). Compute the breaks + matching labels
+        # vector — same length is required by scale_fill_manual.
+        legend_breaks <- setdiff(levels_f, c("unique", "shared"))
+        legend_labels <- pretty_levels[legend_breaks]
         # Pretty-print the facet title too ("Literature" stays,
         # but consistent capitalization across facets).
         facet_title <- fr007a_pretty_label(f)
@@ -692,12 +697,8 @@ plot_fr007a_total <- function(data,
             ggplot2::scale_fill_manual(
                 values = hex_f,
                 name   = facet_title,
-                labels = pretty_levels,
-                # Drop the unique/shared levels from the per-facet
-                # legend keys: those two values now appear in the
-                # single global unique/shared legend at the left
-                # of the row (see fr007a_su_legend_plot()).
-                breaks = setdiff(levels_f, c("unique", "shared"))
+                breaks = legend_breaks,
+                labels = legend_labels
             ) +
             ggplot2::scale_x_continuous(
                 labels = scales::label_number(
