@@ -59,8 +59,12 @@ metalinks_v2_sql <- paste(
     '  COUNT(DISTINCT r.compound_canonical_id || \'::\'',
     '       || r.protein_uniprot) AS n_interactions',
     'FROM custom_views.metalinksdb_relations r',
+    -- dev5 schema change: metalinksdb_protein_annotations.protein_uniprot
+    -- now holds the protein_canonical_id (which resolves to Entrez gene
+    -- IDs, not UniProt accessions). Join via the entity-UUID instead so
+    -- the relation rows still match their annotation rows.
     'JOIN custom_views.metalinksdb_protein_annotations a',
-    '  ON r.protein_uniprot = a.protein_uniprot',
+    '  ON r.protein_entity_id = a.protein_entity_id',
     'CROSS JOIN LATERAL unnest(a.gtp_functional_classes) AS gtp(gtp_class)',
     'WHERE r.compound_canonical_id IS NOT NULL',
     '  AND r.protein_uniprot IS NOT NULL',

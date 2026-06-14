@@ -157,6 +157,31 @@ fig03_protein_class_panel <- function(data,
         name = 'n'
     )
 
+    # Strip the trailing :OM:NNNN / :MI:NNNN ontology-id suffix
+    # from the protein-class strings produced by the Guide-to-
+    # Pharmacology join (e.g. "Gpcr:OM:0040" → "GPCR"). Also
+    # apply a few display-case fixes: GtP's "Gpcr"/"Vgic"/"Lgic"
+    # acronyms are conventionally all-caps in publications.
+    pretty_protein_class <- function(x) {
+        out <- sub("\\s*:[A-Z]+:\\d+\\s*$", "", as.character(x))
+        out <- trimws(out)
+        renames <- c(
+            "Gpcr"               = "GPCR",
+            "Vgic"               = "VGIC",
+            "Lgic"               = "LGIC",
+            "Catalytic Receptor" = "Catalytic receptor",
+            "Nuclear Hormone Receptor" = "Nuclear hormone receptor",
+            "Other Protein"      = "Other"
+        )
+        hits <- match(tolower(out), tolower(names(renames)))
+        has_rename <- !is.na(hits)
+        out[has_rename] <- renames[hits[has_rename]]
+        out
+    }
+    class_counts$protein_class_label <- pretty_protein_class(
+        class_counts$protein_class_label
+    )
+
     if (nrow(class_counts) == 0L) {
         return(empty_fig03_panel(
             title = 'Protein classes',

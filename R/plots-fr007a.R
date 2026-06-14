@@ -515,9 +515,11 @@ fr007a_pretty_label <- function(x) {
         # most-discriminating single word (the figure is gene-
         # centric per cycle-001 M-Genes work).
         "Proteins/genes/RNA"    = "Genes",
-        # Associations facet — drop the "enzymes /" half: the
-        # underlying records are predominantly pathway entries.
+        # Associations facet — drop the "enzymes /" half (records
+        # are predominantly pathway entries) + drop the
+        # "(GO)" tail from function to free up column width.
         "enzymes / pathways"    = "Pathways",
+        "function (GO)"         = "Function",
         # Identifiers facet
         "Standard Inchi Key"    = "InChI key",
         "Chembl Compound"       = "ChEMBL",
@@ -576,7 +578,10 @@ fr007a_su_legend_plot <- function() {
         df,
         ggplot2::aes(x = .data$x, y = .data$y, fill = .data$cat)
     ) +
-        ggplot2::geom_tile() +
+        # alpha = 0 hides the tiles in the panel area; the legend
+        # keys still render at full colour because legends draw a
+        # synthetic key independent of the geom's transparency.
+        ggplot2::geom_tile(alpha = 0) +
         ggplot2::scale_fill_manual(
             values = c(Unique = "#1B5E73", Shared = "#A6D8E5"),
             breaks = c("Unique", "Shared")
