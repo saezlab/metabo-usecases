@@ -107,11 +107,12 @@ register_category_colours(
 )
 
 panels <- list(
-    coverage = fig03_coverage_panel(fig03_rows, width_mm = 120L),
-    metabolite_classes = fig03_metabolite_class_panel(fig03_rows, width_mm = 120L),
-    protein_classes = fig03_protein_class_panel(fig03_rows, width_mm = 120L),
-    evidence = fig03_evidence_confidence_panel(fig03_rows, width_mm = 120L),
-    source_relationship = fig03_source_relationship_panel(fig03_rows, width_mm = 120L)
+    coverage            = fig03_coverage_panel(fig03_rows, width_mm = 120L),
+    metabolite_classes  = fig03_metabolite_class_panel(fig03_rows, width_mm = 120L),
+    protein_classes     = fig03_protein_class_panel(fig03_rows, width_mm = 120L),
+    # FR-010d Panel D + FR-010e Panel E (Session 2026-06-15 review).
+    metalinks_overview  = fig03_metalinks_overview_panel(fig03_rows, width_mm = 120L),
+    relationship_types  = fig03_relationship_types_panel(fig03_rows, width_mm = 120L)
 )
 
 for (name in names(panels)) {
@@ -130,6 +131,101 @@ for (name in names(panels)) {
         units = 'mm'
     )
 }
+
+
+# ---- FR-010h + FR-010i: per-panel supplementary CSVs + legend.csv ----------
+#
+# For every panel we emit a CSV under out/supplementary/<panel_slug>/
+# containing the harmonized MPI rows that drive that panel's counts.
+# A central legend.csv catalogues each file so downstream readers can
+# understand what they describe without reading the renderer code.
+
+supp_dir <- file.path(out_dir, 'supplementary')
+fs::dir_create(supp_dir)
+
+supplementary_specs <- list(
+    list(
+        slug = '4A',
+        title = 'Coverage (FR-010a)',
+        rows  = fig03_rows,
+        description = paste(
+            'All harmonized metabolite-protein interaction rows fed into',
+            'Panel A. The panel reports per-resource counts of unique',
+            'interactions, metabolites (HMDB basis), and proteins',
+            '(UniProt basis); this file is the source of those counts.'
+        )
+    ),
+    list(
+        slug = '4B',
+        title = 'Metabolite class breadth (FR-010b)',
+        rows  = fig03_rows[!is.na(fig03_rows$metabolite_class) &
+                           nzchar(fig03_rows$metabolite_class), ],
+        description = paste(
+            'Subset of harmonized MPI rows carrying a non-empty',
+            'metabolite_class label. Panel B counts unique (resource,',
+            'metabolite_class) cells from this subset.'
+        )
+    ),
+    list(
+        slug = '4C',
+        title = 'Protein class breadth (FR-010c)',
+        rows  = fig03_rows[!is.na(fig03_rows$protein_class) &
+                           nzchar(fig03_rows$protein_class), ],
+        description = paste(
+            'Subset of harmonized MPI rows carrying a non-empty',
+            'protein_class label. Panel C counts unique (resource,',
+            'protein_class) cells; the renderer further strips the',
+            ':OM:NNNN ontology-code tail before display.'
+        )
+    ),
+    list(
+        slug = '4D',
+        title = 'MetaLinksDB 2.0 overview (FR-010d)',
+        rows  = fig03_rows[fig03_rows$resource == 'MetaLinksDB v2.0', ],
+        description = paste(
+            'MetaLinksDB v2.0 rows only. Panel D reports unique',
+            'interactions, metabolites, and proteins per upstream source',
+            'as a grouped bar chart (not stacked).'
+        )
+    ),
+    list(
+        slug = '4E',
+        title = 'Relationship types (FR-010e)',
+        rows  = fig03_rows[
+            tolower(fig03_rows$relation_type) %in%
+                c('transport', 'receptor', 'interaction'), ],
+        description = paste(
+            'Subset restricted to the three FR-010e categories',
+            '(transport / receptor / interaction). Panel E counts unique',
+            '(source, relation_type) cells from this subset.'
+        )
+    )
+)
+
+legend_rows <- list()
+for (spec in supplementary_specs) {
+    panel_dir <- file.path(supp_dir, spec$slug)
+    fs::dir_create(panel_dir)
+    csv_name <- sprintf('%s_rows.csv', tolower(gsub('[^A-Za-z0-9]+', '_',
+                                                    spec$title)))
+    csv_path <- file.path(panel_dir, csv_name)
+    readr::write_csv(spec$rows, csv_path)
+    legend_rows[[length(legend_rows) + 1L]] <- data.frame(
+        panel_slug   = spec$slug,
+        panel_title  = spec$title,
+        file         = file.path('supplementary', spec$slug, csv_name),
+        n_rows       = nrow(spec$rows),
+        n_columns    = ncol(spec$rows),
+        description  = spec$description,
+        stringsAsFactors = FALSE
+    )
+}
+legend_df <- do.call(rbind, legend_rows)
+readr::write_csv(legend_df, file.path(supp_dir, 'legend.csv'))
+logger::log_info(
+    'FR-010h/i: wrote {length(supplementary_specs)} supplementary CSVs ',
+    '+ legend.csv to {supp_dir}'
+)
 
 composite <- compose_patchwork(
     panels,

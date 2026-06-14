@@ -228,92 +228,152 @@ fig03_protein_class_panel <- function(data,
 }
 
 
-#' Figure 3D -- evidence / confidence availability
+#' Figure 4 Panel D — MetaLinksDB 2.0 overview (FR-010d)
+#'
+#' MetaLinksDB-2.0-only view: for each upstream source the network was
+#' built from (chembl, hmdb, cellinker, …), report \code{Interactions},
+#' \code{Metabolites}, and \code{Proteins} as a NORMAL (grouped) bar
+#' chart — not stacked — per FR-010d. Counts are de-duplicated within
+#' each (source, metric) cell so a metabolite or protein contributed
+#' by N relations in the same source counts once.
 #'
 #' @param data Harmonized MPI rows.
 #' @param width_mm Numeric target width.
 #' @return A ggplot object.
-#' @importFrom dplyr bind_rows group_by summarise
-#' @importFrom ggplot2 ggplot aes geom_col labs scale_fill_manual theme
+#' @importFrom dplyr filter group_by summarise n_distinct
+#' @importFrom ggplot2 ggplot aes geom_col coord_flip labs
+#' @importFrom ggplot2 scale_fill_manual theme position_dodge2
 #' @importFrom rlang .data
 #' @export
-fig03_evidence_confidence_panel <- function(data, width_mm = 180L) {
+fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
 
-    resource <- dimension <- n <- NULL
+    resource <- source <- metric <- n <- NULL
 
-    summary <- dplyr::bind_rows(
-        dplyr::summarise(dplyr::group_by(data, .data$resource), dimension = 'Multi-source', n = sum(.data$source_count > 1, na.rm = TRUE), .groups = 'drop'),
-        dplyr::summarise(dplyr::group_by(data, .data$resource), dimension = 'Citations', n = sum(!is.na(.data$citation_count) & .data$citation_count > 0, na.rm = TRUE), .groups = 'drop'),
-        dplyr::summarise(dplyr::group_by(data, .data$resource), dimension = 'Affinity', n = sum(!is.na(.data$affinity_value), na.rm = TRUE), .groups = 'drop'),
-        dplyr::summarise(dplyr::group_by(data, .data$resource), dimension = 'Curation mode', n = sum(!is.na(.data$curation_mode) & .data$curation_mode != '', na.rm = TRUE), .groups = 'drop')
+    metalinks <- dplyr::filter(
+        data, .data$resource == 'MetaLinksDB v2.0'
     )
 
-    if (nrow(summary) == 0L || all(summary$n == 0L)) {
+    if (nrow(metalinks) == 0L) {
         return(empty_fig03_panel(
-            title = 'Evidence / confidence',
-            subtitle = 'Only source-count evidence available so far',
+            title    = 'MetaLinksDB 2.0 overview',
+            subtitle = 'No MetaLinksDB v2.0 rows available',
             width_mm = width_mm
         ))
     }
 
+    summary <- dplyr::summarise(
+        dplyr::group_by(metalinks, .data$source),
+        Interactions = dplyr::n_distinct(
+            paste(.data$metabolite, .data$protein, sep = '→')
+        ),
+        Metabolites  = dplyr::n_distinct(.data$metabolite),
+        Proteins     = dplyr::n_distinct(.data$protein),
+        .groups      = 'drop'
+    )
+
+    long <- data.frame(
+        source = rep(summary$source, 3L),
+        metric = rep(
+            c('Interactions', 'Metabolites', 'Proteins'),
+            each = nrow(summary)
+        ),
+        n      = c(summary$Interactions, summary$Metabolites,
+                   summary$Proteins)
+    )
+    long$metric <- factor(
+        long$metric,
+        levels = c('Interactions', 'Metabolites', 'Proteins')
+    )
+
     ggplot2::ggplot(
-        summary,
-        ggplot2::aes(x = .data$resource, y = .data$n, fill = .data$dimension)
+        long,
+        ggplot2::aes(x = .data$source, y = .data$n, fill = .data$metric)
     ) +
-        ggplot2::geom_col(width = 0.7) +
+        ggplot2::geom_col(
+            position = ggplot2::position_dodge2(preserve = 'single'),
+            width    = 0.8
+        ) +
         ggplot2::scale_fill_manual(values = c(
-            `Multi-source` = palette_lead()[['teal']],
-            Citations = palette_lead()[['amber']],
-            Affinity = palette_lead()[['magenta']],
-            `Curation mode` = palette_lead()[['green']]
+            Interactions = palette_lead()[['teal']],
+            Metabolites  = palette_lead()[['amber']],
+            Proteins     = palette_lead()[['magenta']]
         )) +
-        ggplot2::labs(x = NULL, y = 'Interactions', fill = NULL, title = 'Evidence / confidence') +
+        ggplot2::coord_flip() +
+        ggplot2::labs(
+            x     = NULL,
+            y     = 'Count',
+            fill  = NULL,
+            title = 'MetaLinksDB 2.0 overview'
+        ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(legend.position = 'top')
 }
 
 
-#' Figure 3E -- source by relationship type
+#' Figure 4 Panel E — relationship-type composition (FR-010e)
+#'
+#' Source × relationship-type grouped bars, restricted to the three
+#' key categories \code{transport}, \code{receptor}, and
+#' \code{interaction} (FR-010e). The set of sources shown is the
+#' union of upstream sources the harmonized MPI rows expose across
+#' all included resources.
 #'
 #' @param data Harmonized MPI rows.
 #' @param width_mm Numeric target width.
 #' @return A ggplot object.
-#' @importFrom dplyr count
-#' @importFrom ggplot2 ggplot aes geom_col coord_flip labs scale_fill_manual theme
+#' @importFrom dplyr filter count
+#' @importFrom ggplot2 ggplot aes geom_col coord_flip labs
+#' @importFrom ggplot2 scale_fill_manual theme position_dodge2
 #' @importFrom rlang .data
 #' @export
-fig03_source_relationship_panel <- function(data, width_mm = 180L) {
+fig03_relationship_types_panel <- function(data, width_mm = 180L) {
 
     source <- relation_type <- n <- NULL
 
-    summary <- dplyr::count(data, .data$source, .data$relation_type, name = 'n')
-    if (nrow(summary) == 0L) {
+    kept_types <- c('transport', 'receptor', 'interaction')
+
+    sub <- dplyr::filter(
+        data, tolower(.data$relation_type) %in% kept_types
+    )
+
+    if (nrow(sub) == 0L) {
         return(empty_fig03_panel(
-            title = 'Source × relationship type',
-            subtitle = 'No source-composition data available',
+            title    = 'Relationship types',
+            subtitle = 'No transport / receptor / interaction rows',
             width_mm = width_mm
         ))
     }
 
-    relation_types <- sort(unique(summary$relation_type))
-    fills <- setNames(
-        palette_n(as.integer(length(relation_types)), unknown = FALSE),
-        relation_types
+    summary <- dplyr::count(
+        sub, .data$source, .data$relation_type, name = 'n'
     )
-    register_category_colours('interaction_types', fills)
+    summary$relation_type <- factor(
+        tolower(summary$relation_type), levels = kept_types
+    )
 
     ggplot2::ggplot(
         summary,
-        ggplot2::aes(x = .data$source, y = .data$n, fill = .data$relation_type)
+        ggplot2::aes(
+            x    = .data$source,
+            y    = .data$n,
+            fill = .data$relation_type
+        )
     ) +
-        ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_manual(values = fills) +
+        ggplot2::geom_col(
+            position = ggplot2::position_dodge2(preserve = 'single'),
+            width    = 0.8
+        ) +
+        ggplot2::scale_fill_manual(values = c(
+            transport   = palette_lead()[['teal']],
+            receptor    = palette_lead()[['magenta']],
+            interaction = palette_lead()[['amber']]
+        )) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x = NULL,
-            y = 'Interactions',
-            fill = NULL,
-            title = 'Source × relationship type'
+            x     = NULL,
+            y     = 'Interactions',
+            fill  = NULL,
+            title = 'Relationship types'
         ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(legend.position = 'top')
