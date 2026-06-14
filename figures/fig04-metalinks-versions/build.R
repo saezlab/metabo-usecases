@@ -159,7 +159,7 @@ supplementary_specs <- list(
         slug = '4B',
         title = 'Metabolite class breadth (FR-010b)',
         rows  = fig03_rows[!is.na(fig03_rows$metabolite_class) &
-                           nzchar(fig03_rows$metabolite_class), ],
+                           nzchar(as.character(fig03_rows$metabolite_class)), ],
         description = paste(
             'Subset of harmonized MPI rows carrying a non-empty',
             'metabolite_class label. Panel B counts unique (resource,',
@@ -170,7 +170,7 @@ supplementary_specs <- list(
         slug = '4C',
         title = 'Protein class breadth (FR-010c)',
         rows  = fig03_rows[!is.na(fig03_rows$protein_class) &
-                           nzchar(fig03_rows$protein_class), ],
+                           nzchar(as.character(fig03_rows$protein_class)), ],
         description = paste(
             'Subset of harmonized MPI rows carrying a non-empty',
             'protein_class label. Panel C counts unique (resource,',

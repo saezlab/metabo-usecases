@@ -264,10 +264,10 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
     summary <- dplyr::summarise(
         dplyr::group_by(metalinks, .data$source),
         Interactions = dplyr::n_distinct(
-            paste(.data$metabolite, .data$protein, sep = '→')
+            paste(.data$hmdb_id, .data$uniprot_id, sep = '|')
         ),
-        Metabolites  = dplyr::n_distinct(.data$metabolite),
-        Proteins     = dplyr::n_distinct(.data$protein),
+        Metabolites  = dplyr::n_distinct(.data$hmdb_id),
+        Proteins     = dplyr::n_distinct(.data$uniprot_id),
         .groups      = 'drop'
     )
 
