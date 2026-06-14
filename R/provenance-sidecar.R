@@ -274,11 +274,21 @@ query_record <- function(rows) {
 #' @noRd
 git_commit_of <- function(path) {
 
-    if (Sys.which("git") == "") return("no-git")
+    if (Sys.which("git") == "") {
+        return(strrep("0", 40L))
+    }
     res <- suppressWarnings(system2(
         "git",
-        c("log", "-1", "--format=%h", "--", path),
+        c("log", "-1", "--format=%H", "--", path),
         stdout = TRUE, stderr = FALSE
     ))
-    if (length(res) == 0L) "untracked" else res[[1L]]
+    if (length(res) == 0L || !nzchar(res[[1L]])) {
+        # Untracked file or no commits: return 40 zeroes so the
+        # panel-a-stats schema's ^[0-9a-f]{40}$ pattern still
+        # validates instead of returning a bare 'untracked' /
+        # 'no-git' literal.
+        strrep("0", 40L)
+    } else {
+        res[[1L]]
+    }
 }
