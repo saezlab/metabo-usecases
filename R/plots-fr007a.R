@@ -577,9 +577,15 @@ plot_fr007a_total <- function(data,
                 fill = ggplot2::guide_legend(
                     title.position = "top",
                     title.hjust    = 0.5,
-                    ncol           = 1L,
-                    keywidth       = grid::unit(2.5, "mm"),
-                    keyheight      = grid::unit(2.5, "mm")
+                    # Cap each legend column at 4 entries. Facets
+                    # with up to 4 categories stay single-column;
+                    # the busier Identifiers facet wraps to 2 cols
+                    # so the legend doesn't spill into the row
+                    # below.
+                    nrow           = 4L,
+                    byrow          = TRUE,
+                    keywidth       = grid::unit(2, "mm"),
+                    keyheight      = grid::unit(2, "mm")
                 )
             ) +
             ggplot2::theme(
