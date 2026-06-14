@@ -588,10 +588,15 @@ fr007a_su_legend_plot <- function() {
         ) +
         ggplot2::guides(
             fill = ggplot2::guide_legend(
-                title    = NULL,
-                ncol     = 1L,
-                keywidth = grid::unit(1.8, "mm"),
-                keyheight = grid::unit(1.8, "mm")
+                title         = NULL,
+                ncol          = 1L,
+                keywidth      = grid::unit(1.8, "mm"),
+                keyheight     = grid::unit(1.8, "mm"),
+                # The underlying geom_tile uses alpha = 0 to hide
+                # the bars in the panel area; override.aes resets
+                # the legend keys to fully opaque so the unique /
+                # shared swatches still read at full colour.
+                override.aes  = list(alpha = 1)
             )
         ) +
         ggplot2::theme_void() +
