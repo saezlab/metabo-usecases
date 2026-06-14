@@ -267,21 +267,24 @@ logger::log_info("FR-007c networks written to {out_dir}/fr007c-networks.{{pdf,sv
 
 logger::log_info("Composing Figure 2 (patchwork: A wide / B,C,D row)")
 
-# Add capital-letter tag annotations so the composite carries the
-# A/B/C/D labels FR-024 mandates.
-panel_a_tagged <- fr007a_total_plot +
-    patchwork::plot_annotation(tag_levels = list(c("A")))
-bottom_row <- (
-    (fr007e_plot +
-        patchwork::plot_annotation(tag_levels = list(c("B")))) |
-    (fr007c_plot +
-        patchwork::plot_annotation(tag_levels = list(c("C")))) |
-    (fr007d_plot +
-        patchwork::plot_annotation(tag_levels = list(c("D"))))
-)
-
-composite <- panel_a_tagged / bottom_row +
-    patchwork::plot_layout(heights = c(1, 1))
+# Use patchwork wrap_elements() to make the inner fr007a-total
+# patchwork an atomic unit so its 6 sub-facets don't get
+# auto-tagged. Outer-level plot_annotation(tag_levels = "A") then
+# assigns A / B / C / D to the four top-level slots.
+composite <- (
+    patchwork::wrap_elements(full = fr007a_total_plot)
+    /
+    (fr007e_plot | fr007c_plot | fr007d_plot)
+) +
+    patchwork::plot_layout(heights = c(1, 1)) +
+    patchwork::plot_annotation(
+        tag_levels = "A",
+        theme = ggplot2::theme(
+            plot.tag = ggplot2::element_text(
+                size = 14, face = "bold"
+            )
+        )
+    )
 
 # 180 × 160 mm half-page composite per Session 2026-06-14.
 ggsave(
