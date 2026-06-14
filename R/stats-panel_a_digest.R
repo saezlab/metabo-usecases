@@ -222,13 +222,28 @@ build_panel_a_digest <- function(
     write_digest_json(digest_obj, json_path)
     write_digest_csv(digest_obj, csv_path)
     write_digest_markdown(digest_obj, md_path)
-    write_digest_pdf(md_path, pdf_path, caption_sty)
+    # Sidecar before PDF: the sidecar is the authoritative
+    # auditable record (FR-043i) and MUST land even if the PDF
+    # typesetting step trips. Non-fatal failure on the PDF leaves
+    # a warning behind; the JSON / CSV / sidecar are unaffected.
     write_digest_sidecar(
         digest_obj,
         section_metrics,
         section_resources,
         cfg,
         sidecar_path
+    )
+    tryCatch(
+        write_digest_pdf(md_path, pdf_path, caption_sty),
+        error = function(e) {
+            logger::log_warn(paste0(
+                "stats.pdf typesetting failed (non-fatal): ",
+                conditionMessage(e),
+                ". The JSON / CSV / Markdown / sidecar are written; ",
+                "re-run xelatex manually on the tex/ wrapper if a ",
+                "typeset PDF is required for the manuscript build."
+            ))
+        }
     )
 
     logger::log_info(
@@ -562,17 +577,28 @@ md_to_latex_minimal <- function(md_path, pdf_path, caption_sty) {
 
     args <- c(
         "-interaction=nonstopmode",
+        "-halt-on-error",
         sprintf("-output-directory=%s", dirname(work)),
         work
     )
-    status <- system2("xelatex", args, stdout = TRUE, stderr = TRUE)
+    # Don't throw on non-zero xelatex exit — the caller wraps this in
+    # tryCatch but a clean false-return here is more informative.
+    status <- tryCatch(
+        suppressWarnings(system2(
+            "xelatex", args,
+            stdout = TRUE, stderr = TRUE
+        )),
+        error = function(e) paste0("xelatex not found or refused: ",
+                                   conditionMessage(e))
+    )
 
     produced_pdf <- sub("\\.tex$", ".pdf", work)
     if (!file.exists(produced_pdf)) {
-        logger::log_warn(
+        logger::log_warn(paste0(
             "xelatex did not produce a PDF for the digest; ",
-            "log tail:\n{paste(tail(status, 20), collapse = '\n')}"
-        )
+            "tail of xelatex output:\n",
+            paste(tail(as.character(status), 30), collapse = "\n")
+        ))
         return(invisible(FALSE))
     }
 

@@ -82,22 +82,24 @@ section_resource_sql <- function() {
             " ORDER BY n_rows DESC",
             sep = "\n"
         ),
-        # Section 4 — Structures. The 3.1M-structures × 24M-
-        # resolution join is too costly for a per-source group-by.
-        # Instead, materialize the structure-bearing entity_id set
-        # (3.1M unique entity_ids) once and intersect with sources
-        # via entity_evidence_resolution. Includes a NOT NULL
-        # filter on entity_id to skip the unresolved rows.
+        # Section 4 — Structures. The structure-direct join
+        # (mess → entity_evidence_resolution → entity_evidence →
+        # data_source) is too costly on dev5 (8+ min) because the
+        # struct → resolution join expands ~3.1M structs × ~5
+        # resolutions/entity. Pragmatic approximation: list
+        # sources contributing CHEMICAL entities (any
+        # vocab_chemical_class membership), since every
+        # structural-specificity row is for a chemical entity and
+        # all chemical-bearing sources are by definition
+        # structure-bearing sources.
         `4` = paste(
-            "WITH struct AS MATERIALIZED (",
-            "    SELECT entity_id FROM metabo_entity_structural_specificity",
-            ")",
             "SELECT ds.name AS resource_name,",
             "       COUNT(*) AS n_rows",
             "  FROM entity_evidence_resolution eer",
-            "  JOIN struct s ON s.entity_id = eer.entity_id",
+            "  JOIN entity e ON e.entity_id = eer.entity_id",
             "  JOIN entity_evidence ee USING (entity_evidence_id)",
             "  JOIN data_source ds ON ds.source_id = ee.source_id",
+            " WHERE e.chemical_class_id IS NOT NULL",
             " GROUP BY ds.name",
             " ORDER BY n_rows DESC",
             sep = "\n"
