@@ -1,6 +1,7 @@
 # figures/fig05-cosmos-pkn/build.R
 #
-# Figure 4: COSMOS+ PKN analysis — four pipeline panels.
+# Figure 5: COSMOS+ PKN analysis — four pipeline panels (post-
+# 2026-06-14 six-figure renumbering; was Figure 4).
 #
 # Panel A: species-aware comparison of old COSMOS PKN vs. COSMOS+ by interaction type
 # Panel B: COSMOS+ interactions per annotated subcellular compartment

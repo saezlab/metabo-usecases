@@ -170,7 +170,8 @@ write_sidecar(
     external_inputs = c(list(v1$external_input), unname(lapply(names(baselines), function(resource) {
         list(
             kind = 'vendored-mpi-baseline',
-            path = file.path('inst/extdata/fig04-mpi-baselines', paste0(snapshot_slug(resource), '.csv')),
+            path = file.path('inst/extdata/fig04-mpi-baselines',
+                             paste0(snapshot_slug(resource), '.csv')),
             source = resource,
             fingerprint = NA_character_
         )

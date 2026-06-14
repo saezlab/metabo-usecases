@@ -1,7 +1,7 @@
-# FR-039: per-figure composition config for Figure 4
-# All seven slots are fixed — no deferred panel selection for Figure 4.
+# FR-039: per-figure composition config for Figure 5
+# All seven slots are fixed — no deferred panel selection for Figure 5.
 
-figure_id: fig04-cosmos-pkn
+figure_id: fig05-cosmos-pkn
 title: "COSMOS+ prior-knowledge network — scope extension, compartment coverage, resource contributions, and comparison with MetaLinksDB 2.0"
 
 panels:
