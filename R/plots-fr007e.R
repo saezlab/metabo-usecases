@@ -51,14 +51,19 @@ plot_fr007e <- function(data, width_mm = 180L) {
     # in the composite slot (180 mm / 3 cols / 3 facets across),
     # so the original full-length names (e.g. "Amino-acid
     # metabolism") overflow and get clipped.
+    # 20 mm-wide facet strips — short single-token labels keep the
+    # bottom row from clipping. "Amino"/"Nucleic" are unambiguous
+    # given the figure context (amino-acid vs nucleic-acid
+    # metabolism); "Carbs" is the conventional short form for
+    # carbohydrates.
     cat_labels <- c(
         "drugs"                   = "Drugs",
         "metabolites"             = "Metabolites",
         "lipids"                  = "Lipids",
         "food compounds"          = "Foods",
-        "amino-acid metabolism"   = "Amino acids",
-        "nucleic-acid metabolism" = "Nucleic acids",
-        "carbohydrates"           = "Carbohydrates"
+        "amino-acid metabolism"   = "Amino",
+        "nucleic-acid metabolism" = "Nucleic",
+        "carbohydrates"           = "Carbs"
     )
     keep <- intersect(cat_levels, unique(as.character(data$category)))
     data$category <- factor(
