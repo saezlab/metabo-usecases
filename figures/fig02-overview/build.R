@@ -276,7 +276,12 @@ composite <- (
     /
     (fr007e_plot | fr007c_plot | fr007d_plot)
 ) +
-    patchwork::plot_layout(heights = c(1, 1)) +
+    # Give the top row more space — the 6 sub-facets each need to
+    # fit a title + 2-row bar + axis ticks + a 3-5-entry legend
+    # below in ~30 mm of width. With heights = c(3, 2) the top row
+    # is ~108 mm and the bottom row is ~72 mm, total ~180 mm
+    # (~2/3-page composite at 180 mm wide).
+    patchwork::plot_layout(heights = c(3, 2)) +
     patchwork::plot_annotation(
         tag_levels = "A",
         theme = ggplot2::theme(
@@ -286,14 +291,14 @@ composite <- (
         )
     )
 
-# 180 × 160 mm half-page composite per Session 2026-06-14.
+# 180 × 180 mm composite (top row 108 mm, bottom row 72 mm).
 ggsave(
     file.path(out_dir, "fig02-overview.pdf"), composite,
-    width = 180, height = 160, units = "mm"
+    width = 180, height = 180, units = "mm"
 )
 ggsave(
     file.path(out_dir, "fig02-overview.svg"), composite,
-    width = 180, height = 160, units = "mm"
+    width = 180, height = 180, units = "mm"
 )
 logger::log_info(
     "Figure 2 composite written to ",

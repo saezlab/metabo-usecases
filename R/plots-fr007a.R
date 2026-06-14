@@ -554,7 +554,15 @@ plot_fr007a_total <- function(data,
             ggplot2::scale_fill_manual(
                 values = hex_f,
                 name   = f,
-                breaks = levels_f
+                # Drop the shared/unique levels from the legend keys:
+                # those two values appear only on the upper bar and
+                # use a fixed dark/light grayscale that the caption
+                # describes ("unique dark at base, shared light
+                # stacked above"). Showing them as legend entries
+                # alongside class colours bloats the legend to
+                # ~7 rows per facet and breaks the 30 mm-per-facet
+                # layout (Session 2026-06-14 viewport fix).
+                breaks = setdiff(levels_f, c("unique", "shared"))
             ) +
             ggplot2::scale_x_continuous(
                 labels = scales::label_number(
@@ -569,25 +577,31 @@ plot_fr007a_total <- function(data,
                 fill = ggplot2::guide_legend(
                     title.position = "top",
                     title.hjust    = 0.5,
-                    ncol           = 1L
+                    ncol           = 1L,
+                    keywidth       = grid::unit(2.5, "mm"),
+                    keyheight      = grid::unit(2.5, "mm")
                 )
             ) +
             ggplot2::theme(
                 plot.title         = ggplot2::element_text(
-                    size = 12, face = "bold", hjust = 0.5
+                    size = 10, face = "bold", hjust = 0.5,
+                    margin = ggplot2::margin(b = 1)
                 ),
+                plot.margin        = ggplot2::margin(2, 2, 2, 2),
                 legend.position    = "bottom",
                 legend.title       = ggplot2::element_text(
-                    size = 10, face = "bold"
+                    size = 9, face = "bold",
+                    margin = ggplot2::margin(b = 1)
                 ),
-                legend.text        = ggplot2::element_text(size = 9),
-                legend.key.size    = grid::unit(3, "mm"),
-                legend.box.margin  = ggplot2::margin(t = 2, r = 0,
+                legend.text        = ggplot2::element_text(size = 8),
+                legend.key.size    = grid::unit(2.5, "mm"),
+                legend.spacing.y   = grid::unit(0.5, "mm"),
+                legend.box.margin  = ggplot2::margin(t = 1, r = 0,
                                                     b = 0, l = 0),
                 strip.background   = ggplot2::element_blank(),
                 axis.ticks.y       = ggplot2::element_blank(),
                 axis.text.y        = ggplot2::element_blank(),
-                axis.text.x        = ggplot2::element_text(size = 9),
+                axis.text.x        = ggplot2::element_text(size = 8),
                 panel.spacing.y    = grid::unit(2, "mm")
             )
     })
