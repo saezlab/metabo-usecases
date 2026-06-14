@@ -8,7 +8,7 @@ pg_connect_panel(deployment)
 }
 \arguments{
 \item{deployment}{Character: deployment label
-(\code{"dev3"} | \code{"dev4"} | …).}
+(\code{"dev5"} | historical \code{"dev3"} | \code{"dev4"} | …).}
 }
 \value{
 A live DBI handle.

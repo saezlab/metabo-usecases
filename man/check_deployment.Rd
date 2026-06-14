@@ -4,22 +4,24 @@
 \alias{check_deployment}
 \title{Quick sanity-check of the figure-pipeline deployments}
 \usage{
-check_deployment(deployments = c("dev3", "dev4"))
+check_deployment(deployments = "dev5")
 }
 \arguments{
 \item{deployments}{Character vector of deployment names to probe.
-Defaults to the figure-pipeline pair \code{c("dev3", "dev4")}.}
+Defaults to the single-deployment regime \code{c("dev5")};
+pass \code{c("dev5", "dev3", "dev4")} (with
+\code{allow_optin = TRUE} for the historical instances if
+they are no longer running) to probe the full set.}
 }
 \value{
 Invisibly a list keyed by deployment name with the
 resolved connection record.
 }
 \description{
-Resolves the per-deployment connection records the figure pipeline
-will touch — by default \code{dev3} (gene-centric + labels, the
-default per FR-030's matrix) and \code{dev4} (protein-centric
-build, required for FR-007a Structures facet, FR-007e, FR-007f,
-FR-015) — and logs a one-line summary per deployment. The full
+Resolves the deployment connection record the figure pipeline
+will touch — post-2026-06-14 dev5 integrated-build promotion this
+is just \code{dev5} (the only deployment in the active rotation) —
+and logs a one-line summary per deployment. The full
 \code{build_manifest} probe lives in
 \code{\link{build_manifest_for}}; this helper does not open a
 Postgres handle.

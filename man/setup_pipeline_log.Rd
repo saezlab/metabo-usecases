@@ -28,7 +28,7 @@ line format documented in
 Called once at the top of every R script in the pipeline.
 }
 \examples{
-setup_pipeline_log("build:fig01-overview")
+setup_pipeline_log("build:fig02-overview")
 logger::log_info("Rendering Panel B")
 
 }

@@ -26,7 +26,7 @@ unified pipeline log under \code{[bash][INFO][pdftk:bundle]}.
 \examples{
 \dontrun{
 assemble_bundle(
-    c("figures/fig01-overview/out/fig01-overview.pdf",
+    c("figures/fig02-overview/out/fig02-overview.pdf",
       "figures/fig03-metalinks-versions/out/fig03-metalinks-versions.pdf"),
     output = "out/manuscript-bundle.pdf"
 )

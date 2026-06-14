@@ -4,7 +4,7 @@
 \alias{fr007a_identifiers_authoritative}
 \title{FR-007a Identifiers facet — authoritative-vs-foreign variant}
 \usage{
-fr007a_identifiers_authoritative(panel_id = "fig01-overview")
+fr007a_identifiers_authoritative(panel_id = "fig02-overview")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

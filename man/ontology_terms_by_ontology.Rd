@@ -4,11 +4,11 @@
 \alias{ontology_terms_by_ontology}
 \title{Number of ontology terms per ontology prefix}
 \usage{
-ontology_terms_by_ontology(panel_id = "fig01-overview", top_n = 10L)
+ontology_terms_by_ontology(panel_id = "fig02-overview", top_n = 10L)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default
-\code{"fig01-overview"}). Passed to
+\code{"fig02-overview"}). Passed to
 \code{\link{pg_query_panel}} so the deployment routing is
 recorded in the result's \code{"deployment"} attribute
 (which surfaces in the sidecar).}

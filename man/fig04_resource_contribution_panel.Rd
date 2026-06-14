@@ -4,11 +4,18 @@
 \alias{fig04_resource_contribution_panel}
 \title{Figure 4 Panel C: entity and interaction count per resource}
 \usage{
-fig04_resource_contribution_panel(cosmos_plus_by_resource, width_mm = 89L)
+fig04_resource_contribution_panel(
+  cosmos_plus_by_resource,
+  top_n = 15L,
+  width_mm = 89L
+)
 }
 \arguments{
 \item{cosmos_plus_by_resource}{Tibble from
 \code{cosmos_plus_data()$by_resource}.}
+
+\item{top_n}{Integer: number of individual resources to show.
+Default 15.}
 
 \item{width_mm}{Numeric panel width in mm.}
 }
@@ -16,5 +23,8 @@ fig04_resource_contribution_panel(cosmos_plus_by_resource, width_mm = 89L)
 A ggplot object.
 }
 \description{
-Figure 4 Panel C: entity and interaction count per resource
+Shows the top 15 resources by total interaction count as stacked bars
+(metabolites + proteins). Resource names are abbreviated via
+\code{.abbreviate_resource()} before plotting. Remaining resources
+beyond top 15 are collapsed into a single "Other" bar.
 }

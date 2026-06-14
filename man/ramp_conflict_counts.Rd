@@ -4,11 +4,11 @@
 \alias{ramp_conflict_counts}
 \title{RaMP InChIKey-conflict counts per conflict reason (FR-007f)}
 \usage{
-ramp_conflict_counts(panel_id = "fig01-overview")
+ramp_conflict_counts(panel_id = "fig02-overview")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier. Default
-\code{"fig01-overview"}.}
+\code{"fig02-overview"}.}
 }
 \value{
 A tibble with \code{conflict_reason} and \code{n},
@@ -29,7 +29,7 @@ in-pipeline RDKit invocation here.
 \details{
 \code{pg_query_panel} routes the query to \code{dev4}
 automatically via the FR-030 registry entry
-(\code{fig01-overview} + \code{facet = "ramp_conflict"}).
+(\code{fig02-overview} + \code{facet = "ramp_conflict"}).
 }
 \examples{
 \dontrun{

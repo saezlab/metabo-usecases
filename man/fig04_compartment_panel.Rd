@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-version_comparison.R
 \name{fig04_compartment_panel}
 \alias{fig04_compartment_panel}
-\title{Figure 4 Panel B: COSMOS+ interactions per compartment}
+\title{Figure 4 Panel B: COSMOS+ interactions per compartment, stacked by type}
 \usage{
 fig04_compartment_panel(
   cosmos_plus_by_compartment,
@@ -12,10 +12,12 @@ fig04_compartment_panel(
 }
 \arguments{
 \item{cosmos_plus_by_compartment}{Tibble from
-\code{cosmos_plus_data()$by_compartment}.}
+\code{cosmos_plus_data()$by_compartment} with columns
+\code{compartment_name}, \code{interaction_type},
+\code{n_interactions}.}
 
-\item{top_n}{Integer: keep the top N compartments, collapsing the
-rest to "Other" per FR-009c. Default 12.}
+\item{top_n}{Integer: keep the top N compartments by total count,
+collapsing the rest to "Other" per FR-009c. Default 12.}
 
 \item{width_mm}{Numeric panel width in mm.}
 }
@@ -23,5 +25,5 @@ rest to "Other" per FR-009c. Default 12.}
 A ggplot object.
 }
 \description{
-Figure 4 Panel B: COSMOS+ interactions per compartment
+Figure 4 Panel B: COSMOS+ interactions per compartment, stacked by type
 }

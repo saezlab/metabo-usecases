@@ -4,7 +4,7 @@
 \alias{fr007d_entity_x_interaction}
 \title{FR-007d entity × interaction-type matrix data layer}
 \usage{
-fr007d_entity_x_interaction(panel_id = "fig01-overview", n_types = 8L)
+fr007d_entity_x_interaction(panel_id = "fig02-overview", n_types = 8L)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

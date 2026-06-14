@@ -32,9 +32,9 @@ deployment the artifact touched (FR-031, sidecar
 \examples{
 \dontrun{
 rows <- pg_query_panel(
-    "fig01-overview",
+    "fig01-architecture",
     "SELECT COUNT(*) FROM entity",
-    facet = "structures"      # routes to dev4
+    facet = "structures"      # routes to dev5 (post-2026-06-14)
 )
 attr(rows, "deployment")
 }

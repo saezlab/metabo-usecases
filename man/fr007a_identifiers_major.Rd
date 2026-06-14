@@ -4,7 +4,7 @@
 \alias{fr007a_identifiers_major}
 \title{FR-007a Identifiers facet — major-ID-types variant}
 \usage{
-fr007a_identifiers_major(panel_id = "fig01-overview", top_n = 8L)
+fr007a_identifiers_major(panel_id = "fig02-overview", top_n = 8L)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

@@ -12,7 +12,9 @@ fig04_metalinks_cosmos_panel(
 }
 \arguments{
 \item{metalinks_counts}{Tibble with columns \code{interaction_type} and
-\code{n_interactions} from \code{pg_query_panel()}.}
+\code{n_interactions} from \code{pg_query_panel()}, where
+\code{interaction_type} already uses the canonical panel-D category
+labels (Transport, Ligand receptor, Catalysis, Gene regulation, Other).}
 
 \item{cosmos_plus_by_type_species}{Tibble from
 \code{cosmos_plus_data()$by_type_species}.}
@@ -23,5 +25,8 @@ fig04_metalinks_cosmos_panel(
 A ggplot object.
 }
 \description{
-Figure 4 Panel D: MetaLinksDB 2.0 vs. COSMOS+ by interaction type
+Compares MetaLinksDB 2.0 (GtP-class-mapped categories from the Panel D
+SQL) with COSMOS+ (internal interaction types mapped to the same
+canonical categories). An "Allosteric regulation" row with zero
+MetaLinksDB count is appended to make the COSMOS+-only scope visible.
 }

@@ -4,11 +4,11 @@
 \alias{associations_by_resource}
 \title{Number of associations per resource}
 \usage{
-associations_by_resource(panel_id = "fig01-overview")
+associations_by_resource(panel_id = "fig02-overview")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default
-\code{"fig01-overview"}). Passed to
+\code{"fig02-overview"}). Passed to
 \code{\link{pg_query_panel}} so the deployment routing is
 recorded in the result's \code{"deployment"} attribute
 (which surfaces in the sidecar).}

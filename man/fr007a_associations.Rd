@@ -4,7 +4,7 @@
 \alias{fr007a_associations}
 \title{FR-007a Associations facet — per-resource + Total}
 \usage{
-fr007a_associations(panel_id = "fig01-overview")
+fr007a_associations(panel_id = "fig02-overview")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

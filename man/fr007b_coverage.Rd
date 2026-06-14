@@ -6,7 +6,7 @@
 \usage{
 fr007b_coverage(
   variant = c("entities", "molecular_entities", "structures", "all"),
-  panel_id = "fig01-overview"
+  panel_id = "fig02-overview"
 )
 }
 \arguments{
@@ -16,7 +16,7 @@ fr007b_coverage(
 supported variant.}
 
 \item{panel_id}{Character: panel identifier (default
-\code{"fig01-overview"}).}
+\code{"fig02-overview"}).}
 }
 \value{
 A tibble with \code{n_resources}, \code{n_items_ge_N}, and

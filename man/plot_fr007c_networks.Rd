@@ -4,7 +4,12 @@
 \alias{plot_fr007c_networks}
 \title{Render the FR-007c resource-overlap networks panel}
 \usage{
-plot_fr007c_networks(data, min_overlap = 100L, width_mm = 320L)
+plot_fr007c_networks(
+  data,
+  min_overlap = 100L,
+  width_mm = 320L,
+  node_sizes = NULL
+)
 }
 \arguments{
 \item{data}{Tibble from \code{\link{fr007c_overlap}}.}
@@ -13,6 +18,10 @@ plot_fr007c_networks(data, min_overlap = 100L, width_mm = 320L)
 pruned. Default 100.}
 
 \item{width_mm}{Numeric.}
+
+\item{node_sizes}{Tibble from \code{\link{fr007c_node_sizes}} with
+per-resource entity / interaction counts used to scale node
+size. Optional — when \code{NULL} the function queries it.}
 }
 \value{
 A patchwork composite.

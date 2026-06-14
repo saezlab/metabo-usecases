@@ -29,21 +29,22 @@ A list with elements \code{name}, \code{url},
 \description{
 Reads \code{~/.config/metabo-figures/connection.yaml} (or a
 project-local \code{connection.yaml}, or env-only) and resolves a
-deployment name into a connection record. The 2026-06-09 cycle-001
+deployment name into a connection record. Per the 2026-06-14 dev5
+integrated-build promotion every panel routes to a single
+deployment: \code{dev5} (integrated build — gene-centric entities
 \itemize{
-\item 002 handover put the figure pipeline on a per-panel deployment
-matrix: \code{dev3} (gene-centric + labels) is the default;
-\code{dev4} (protein-centric + RDKit structural specificity +
-RaMP-conflict tables) is the required override for the panels
-driven by FR-007a Structures facet, FR-007e, FR-007f, FR-015.
-\code{dev5} is reserved for the ongoing integrated build and is
-refused. \code{prod} / \code{dev2} are excluded from the active
-rotation and require \code{allow_optin = TRUE} to load.
+\item stored labels including Goslin lipid names + chemical-fallback
+resolution + RDKit-derived structural specificity + RaMP-conflict
+tables + cycle-001 derived family). \code{dev3} and \code{dev4}
+are retained in the enum for historical-sidecar compatibility but
+the registry does not route any current panel to them. \code{prod}
+/ \code{dev2} are excluded from the active rotation and require
+\code{allow_optin = TRUE} to load.
 }
 }
 \details{
 Per-deployment port overrides are read from the env vars
-\code{PGPORT_DEV3}, \code{PGPORT_DEV4}, \code{PGPORT_DEV5},
+\code{PGPORT_DEV5}, \code{PGPORT_DEV3}, \code{PGPORT_DEV4},
 \code{PGPORT_PROD}, \code{PGPORT_DEV2} — useful when the pipeline
 runs against tunnelled deployments. \code{PGPORT} (the libpq
 default) is honoured only when no per-deployment override is set.
@@ -54,8 +55,9 @@ file, or \code{~/.pgpass}, depending on \code{credentials_source}.
 }
 \examples{
 \dontrun{
-conn <- load_connection()           # → dev3 by default
-conn <- load_connection("dev4")     # → structural-specificity build
+conn <- load_connection()           # → dev5 (integrated build) by default
+conn <- load_connection("dev3")     # → legacy gene-centric build
+conn <- load_connection("dev4")     # → legacy protein-centric build
 }
 
 }

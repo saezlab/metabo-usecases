@@ -8,7 +8,7 @@ panel_deployment(panel_id, facet = NULL, config = NULL)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier
-(e.g. \code{"fig01-overview"} or
+(e.g. \code{"fig01-architecture"} or
 \code{"tab02-ramp-comparison"}).}
 
 \item{facet}{Character or \code{NULL}: facet identifier
@@ -24,28 +24,31 @@ candidates.}
 }
 \value{
 Character: deployment label
-(e.g. \code{"dev3"}, \code{"dev4"}).
+(e.g. \code{"dev5"}, or historical \code{"dev3"} / \code{"dev4"}).
 }
 \description{
 Maps a (panel, facet) pair to the OmniPath deployment label that
-SHOULD serve its data. Encodes the FR-030 deployment matrix from
-the 2026-06-09 cycle-001 + 002 handover: \code{dev3} is the
-default; \code{dev4} is required for FR-007a Structures facet,
-FR-007e (structural specificity × chemical category), FR-007f
-(RaMP comparison), and FR-015 (Methods table — RaMP comparison).
+SHOULD serve its data. Encodes the FR-030 deployment matrix.
+Post-2026-06-14 dev5 integrated-build promotion every panel
+resolves to the global \code{default_deployment}
+(\code{dev5}) — the built-in registry is empty and no facet
+override fires. The function signature is retained so callers can
+keep passing \code{facet = "structures"} / \code{"ramp_conflict"}
+/ etc. without code change; the routing simply no longer changes
+based on the facet.
 }
 \details{
-User overrides from \code{connection.yaml::overrides} win over the
-built-in registry — useful when a fresh integrated build lands on
-\code{dev5} or a future port and the team wants to collapse the
-per-panel split without a code change.
+User overrides from \code{connection.yaml::overrides} still win
+over the built-in registry — useful when an instance cycles out
+and the team wants to re-point a panel without a code change, or
+when a future build cycle re-introduces a per-panel split.
 }
 \examples{
 \dontrun{
-panel_deployment("fig01-overview")                          # "dev3"
-panel_deployment("fig01-overview", "structures")            # "dev4"
-panel_deployment("fig01-overview", "ramp_conflict")         # "dev4"
-panel_deployment("tab02-ramp-comparison")                   # "dev4"
+panel_deployment("fig01-architecture")                          # "dev5"
+panel_deployment("fig01-architecture", "structures")            # "dev5"
+panel_deployment("fig01-architecture", "ramp_conflict")         # "dev5"
+panel_deployment("tab02-ramp-comparison")                   # "dev5"
 }
 
 }

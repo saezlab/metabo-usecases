@@ -37,11 +37,11 @@ manifest itself (for \code{write_sidecar}'s parallel
 dep3 <- deployment_provenance("dev3")
 dep4 <- deployment_provenance("dev4")
 write_sidecar(
-    artifact_id = "fig01-overview",
-    artifact_path = "figures/fig01-overview/out/fig01-overview.pdf",
+    artifact_id = "fig02-overview",
+    artifact_path = "figures/fig02-overview/out/fig02-overview.pdf",
     deployments = list(dep3$deployment, dep4$deployment),
     manifests   = list(dep3$manifest,   dep4$manifest),
-    script_path = "figures/fig01-overview/build.R"
+    script_path = "figures/fig02-overview/build.R"
 )
 }
 

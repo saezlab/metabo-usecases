@@ -5,7 +5,7 @@
 \title{Combine FR-007a facets into a single long-format tibble}
 \usage{
 fr007a_overview(
-  panel_id = "fig01-overview",
+  panel_id = "fig02-overview",
   identifiers = c("major", "authoritative")
 )
 }

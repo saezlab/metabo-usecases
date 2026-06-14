@@ -4,7 +4,7 @@
 \alias{fr007a_structures}
 \title{FR-007a Structures facet — per-resource + Total (dev4, bitmap path)}
 \usage{
-fr007a_structures(panel_id = "fig01-overview")
+fr007a_structures(panel_id = "fig02-overview")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

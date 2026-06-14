@@ -11,12 +11,15 @@ compose_caption(
   out_dir,
   panel_count,
   caption_sty = "tex/caption.sty",
-  composite_basename = NULL
+  composite_basename = NULL,
+  caption_position = c("below", "above"),
+  body_width_mm = 180,
+  trim_mm = 0
 )
 }
 \arguments{
 \item{figure_id}{Character: figure slug, e.g.
-\code{"fig01-overview"}. Used to name the output
+\code{"fig02-overview"}. Used to name the output
 \code{<figure_id>-with-caption.pdf}.}
 
 \item{composite_pdf}{Character: path (relative to repo root) to
@@ -63,10 +66,10 @@ strips the LaTeX markup to produce \code{caption.txt} (FR-041a).
 \examples{
 \dontrun{
 compose_caption(
-    figure_id      = "fig01-overview",
-    composite_pdf  = "figures/fig01-overview/out/fig01-overview.pdf",
-    caption_source = "figures/fig01-overview/caption.tex",
-    out_dir        = "figures/fig01-overview/out",
+    figure_id      = "fig02-overview",
+    composite_pdf  = "figures/fig02-overview/out/fig02-overview.pdf",
+    caption_source = "figures/fig02-overview/caption.tex",
+    out_dir        = "figures/fig02-overview/out",
     panel_count    = 6L
 )
 }
