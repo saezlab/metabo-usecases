@@ -1,0 +1,329 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "produced_at": "2026-06-14T04:48:56+0200",
+    "deployments": [
+      {
+        "name": "dev5",
+        "section_ids": [1, 2, 3, 4, 5],
+        "build_id": "fca549e16f3c"
+      }
+    ],
+    "snapshot_ids": {
+      "main": "fca549e16f3c"
+    },
+    "script_path": "R/stats-panel_a_digest.R",
+    "script_commit": "1ccb6f4",
+    "definitions": {
+      "transporter": {
+        "resources": ["tcdb", "slctables"],
+        "uniprot_keywords": []
+      },
+      "receptor": {
+        "resources": ["guidetopharma", "connectomedb", "cellphonedb"],
+        "uniprot_keywords": []
+      },
+      "pathway": "annotation",
+      "reaction": "Reaction:OM:0015",
+      "annotation_slot3": "diseases"
+    }
+  },
+  "sections": [
+    {
+      "section_id": 1,
+      "name": "Entities",
+      "metrics": [
+        {
+          "metric_name": "n_metabolites",
+          "value": 945238,
+          "definition_label": "chemical_class:metabolite",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "8081acc83d5a9f01dfacda169fbde9ab97e5c09320d819a3ef61ac41029ade58"
+        },
+        {
+          "metric_name": "n_foods",
+          "value": 152612,
+          "definition_label": "chemical_class:food",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "8081acc83d5a9f01dfacda169fbde9ab97e5c09320d819a3ef61ac41029ade58"
+        },
+        {
+          "metric_name": "n_drugs",
+          "value": 1422967,
+          "definition_label": "chemical_class:drug",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "8081acc83d5a9f01dfacda169fbde9ab97e5c09320d819a3ef61ac41029ade58"
+        },
+        {
+          "metric_name": "n_lipids",
+          "value": 616937,
+          "definition_label": "chemical_class:lipid",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "8081acc83d5a9f01dfacda169fbde9ab97e5c09320d819a3ef61ac41029ade58"
+        },
+        {
+          "metric_name": "n_xenobiotics",
+          "value": 0,
+          "definition_label": "chemical_class:xenobiotic",
+          "state": "empty",
+          "deployment": "dev5",
+          "sql_hash": "8081acc83d5a9f01dfacda169fbde9ab97e5c09320d819a3ef61ac41029ade58"
+        },
+        {
+          "metric_name": "n_proteins_or_genes",
+          "value": 460647,
+          "definition_label": "entity_type:Gene:MI:0250+Protein:MI:0326",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "305edbaec784a3d5db2806be9413724b06540a61cd8020604acb72088adbee04"
+        },
+        {
+          "metric_name": "n_genes",
+          "value": 178768,
+          "definition_label": "entity_type:Gene:MI:0250",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "305edbaec784a3d5db2806be9413724b06540a61cd8020604acb72088adbee04"
+        },
+        {
+          "metric_name": "n_unresolved_proteins",
+          "value": 281879,
+          "definition_label": "entity_type:Protein:MI:0326",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "305edbaec784a3d5db2806be9413724b06540a61cd8020604acb72088adbee04"
+        }
+      ],
+      "resource_count": 44,
+      "resources": ["chembl", "foodb", "intact", "stitch", "bindingdb", "pfocr", "kegg", "rhea", "swisslipids", "ptfi", "hmdb", "refmet", "chebi", "metatlas", "hpo", "recon3d", "brenda", "connectomedb", "mirbase", "reactome", "signor", "wikipathways", "macdb", "cellchat", "mondo", "tcdb", "lipidmaps", "guidetopharma", "go", "uniprot", "drugcentral", "cellinker", "nichenet", "corum", "phenol_explorer", "cellphonedb", "icellnet", "chemont", "mrclinksdb", "mebocost", "psi_mi", "neuronchat", "omnipath_ontology", "slctables"]
+    },
+    {
+      "section_id": 2,
+      "name": "Metabolite-Protein Interactions",
+      "metrics": [
+        {
+          "metric_name": "n_mpi_relations",
+          "value": 2858507,
+          "definition_label": "mpi_base_cte:chemical+protein_or_gene",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "3833bc2b4ebe59d22abe81ac20c3a7a40af88aa2fa215aa76f1a96f1c19b5865"
+        },
+        {
+          "metric_name": "n_metabolites",
+          "value": 1378770,
+          "definition_label": "mpi_base_cte:distinct_chem_id",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "3833bc2b4ebe59d22abe81ac20c3a7a40af88aa2fa215aa76f1a96f1c19b5865"
+        },
+        {
+          "metric_name": "n_proteins_or_genes",
+          "value": 49356,
+          "definition_label": "mpi_base_cte:distinct_prot_id",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "3833bc2b4ebe59d22abe81ac20c3a7a40af88aa2fa215aa76f1a96f1c19b5865"
+        },
+        {
+          "metric_name": "n_transporters",
+          "value": 13560,
+          "definition_label": "transporter:tcdb+slctables",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "3833bc2b4ebe59d22abe81ac20c3a7a40af88aa2fa215aa76f1a96f1c19b5865"
+        },
+        {
+          "metric_name": "n_receptors",
+          "value": 3157,
+          "definition_label": "receptor:guidetopharma+connectomedb+cellphonedb",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "3833bc2b4ebe59d22abe81ac20c3a7a40af88aa2fa215aa76f1a96f1c19b5865"
+        }
+      ],
+      "resource_count": 23,
+      "resources": ["chembl", "intact", "stitch", "bindingdb", "rhea", "kegg", "metatlas", "connectomedb", "wikipathways", "signor", "cellchat", "recon3d", "guidetopharma", "tcdb", "drugcentral", "cellinker", "nichenet", "cellphonedb", "mrclinksdb", "icellnet", "mebocost", "neuronchat", "reactome"]
+    },
+    {
+      "section_id": 3,
+      "name": "Interactions",
+      "metrics": [
+        {
+          "metric_name": "n_interactions",
+          "value": 5060648,
+          "definition_label": "relation.category:interaction",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "1a90d6fa65da8471940677b976120fcde3f739439d2a313bae7ef8f0dba061c1"
+        },
+        {
+          "metric_name": "n_proteins_or_genes",
+          "value": 356753,
+          "definition_label": "interactions:distinct_protein_or_gene",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "1a90d6fa65da8471940677b976120fcde3f739439d2a313bae7ef8f0dba061c1"
+        },
+        {
+          "metric_name": "n_pathways",
+          "value": 2870,
+          "definition_label": "pathway:annotation",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "80c451355098940ba535376cf2b2d4add3493490bf48b2eb5cf8ce7e5ac05ced"
+        },
+        {
+          "metric_name": "n_reactions",
+          "value": 39778,
+          "definition_label": "reaction:Reaction:OM:0015",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "0039a7f222379c01bc97160b0ab56bda8f6584420cc17bdcf29e3ad262512a24"
+        }
+      ],
+      "resource_count": 23,
+      "resources": ["chembl", "intact", "stitch", "bindingdb", "rhea", "kegg", "metatlas", "connectomedb", "wikipathways", "signor", "cellchat", "recon3d", "guidetopharma", "tcdb", "drugcentral", "cellinker", "nichenet", "cellphonedb", "mrclinksdb", "icellnet", "mebocost", "neuronchat", "reactome"]
+    },
+    {
+      "section_id": 4,
+      "name": "Structures",
+      "metrics": [
+        {
+          "metric_name": "n_structures_total",
+          "value": 3137754,
+          "definition_label": "metabo_entity_structural_specificity:total",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_structures_stereospecific",
+          "value": 1307679,
+          "definition_label": "metabo_entity_structural_specificity.specificity_level:stereospecific",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_structures_cis_trans_only",
+          "value": 111549,
+          "definition_label": "metabo_entity_structural_specificity.specificity_level:cis_trans_only",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_structures_constitution_only",
+          "value": 874378,
+          "definition_label": "metabo_entity_structural_specificity.specificity_level:constitution_only",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_structures_variable_constitution",
+          "value": 11154,
+          "definition_label": "metabo_entity_structural_specificity.specificity_level:variable_constitution",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_structures_unknown_constitution",
+          "value": 282056,
+          "definition_label": "metabo_entity_structural_specificity.specificity_level:unknown_constitution",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_structures_no_structure",
+          "value": 550938,
+          "definition_label": "metabo_entity_structural_specificity.specificity_level:no_structure",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917"
+        },
+        {
+          "metric_name": "n_constitutional_skeletons",
+          "value": 2222638,
+          "definition_label": "inchikey:first_block(standard_inchikey)",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "d4fb146c08558cce646a21518e7181ca50c8e1d7eb2add3cb3a01dbbe18c70cc"
+        },
+        {
+          "metric_name": "n_full_inchikey",
+          "value": 2573321,
+          "definition_label": "inchikey:distinct(standard_inchikey)",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "d4fb146c08558cce646a21518e7181ca50c8e1d7eb2add3cb3a01dbbe18c70cc"
+        },
+        {
+          "metric_name": "n_ramp_conflicts",
+          "value": 22014,
+          "definition_label": "metabo_ramp_inchikey_conflict:total",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "07082d84e41c8758fc6c395de4a6ff030323adb61a301e89f9b3dedbb22c6c2d"
+        }
+      ],
+      "resource_count": 29,
+      "resources": ["chembl", "swisslipids", "bindingdb", "hmdb", "refmet", "chebi", "foodb", "stitch", "lipidmaps", "ptfi", "rhea", "kegg", "guidetopharma", "pfocr", "macdb", "wikipathways", "metatlas", "recon3d", "drugcentral", "reactome", "signor", "tcdb", "intact", "phenol_explorer", "cellinker", "mrclinksdb", "mebocost", "cellphonedb", "neuronchat"]
+    },
+    {
+      "section_id": 5,
+      "name": "Annotation",
+      "metrics": [
+        {
+          "metric_name": "n_annotation_records",
+          "value": 22196787,
+          "definition_label": "entity_evidence_annotation:total",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "5c0be5e77749bf3004d5b04e2ff72604c9ba4f5066dfe91aa1420ef5258734fa"
+        },
+        {
+          "metric_name": "n_organisms",
+          "value": 484,
+          "definition_label": "entity_type:Organism:OM:0032+annotated",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "cea72271039eb527adf4fcbf0238b0d7922d95c1d669773ca6cc528f38919a7c"
+        },
+        {
+          "metric_name": "n_diseases",
+          "value": 58902,
+          "definition_label": "annotation_slot3:diseases",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "477c63fc11d0d22104e3bbdc29e2c8dc783e59b141507481ffdd91b626c9a3ec"
+        },
+        {
+          "metric_name": "n_localizations",
+          "value": 5358,
+          "definition_label": "entity_ontology_term:uberon_anatomy",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "dad3e820250c2b876a68ab4d4bc629ad74a40e08d82a873f9c408527f1f96744"
+        },
+        {
+          "metric_name": "n_pathways_annotation",
+          "value": 2870,
+          "definition_label": "entity_ontology_term:pathway_annotations",
+          "state": "populated",
+          "deployment": "dev5",
+          "sql_hash": "80c451355098940ba535376cf2b2d4add3493490bf48b2eb5cf8ce7e5ac05ced"
+        }
+      ],
+      "resource_count": 44,
+      "resources": ["chembl", "swisslipids", "intact", "hmdb", "refmet", "stitch", "kegg", "uniprot", "chebi", "pfocr", "connectomedb", "ptfi", "lipidmaps", "hpo", "recon3d", "metatlas", "go", "cellchat", "mondo", "rhea", "mirbase", "reactome", "guidetopharma", "foodb", "signor", "drugcentral", "wikipathways", "nichenet", "cellinker", "macdb", "phenol_explorer", "brenda", "tcdb", "corum", "bindingdb", "chemont", "cellphonedb", "icellnet", "mrclinksdb", "psi_mi", "slctables", "neuronchat", "mebocost", "omnipath_ontology"]
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "artifact_id": "fig01-overview/panel-a-stats",
+  "produced_at": "2026-06-14T04:48:56+0200",
+  "deployments": [
+    {
+      "name": "dev5",
+      "section_ids": [1, 2, 3, 4, 5],
+      "build_id": "fca549e16f3c"
+    }
+  ],
+  "snapshot_ids": {
+    "main": "fca549e16f3c"
+  },
+  "script_path": "R/stats-panel_a_digest.R",
+  "script_commit": "1ccb6f4",
+  "config": {
+    "path": "/home/omnipath/dev/metabo-usecases/figures/fig01-overview/panel-a-stats/digest-config.yaml",
+    "sha256": "cbc9cf74bdf6ca357fa3053781242fb9f35d26602b7b3f98076945b2ad4de5ff"
+  },
+  "section_queries": [
+    {
+      "section_id": 1,
+      "section_name": "Entities",
+      "queries": {
+        "chemical": {
+          "metric_names": ["n_metabolites", "n_foods", "n_drugs", "n_lipids", "n_xenobiotics"],
+          "sql": "SELECT vcc.name AS chemical_class,\n       COUNT(DISTINCT e.entity_id) AS n_entities\n  FROM entity e\n  JOIN vocab_chemical_class vcc USING (chemical_class_id)\n WHERE vcc.name IN \n       ('metabolite','lipid','drug','food','xenobiotic')\n GROUP BY vcc.name",
+          "sql_hash": "8081acc83d5a9f01dfacda169fbde9ab97e5c09320d819a3ef61ac41029ade58",
+          "deployment": "dev5",
+          "result_hash": "b6d60fe76f44",
+          "row_count": 4
+        },
+        "protein_or_gene": {
+          "metric_names": ["n_proteins_or_genes", "n_genes", "n_unresolved_proteins"],
+          "sql": "SELECT\n    SUM(CASE WHEN vet.name = 'Gene:MI:0250'\n             THEN 1 ELSE 0 END)::bigint AS n_genes,\n    SUM(CASE WHEN vet.name = 'Protein:MI:0326'\n             THEN 1 ELSE 0 END)::bigint AS n_unresolved_proteins,\n    COUNT(*)::bigint AS n_protein_or_gene_union\n  FROM entity e\n  JOIN vocab_entity_type vet USING (entity_type_id)\n WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
+          "sql_hash": "305edbaec784a3d5db2806be9413724b06540a61cd8020604acb72088adbee04",
+          "deployment": "dev5",
+          "result_hash": "9edc3ca0355f",
+          "row_count": 1
+        }
+      }
+    },
+    {
+      "section_id": 2,
+      "section_name": "Metabolite-Protein Interactions",
+      "queries": {
+        "combined": {
+          "metric_names": ["n_mpi_relations", "n_metabolites", "n_proteins_or_genes", "n_transporters", "n_receptors"],
+          "sql": "WITH chem AS MATERIALIZED (\n    SELECT entity_id FROM entity e\n      JOIN vocab_entity_type vet USING (entity_type_id)\n     WHERE vet.name = 'Chemical:OM:0037'\n), pog AS MATERIALIZED (\n    SELECT entity_id FROM entity e\n      JOIN vocab_entity_type vet USING (entity_type_id)\n     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')\n), interaction_cat AS (\n    SELECT relation_category_id FROM vocab_relation_category\n     WHERE name = 'interaction'\n), mpi AS MATERIALIZED (\n    SELECT r.relation_id,\n           r.subject_entity_id AS chem_id,\n           r.object_entity_id  AS prot_id,\n           r.predicate_id\n      FROM relation r\n      JOIN chem ON chem.entity_id = r.subject_entity_id\n      JOIN pog  ON pog.entity_id  = r.object_entity_id\n     WHERE r.relation_category_id IN (SELECT relation_category_id\n                                        FROM interaction_cat)\n    UNION ALL\n    SELECT r.relation_id,\n           r.object_entity_id  AS chem_id,\n           r.subject_entity_id AS prot_id,\n           r.predicate_id\n      FROM relation r\n      JOIN chem ON chem.entity_id = r.object_entity_id\n      JOIN pog  ON pog.entity_id  = r.subject_entity_id\n     WHERE r.relation_category_id IN (SELECT relation_category_id\n                                        FROM interaction_cat)\n)\n, transporter_resource_set AS MATERIALIZED (\n    SELECT DISTINCT eer.entity_id\n      FROM entity_evidence_resolution eer\n      JOIN entity_evidence ee USING (entity_evidence_id)\n      JOIN data_source ds ON ds.source_id = ee.source_id\n     WHERE ds.name IN ('tcdb', 'slctables')\n), receptor_resource_set AS MATERIALIZED (\n    SELECT DISTINCT eer.entity_id\n      FROM entity_evidence_resolution eer\n      JOIN entity_evidence ee USING (entity_evidence_id)\n      JOIN data_source ds ON ds.source_id = ee.source_id\n     WHERE ds.name IN ('guidetopharma', 'connectomedb', 'cellphonedb')\n), transport_predicates AS MATERIALIZED (\n    SELECT vrp.relation_predicate_id\n      FROM vocab_relation_predicate vrp\n      JOIN vocab_interaction_class vic\n        ON vic.interaction_class_id = vrp.interaction_class_id\n     WHERE vic.name = 'Transport'\n)\nSELECT\n    COUNT(DISTINCT mpi.relation_id)::bigint AS n_mpi_relations,\n    COUNT(DISTINCT mpi.chem_id)::bigint     AS n_metabolites,\n    COUNT(DISTINCT mpi.prot_id)::bigint     AS n_proteins_or_genes,\n    COUNT(DISTINCT mpi.prot_id) FILTER (WHERE\n        mpi.predicate_id IN (SELECT relation_predicate_id\n                              FROM transport_predicates)\n     OR mpi.prot_id IN (SELECT entity_id FROM transporter_resource_set)\n    )::bigint AS n_transporters,\n    COUNT(DISTINCT mpi.prot_id) FILTER (WHERE\n        mpi.prot_id IN (SELECT entity_id FROM receptor_resource_set)\n    )::bigint AS n_receptors\n  FROM mpi",
+          "sql_hash": "3833bc2b4ebe59d22abe81ac20c3a7a40af88aa2fa215aa76f1a96f1c19b5865",
+          "deployment": "dev5",
+          "result_hash": "027142606a41",
+          "row_count": 1
+        }
+      }
+    },
+    {
+      "section_id": 3,
+      "section_name": "Interactions",
+      "queries": {
+        "totals": {
+          "metric_names": ["n_interactions", "n_proteins_or_genes"],
+          "sql": "WITH interaction_cat AS (\n    SELECT relation_category_id FROM vocab_relation_category\n     WHERE name = 'interaction'\n), pog AS MATERIALIZED (\n    SELECT entity_id FROM entity e\n      JOIN vocab_entity_type vet USING (entity_type_id)\n     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')\n), participating_pog AS MATERIALIZED (\n    SELECT DISTINCT r.subject_entity_id AS entity_id\n      FROM relation r\n      JOIN pog ON pog.entity_id = r.subject_entity_id\n     WHERE r.relation_category_id IN\n             (SELECT relation_category_id FROM interaction_cat)\n    UNION\n    SELECT DISTINCT r.object_entity_id AS entity_id\n      FROM relation r\n      JOIN pog ON pog.entity_id = r.object_entity_id\n     WHERE r.relation_category_id IN\n             (SELECT relation_category_id FROM interaction_cat)\n)\nSELECT\n    (SELECT COUNT(*)::bigint FROM relation r\n      WHERE r.relation_category_id IN\n              (SELECT relation_category_id FROM interaction_cat))\n        AS n_interactions,\n    (SELECT COUNT(*)::bigint FROM participating_pog)\n        AS n_proteins_or_genes",
+          "sql_hash": "1a90d6fa65da8471940677b976120fcde3f739439d2a313bae7ef8f0dba061c1",
+          "deployment": "dev5",
+          "result_hash": "c33220fd6cef",
+          "row_count": 1
+        },
+        "pathway": {
+          "metric_names": "n_pathways",
+          "sql": "SELECT COUNT(DISTINCT term_id)::bigint AS n_pathways\n  FROM entity_ontology_term\n WHERE ontology_prefix LIKE 'r-%'",
+          "sql_hash": "80c451355098940ba535376cf2b2d4add3493490bf48b2eb5cf8ce7e5ac05ced",
+          "deployment": "dev5",
+          "result_hash": "61a5177e2a45",
+          "row_count": 1,
+          "branch": "annotation"
+        },
+        "reaction": {
+          "metric_names": "n_reactions",
+          "sql": "WITH ic AS (\n    SELECT relation_category_id FROM vocab_relation_category\n     WHERE name = 'interaction'\n), interaction_participants AS MATERIALIZED (\n    SELECT DISTINCT subject_entity_id AS entity_id FROM relation\n     WHERE relation_category_id IN (SELECT relation_category_id FROM ic)\n    UNION\n    SELECT DISTINCT object_entity_id AS entity_id FROM relation\n     WHERE relation_category_id IN (SELECT relation_category_id FROM ic)\n)\nSELECT COUNT(*)::bigint AS n_reactions\n  FROM entity e\n  JOIN vocab_entity_type vet USING (entity_type_id)\n WHERE vet.name = 'Reaction:OM:0015'\n   AND e.entity_id IN (SELECT entity_id FROM interaction_participants)",
+          "sql_hash": "0039a7f222379c01bc97160b0ab56bda8f6584420cc17bdcf29e3ad262512a24",
+          "deployment": "dev5",
+          "result_hash": "817c6ac65bf8",
+          "row_count": 1,
+          "branch": "Reaction:OM:0015"
+        }
+      }
+    },
+    {
+      "section_id": 4,
+      "section_name": "Structures",
+      "queries": {
+        "levels": {
+          "metric_names": ["n_structures_total", "n_structures_stereospecific", "n_structures_cis_trans_only", "n_structures_constitution_only", "n_structures_variable_constitution", "n_structures_unknown_constitution", "n_structures_no_structure"],
+          "sql": "SELECT structural_specificity_id AS level_id,\n       COUNT(*)::bigint AS n_structures\n  FROM metabo_entity_structural_specificity\n GROUP BY structural_specificity_id",
+          "sql_hash": "f6635ac1db63a779b4cad7fb1cfabf97ff1d2239d77d16fd1f07b6cea7a57917",
+          "deployment": "dev5",
+          "result_hash": "84a91043a620",
+          "row_count": 6
+        },
+        "inchikey": {
+          "metric_names": ["n_constitutional_skeletons", "n_full_inchikey"],
+          "sql": "SELECT    COUNT(DISTINCT SUBSTRING(standard_inchikey FROM 1 FOR 14))::bigint        AS n_skeletons,    COUNT(DISTINCT standard_inchikey)::bigint AS n_full_inchikey\n  FROM metabo_entity_structural_specificity\n WHERE standard_inchikey IS NOT NULL",
+          "sql_hash": "d4fb146c08558cce646a21518e7181ca50c8e1d7eb2add3cb3a01dbbe18c70cc",
+          "deployment": "dev5",
+          "result_hash": "015d6a16a805",
+          "row_count": 1
+        },
+        "ramp": {
+          "metric_names": "n_ramp_conflicts",
+          "sql": "SELECT COUNT(DISTINCT ramp_id)::bigint AS n_ramp_conflicts\n  FROM metabo_ramp_inchikey_conflict",
+          "sql_hash": "07082d84e41c8758fc6c395de4a6ff030323adb61a301e89f9b3dedbb22c6c2d",
+          "deployment": "dev5",
+          "result_hash": "06b8606bac9a",
+          "row_count": 1
+        }
+      }
+    },
+    {
+      "section_id": 5,
+      "section_name": "Annotation",
+      "queries": {
+        "records": {
+          "metric_names": "n_annotation_records",
+          "sql": "SELECT COUNT(*)::bigint AS n_annotation_records\n  FROM entity_evidence_annotation",
+          "sql_hash": "5c0be5e77749bf3004d5b04e2ff72604c9ba4f5066dfe91aa1420ef5258734fa",
+          "deployment": "dev5",
+          "result_hash": "dfc22aea10bc",
+          "row_count": 1
+        },
+        "organisms": {
+          "metric_names": "n_organisms",
+          "sql": "SELECT COUNT(DISTINCT eer.entity_id)::bigint AS n_organisms\n  FROM entity_evidence_annotation eea\n  JOIN entity_evidence_resolution eer USING (entity_evidence_id)\n  JOIN entity e ON e.entity_id = eer.entity_id\n  JOIN vocab_entity_type vet USING (entity_type_id)\n WHERE vet.name = 'Organism:OM:0032'",
+          "sql_hash": "cea72271039eb527adf4fcbf0238b0d7922d95c1d669773ca6cc528f38919a7c",
+          "deployment": "dev5",
+          "result_hash": "d39d39b875f9",
+          "row_count": 1
+        },
+        "slot3": {
+          "metric_names": "n_diseases",
+          "sql": "SELECT COUNT(DISTINCT term_id)::bigint AS n_diseases\n  FROM entity_ontology_term\n WHERE ontology_prefix = 'mondo'",
+          "sql_hash": "477c63fc11d0d22104e3bbdc29e2c8dc783e59b141507481ffdd91b626c9a3ec",
+          "deployment": "dev5",
+          "result_hash": "0e20a00fa21d",
+          "row_count": 1,
+          "branch": "diseases"
+        },
+        "localization": {
+          "metric_names": "n_localizations",
+          "sql": "SELECT COUNT(DISTINCT term_id)::bigint AS n_localizations\n  FROM entity_ontology_term\n WHERE ontology_prefix = 'uberon'",
+          "sql_hash": "dad3e820250c2b876a68ab4d4bc629ad74a40e08d82a873f9c408527f1f96744",
+          "deployment": "dev5",
+          "result_hash": "972c70737351",
+          "row_count": 1
+        },
+        "pathway_annotation": {
+          "metric_names": "n_pathways_annotation",
+          "sql": "SELECT COUNT(DISTINCT term_id)::bigint AS n_pathways\n  FROM entity_ontology_term\n WHERE ontology_prefix LIKE 'r-%'",
+          "sql_hash": "80c451355098940ba535376cf2b2d4add3493490bf48b2eb5cf8ce7e5ac05ced",
+          "deployment": "dev5",
+          "result_hash": "61a5177e2a45",
+          "row_count": 1
+        }
+      }
+    }
+  ],
+  "resource_queries": [
+    {
+      "section_id": 1,
+      "sql": "SELECT ds.name AS resource_name,\n       COUNT(*) AS n_rows\n  FROM entity_evidence ee\n  JOIN data_source ds ON ds.source_id = ee.source_id\n GROUP BY ds.name\n ORDER BY n_rows DESC",
+      "result_hash": "d896db38a417",
+      "deployment": "dev5",
+      "row_count": 44
+    },
+    {
+      "section_id": 2,
+      "sql": "WITH ic AS (\n    SELECT relation_category_id FROM vocab_relation_category\n     WHERE name = 'interaction'\n)\nSELECT ds.name AS resource_name,\n       COUNT(*) AS n_rows\n  FROM relation_evidence_relation rer\n  JOIN relation r ON r.relation_id = rer.relation_id\n  JOIN data_source ds ON ds.source_id = rer.source_id\n WHERE r.relation_category_id IN\n         (SELECT relation_category_id FROM ic)\n GROUP BY ds.name\n ORDER BY n_rows DESC",
+      "result_hash": "4febb3424c80",
+      "deployment": "dev5",
+      "row_count": 23
+    },
+    {
+      "section_id": 3,
+      "sql": "WITH ic AS (\n    SELECT relation_category_id FROM vocab_relation_category\n     WHERE name = 'interaction'\n)\nSELECT ds.name AS resource_name,\n       COUNT(*) AS n_rows\n  FROM relation_evidence_relation rer\n  JOIN relation r ON r.relation_id = rer.relation_id\n  JOIN data_source ds ON ds.source_id = rer.source_id\n WHERE r.relation_category_id IN\n         (SELECT relation_category_id FROM ic)\n GROUP BY ds.name\n ORDER BY n_rows DESC",
+      "result_hash": "4febb3424c80",
+      "deployment": "dev5",
+      "row_count": 23
+    },
+    {
+      "section_id": 4,
+      "sql": "SELECT ds.name AS resource_name,\n       COUNT(DISTINCT e.entity_id) AS n_rows\n  FROM entity e\n  JOIN entity_evidence_resolution eer USING (entity_id)\n  JOIN entity_evidence ee USING (entity_evidence_id)\n  JOIN data_source ds ON ds.source_id = ee.source_id\n WHERE e.chemical_class_id IS NOT NULL\n GROUP BY ds.name\n ORDER BY n_rows DESC",
+      "result_hash": "beb22f86bfb7",
+      "deployment": "dev5",
+      "row_count": 29
+    },
+    {
+      "section_id": 5,
+      "sql": "SELECT ds.name AS resource_name,\n       COUNT(*) AS n_rows\n  FROM entity_evidence_annotation eea\n  JOIN data_source ds ON ds.source_id = eea.source_id\n GROUP BY ds.name\n ORDER BY n_rows DESC",
+      "result_hash": "058ec2408fb2",
+      "deployment": "dev5",
+      "row_count": 44
+    }
+  ]
+}

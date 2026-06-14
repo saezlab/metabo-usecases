@@ -1,0 +1,33 @@
+section,metric_name,value,definition_label,state,deployment
+Entities,n_metabolites,945238,chemical_class:metabolite,populated,dev5
+Entities,n_foods,152612,chemical_class:food,populated,dev5
+Entities,n_drugs,1422967,chemical_class:drug,populated,dev5
+Entities,n_lipids,616937,chemical_class:lipid,populated,dev5
+Entities,n_xenobiotics,0,chemical_class:xenobiotic,empty,dev5
+Entities,n_proteins_or_genes,460647,entity_type:Gene:MI:0250+Protein:MI:0326,populated,dev5
+Entities,n_genes,178768,entity_type:Gene:MI:0250,populated,dev5
+Entities,n_unresolved_proteins,281879,entity_type:Protein:MI:0326,populated,dev5
+Metabolite-Protein Interactions,n_mpi_relations,2858507,mpi_base_cte:chemical+protein_or_gene,populated,dev5
+Metabolite-Protein Interactions,n_metabolites,1378770,mpi_base_cte:distinct_chem_id,populated,dev5
+Metabolite-Protein Interactions,n_proteins_or_genes,49356,mpi_base_cte:distinct_prot_id,populated,dev5
+Metabolite-Protein Interactions,n_transporters,13560,transporter:tcdb+slctables,populated,dev5
+Metabolite-Protein Interactions,n_receptors,3157,receptor:guidetopharma+connectomedb+cellphonedb,populated,dev5
+Interactions,n_interactions,5060648,relation.category:interaction,populated,dev5
+Interactions,n_proteins_or_genes,356753,interactions:distinct_protein_or_gene,populated,dev5
+Interactions,n_pathways,2870,pathway:annotation,populated,dev5
+Interactions,n_reactions,39778,reaction:Reaction:OM:0015,populated,dev5
+Structures,n_structures_total,3137754,metabo_entity_structural_specificity:total,populated,dev5
+Structures,n_structures_stereospecific,1307679,metabo_entity_structural_specificity.specificity_level:stereospecific,populated,dev5
+Structures,n_structures_cis_trans_only,111549,metabo_entity_structural_specificity.specificity_level:cis_trans_only,populated,dev5
+Structures,n_structures_constitution_only,874378,metabo_entity_structural_specificity.specificity_level:constitution_only,populated,dev5
+Structures,n_structures_variable_constitution,11154,metabo_entity_structural_specificity.specificity_level:variable_constitution,populated,dev5
+Structures,n_structures_unknown_constitution,282056,metabo_entity_structural_specificity.specificity_level:unknown_constitution,populated,dev5
+Structures,n_structures_no_structure,550938,metabo_entity_structural_specificity.specificity_level:no_structure,populated,dev5
+Structures,n_constitutional_skeletons,2222638,inchikey:first_block(standard_inchikey),populated,dev5
+Structures,n_full_inchikey,2573321,inchikey:distinct(standard_inchikey),populated,dev5
+Structures,n_ramp_conflicts,22014,metabo_ramp_inchikey_conflict:total,populated,dev5
+Annotation,n_annotation_records,22196787,entity_evidence_annotation:total,populated,dev5
+Annotation,n_organisms,484,entity_type:Organism:OM:0032+annotated,populated,dev5
+Annotation,n_diseases,58902,annotation_slot3:diseases,populated,dev5
+Annotation,n_localizations,5358,entity_ontology_term:uberon_anatomy,populated,dev5
+Annotation,n_pathways_annotation,2870,entity_ontology_term:pathway_annotations,populated,dev5
