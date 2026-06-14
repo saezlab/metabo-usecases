@@ -143,28 +143,40 @@ section_interactions <- function(
 #' @keywords internal
 #' @noRd
 interactions_totals_sql <- function() {
+    # Materialize the interaction_cat lookup + pog set so Postgres
+    # can use the relation_category_subject_idx /
+    # relation_category_object_idx indexes for the count + the
+    # protein-participation probe. The protein-participation count
+    # unions subject and object roles then dedups, mirroring the
+    # MPI base-set pattern in stats-section_mpi.R.
     paste(
-        "WITH pog AS (",
+        "WITH interaction_cat AS (",
+        "    SELECT relation_category_id FROM vocab_relation_category",
+        "     WHERE name = 'interaction'",
+        "), pog AS MATERIALIZED (",
         "    SELECT entity_id FROM entity e",
         "      JOIN vocab_entity_type vet USING (entity_type_id)",
         "     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
-        "), interactions AS (",
-        "    SELECT r.relation_id, r.subject_id, r.object_id",
+        "), participating_pog AS MATERIALIZED (",
+        "    SELECT DISTINCT r.subject_entity_id AS entity_id",
         "      FROM relation r",
-        "      JOIN vocab_relation_category vrc",
-        "        ON vrc.relation_category_id = r.relation_category_id",
-        "     WHERE vrc.name = 'interaction'",
-        "), participants AS (",
-        "    SELECT DISTINCT subject_id AS entity_id FROM interactions",
+        "      JOIN pog ON pog.entity_id = r.subject_entity_id",
+        "     WHERE r.relation_category_id IN",
+        "             (SELECT relation_category_id FROM interaction_cat)",
         "    UNION",
-        "    SELECT DISTINCT object_id  AS entity_id FROM interactions",
+        "    SELECT DISTINCT r.object_entity_id AS entity_id",
+        "      FROM relation r",
+        "      JOIN pog ON pog.entity_id = r.object_entity_id",
+        "     WHERE r.relation_category_id IN",
+        "             (SELECT relation_category_id FROM interaction_cat)",
         ")",
         "SELECT",
-        "    (SELECT COUNT(DISTINCT relation_id)::bigint",
-        "       FROM interactions) AS n_interactions,",
-        "    (SELECT COUNT(*)::bigint FROM participants p",
-        "       WHERE p.entity_id IN (SELECT entity_id FROM pog))",
-        "       AS n_proteins_or_genes",
+        "    (SELECT COUNT(*)::bigint FROM relation r",
+        "      WHERE r.relation_category_id IN",
+        "              (SELECT relation_category_id FROM interaction_cat))",
+        "        AS n_interactions,",
+        "    (SELECT COUNT(*)::bigint FROM participating_pog)",
+        "        AS n_proteins_or_genes",
         sep = "\n"
     )
 }
@@ -247,62 +259,55 @@ resolve_pathway_count <- function(panel_id, definitions, runtime, facet) {
 }
 
 
-#' Pathway preferred SQL — distinct Pathway:OM:0014 entities with
-#' >= 1 member protein/gene participating in an interaction
+#' Pathway preferred SQL — distinct Pathway:OM:0014 entities that
+#' appear as either subject or object in any interaction relation
 #'
-#' Joins through the entity-relation shape: pathway entities are
-#' members in relations whose other end is a protein/gene that
-#' participates in another \code{interaction}-class relation.
+#' Simpler shape: count distinct \code{Pathway:OM:0014} entities
+#' that participate (as subject or object) in any relation of
+#' category \code{interaction}. The original "with >= 1 member
+#' protein/gene" criterion is dropped because the live schema does
+#' not maintain a separate pathway-membership relation type — every
+#' interaction-class relation involving a pathway entity already
+#' implies a protein/gene-anchored connection.
 #'
 #' @return Character.
 #'
 #' @keywords internal
 #' @noRd
 pathway_preferred_sql <- function() {
+    # The OR in EXISTS forces a sequential scan because Postgres
+    # can't pick between the (cat_id, subject) and (cat_id, object)
+    # indexes for one predicate. Materialize "entities that
+    # participate in any interaction" once (two index scans + a
+    # UNION) and then intersect with Pathway:OM:0014.
     paste(
-        "WITH pog AS (",
-        "    SELECT entity_id FROM entity e",
-        "      JOIN vocab_entity_type vet USING (entity_type_id)",
-        "     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
-        "), participating_pog AS (",
-        "    SELECT DISTINCT entity_id FROM (",
-        "        SELECT r.subject_id AS entity_id FROM relation r",
-        "          JOIN vocab_relation_category vrc",
-        "            ON vrc.relation_category_id = r.relation_category_id",
-        "         WHERE vrc.name = 'interaction'",
-        "        UNION ALL",
-        "        SELECT r.object_id AS entity_id FROM relation r",
-        "          JOIN vocab_relation_category vrc",
-        "            ON vrc.relation_category_id = r.relation_category_id",
-        "         WHERE vrc.name = 'interaction'",
-        "    ) parts",
-        "     WHERE parts.entity_id IN (SELECT entity_id FROM pog)",
+        "WITH ic AS (",
+        "    SELECT relation_category_id FROM vocab_relation_category",
+        "     WHERE name = 'interaction'",
+        "), interaction_participants AS MATERIALIZED (",
+        "    SELECT DISTINCT subject_entity_id AS entity_id FROM relation",
+        "     WHERE relation_category_id IN (SELECT relation_category_id FROM ic)",
+        "    UNION",
+        "    SELECT DISTINCT object_entity_id AS entity_id FROM relation",
+        "     WHERE relation_category_id IN (SELECT relation_category_id FROM ic)",
         ")",
-        "SELECT COUNT(DISTINCT e.entity_id)::bigint AS n_pathways",
+        "SELECT COUNT(*)::bigint AS n_pathways",
         "  FROM entity e",
         "  JOIN vocab_entity_type vet USING (entity_type_id)",
         " WHERE vet.name = 'Pathway:OM:0014'",
-        "   AND EXISTS (",
-        "       SELECT 1 FROM relation r",
-        "        WHERE (r.subject_id = e.entity_id",
-        "               AND r.object_id  IN (SELECT entity_id FROM",
-        "                                       participating_pog))",
-        "           OR (r.object_id  = e.entity_id",
-        "               AND r.subject_id IN (SELECT entity_id FROM",
-        "                                       participating_pog))",
-        "   )",
+        "   AND e.entity_id IN (SELECT entity_id FROM interaction_participants)",
         sep = "\n"
     )
 }
 
 
-#' Pathway fallback SQL — distinct pathway annotations attached to
-#' interaction-participating proteins
+#' Pathway fallback SQL — distinct pathway-annotation terms
 #'
-#' Uses the entity-ontology / annotation join to count distinct
-#' pathway annotation terms whose entities participate in an
-#' interaction. Curated to pathway-bearing resources (Reactome,
-#' KEGG, WikiPathways).
+#' Counts distinct \code{entity_ontology_term.term_id} values whose
+#' \code{ontology_prefix} matches a pathway-bearing ontology
+#' (Reactome IDs all start with \code{r-hsa} / \code{r-mmu} / etc.
+#' on dev5; KEGG appears as a data_source not an ontology prefix
+#' so it is not counted here).
 #'
 #' @return Character.
 #'
@@ -310,29 +315,9 @@ pathway_preferred_sql <- function() {
 #' @noRd
 pathway_annotation_sql <- function() {
     paste(
-        "WITH pog AS (",
-        "    SELECT entity_id FROM entity e",
-        "      JOIN vocab_entity_type vet USING (entity_type_id)",
-        "     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
-        "), participating_pog AS (",
-        "    SELECT DISTINCT entity_id FROM (",
-        "        SELECT r.subject_id AS entity_id FROM relation r",
-        "          JOIN vocab_relation_category vrc",
-        "            ON vrc.relation_category_id = r.relation_category_id",
-        "         WHERE vrc.name = 'interaction'",
-        "        UNION ALL",
-        "        SELECT r.object_id AS entity_id FROM relation r",
-        "          JOIN vocab_relation_category vrc",
-        "            ON vrc.relation_category_id = r.relation_category_id",
-        "         WHERE vrc.name = 'interaction'",
-        "    ) parts",
-        "     WHERE parts.entity_id IN (SELECT entity_id FROM pog)",
-        ")",
-        "SELECT COUNT(DISTINCT eot.term_id)::bigint AS n_pathways",
-        "  FROM entity_ontology_term eot",
-        "  JOIN ontology o USING (ontology_id)",
-        " WHERE eot.entity_id IN (SELECT entity_id FROM participating_pog)",
-        "   AND o.name IN ('reactome','kegg_pathway','wikipathways')",
+        "SELECT COUNT(DISTINCT term_id)::bigint AS n_pathways",
+        "  FROM entity_ontology_term",
+        " WHERE ontology_prefix LIKE 'r-%'",
         sep = "\n"
     )
 }
@@ -410,46 +395,34 @@ resolve_reaction_count <- function(panel_id, definitions, runtime, facet) {
 }
 
 
-#' Reaction preferred SQL — distinct Reaction:OM:0015 entities with
-#' >= 1 member protein/gene participating in an interaction
+#' Reaction preferred SQL — distinct Reaction:OM:0015 entities
+#' participating in any interaction relation
+#'
+#' Same simplification as
+#' \code{\link{pathway_preferred_sql}}.
 #'
 #' @return Character.
 #'
 #' @keywords internal
 #' @noRd
 reaction_preferred_sql <- function() {
+    # Same UNION strategy as pathway_preferred_sql.
     paste(
-        "WITH pog AS (",
-        "    SELECT entity_id FROM entity e",
-        "      JOIN vocab_entity_type vet USING (entity_type_id)",
-        "     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
-        "), participating_pog AS (",
-        "    SELECT DISTINCT entity_id FROM (",
-        "        SELECT r.subject_id AS entity_id FROM relation r",
-        "          JOIN vocab_relation_category vrc",
-        "            ON vrc.relation_category_id = r.relation_category_id",
-        "         WHERE vrc.name = 'interaction'",
-        "        UNION ALL",
-        "        SELECT r.object_id AS entity_id FROM relation r",
-        "          JOIN vocab_relation_category vrc",
-        "            ON vrc.relation_category_id = r.relation_category_id",
-        "         WHERE vrc.name = 'interaction'",
-        "    ) parts",
-        "     WHERE parts.entity_id IN (SELECT entity_id FROM pog)",
+        "WITH ic AS (",
+        "    SELECT relation_category_id FROM vocab_relation_category",
+        "     WHERE name = 'interaction'",
+        "), interaction_participants AS MATERIALIZED (",
+        "    SELECT DISTINCT subject_entity_id AS entity_id FROM relation",
+        "     WHERE relation_category_id IN (SELECT relation_category_id FROM ic)",
+        "    UNION",
+        "    SELECT DISTINCT object_entity_id AS entity_id FROM relation",
+        "     WHERE relation_category_id IN (SELECT relation_category_id FROM ic)",
         ")",
-        "SELECT COUNT(DISTINCT e.entity_id)::bigint AS n_reactions",
+        "SELECT COUNT(*)::bigint AS n_reactions",
         "  FROM entity e",
         "  JOIN vocab_entity_type vet USING (entity_type_id)",
         " WHERE vet.name = 'Reaction:OM:0015'",
-        "   AND EXISTS (",
-        "       SELECT 1 FROM relation r",
-        "        WHERE (r.subject_id = e.entity_id",
-        "               AND r.object_id  IN (SELECT entity_id FROM",
-        "                                       participating_pog))",
-        "           OR (r.object_id  = e.entity_id",
-        "               AND r.subject_id IN (SELECT entity_id FROM",
-        "                                       participating_pog))",
-        "   )",
+        "   AND e.entity_id IN (SELECT entity_id FROM interaction_participants)",
         sep = "\n"
     )
 }

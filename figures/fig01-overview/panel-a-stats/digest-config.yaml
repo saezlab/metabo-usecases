@@ -18,10 +18,11 @@ definitions:
       - tcdb
       - slctables
     # FR-043b — UniProt keywords indicating transporter membership.
-    uniprot_keywords:
-      - KW-0813   # Transport
-      - KW-0769   # Symport
-      - KW-0917   # Antiport
+    # Disabled until the entity ↔ UniProt-keyword annotation join
+    # is identified on dev5 (entity_ontology_term is a term vocab,
+    # not an annotation table). Re-enable by adding KW codes once
+    # the join shape is resolved.
+    uniprot_keywords: []
 
   receptor:
     # FR-043b — curated receptor-resource list. The cycle-001
@@ -34,8 +35,9 @@ definitions:
       - connectomedb
       - cellphonedb
     # FR-043b — UniProt keyword indicating receptor membership.
-    uniprot_keywords:
-      - KW-0675   # Receptor
+    # Disabled until the entity ↔ UniProt-keyword annotation join
+    # is identified on dev5.
+    uniprot_keywords: []
 
   pathway:
     # FR-043c — Section 3 pathway definition. `Pathway:OM:0014` is
@@ -69,7 +71,7 @@ runtime:
     # metadata.definitions (per panel-a-stats.schema.json the
     # `metadata.definitions` block has additionalProperties: false
     # over a fixed key set that does not include a `structures` key).
-    inchikey_column: inchikey
+    inchikey_column: standard_inchikey
 
   pathway:
     # FR-043c — minimum row count below which the preferred

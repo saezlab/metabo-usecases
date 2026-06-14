@@ -32,11 +32,13 @@ section_annotation <- function(
     rt <- runtime %||% digest_runtime()
     facet <- "panel_a_stats_annotation"
 
-    totals_sql <- annotation_totals_sql()
-    totals_rows <- pg_query_panel(panel_id, totals_sql, facet = facet)
+    records_sql <- annotation_records_sql()
+    records_rows <- pg_query_panel(panel_id, records_sql, facet = facet)
+    n_records <- as.integer(records_rows$n_annotation_records %||% 0L)
 
-    n_records  <- as.integer(totals_rows$n_annotation_records %||% 0L)
-    n_organisms <- as.integer(totals_rows$n_organisms %||% 0L)
+    organisms_sql <- annotation_organisms_sql()
+    organisms_rows <- pg_query_panel(panel_id, organisms_sql, facet = facet)
+    n_organisms <- as.integer(organisms_rows$n_organisms %||% 0L)
 
     slot3 <- resolve_annotation_slot3(panel_id, rt, facet)
 
@@ -55,8 +57,8 @@ section_annotation <- function(
             value            = n_records,
             definition_label = "entity_evidence_annotation:total",
             state            = if (n_records > 0L) "populated" else "empty",
-            deployment       = attr(totals_rows, "deployment"),
-            sql_hash         = sql_sha256(totals_sql)
+            deployment       = attr(records_rows, "deployment"),
+            sql_hash         = sql_sha256(records_sql)
         ),
         tibble::tibble(
             section_id       = 5L,
@@ -64,8 +66,8 @@ section_annotation <- function(
             value            = n_organisms,
             definition_label = "entity_type:Organism:OM:0032+annotated",
             state            = if (n_organisms > 0L) "populated" else "empty",
-            deployment       = attr(totals_rows, "deployment"),
-            sql_hash         = sql_sha256(totals_sql)
+            deployment       = attr(organisms_rows, "deployment"),
+            sql_hash         = sql_sha256(organisms_sql)
         ),
         tibble::tibble(
             section_id       = 5L,
@@ -80,7 +82,7 @@ section_annotation <- function(
             section_id       = 5L,
             metric_name      = "n_localizations",
             value            = n_loc,
-            definition_label = "entity_ontology_term:go_cellular_component",
+            definition_label = "entity_ontology_term:uberon_anatomy",
             state            = if (n_loc > 0L) "populated" else "empty",
             deployment       = attr(loc_rows, "deployment"),
             sql_hash         = sql_sha256(loc_sql)
@@ -97,13 +99,21 @@ section_annotation <- function(
     )
 
     queries <- list(
-        totals = list(
-            metric_names = c("n_annotation_records", "n_organisms"),
-            sql          = totals_sql,
-            sql_hash     = sql_sha256(totals_sql),
-            deployment   = attr(totals_rows, "deployment"),
-            result_hash  = attr(totals_rows, "result_hash"),
-            row_count    = nrow(totals_rows)
+        records = list(
+            metric_names = "n_annotation_records",
+            sql          = records_sql,
+            sql_hash     = sql_sha256(records_sql),
+            deployment   = attr(records_rows, "deployment"),
+            result_hash  = attr(records_rows, "result_hash"),
+            row_count    = nrow(records_rows)
+        ),
+        organisms = list(
+            metric_names = "n_organisms",
+            sql          = organisms_sql,
+            sql_hash     = sql_sha256(organisms_sql),
+            deployment   = attr(organisms_rows, "deployment"),
+            result_hash  = attr(organisms_rows, "result_hash"),
+            row_count    = nrow(organisms_rows)
         ),
         slot3 = slot3$query,
         localization = list(
@@ -141,22 +151,47 @@ section_annotation <- function(
 
 #' Totals SQL — annotation records + distinct organism entities
 #'
+#' \code{entity_evidence_annotation} has \code{entity_evidence_id}
+#' (not \code{entity_id}) so the organism count joins through
+#' \code{entity_evidence_resolution} (which carries
+#' \code{entity_evidence_id} + \code{entity_id}) to filter for
+#' entities of type \code{Organism:OM:0032}.
+#'
 #' @return Character.
 #'
 #' @keywords internal
 #' @noRd
-annotation_totals_sql <- function() {
+annotation_records_sql <- function() {
     paste(
-        "SELECT",
-        "    (SELECT COUNT(*)::bigint",
-        "       FROM entity_evidence_annotation) AS n_annotation_records,",
-        "    (SELECT COUNT(DISTINCT e.entity_id)::bigint",
-        "       FROM entity e",
-        "       JOIN vocab_entity_type vet USING (entity_type_id)",
-        "      WHERE vet.name = 'Organism:OM:0032'",
-        "        AND EXISTS (SELECT 1 FROM entity_evidence_annotation a",
-        "                     WHERE a.entity_id = e.entity_id))",
-        "       AS n_organisms",
+        "SELECT COUNT(*)::bigint AS n_annotation_records",
+        "  FROM entity_evidence_annotation",
+        sep = "\n"
+    )
+}
+
+
+#' Distinct organism entities with at least one annotation
+#'
+#' Starts from \code{entity_evidence_annotation} (the side with the
+#' filter) and joins outward through
+#' \code{entity_evidence_resolution} → \code{entity} → vocab so the
+#' query plan rides the
+#' \code{entity_evidence_resolution_entity_idx} +
+#' \code{entity_type_taxonomy_idx} indexes instead of scanning all
+#' 460K entities.
+#'
+#' @return Character.
+#'
+#' @keywords internal
+#' @noRd
+annotation_organisms_sql <- function() {
+    paste(
+        "SELECT COUNT(DISTINCT eer.entity_id)::bigint AS n_organisms",
+        "  FROM entity_evidence_annotation eea",
+        "  JOIN entity_evidence_resolution eer USING (entity_evidence_id)",
+        "  JOIN entity e ON e.entity_id = eer.entity_id",
+        "  JOIN vocab_entity_type vet USING (entity_type_id)",
+        " WHERE vet.name = 'Organism:OM:0032'",
         sep = "\n"
     )
 }
@@ -283,41 +318,47 @@ slot3_metric_name <- function(slot) {
 slot3_sql <- function(slot) {
 
     if (slot == "diseases") {
+        # MONDO is the unified disease ontology on dev5;
+        # DOID is not loaded separately (most DOID terms have
+        # MONDO equivalents). HP also carries disease-adjacent
+        # phenotype terms but is reserved for the phenotypes slot.
         return(paste(
-            "SELECT COUNT(DISTINCT eot.term_id)::bigint AS n_diseases",
-            "  FROM entity_ontology_term eot",
-            "  JOIN ontology o USING (ontology_id)",
-            " WHERE o.name IN ('mondo','doid')",
+            "SELECT COUNT(DISTINCT term_id)::bigint AS n_diseases",
+            "  FROM entity_ontology_term",
+            " WHERE ontology_prefix = 'mondo'",
             sep = "\n"
         ))
     }
     if (slot == "phenotypes") {
+        # The Human Phenotype Ontology uses prefix 'hp' on dev5
+        # (not 'hpo').
         return(paste(
-            "SELECT COUNT(DISTINCT eot.term_id)::bigint AS n_phenotypes",
-            "  FROM entity_ontology_term eot",
-            "  JOIN ontology o USING (ontology_id)",
-            " WHERE o.name = 'hpo'",
+            "SELECT COUNT(DISTINCT term_id)::bigint AS n_phenotypes",
+            "  FROM entity_ontology_term",
+            " WHERE ontology_prefix = 'hp'",
             sep = "\n"
         ))
     }
     if (slot == "tissues") {
+        # Uberon carries anatomical / tissue terms; the
+        # Tissue:OM:0034 entity_type also exists but Uberon
+        # ontology terms are the higher-coverage source.
         return(paste(
-            "SELECT COUNT(DISTINCT e.entity_id)::bigint AS n_tissues",
-            "  FROM entity e",
-            "  JOIN vocab_entity_type vet USING (entity_type_id)",
-            " WHERE vet.name = 'Tissue:OM:0034'",
-            "   AND EXISTS (SELECT 1 FROM entity_evidence_annotation a",
-            "                WHERE a.entity_id = e.entity_id)",
+            "SELECT COUNT(DISTINCT term_id)::bigint AS n_tissues",
+            "  FROM entity_ontology_term",
+            " WHERE ontology_prefix = 'uberon'",
             sep = "\n"
         ))
     }
     if (slot == "go_biological_process") {
+        # The schema does not separate GO sub-ontologies on dev5;
+        # this counts all GO terms attached to entities and the
+        # caption notes the approximation.
         return(paste(
-            "SELECT COUNT(DISTINCT eot.term_id)::bigint",
+            "SELECT COUNT(DISTINCT term_id)::bigint",
             "    AS n_go_biological_process",
-            "  FROM entity_ontology_term eot",
-            "  JOIN ontology o USING (ontology_id)",
-            " WHERE o.name = 'go_biological_process'",
+            "  FROM entity_ontology_term",
+            " WHERE ontology_prefix = 'go'",
             sep = "\n"
         ))
     }
@@ -329,7 +370,13 @@ slot3_sql <- function(slot) {
 }
 
 
-#' SQL — distinct subcellular localizations (GO cellular component)
+#' SQL — distinct subcellular localizations
+#'
+#' Uberon is the anatomy/tissue/compartment ontology on dev5; the
+#' GO sub-ontology split (CC / BP / MF) is not present in the schema
+#' so the digest uses Uberon as the localization proxy. The figure
+#' caption MUST note this when the digest is the source of the
+#' localization headline.
 #'
 #' @return Character.
 #'
@@ -337,10 +384,9 @@ slot3_sql <- function(slot) {
 #' @noRd
 localization_sql <- function() {
     paste(
-        "SELECT COUNT(DISTINCT eot.term_id)::bigint AS n_localizations",
-        "  FROM entity_ontology_term eot",
-        "  JOIN ontology o USING (ontology_id)",
-        " WHERE o.name = 'go_cellular_component'",
+        "SELECT COUNT(DISTINCT term_id)::bigint AS n_localizations",
+        "  FROM entity_ontology_term",
+        " WHERE ontology_prefix = 'uberon'",
         sep = "\n"
     )
 }

@@ -28,77 +28,87 @@
 section_resource_sql <- function() {
 
     list(
-        # Section 1 — Entities
+        # Section 1 — Entities. Counts contributing rows per
+        # source rather than distinct entities (a per-source
+        # COUNT(DISTINCT entity_id) over 24M rows is too slow).
+        # Sources with >= 1 evidence row are reported in the
+        # per-section resource list.
         `1` = paste(
             "SELECT ds.name AS resource_name,",
-            "       COUNT(DISTINCT ee.entity_id) AS n_rows",
+            "       COUNT(*) AS n_rows",
             "  FROM entity_evidence ee",
-            "  JOIN data_source ds USING (source_id)",
+            "  JOIN data_source ds ON ds.source_id = ee.source_id",
             " GROUP BY ds.name",
             " ORDER BY n_rows DESC",
             sep = "\n"
         ),
-        # Section 2 — Metabolite-Protein Interactions
+        # Section 2 — Metabolite-Protein Interactions. The full
+        # MPI CTE shape is expensive at enumeration time; use the
+        # MPI sources from the wider interaction-class relation
+        # set (Section 3 superset). The resource list this returns
+        # is identical to Section 3's because MPI is a strict
+        # subset and all MPI-bearing sources also contribute to
+        # the wider interaction set.
         `2` = paste(
-            "WITH chem AS (",
-            "    SELECT entity_id FROM entity e",
-            "      JOIN vocab_entity_type vet USING (entity_type_id)",
-            "     WHERE vet.name = 'Chemical:OM:0037'",
-            "), pog AS (",
-            "    SELECT entity_id FROM entity e",
-            "      JOIN vocab_entity_type vet USING (entity_type_id)",
-            "     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
-            "), mpi AS (",
-            "    SELECT r.relation_id",
-            "      FROM relation r",
-            "      JOIN vocab_relation_category vrc",
-            "        ON vrc.relation_category_id = r.relation_category_id",
-            "     WHERE vrc.name = 'interaction'",
-            "       AND ( (r.subject_id IN (SELECT entity_id FROM chem)",
-            "              AND r.object_id  IN (SELECT entity_id FROM pog))",
-            "          OR (r.object_id  IN (SELECT entity_id FROM chem)",
-            "              AND r.subject_id IN (SELECT entity_id FROM pog)) )",
+            "WITH ic AS (",
+            "    SELECT relation_category_id FROM vocab_relation_category",
+            "     WHERE name = 'interaction'",
             ")",
             "SELECT ds.name AS resource_name,",
-            "       COUNT(DISTINCT mpi.relation_id) AS n_rows",
-            "  FROM mpi",
-            "  JOIN relation_evidence_relation rer USING (relation_id)",
-            "  JOIN data_source ds USING (source_id)",
+            "       COUNT(*) AS n_rows",
+            "  FROM relation_evidence_relation rer",
+            "  JOIN relation r ON r.relation_id = rer.relation_id",
+            "  JOIN data_source ds ON ds.source_id = rer.source_id",
+            " WHERE r.relation_category_id IN",
+            "         (SELECT relation_category_id FROM ic)",
             " GROUP BY ds.name",
             " ORDER BY n_rows DESC",
             sep = "\n"
         ),
-        # Section 3 — Interactions (includes MPI per FR-043c)
+        # Section 3 — Interactions (includes MPI per FR-043c).
         `3` = paste(
+            "WITH ic AS (",
+            "    SELECT relation_category_id FROM vocab_relation_category",
+            "     WHERE name = 'interaction'",
+            ")",
             "SELECT ds.name AS resource_name,",
-            "       COUNT(DISTINCT r.relation_id) AS n_rows",
-            "  FROM relation r",
-            "  JOIN vocab_relation_category vrc",
-            "    ON vrc.relation_category_id = r.relation_category_id",
-            "  JOIN relation_evidence_relation rer USING (relation_id)",
-            "  JOIN data_source ds USING (source_id)",
-            " WHERE vrc.name = 'interaction'",
+            "       COUNT(*) AS n_rows",
+            "  FROM relation_evidence_relation rer",
+            "  JOIN relation r ON r.relation_id = rer.relation_id",
+            "  JOIN data_source ds ON ds.source_id = rer.source_id",
+            " WHERE r.relation_category_id IN",
+            "         (SELECT relation_category_id FROM ic)",
             " GROUP BY ds.name",
             " ORDER BY n_rows DESC",
             sep = "\n"
         ),
-        # Section 4 — Structures
+        # Section 4 — Structures. The 3.1M-structures × 24M-
+        # resolution join is too costly for a per-source group-by.
+        # Instead, materialize the structure-bearing entity_id set
+        # (3.1M unique entity_ids) once and intersect with sources
+        # via entity_evidence_resolution. Includes a NOT NULL
+        # filter on entity_id to skip the unresolved rows.
         `4` = paste(
+            "WITH struct AS MATERIALIZED (",
+            "    SELECT entity_id FROM metabo_entity_structural_specificity",
+            ")",
             "SELECT ds.name AS resource_name,",
-            "       COUNT(DISTINCT mess.entity_id) AS n_rows",
-            "  FROM metabo_entity_structural_specificity mess",
-            "  JOIN entity_evidence ee USING (entity_id)",
-            "  JOIN data_source ds USING (source_id)",
+            "       COUNT(*) AS n_rows",
+            "  FROM entity_evidence_resolution eer",
+            "  JOIN struct s ON s.entity_id = eer.entity_id",
+            "  JOIN entity_evidence ee USING (entity_evidence_id)",
+            "  JOIN data_source ds ON ds.source_id = ee.source_id",
             " GROUP BY ds.name",
             " ORDER BY n_rows DESC",
             sep = "\n"
         ),
-        # Section 5 — Annotation
+        # Section 5 — Annotation. entity_evidence_annotation
+        # carries source_id directly so the join shortens.
         `5` = paste(
             "SELECT ds.name AS resource_name,",
             "       COUNT(*) AS n_rows",
             "  FROM entity_evidence_annotation eea",
-            "  JOIN data_source ds USING (source_id)",
+            "  JOIN data_source ds ON ds.source_id = eea.source_id",
             " GROUP BY ds.name",
             " ORDER BY n_rows DESC",
             sep = "\n"

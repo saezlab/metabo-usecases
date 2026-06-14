@@ -1,14 +1,21 @@
 #' SQL CTE for the metabolite-protein interaction (MPI) base set
 #'
-#' Returns the SQL fragment that defines the \code{mpi} CTE used by
-#' every Section-2 metric. The MPI base set is the subset of
-#' \code{relation} rows whose \code{vocab_relation_category = 'interaction'}
-#' AND one participant is a \code{Chemical:OM:0037} entity AND the
-#' other is a protein/gene entity (\code{Gene:MI:0250} ∪
-#' \code{Protein:MI:0326}). Both subject/object orientations are
-#' captured via UNION.
+#' Returns the SQL fragment that defines the \code{chem}, \code{pog},
+#' and \code{mpi} CTEs used by every Section-2 metric. The MPI base
+#' set is the subset of \code{relation} rows whose
+#' \code{vocab_relation_category = 'interaction'} AND one participant
+#' is a \code{Chemical:OM:0037} entity AND the other is a protein /
+#' gene entity (\code{Gene:MI:0250} ∪ \code{Protein:MI:0326}).
 #'
-#' @return Character: SQL fragment ending after the CTE definition
+#' The two orientations (subject=chem ∧ object=pog and
+#' subject=pog ∧ object=chem) are captured as a UNION rather than a
+#' WHERE-OR so Postgres can use the
+#' \code{relation_category_subject_idx} / \code{...object_idx}
+#' indexes as two index scans. The \code{mpi} CTE is \code{MATERIALIZED}
+#' so the totals + transporter + receptor metrics share one scan
+#' rather than re-deriving the same row set three times.
+#'
+#' @return Character: SQL fragment ending after the CTE definitions
 #'     (no trailing comma; the caller appends additional CTEs or the
 #'     terminal SELECT).
 #'
@@ -16,30 +23,111 @@
 #' @noRd
 mpi_base_cte_sql <- function() {
     paste(
-        "WITH chem AS (",
+        "WITH chem AS MATERIALIZED (",
         "    SELECT entity_id FROM entity e",
         "      JOIN vocab_entity_type vet USING (entity_type_id)",
         "     WHERE vet.name = 'Chemical:OM:0037'",
-        "), pog AS (",
+        "), pog AS MATERIALIZED (",
         "    SELECT entity_id FROM entity e",
         "      JOIN vocab_entity_type vet USING (entity_type_id)",
         "     WHERE vet.name IN ('Gene:MI:0250','Protein:MI:0326')",
-        "), mpi AS (",
+        "), interaction_cat AS (",
+        "    SELECT relation_category_id FROM vocab_relation_category",
+        "     WHERE name = 'interaction'",
+        "), mpi AS MATERIALIZED (",
         "    SELECT r.relation_id,",
-        "           CASE WHEN r.subject_id IN (SELECT entity_id FROM chem)",
-        "                THEN r.subject_id ELSE r.object_id  END AS chem_id,",
-        "           CASE WHEN r.subject_id IN (SELECT entity_id FROM chem)",
-        "                THEN r.object_id  ELSE r.subject_id END AS prot_id,",
+        "           r.subject_entity_id AS chem_id,",
+        "           r.object_entity_id  AS prot_id,",
         "           r.predicate_id",
         "      FROM relation r",
-        "      JOIN vocab_relation_category vrc",
-        "        ON vrc.relation_category_id = r.relation_category_id",
-        "     WHERE vrc.name = 'interaction'",
-        "       AND ( (r.subject_id IN (SELECT entity_id FROM chem)",
-        "              AND r.object_id  IN (SELECT entity_id FROM pog))",
-        "          OR (r.object_id  IN (SELECT entity_id FROM chem)",
-        "              AND r.subject_id IN (SELECT entity_id FROM pog)) )",
+        "      JOIN chem ON chem.entity_id = r.subject_entity_id",
+        "      JOIN pog  ON pog.entity_id  = r.object_entity_id",
+        "     WHERE r.relation_category_id IN (SELECT relation_category_id",
+        "                                        FROM interaction_cat)",
+        "    UNION ALL",
+        "    SELECT r.relation_id,",
+        "           r.object_entity_id  AS chem_id,",
+        "           r.subject_entity_id AS prot_id,",
+        "           r.predicate_id",
+        "      FROM relation r",
+        "      JOIN chem ON chem.entity_id = r.object_entity_id",
+        "      JOIN pog  ON pog.entity_id  = r.subject_entity_id",
+        "     WHERE r.relation_category_id IN (SELECT relation_category_id",
+        "                                        FROM interaction_cat)",
         ")",
+        sep = "\n"
+    )
+}
+
+
+#' Build the combined Section-2 SQL — all five metrics in one query
+#'
+#' Bundles the totals (n_mpi_relations / n_metabolites /
+#' n_proteins_or_genes) and the transporter / receptor sub-counts
+#' into a single materialized-CTE query so the digest builds the
+#' MPI base set ONCE per rebuild rather than three times. The
+#' transporter / receptor classifications use the curated
+#' \code{data_source.name} lists (\code{definitions.transporter.resources}
+#' and \code{definitions.receptor.resources}) plus optional UniProt
+#' keywords; empty UniProt-keyword lists disable that branch
+#' cleanly.
+#'
+#' @param tra_resources Character vector.
+#' @param tra_keywords Character vector (possibly empty).
+#' @param rec_resources Character vector.
+#' @param rec_keywords Character vector (possibly empty).
+#'
+#' @return Character: complete SQL string.
+#'
+#' @keywords internal
+#' @noRd
+mpi_combined_sql <- function(
+    tra_resources,
+    tra_keywords,
+    rec_resources,
+    rec_keywords
+) {
+
+    # Pre-compute the small (~33K rows) transporter / receptor
+    # candidate-entity sets ONCE so the 2.8M-row MPI scan can
+    # intersect against them via in-set lookup rather than a
+    # per-row EXISTS scan into entity_evidence_resolution.
+    paste(
+        mpi_base_cte_sql(),
+        ", transporter_resource_set AS MATERIALIZED (",
+        "    SELECT DISTINCT eer.entity_id",
+        "      FROM entity_evidence_resolution eer",
+        "      JOIN entity_evidence ee USING (entity_evidence_id)",
+        "      JOIN data_source ds ON ds.source_id = ee.source_id",
+        sprintf("     WHERE ds.name IN (%s)",
+                sql_in_list(tra_resources)),
+        "), receptor_resource_set AS MATERIALIZED (",
+        "    SELECT DISTINCT eer.entity_id",
+        "      FROM entity_evidence_resolution eer",
+        "      JOIN entity_evidence ee USING (entity_evidence_id)",
+        "      JOIN data_source ds ON ds.source_id = ee.source_id",
+        sprintf("     WHERE ds.name IN (%s)",
+                sql_in_list(rec_resources)),
+        "), transport_predicates AS MATERIALIZED (",
+        "    SELECT vrp.relation_predicate_id",
+        "      FROM vocab_relation_predicate vrp",
+        "      JOIN vocab_interaction_class vic",
+        "        ON vic.interaction_class_id = vrp.interaction_class_id",
+        "     WHERE vic.name = 'Transport'",
+        ")",
+        "SELECT",
+        "    COUNT(DISTINCT mpi.relation_id)::bigint AS n_mpi_relations,",
+        "    COUNT(DISTINCT mpi.chem_id)::bigint     AS n_metabolites,",
+        "    COUNT(DISTINCT mpi.prot_id)::bigint     AS n_proteins_or_genes,",
+        "    COUNT(DISTINCT mpi.prot_id) FILTER (WHERE",
+        "        mpi.predicate_id IN (SELECT relation_predicate_id",
+        "                              FROM transport_predicates)",
+        "     OR mpi.prot_id IN (SELECT entity_id FROM transporter_resource_set)",
+        "    )::bigint AS n_transporters,",
+        "    COUNT(DISTINCT mpi.prot_id) FILTER (WHERE",
+        "        mpi.prot_id IN (SELECT entity_id FROM receptor_resource_set)",
+        "    )::bigint AS n_receptors",
+        "  FROM mpi",
         sep = "\n"
     )
 }
@@ -114,9 +202,10 @@ mpi_transporter_sql <- function(resources, uniprot_keywords) {
         "             AND vic.name = 'Transport'",
         "      )",
         "   OR EXISTS (",
-        "          SELECT 1 FROM entity_evidence ee",
-        "            JOIN data_source ds USING (source_id)",
-        "           WHERE ee.entity_id = mpi.prot_id",
+        "          SELECT 1 FROM entity_evidence_resolution eer",
+        "            JOIN entity_evidence ee USING (entity_evidence_id)",
+        "            JOIN data_source ds ON ds.source_id = ee.source_id",
+        "           WHERE eer.entity_id = mpi.prot_id",
         sprintf(
             "             AND ds.name IN (%s)",
             sql_in_list(resources)
@@ -161,9 +250,10 @@ mpi_receptor_sql <- function(resources, uniprot_keywords) {
         "  FROM mpi",
         " WHERE",
         "      EXISTS (",
-        "          SELECT 1 FROM entity_evidence ee",
-        "            JOIN data_source ds USING (source_id)",
-        "           WHERE ee.entity_id = mpi.prot_id",
+        "          SELECT 1 FROM entity_evidence_resolution eer",
+        "            JOIN entity_evidence ee USING (entity_evidence_id)",
+        "            JOIN data_source ds ON ds.source_id = ee.source_id",
+        "           WHERE eer.entity_id = mpi.prot_id",
         sprintf(
             "             AND ds.name IN (%s)",
             sql_in_list(resources)
@@ -196,12 +286,14 @@ uniprot_keyword_clause <- function(uniprot_keywords) {
     if (length(uniprot_keywords) == 0L) {
         return("")
     }
+    # dev5 stores UniProt keywords under ontology_prefix = 'uniprot'
+    # (no separate keyword ontology); the term_id carries the
+    # KW-NNNN code.
     paste(
         "   OR EXISTS (",
         "          SELECT 1 FROM entity_ontology_term eot",
-        "            JOIN ontology o USING (ontology_id)",
-        "           WHERE eot.entity_id = mpi.prot_id",
-        "             AND o.name = 'uniprot_keyword'",
+        "           WHERE eot.term_entity_id = mpi.prot_id",
+        "             AND eot.ontology_prefix = 'uniprot'",
         sprintf(
             "             AND eot.term_id IN (%s)",
             sql_in_list(uniprot_keywords)
@@ -298,29 +390,20 @@ section_mpi <- function(
     defs <- definitions %||% digest_definitions()
     facet <- "panel_a_stats_mpi"
 
-    totals_sql <- mpi_totals_sql()
-    transporter_sql <- mpi_transporter_sql(
+    combined_sql <- mpi_combined_sql(
         defs$transporter$resources,
-        defs$transporter$uniprot_keywords
-    )
-    receptor_sql <- mpi_receptor_sql(
+        defs$transporter$uniprot_keywords,
         defs$receptor$resources,
         defs$receptor$uniprot_keywords
     )
 
-    totals_rows <- pg_query_panel(panel_id, totals_sql, facet = facet)
-    transporter_rows <- pg_query_panel(
-        panel_id,
-        transporter_sql,
-        facet = facet
-    )
-    receptor_rows <- pg_query_panel(panel_id, receptor_sql, facet = facet)
+    rows <- pg_query_panel(panel_id, combined_sql, facet = facet)
 
-    n_mpi <- as.integer(totals_rows$n_mpi_relations %||% 0L)
-    n_met <- as.integer(totals_rows$n_metabolites %||% 0L)
-    n_pog <- as.integer(totals_rows$n_proteins_or_genes %||% 0L)
-    n_tra <- as.integer(transporter_rows$n_transporters %||% 0L)
-    n_rec <- as.integer(receptor_rows$n_receptors %||% 0L)
+    n_mpi <- as.integer(rows$n_mpi_relations %||% 0L)
+    n_met <- as.integer(rows$n_metabolites %||% 0L)
+    n_pog <- as.integer(rows$n_proteins_or_genes %||% 0L)
+    n_tra <- as.integer(rows$n_transporters %||% 0L)
+    n_rec <- as.integer(rows$n_receptors %||% 0L)
 
     # FR-043b subset assertion.
     if (n_tra > n_pog || n_rec > n_pog) {
@@ -348,6 +431,9 @@ section_mpi <- function(
         defs$receptor$uniprot_keywords
     )
 
+    deployment <- attr(rows, "deployment")
+    sql_h <- sql_sha256(combined_sql)
+
     metrics <- dplyr::bind_rows(
         tibble::tibble(
             section_id       = 2L,
@@ -355,8 +441,8 @@ section_mpi <- function(
             value            = n_mpi,
             definition_label = "mpi_base_cte:chemical+protein_or_gene",
             state            = if (n_mpi > 0L) "populated" else "empty",
-            deployment       = attr(totals_rows, "deployment"),
-            sql_hash         = sql_sha256(totals_sql)
+            deployment       = deployment,
+            sql_hash         = sql_h
         ),
         tibble::tibble(
             section_id       = 2L,
@@ -364,8 +450,8 @@ section_mpi <- function(
             value            = n_met,
             definition_label = "mpi_base_cte:distinct_chem_id",
             state            = if (n_met > 0L) "populated" else "empty",
-            deployment       = attr(totals_rows, "deployment"),
-            sql_hash         = sql_sha256(totals_sql)
+            deployment       = deployment,
+            sql_hash         = sql_h
         ),
         tibble::tibble(
             section_id       = 2L,
@@ -373,8 +459,8 @@ section_mpi <- function(
             value            = n_pog,
             definition_label = "mpi_base_cte:distinct_prot_id",
             state            = if (n_pog > 0L) "populated" else "empty",
-            deployment       = attr(totals_rows, "deployment"),
-            sql_hash         = sql_sha256(totals_sql)
+            deployment       = deployment,
+            sql_hash         = sql_h
         ),
         tibble::tibble(
             section_id       = 2L,
@@ -382,8 +468,8 @@ section_mpi <- function(
             value            = n_tra,
             definition_label = tra_label,
             state            = if (n_tra > 0L) "populated" else "empty",
-            deployment       = attr(transporter_rows, "deployment"),
-            sql_hash         = sql_sha256(transporter_sql)
+            deployment       = deployment,
+            sql_hash         = sql_h
         ),
         tibble::tibble(
             section_id       = 2L,
@@ -391,39 +477,25 @@ section_mpi <- function(
             value            = n_rec,
             definition_label = rec_label,
             state            = if (n_rec > 0L) "populated" else "empty",
-            deployment       = attr(receptor_rows, "deployment"),
-            sql_hash         = sql_sha256(receptor_sql)
+            deployment       = deployment,
+            sql_hash         = sql_h
         )
     )
 
     queries <- list(
-        totals = list(
+        combined = list(
             metric_names = c(
                 "n_mpi_relations",
                 "n_metabolites",
-                "n_proteins_or_genes"
+                "n_proteins_or_genes",
+                "n_transporters",
+                "n_receptors"
             ),
-            sql          = totals_sql,
-            sql_hash     = sql_sha256(totals_sql),
-            deployment   = attr(totals_rows, "deployment"),
-            result_hash  = attr(totals_rows, "result_hash"),
-            row_count    = nrow(totals_rows)
-        ),
-        transporter = list(
-            metric_names = "n_transporters",
-            sql          = transporter_sql,
-            sql_hash     = sql_sha256(transporter_sql),
-            deployment   = attr(transporter_rows, "deployment"),
-            result_hash  = attr(transporter_rows, "result_hash"),
-            row_count    = nrow(transporter_rows)
-        ),
-        receptor = list(
-            metric_names = "n_receptors",
-            sql          = receptor_sql,
-            sql_hash     = sql_sha256(receptor_sql),
-            deployment   = attr(receptor_rows, "deployment"),
-            result_hash  = attr(receptor_rows, "result_hash"),
-            row_count    = nrow(receptor_rows)
+            sql          = combined_sql,
+            sql_hash     = sql_h,
+            deployment   = deployment,
+            result_hash  = attr(rows, "result_hash"),
+            row_count    = nrow(rows)
         )
     )
 

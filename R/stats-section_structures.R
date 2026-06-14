@@ -52,7 +52,7 @@ section_structures <- function(
 ) {
 
     rt <- runtime %||% digest_runtime()
-    inchikey_col <- rt$structures$inchikey_column %||% "inchikey"
+    inchikey_col <- rt$structures$inchikey_column %||% "standard_inchikey"
     facet <- "panel_a_stats_structures"
 
     levels_sql <- structures_levels_sql()
@@ -64,14 +64,14 @@ section_structures <- function(
     ramp_sql <- ramp_conflict_sql()
     ramp_rows <- pg_query_panel(panel_id, ramp_sql, facet = facet)
 
+    levels <- structural_specificity_levels()
+    # Map the integer level_id 1..6 back to the canonical name.
     levels_lookup <- as.list(
         setNames(
             as.integer(levels_rows$n_structures),
-            levels_rows$specificity_level
+            levels[as.integer(levels_rows$level_id)]
         )
     )
-
-    levels <- structural_specificity_levels()
     n_total <- as.integer(sum(unlist(levels_lookup)))
 
     level_metrics <- purrr::map(levels, function(level) {
@@ -208,15 +208,25 @@ section_structures <- function(
 
 #' SQL — per-specificity-level structure counts
 #'
+#' \code{metabo_entity_structural_specificity} stores the level as
+#' an integer \code{structural_specificity_id}; on dev5 there is no
+#' vocab table mapping IDs to names so the digest hard-codes the
+#' canonical six-level mapping (FR-043d /
+#' \code{structural_specificity_levels()}). IDs 1..6 map to
+#' \code{stereospecific, cis_trans_only, constitution_only,
+#' variable_constitution, unknown_constitution, no_structure}
+#' respectively per the omnipath-metabo build's enum order.
+#'
 #' @return Character.
 #'
 #' @keywords internal
 #' @noRd
 structures_levels_sql <- function() {
     paste(
-        "SELECT specificity_level, COUNT(*)::bigint AS n_structures",
+        "SELECT structural_specificity_id AS level_id,",
+        "       COUNT(*)::bigint AS n_structures",
         "  FROM metabo_entity_structural_specificity",
-        " GROUP BY specificity_level",
+        " GROUP BY structural_specificity_id",
         sep = "\n"
     )
 }
@@ -255,7 +265,13 @@ structures_inchikey_sql <- function(inchikey_col) {
 }
 
 
-#' SQL — RaMP-conflict row count
+#' SQL — RaMP-conflict count (distinct RaMP IDs)
+#'
+#' \code{metabo_ramp_inchikey_conflict} on dev5 has one row per
+#' conflict pair (\code{ramp_id, inchikey_a, inchikey_b,
+#' conflict_reason}); the digest reports DISTINCT RaMP IDs since
+#' that is the user-facing count ("how many RaMP ids carry a
+#' conflict").
 #'
 #' @return Character.
 #'
@@ -263,7 +279,7 @@ structures_inchikey_sql <- function(inchikey_col) {
 #' @noRd
 ramp_conflict_sql <- function() {
     paste(
-        "SELECT COUNT(*)::bigint AS n_ramp_conflicts",
+        "SELECT COUNT(DISTINCT ramp_id)::bigint AS n_ramp_conflicts",
         "  FROM metabo_ramp_inchikey_conflict",
         sep = "\n"
     )
