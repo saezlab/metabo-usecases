@@ -1,0 +1,11 @@
+\textbf{Figure 6: Lung-cancer case study --- differential metabolomics, MetaLinksDB connections, and subcellular localisation by mutation status.}
+A worked use case applying the OmniPath Metabo database to the Shorthouse \emph{et al.}\ 2022 lung-cancer cohort (CCLE proteomics + targeted metabolomics) demonstrates how the integrated database supports differential-metabolomics interpretation across mutation contrasts.
+\textbf{(a)} KRAS-mutated vs. wild-type volcano plot: log\textsubscript{2} fold-change against $-\log_{10}$ $P$-value for every measured metabolite feature in the KRAS contrast (limma).
+Features passing $|\log_2 \text{FC}| > 0.5$ and $P < 0.05$ are highlighted; remaining features are shown in light grey.
+\textbf{(b)} EGFR-mutated vs. wild-type volcano on identical axis limits as (a) so the two contrasts are visually comparable (FR-019).
+\textbf{(c)} \emph{Manual asset} --- entry view of azelaic acid (top EGFR differential metabolite) on \texttt{metabo.omnipathdb.org}: search results, identifier resolution, downstream interaction context.
+\textbf{(d)} Top-hit metabolite--protein connections in MetaLinksDB~2.0 for the union of significant EGFR and KRAS DEMs, coloured by interaction category.
+\textbf{[Currently stubbed pending the in-progress MetaLinksDB rebuild.]}
+\textbf{(e)} COSMOS PKN edge counts touching the top-10 up- and down-regulated DEMs per contrast, split by PKN slice (allosteric regulation vs. enzyme--metabolite catalysis) and stacked by upstream resource (STITCH, BRENDA, KEGG, Human-GEM, Recon3D; overlapping resource memberships rendered as their composite label).
+\textbf{(f)} Subcellular-compartment distribution of the same edge set, faceted by contrast $\times$ direction (KRAS up, KRAS down, EGFR up, EGFR down).
+Compartment single-letter codes (\textit{c}, \textit{m}, \textit{n}, \textit{e}, \textit{r}, \textit{x}, \textit{g}, \textit{v}, \textit{l}) are expanded to full names (Cytoplasm, Mitochondria, Nucleus, Extracellular, ER, Peroxisome, Golgi, Vesicle, Lysosome).
