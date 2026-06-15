@@ -100,6 +100,12 @@ panel_c <- fig04_resource_contribution_panel(
     width_mm                = 89L
 )
 
+logger::log_info('[fig05] rendering Panel C (split) — resource contributions after semicolon splitting')
+panel_c_split <- fig04_resource_contribution_panel(
+    cosmos_plus_by_resource = cosmos_plus$by_resource_split,
+    width_mm                = 89L
+)
+
 logger::log_info('[fig05] rendering Panel D (MetaLinksDB 2.0 vs. COSMOS+)')
 panel_d <- fig04_metalinks_cosmos_panel(
     metalinks_counts            = metalinks_v2_types,
@@ -107,48 +113,87 @@ panel_d <- fig04_metalinks_cosmos_panel(
     width_mm                    = 120L
 )
 
+# All individual panels including both C variants
+panels_all <- list(
+    panel_a       = panel_a,
+    panel_b       = panel_b,
+    panel_c       = panel_c,
+    panel_c_split = panel_c_split,
+    panel_d       = panel_d
+)
+
+# Main composite: Panel B and C (split) only; A and D saved individually
 panels <- list(
-    panel_a = panel_a,
     panel_b = panel_b,
-    panel_c = panel_c,
-    panel_d = panel_d
+    panel_c = panel_c_split
 )
 
 # ── Save individual panels ───────────────────────────────────────────────────
 
-for (name in names(panels)) {
+panel_dims <- list(
+    panel_a       = c(120, 110),
+    panel_b       = c(89,  140),
+    panel_c       = c(89,  130),
+    panel_c_split = c(89,  160),
+    panel_d       = c(120, 110)
+)
+
+for (name in names(panels_all)) {
+    dims <- panel_dims[[name]]
     ggsave(
         filename = file.path(out_dir, paste0(name, '.pdf')),
-        plot     = panels[[name]],
-        width    = 120,
-        height   = 90,
+        plot     = panels_all[[name]],
+        width    = dims[1L],
+        height   = dims[2L],
         units    = 'mm'
     )
     ggsave(
         filename = file.path(out_dir, paste0(name, '.svg')),
-        plot     = panels[[name]],
-        width    = 120,
-        height   = 90,
+        plot     = panels_all[[name]],
+        width    = dims[1L],
+        height   = dims[2L],
         units    = 'mm'
     )
 }
 
 # ── Pipeline panel composite ─────────────────────────────────────────────────
 
-pipeline_composite <- compose_patchwork(panels, layout = list(ncol = 2L))
+pipeline_composite <- compose_patchwork(panels, layout = list(ncol = 1L))
 
 ggsave(
     filename = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
     plot     = pipeline_composite,
-    width    = 240,
-    height   = 180,
+    width    = 200,
+    height   = 320,
     units    = 'mm'
 )
 ggsave(
     filename = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.svg'),
     plot     = pipeline_composite,
-    width    = 240,
-    height   = 180,
+    width    = 200,
+    height   = 320,
+    units    = 'mm'
+)
+
+# ── Panel B + C sub-composite ────────────────────────────────────────────────
+
+bc_composite <- compose_patchwork(
+    list(panel_b = panel_b, panel_c = panel_c_split),
+    layout = list(ncol = 1L)
+)
+
+ggsave(
+    filename = file.path(out_dir, 'fig05-cosmos-pkn-bc.pdf'),
+    plot     = bc_composite,
+    width    = 200,
+    height   = 320,
+    units    = 'mm'
+)
+ggsave(
+    filename = file.path(out_dir, 'fig05-cosmos-pkn-bc.svg'),
+    plot     = bc_composite,
+    width    = 200,
+    height   = 320,
     units    = 'mm'
 )
 
@@ -185,7 +230,7 @@ caption_info <- compose_caption(
     composite_pdf  = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
     caption_source = 'figures/fig05-cosmos-pkn/caption.tex',
     out_dir        = out_dir,
-    panel_count    = 4L
+    panel_count    = 2L
 )
 
 # ── Provenance sidecar ────────────────────────────────────────────────────────

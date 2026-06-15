@@ -398,8 +398,8 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
 #'     position_dodge coord_flip
-#' @importFrom dplyr mutate bind_rows
-#' @importFrom tibble tibble
+#' @importFrom dplyr mutate bind_rows select
+#' @importFrom tidyr complete
 #' @importFrom rlang .data
 #' @export
 fig04_cosmos_comparison_panel <- function(
@@ -460,6 +460,11 @@ fig04_cosmos_comparison_panel <- function(
         plot_data$interaction_type,
         levels = rev(all_types)
     )
+    plot_data <- tidyr::complete(
+        plot_data,
+        interaction_type, panel_group,
+        fill = list(n_interactions = 0)
+    )
 
     ggplot2::ggplot(
         plot_data,
@@ -482,7 +487,13 @@ fig04_cosmos_comparison_panel <- function(
             title = "Old COSMOS vs. COSMOS+ by interaction type"
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = "top")
+        ggplot2::theme(
+            legend.position = "top",
+            plot.title      = ggplot2::element_text(size = 14),
+            axis.text       = ggplot2::element_text(size = 11),
+            axis.title      = ggplot2::element_text(size = 12),
+            legend.text     = ggplot2::element_text(size = 10)
+        )
 }
 
 
@@ -592,8 +603,19 @@ fig04_compartment_panel <- function(
             fill  = NULL,
             title = "COSMOS+ interactions per compartment"
         ) +
+        ggplot2::guides(
+            fill = ggplot2::guide_legend(nrow = 3L, ncol = 2L)
+        ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = "right")
+        ggplot2::theme(
+            legend.position  = "top",
+            plot.title       = ggplot2::element_text(size = 14),
+            axis.text        = ggplot2::element_text(size = 11),
+            axis.title       = ggplot2::element_text(size = 12),
+            legend.text      = ggplot2::element_text(size = 10),
+            legend.key.size  = ggplot2::unit(0.4, "cm"),
+            legend.spacing.y = ggplot2::unit(0.15, "cm")
+        )
 
     if (unannotated_only) {
         p <- p + ggplot2::labs(
@@ -648,6 +670,15 @@ fig04_resource_contribution_panel <- function(
         data <- dplyr::bind_rows(top, other_row)
     }
 
+    # Sort descending by total entity count; pin "Other" to bottom
+    data <- dplyr::bind_rows(
+        dplyr::arrange(
+            data[data$resource != "Other", ],
+            dplyr::desc(n_metabolites + n_proteins)
+        ),
+        data[data$resource == "Other", ]
+    )
+
     # Apply short abbreviations
     data$resource_label <- .abbreviate_resource(data$resource)
 
@@ -695,7 +726,13 @@ fig04_resource_contribution_panel <- function(
             title = "COSMOS+ entities per resource"
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = "top")
+        ggplot2::theme(
+            legend.position = "top",
+            plot.title      = ggplot2::element_text(size = 14),
+            axis.text       = ggplot2::element_text(size = 11),
+            axis.title      = ggplot2::element_text(size = 12),
+            legend.text     = ggplot2::element_text(size = 10)
+        )
 }
 
 
@@ -716,7 +753,8 @@ fig04_resource_contribution_panel <- function(
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
 #'     coord_flip position_dodge
-#' @importFrom dplyr group_by summarise mutate bind_rows case_match
+#' @importFrom dplyr group_by summarise mutate bind_rows case_match ungroup
+#' @importFrom tidyr complete
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
@@ -752,21 +790,11 @@ fig04_metalinks_cosmos_panel <- function(
 
     metalinks_long <- dplyr::mutate(metalinks_counts, source = "MetaLinksDB 2.0")
 
-    # Add zero rows for COSMOS+-only categories not present in MetaLinksDB
-    cosmos_types    <- unique(cosmos_agg$interaction_type)
-    metalinks_types <- unique(metalinks_long$interaction_type)
-    cosmos_only     <- setdiff(cosmos_types, metalinks_types)
-
-    if (length(cosmos_only) > 0L) {
-        zero_rows <- tibble::tibble(
-            interaction_type = cosmos_only,
-            n_interactions   = 0L,
-            source           = "MetaLinksDB 2.0"
+    combined <- dplyr::bind_rows(cosmos_agg, metalinks_long) |>
+        tidyr::complete(
+            interaction_type, source,
+            fill = list(n_interactions = 0L)
         )
-        metalinks_long <- dplyr::bind_rows(metalinks_long, zero_rows)
-    }
-
-    combined <- dplyr::bind_rows(cosmos_agg, metalinks_long)
 
     all_types <- sort(unique(combined$interaction_type))
     combined$interaction_type <- factor(
@@ -803,7 +831,13 @@ fig04_metalinks_cosmos_panel <- function(
             title = "MetaLinksDB 2.0 vs. COSMOS+"
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = "top")
+        ggplot2::theme(
+            legend.position = "top",
+            plot.title      = ggplot2::element_text(size = 14),
+            axis.text       = ggplot2::element_text(size = 11),
+            axis.title      = ggplot2::element_text(size = 12),
+            legend.text     = ggplot2::element_text(size = 10)
+        )
 }
 
 
