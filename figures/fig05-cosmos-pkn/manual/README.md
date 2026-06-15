@@ -29,5 +29,5 @@ README with:
 | Asset | Status |
 |-------|--------|
 | pkn-to-binary-network | PLACEHOLDER — awaiting hand-authored schematic |
-| regulation-types | PLACEHOLDER — awaiting hand-authored schematic |
+| regulation-types | DELIVERED — `regulation-types.png` (raster source), `regulation-types.pdf` (converted at 300 dpi via ImageMagick). The PNG is the version-controlled source; replace with an SVG/PDF native re-author if a vector version becomes available. |
 | moon-activity-inference | PLACEHOLDER — awaiting hand-authored schematic |
