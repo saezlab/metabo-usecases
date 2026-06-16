@@ -187,16 +187,17 @@ for (name in names(individual_panels)) {
 # ── Composite (nested patchwork) ─────────────────────────────────────────────
 #
 # Conceptual layout:
-#   Row 1: A | B                                       (volcanos)
-#   Row 2: C | D                                       (azelate)
-#   Row 3: E_kras | E_egfr                             (GEM/Allos)
-#   Row 4: F_kras_up | F_kras_down | F_egfr_up | F_egfr_down
-#                                                      (subcellular)
+#   Row 1: A | B                          (volcanos)
+#   Row 2: C | D                          (azelate)
+#   Row 3 (40/60 split):
+#     left  40%: E_kras  /  E_egfr        (vertical stack)
+#     right 60%: (F_kras_up | F_kras_down) /
+#                (F_egfr_up | F_egfr_down) — 2x2 grid
 #
-# Panels E and F all use the same "resources" colour scale, so the
-# (row_e / row_f) sub-patch collects guides into a single Resource
-# legend at the bottom of the EF block. Heights weight row F a touch
-# heavier because its 4-up x-axis labels need more vertical room.
+# All E + F sub-panels share the "resources" colour scale via
+# scale_fill_manual (identical scale objects across plots), so
+# plot_layout(guides = "collect") on the EF block merges every
+# Resource legend into one at the bottom.
 
 row_ab <- patchwork::wrap_plots(
     list(
@@ -214,55 +215,51 @@ row_cd <- patchwork::wrap_plots(
     ncol = 2L
 )
 
-row_e <- patchwork::wrap_plots(
-    list(
-        panel_e_kras + ggplot2::labs(tag = "E"),
-        panel_e_egfr + ggplot2::labs(tag = "")
-    ),
-    ncol = 2L
+e_col <- (panel_e_kras + ggplot2::labs(tag = "E")) /
+    (panel_e_egfr + ggplot2::labs(tag = ""))
+
+f_grid <- (
+    (panel_f_kras_up   + ggplot2::labs(tag = "F")) |
+    (panel_f_kras_down + ggplot2::labs(tag = ""))
+) / (
+    (panel_f_egfr_up   + ggplot2::labs(tag = "")) |
+    (panel_f_egfr_down + ggplot2::labs(tag = ""))
 )
 
-row_f <- patchwork::wrap_plots(
-    list(
-        panel_f_kras_up   + ggplot2::labs(tag = "F"),
-        panel_f_kras_down + ggplot2::labs(tag = ""),
-        panel_f_egfr_up   + ggplot2::labs(tag = ""),
-        panel_f_egfr_down + ggplot2::labs(tag = "")
-    ),
-    ncol = 4L
-)
-
-ef_block <- (row_e / row_f) +
+ef_block <- (e_col | f_grid) +
     patchwork::plot_layout(
-        guides  = "collect",
-        heights = c(1, 1.05)
+        guides = "collect",
+        widths = c(0.4, 0.6)
     ) &
     ggplot2::theme(legend.position = "bottom")
 
 composite <- (row_ab / row_cd / ef_block) +
     patchwork::plot_layout(
-        heights = c(1, 1, 2.25)
+        heights = c(1, 1, 2)
     )
 
 logger::log_info(paste0(
-    "[fig06] assembled compact composite (3 outer rows; EF shares ",
-    "one legend; font_scale={font_scale}, legend_scale={legend_scale})"
+    "[fig06] assembled compact composite (3 outer rows; EF block ",
+    "shares one legend, 40/60 width split; ",
+    "font_scale={font_scale}, legend_scale={legend_scale})"
 ))
 
-# Compact: 180mm wide × 205mm tall — collecting the EF legend
-# reclaims the per-panel legend gutters.
+# 180 mm × 215 mm — the EF block reclaims the per-panel legend
+# gutters via guides = "collect"; the 40/60 width split makes
+# E sub-panels taller (less flat) than the previous full-width
+# layout.
 ggsave(
     filename = file.path(out_dir, "fig06-lungcancer-usecase.pdf"),
     plot     = composite,
     width    = 180,
-    height   = 205,
+    height   = 215,
     units    = "mm"
 )
 ggsave(
     filename = file.path(out_dir, "fig06-lungcancer-usecase.svg"),
     plot     = composite,
     width    = 180,
-    height   = 205,
+    height   = 215,
     units    = "mm"
 )
 
@@ -330,7 +327,7 @@ write_sidecar(
         top_dems_per_direction   = 10L,
         font_scale               = font_scale,
         legend_scale             = legend_scale,
-        composite_dims_mm        = list(width = 180L, height = 205L),
+        composite_dims_mm        = list(width = 180L, height = 215L),
         cosmos_pkn_source        = paste0(
             "vendored fixture from omnipath_metabo_case1/data/ ",
             "(pending T066 omnipath-client refactor)"

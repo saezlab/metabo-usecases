@@ -43,6 +43,31 @@ case_study_resource_display <- function(x) {
 }
 
 
+#' Canonical resource → hex palette for Panels E / F
+#'
+#' Returns a named character vector mapping every resource in the
+#' canonical order to its registered colour. Used in
+#' \code{scale_fill_manual()} so the same scale object appears in
+#' every E / F sub-panel — that's what lets
+#' \code{patchwork::plot_layout(guides = "collect")} merge the
+#' Resource legend reliably (\code{scale_fill_identity} does not
+#' collect across plots even with identical breaks / labels).
+#'
+#' @return Named character vector: names are canonical resource
+#'     names (in canonical order), values are hex codes from the
+#'     \code{"resources"} category registry.
+#'
+#' @keywords internal
+#' @noRd
+case_study_resource_palette <- function() {
+    resources <- case_study_resource_order()
+    stats::setNames(
+        unname(category_colour("resources", resources)),
+        resources
+    )
+}
+
+
 #' Single-letter to full subcellular-location labels used in COSMOS PKN
 #'
 #' @return Named character vector keyed by single-letter code.
@@ -227,8 +252,8 @@ case_study_pkn_summary <- function(dem_tibble, pkn, top_n = 10L) {
 #'
 #' @return A ggplot object.
 #'
-#' @importFrom dplyr count mutate
-#' @importFrom ggplot2 ggplot aes geom_col scale_fill_identity labs
+#' @importFrom dplyr count
+#' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
 #' @importFrom ggplot2 theme element_text
 #' @importFrom rlang .data
 #' @export
@@ -241,7 +266,7 @@ gem_allosteric_panel <- function(
 ) {
 
     # NSE vs. R CMD check workaround
-    group <- resource <- n <- fill_hex <- NULL
+    group <- resource <- n <- NULL
 
     counts <- dplyr::count(
         summary_tibble,
@@ -251,31 +276,23 @@ gem_allosteric_panel <- function(
         .drop  = FALSE
     )
 
-    counts <- dplyr::mutate(
-        counts,
-        fill_hex = category_colour(
-            "resources", as.character(.data$resource)
-        )
-    )
+    resources <- case_study_resource_order()
 
     ggplot2::ggplot(
         counts,
         ggplot2::aes(
             x    = .data$group,
             y    = .data$n,
-            fill = .data$fill_hex
+            fill = .data$resource
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_fill_identity(
-            guide = "legend",
-            name  = "Resource",
-            breaks = unname(category_colour(
-                "resources", case_study_resource_order()
-            )),
-            labels = case_study_resource_display(
-                case_study_resource_order()
-            )
+        ggplot2::scale_fill_manual(
+            values = case_study_resource_palette(),
+            breaks = resources,
+            labels = case_study_resource_display(resources),
+            name   = "Resource",
+            drop   = FALSE
         ) +
         ggplot2::labs(
             title = contrast_label,
@@ -327,7 +344,7 @@ gem_allosteric_panel <- function(
 #' @importFrom dplyr filter mutate count
 #' @importFrom tidyr unnest
 #' @importFrom stringr str_match_all str_detect
-#' @importFrom ggplot2 ggplot aes geom_col scale_fill_identity
+#' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual
 #' @importFrom ggplot2 scale_x_discrete labs theme element_text
 #' @importFrom rlang .data abort
 #' @export
@@ -341,7 +358,7 @@ subcellular_location_panel <- function(
 ) {
 
     # NSE vs. R CMD check workaround
-    group <- locations <- loc <- resource <- n <- fill_hex <- NULL
+    group <- locations <- loc <- resource <- n <- NULL
 
     direction <- match.arg(direction)
 
@@ -369,34 +386,28 @@ subcellular_location_panel <- function(
         sub,
         .data$loc,
         .data$resource,
-        name = "n"
+        name  = "n",
+        .drop = FALSE
     )
-    counts <- dplyr::mutate(
-        counts,
-        fill_hex = category_colour(
-            "resources", as.character(.data$resource)
-        )
-    )
+
+    resources <- case_study_resource_order()
 
     ggplot2::ggplot(
         counts,
         ggplot2::aes(
             x    = .data$loc,
             y    = .data$n,
-            fill = .data$fill_hex
+            fill = .data$resource
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
         ggplot2::scale_x_discrete(labels = case_study_location_labels()) +
-        ggplot2::scale_fill_identity(
-            guide = "legend",
-            name  = "Resource",
-            breaks = unname(category_colour(
-                "resources", case_study_resource_order()
-            )),
-            labels = case_study_resource_display(
-                case_study_resource_order()
-            )
+        ggplot2::scale_fill_manual(
+            values = case_study_resource_palette(),
+            breaks = resources,
+            labels = case_study_resource_display(resources),
+            name   = "Resource",
+            drop   = FALSE
         ) +
         ggplot2::labs(
             title = sprintf("%s %s", contrast_label, direction),
