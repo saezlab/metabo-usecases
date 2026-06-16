@@ -15,9 +15,9 @@ upstream resource. See FR-011 family in
 
 | Panel | Source | Description |
 |------:|:-------|:------------|
-| A | Manual (`manual/regulation-types.png`) | Regulation-type schematic — visual key for the signed interaction categories the PKN carries. Top, full width. |
-| B | Pipeline (`fig04_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. |
-| C | Pipeline (`fig04_resource_contribution_panel`, `position = "dodge"`) | Metabolite + protein entity counts per top-15 resources, **grouped (side-by-side) bars** rather than stacked. |
+| A | Manual (`manual/regulation-types.png`) | Regulation-type schematic — visual key for the signed interaction categories the PKN carries. **Top, full width.** |
+| B | Pipeline (`fig04_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. **Bottom row, left.** |
+| C | Pipeline (`fig04_resource_contribution_panel`, `position = "dodge"`) | Metabolite (teal) + protein (magenta) entity counts per top-15 resources, **grouped (side-by-side) bars** rather than stacked. **Bottom row, right.** |
 
 Two additional pipeline panels stay rendered as standalone artifacts
 but are not included in the active composite:
@@ -49,7 +49,7 @@ the snapshot identifier recorded in the provenance sidecar.
 
 | File | Description |
 |------|-------------|
-| `out/fig05-cosmos-pkn.{pdf,svg}` | **Active composite** — schematic (A) on top, Panel B (compartments), Panel C (resources, grouped) stacked vertically. 180×260 mm. |
+| `out/fig05-cosmos-pkn.{pdf,svg}` | **Active composite** — schematic (A) full width on top; Panel B (compartments) and Panel C (resources, grouped) side by side below. 180×220 mm. |
 | `out/fig05-cosmos-pkn-pipeline.{pdf,svg}` | Identical copy of the composite kept for backward compatibility with downstream consumers. |
 | `out/panel_{a,b,c,c_split,d}.{pdf,svg}` | Individual pipeline panels. |
 | `out/fig05-cosmos-pkn-with-caption.pdf` | Composite + typeset caption (xelatex + `tex/caption.sty`, FR-041). |

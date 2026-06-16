@@ -185,29 +185,28 @@ schematic_panel <- if (file.exists(schematic_png_path)) {
 }
 
 if (!is.null(schematic_panel)) {
-    pipeline_composite <- (
-        schematic_panel /
-        (panel_b       + ggplot2::labs(tag = 'B')) /
-        (panel_c_split + ggplot2::labs(tag = 'C'))
-    ) +
-        patchwork::plot_layout(heights = c(1.0, 1.4, 1.4))
+    # A: schematic at 100% width on top.
+    # B | C: side-by-side bottom row.
+    bottom_row <- (panel_b       + ggplot2::labs(tag = 'B')) |
+                  (panel_c_split + ggplot2::labs(tag = 'C'))
+    pipeline_composite <- (schematic_panel / bottom_row) +
+        patchwork::plot_layout(heights = c(1.25, 1.0))
 } else {
     pipeline_composite <- (
-        (panel_b       + ggplot2::labs(tag = 'A')) /
+        (panel_b       + ggplot2::labs(tag = 'A')) |
         (panel_c_split + ggplot2::labs(tag = 'B'))
-    ) +
-        patchwork::plot_layout(heights = c(1, 1))
+    )
 }
 
 logger::log_info(paste0(
     '[fig05] assembled composite (',
     if (is.null(schematic_panel)) 'pipeline-only, schematic missing'
-    else 'schematic + B + C',
+    else 'schematic on top, B | C bottom row',
     ')'
 ))
 
 composite_width_mm  <- 180L
-composite_height_mm <- if (!is.null(schematic_panel)) 260L else 200L
+composite_height_mm <- if (!is.null(schematic_panel)) 220L else 110L
 
 ggsave(
     filename = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),

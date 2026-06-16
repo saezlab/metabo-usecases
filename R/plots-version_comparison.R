@@ -598,10 +598,9 @@ fig04_compartment_panel <- function(
         ggplot2::scale_fill_manual(values = fills) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x     = NULL,
-            y     = "Interactions",
-            fill  = NULL,
-            title = "COSMOS+ interactions per compartment"
+            x    = NULL,
+            y    = "Interactions",
+            fill = NULL
         ) +
         ggplot2::guides(
             fill = ggplot2::guide_legend(nrow = 3L, ncol = 2L)
@@ -609,12 +608,13 @@ fig04_compartment_panel <- function(
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position  = "top",
-            plot.title       = ggplot2::element_text(size = 14),
-            axis.text        = ggplot2::element_text(size = 11),
-            axis.title       = ggplot2::element_text(size = 12),
-            legend.text      = ggplot2::element_text(size = 10),
-            legend.key.size  = ggplot2::unit(0.4, "cm"),
-            legend.spacing.y = ggplot2::unit(0.15, "cm")
+            plot.title       = ggplot2::element_blank(),
+            axis.text        = ggplot2::element_text(size = 9),
+            axis.title       = ggplot2::element_text(size = 10),
+            legend.text      = ggplot2::element_text(size = 7),
+            legend.title     = ggplot2::element_text(size = 8),
+            legend.key.size  = ggplot2::unit(0.3, "cm"),
+            legend.spacing.y = ggplot2::unit(0.1, "cm")
         )
 
     if (unannotated_only) {
@@ -706,9 +706,14 @@ fig04_resource_contribution_panel <- function(
         levels = rev(resources_ordered)
     )
 
+    # Vivid pair of similar intensity (lead palette) — avoiding the
+    # reserved grey #BEBEBE which is the canonical None / Unknown
+    # slot (FR-020). Teal vs. magenta gives two saturated, similarly
+    # chromatic hues that read well at small panel sizes.
+    lead <- palette_lead()
     entity_fills <- c(
-        Metabolites = palette_n(1L)[[1L]],
-        Proteins    = palette_n(2L)[[2L]]
+        Metabolites = unname(lead[["teal"]]),
+        Proteins    = unname(lead[["magenta"]])
     )
 
     geom_position <- switch(
@@ -732,18 +737,19 @@ fig04_resource_contribution_panel <- function(
         ggplot2::scale_fill_manual(values = entity_fills) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x     = NULL,
-            y     = "Unique entities",
-            fill  = NULL,
-            title = "COSMOS+ entities per resource"
+            x    = NULL,
+            y    = "Unique entities",
+            fill = NULL
         ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "top",
-            plot.title      = ggplot2::element_text(size = 14),
-            axis.text       = ggplot2::element_text(size = 11),
-            axis.title      = ggplot2::element_text(size = 12),
-            legend.text     = ggplot2::element_text(size = 10)
+            plot.title      = ggplot2::element_blank(),
+            axis.text       = ggplot2::element_text(size = 9),
+            axis.title      = ggplot2::element_text(size = 10),
+            legend.text     = ggplot2::element_text(size = 7),
+            legend.title    = ggplot2::element_text(size = 8),
+            legend.key.size = ggplot2::unit(0.3, "cm")
         )
 }
 
