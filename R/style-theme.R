@@ -13,6 +13,13 @@
 #' @param width_mm Numeric: target physical figure width in mm.
 #'     \code{89} for single-column, \code{180} for double-column per
 #'     the Nature/Bioinformatics envelope (FR-017a).
+#' @param font_scale Numeric: multiplier applied to every font size
+#'     before the theme is constructed. Default \code{1} keeps the
+#'     \code{\link{font_sizes}} floor (FR-017a). Composites that
+#'     render each panel at a smaller-than-single-column physical
+#'     size can pass \code{2} or \code{2.5} so labels remain
+#'     readable in the compact composite (memory:
+#'     \code{feedback_composite_panel_label_sizes}).
 #'
 #' @return A ggplot2 theme object.
 #'
@@ -25,9 +32,10 @@
 #' @importFrom ggplot2 theme_bw theme element_text element_line element_blank
 #' @importFrom ggplot2 element_rect rel
 #' @export
-theme_bw_metabo <- function(width_mm = 89) {
+theme_bw_metabo <- function(width_mm = 89, font_scale = 1) {
 
     sizes <- font_sizes()
+    sizes <- lapply(sizes, function(s) s * font_scale)
 
     base_line <- ifelse(width_mm >= 180, 0.4, 0.3)
     grid_line <- ifelse(width_mm >= 180, 0.25, 0.2)
@@ -71,6 +79,9 @@ theme_bw_metabo <- function(width_mm = 89) {
             ),
             strip.background = ggplot2::element_rect(
                 fill = "grey95", colour = NA
+            ),
+            plot.tag         = ggplot2::element_text(
+                size = sizes$panel_title * 1.2, face = "bold"
             )
         )
 }

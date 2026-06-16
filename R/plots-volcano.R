@@ -25,6 +25,7 @@
 #'     limits (on the -log10 P-value scale).
 #' @param width_mm Numeric: target physical panel width in mm; passed
 #'     to \code{\link{theme_bw_metabo}}.
+#' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
 #' @param point_size Numeric: point size for \code{geom_point}.
 #'
 #' @return A ggplot object.
@@ -52,6 +53,7 @@ volcano_panel <- function(
     xlim = NULL,
     ylim = NULL,
     width_mm = 89L,
+    font_scale = 1,
     point_size = 0.6
 ) {
 
@@ -123,7 +125,10 @@ volcano_panel <- function(
             x     = expression(log[2] ~ "fold-change"),
             y     = expression(-log[10] ~ italic(P))
         ) +
-        theme_bw_metabo(width_mm = width_mm) +
+        theme_bw_metabo(
+            width_mm   = width_mm,
+            font_scale = font_scale
+        ) +
         ggplot2::theme(legend.position = "top")
 
     if (!is.null(xlim)) {

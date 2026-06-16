@@ -201,6 +201,7 @@ case_study_pkn_summary <- function(dem_tibble, pkn, top_n = 10L) {
 #' @param contrast_label Character: panel title (e.g.
 #'     \code{"KRAS"} or \code{"EGFR"}).
 #' @param width_mm Numeric: target physical panel width in mm.
+#' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
 #'
 #' @return A ggplot object.
 #'
@@ -212,7 +213,8 @@ case_study_pkn_summary <- function(dem_tibble, pkn, top_n = 10L) {
 gem_allosteric_panel <- function(
     summary_tibble,
     contrast_label,
-    width_mm = 89L
+    width_mm = 89L,
+    font_scale = 1
 ) {
 
     # NSE vs. R CMD check workaround
@@ -255,7 +257,10 @@ gem_allosteric_panel <- function(
             x     = NULL,
             y     = "Number of edges"
         ) +
-        theme_bw_metabo(width_mm = width_mm) +
+        theme_bw_metabo(
+            width_mm   = width_mm,
+            font_scale = font_scale
+        ) +
         ggplot2::theme(
             axis.text.x     = ggplot2::element_text(
                 angle = 30, hjust = 1
@@ -287,6 +292,7 @@ gem_allosteric_panel <- function(
 #' @param direction Character: one of \code{"up"} or \code{"down"};
 #'     filters \code{summary_tibble} to edges with that direction.
 #' @param width_mm Numeric: target physical panel width in mm.
+#' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
 #'
 #' @return A ggplot object.
 #'
@@ -301,7 +307,8 @@ subcellular_location_panel <- function(
     summary_tibble,
     contrast_label,
     direction = c("up", "down"),
-    width_mm = 89L
+    width_mm = 89L,
+    font_scale = 1
 ) {
 
     # NSE vs. R CMD check workaround
@@ -365,7 +372,10 @@ subcellular_location_panel <- function(
             x     = NULL,
             y     = "Number of edges"
         ) +
-        theme_bw_metabo(width_mm = width_mm) +
+        theme_bw_metabo(
+            width_mm   = width_mm,
+            font_scale = font_scale
+        ) +
         ggplot2::theme(
             axis.text.x     = ggplot2::element_text(
                 angle = 30, hjust = 1

@@ -1,24 +1,32 @@
 # figures/fig06-lungcancer-usecase/build.R
 #
-# Figure 6: lung-cancer use case (Shorthouse 2022 + COSMOS PKN).
+# Figure 6: lung-cancer use case (Shorthouse 2022 + COSMOS PKN +
+# azelate webapp queries).
 #
 # Panels:
 #   A — KRAS volcano (limma logFC vs. -log10 P)
 #   B — EGFR volcano (same axis limits as A, FR-019)
-#   C — manual webapp screenshot (azelaic acid on metabo.omnipathdb.org)
-#   D — MetaLinksDB 2.0 top-hit connections [STUB — pending DB rebuild]
-#   E — GEM/allosteric edge counts by direction × resource (KRAS, EGFR)
-#   F — subcellular-compartment edges (KRAS up/down, EGFR up/down)
+#   C — Azelate interaction-type composition by upstream source
+#       (from azelate_fig_tables/outputs/csvs/fig3_panel_C_data.csv)
+#   D — Azelate cancer associations by sample type
+#       (from azelate_fig_tables/outputs/csvs/fig3_panel_D_data.csv)
+#   E — COSMOS PKN GEM/allosteric edge counts by direction × resource
+#       (one sub-panel per contrast: KRAS, EGFR)
+#   F — Subcellular-compartment edges (KRAS up/down, EGFR up/down)
 #
-# This first slice consumes pre-computed legacy artifacts:
+# Inputs consumed (all repo-local):
 #   - omnipath_metabo_case1/Results/Differential_Analysis/...xlsx
 #   - omnipath_metabo_case1/data/pkn_{allosteric,enzyme_metabolite}.csv
+#   - omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_{C,D}_data.csv
+#
 # The full Differential_Analysis.Rmd / 01_cosmos_pkn.py refactor is
-# tracked under tasks T058–T062 and T066 respectively.
+# deferred to tasks T058–T062 and T066 (the latter will move from
+# the vendored pkn_*.csv fixtures to the omnipath-client API).
 
 suppressPackageStartupMessages({
     library(metabo.figures)
     library(ggplot2)
+    library(patchwork)
 })
 
 setup_pipeline_log("build:fig06-lungcancer-usecase")
@@ -31,6 +39,10 @@ fs::dir_create(out_dir)
 
 dep5 <- deployment_provenance("dev5")
 
+# ── Composite-compact font scale (memory: composite_panel_label_sizes) ──────
+
+font_scale <- 2
+
 # ── Data loading ─────────────────────────────────────────────────────────────
 
 logger::log_info("[fig06] loading differential-analysis xlsx (KRAS, EGFR)")
@@ -40,9 +52,14 @@ egfr_dem <- case_study_differential("EGFR")
 logger::log_info("[fig06] loading COSMOS PKN fixtures")
 pkn <- case_study_cosmos_pkn()
 
+logger::log_info("[fig06] loading azelate Panel C / Panel D source CSVs")
+azelate_c <- azelate_panel_c_data()
+azelate_d <- azelate_panel_d_data()
+
 # ── Category-colour registration ─────────────────────────────────────────────
 
 register_case_study_resource_colours()
+register_azelate_colours()
 
 # ── Volcano shared limits (FR-019) ───────────────────────────────────────────
 
@@ -54,71 +71,77 @@ logger::log_info("[fig06] rendering Panel A (KRAS volcano)")
 panel_a <- volcano_panel(
     kras_dem,
     contrast_label = "KRAS",
-    xlim = volcano_lims$xlim,
-    ylim = volcano_lims$ylim,
-    width_mm = 89L
+    xlim           = volcano_lims$xlim,
+    ylim           = volcano_lims$ylim,
+    width_mm       = 89L,
+    font_scale     = font_scale
 )
 
 logger::log_info("[fig06] rendering Panel B (EGFR volcano)")
 panel_b <- volcano_panel(
     egfr_dem,
     contrast_label = "EGFR",
-    xlim = volcano_lims$xlim,
-    ylim = volcano_lims$ylim,
-    width_mm = 89L
+    xlim           = volcano_lims$xlim,
+    ylim           = volcano_lims$ylim,
+    width_mm       = 89L,
+    font_scale     = font_scale
 )
 
-# Panel D is stubbed pending the in-progress MetaLinksDB rebuild
-# (task T064). Render a minimal placeholder so the composite layout
-# is stable.
-panel_d_stub <- function() {
-    ggplot2::ggplot(
-        data.frame(x = 0.5, y = 0.5,
-                   label = "Panel D — pending MetaLinksDB rebuild"),
-        ggplot2::aes(x = .data$x, y = .data$y, label = .data$label)
-    ) +
-        ggplot2::geom_text(size = 2.5) +
-        ggplot2::xlim(0, 1) + ggplot2::ylim(0, 1) +
-        ggplot2::labs(title = NULL, x = NULL, y = NULL) +
-        theme_bw_metabo(width_mm = 89L) +
-        ggplot2::theme(
-            axis.text   = ggplot2::element_blank(),
-            axis.ticks  = ggplot2::element_blank(),
-            panel.grid  = ggplot2::element_blank()
-        )
-}
-panel_d <- panel_d_stub()
+logger::log_info("[fig06] rendering Panel C (azelate interaction types)")
+panel_c <- azelate_interaction_panel(
+    azelate_c,
+    width_mm   = 89L,
+    font_scale = font_scale
+)
+
+logger::log_info("[fig06] rendering Panel D (azelate cancer associations)")
+panel_d <- azelate_disease_panel(
+    azelate_d,
+    width_mm   = 89L,
+    font_scale = font_scale
+)
 
 logger::log_info("[fig06] building Panel E PKN summaries (KRAS, EGFR)")
 kras_summary <- case_study_pkn_summary(kras_dem, pkn)
 egfr_summary <- case_study_pkn_summary(egfr_dem, pkn)
 
 panel_e_kras <- gem_allosteric_panel(
-    kras_summary, contrast_label = "KRAS", width_mm = 89L
+    kras_summary,
+    contrast_label = "KRAS",
+    width_mm       = 89L,
+    font_scale     = font_scale
 )
 panel_e_egfr <- gem_allosteric_panel(
-    egfr_summary, contrast_label = "EGFR", width_mm = 89L
+    egfr_summary,
+    contrast_label = "EGFR",
+    width_mm       = 89L,
+    font_scale     = font_scale
 )
 
 logger::log_info("[fig06] rendering Panel F sub-panels (location × direction)")
 panel_f_kras_up <- subcellular_location_panel(
-    kras_summary, contrast_label = "KRAS", direction = "up", width_mm = 89L
+    kras_summary, "KRAS", "up",
+    width_mm = 89L, font_scale = font_scale
 )
 panel_f_kras_down <- subcellular_location_panel(
-    kras_summary, contrast_label = "KRAS", direction = "down", width_mm = 89L
+    kras_summary, "KRAS", "down",
+    width_mm = 89L, font_scale = font_scale
 )
 panel_f_egfr_up <- subcellular_location_panel(
-    egfr_summary, contrast_label = "EGFR", direction = "up", width_mm = 89L
+    egfr_summary, "EGFR", "up",
+    width_mm = 89L, font_scale = font_scale
 )
 panel_f_egfr_down <- subcellular_location_panel(
-    egfr_summary, contrast_label = "EGFR", direction = "down", width_mm = 89L
+    egfr_summary, "EGFR", "down",
+    width_mm = 89L, font_scale = font_scale
 )
 
-# ── Save individual panels ───────────────────────────────────────────────────
+# ── Save individual panels (per FR-026: SVG + PDF per panel) ─────────────────
 
 individual_panels <- list(
     panel_a            = panel_a,
     panel_b            = panel_b,
+    panel_c            = panel_c,
     panel_d            = panel_d,
     panel_e_kras       = panel_e_kras,
     panel_e_egfr       = panel_e_egfr,
@@ -145,63 +168,73 @@ for (name in names(individual_panels)) {
     )
 }
 
-# ── Panel C placeholder check ────────────────────────────────────────────────
-
-panel_c_path <- "figures/fig06-lungcancer-usecase/manual/panel_C_azelaic_acid.png"
-panel_c_present <- file.exists(panel_c_path)
-if (!panel_c_present) {
-    logger::log_warn(paste0(
-        "[fig06] Panel C placeholder absent (",
-        panel_c_path, ") — composite assembled without Panel C. ",
-        "Capture per manual/README.md when metabo.omnipathdb.org is ready."
-    ))
-}
-
-# ── Composite (pipeline panels only) ────────────────────────────────────────
+# ── Composite (nested patchwork: 4 conceptual rows for A–F) ─────────────────
 #
-# Layout: 4 rows × 2 cols (matching the per-row panel groupings)
-#   row 1: A   | B
-#   row 2: E_kras  | E_egfr
-#   row 3: F_kras_up | F_kras_down
-#   row 4: F_egfr_up | F_egfr_down
-# Panel D (stub) is emitted as a standalone file but not placed in
-# the composite until it's a real plot. Panel C is injected by the
-# mixed-source path once the manual asset lands.
+# Conceptual layout:
+#   Row 1: A | B                                       (volcanos)
+#   Row 2: C | D                                       (azelate)
+#   Row 3: E_kras | E_egfr                             (GEM/Allos)
+#   Row 4: F_kras_up | F_kras_down | F_egfr_up | F_egfr_down
+#                                                      (subcellular)
+#
+# Heights weight Row 4 a touch heavier because its 4-up x-axis labels
+# need more vertical room.
 
-# Embed manual tag labels per FR-024 capital-letter convention. Sub-
-# panels of E and F share the parent letter; the placeholder tag for
-# Panel D is set even though its content is a stub. compose_patchwork
-# is called with tag_levels = NULL so the per-panel labs(tag=...)
-# values are honoured rather than overwritten with sequential A–H.
-composite_panels <- list(
-    panel_a            + ggplot2::labs(tag = "A"),
-    panel_b            + ggplot2::labs(tag = "B"),
-    panel_e_kras       + ggplot2::labs(tag = "E"),
-    panel_e_egfr       + ggplot2::labs(tag = ""),
-    panel_f_kras_up    + ggplot2::labs(tag = "F"),
-    panel_f_kras_down  + ggplot2::labs(tag = ""),
-    panel_f_egfr_up    + ggplot2::labs(tag = ""),
-    panel_f_egfr_down  + ggplot2::labs(tag = "")
+row_ab <- patchwork::wrap_plots(
+    list(
+        panel_a + ggplot2::labs(tag = "A"),
+        panel_b + ggplot2::labs(tag = "B")
+    ),
+    ncol = 2L
 )
 
-pipeline_composite <- compose_patchwork(
-    composite_panels,
-    layout     = list(ncol = 2L),
-    tag_levels = NULL
+row_cd <- patchwork::wrap_plots(
+    list(
+        panel_c + ggplot2::labs(tag = "C"),
+        panel_d + ggplot2::labs(tag = "D")
+    ),
+    ncol = 2L
 )
 
+row_e <- patchwork::wrap_plots(
+    list(
+        panel_e_kras + ggplot2::labs(tag = "E"),
+        panel_e_egfr + ggplot2::labs(tag = "")
+    ),
+    ncol = 2L
+)
+
+row_f <- patchwork::wrap_plots(
+    list(
+        panel_f_kras_up   + ggplot2::labs(tag = "F"),
+        panel_f_kras_down + ggplot2::labs(tag = ""),
+        panel_f_egfr_up   + ggplot2::labs(tag = ""),
+        panel_f_egfr_down + ggplot2::labs(tag = "")
+    ),
+    ncol = 4L
+)
+
+composite <- (row_ab / row_cd / row_e / row_f) +
+    patchwork::plot_layout(
+        heights = c(1, 1, 1, 1.05)
+    )
+
+logger::log_info("[fig06] assembled compact composite (4 rows; font_scale={font_scale})")
+
+# Compact: 180mm wide × 220mm tall (was 180×280 before the compaction
+# pass). Larger label sizes via font_scale keep readability.
 ggsave(
-    filename = file.path(out_dir, "fig06-lungcancer-usecase-pipeline.pdf"),
-    plot     = pipeline_composite,
+    filename = file.path(out_dir, "fig06-lungcancer-usecase.pdf"),
+    plot     = composite,
     width    = 180,
-    height   = 280,
+    height   = 220,
     units    = "mm"
 )
 ggsave(
-    filename = file.path(out_dir, "fig06-lungcancer-usecase-pipeline.svg"),
-    plot     = pipeline_composite,
+    filename = file.path(out_dir, "fig06-lungcancer-usecase.svg"),
+    plot     = composite,
     width    = 180,
-    height   = 280,
+    height   = 220,
     units    = "mm"
 )
 
@@ -210,7 +243,7 @@ ggsave(
 caption_info <- compose_caption(
     figure_id      = "fig06-lungcancer-usecase",
     composite_pdf  = file.path(
-        out_dir, "fig06-lungcancer-usecase-pipeline.pdf"
+        out_dir, "fig06-lungcancer-usecase.pdf"
     ),
     caption_source = "figures/fig06-lungcancer-usecase/caption.tex",
     out_dir        = out_dir,
@@ -240,21 +273,23 @@ external_inputs <- list(
         source      = "01_cosmos_pkn.py (legacy)"
     ),
     list(
-        kind        = "panel-c-manual",
-        path        = panel_c_path,
-        fingerprint = if (panel_c_present) {
-            digest::digest(file = panel_c_path, algo = "sha256")
-        } else {
-            NA_character_
-        },
-        present     = panel_c_present
+        kind        = "azelate-panel-c",
+        path        = attr(azelate_c, "source_path"),
+        fingerprint = attr(azelate_c, "fingerprint"),
+        source      = "azelate_fig_tables/azelaic_acid_query_tables.py"
+    ),
+    list(
+        kind        = "azelate-panel-d",
+        path        = attr(azelate_d, "source_path"),
+        fingerprint = attr(azelate_d, "fingerprint"),
+        source      = "azelate_fig_tables/azelaic_acid_query_tables.py"
     )
 )
 
 write_sidecar(
     artifact_id     = "fig06-lungcancer-usecase",
     artifact_path   = file.path(
-        out_dir, "fig06-lungcancer-usecase-pipeline.pdf"
+        out_dir, "fig06-lungcancer-usecase.pdf"
     ),
     deployments     = list(dep5$deployment),
     manifests       = list(dep5$manifest),
@@ -265,15 +300,16 @@ write_sidecar(
         volcano_pvalue_threshold = 0.05,
         volcano_logfc_threshold  = 0.5,
         top_dems_per_direction   = 10L,
-        panel_d_status           = "stub_pending_metalinks_rebuild",
-        panel_c_status           = if (panel_c_present) {
-            "present"
-        } else {
-            "placeholder_pending_webapp"
-        },
+        font_scale               = font_scale,
+        composite_dims_mm        = list(width = 180L, height = 220L),
         cosmos_pkn_source        = paste0(
             "vendored fixture from omnipath_metabo_case1/data/ ",
             "(pending T066 omnipath-client refactor)"
+        ),
+        azelate_source           = paste0(
+            "vendored CSVs from azelate_fig_tables/outputs/csvs/ ",
+            "(generated by azelaic_acid_query_tables.py against ",
+            "dev.omnipathdb.org)"
         )
     ),
     seed    = pipeline_seed(),
