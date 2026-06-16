@@ -15,6 +15,12 @@ renv/staging/
 # Existing case-study artifacts (kept from prior .gitignore)
 omnipath_metabo_case1/omnipath_metabo_case1.Rproj
 omnipath_metabo_case1/.Rhistory
+omnipath_metabo_case1/Results
+omnipath_metabo_case1/metaproviz-log/
+omnipath_metabo_case1/omnipathr-log/
+omnipath_metabo_case1/scripts/metaproviz-log/
+omnipath_metabo_case1/scripts/omnipathr-log/
+omnipath_metabo_case1/scripts/MetaProViz_Results/
 omnipath_metabo_case1/.RData
 omnipath_metabo_case1/.Ruserdata
 omnipath_metabo_case1/data/cellosaurus.txt
