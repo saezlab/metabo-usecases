@@ -198,6 +198,15 @@ if (!is.null(schematic_panel)) {
     )
 }
 
+# Bump panel-letter (tag) size across the composite. patchwork's `&`
+# applies the theme to every nested plot, including wrap_elements
+# patches like the schematic — so A, B, C all render at the same
+# visually-large weight.
+pipeline_composite <- pipeline_composite &
+    ggplot2::theme(
+        plot.tag = ggplot2::element_text(size = 16, face = 'bold')
+    )
+
 logger::log_info(paste0(
     '[fig05] assembled composite (',
     if (is.null(schematic_panel)) 'pipeline-only, schematic missing'

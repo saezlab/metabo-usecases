@@ -610,7 +610,7 @@ fig04_compartment_panel <- function(
             legend.position  = "top",
             plot.title       = ggplot2::element_blank(),
             axis.text        = ggplot2::element_text(size = 9),
-            axis.title       = ggplot2::element_text(size = 10),
+            axis.title       = ggplot2::element_text(size = 12),
             legend.text      = ggplot2::element_text(size = 7),
             legend.title     = ggplot2::element_text(size = 8),
             legend.key.size  = ggplot2::unit(0.3, "cm"),
@@ -746,7 +746,7 @@ fig04_resource_contribution_panel <- function(
             legend.position = "top",
             plot.title      = ggplot2::element_blank(),
             axis.text       = ggplot2::element_text(size = 9),
-            axis.title      = ggplot2::element_text(size = 10),
+            axis.title      = ggplot2::element_text(size = 12),
             legend.text     = ggplot2::element_text(size = 7),
             legend.title    = ggplot2::element_text(size = 8),
             legend.key.size = ggplot2::unit(0.3, "cm")
