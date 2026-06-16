@@ -202,10 +202,15 @@ sidecar_deployment_entry <- function(entry) {
 #'
 #' @importFrom logger log_info
 #' @export
-deployment_provenance <- function(deployment, archive_dir = "manifests") {
+deployment_provenance <- function(deployment,
+                                  archive_dir = "manifests",
+                                  allow_optin = FALSE) {
 
-    record <- load_connection(deployment = deployment)
-    con <- pg_connect_panel(deployment)
+    record <- load_connection(
+        deployment  = deployment,
+        allow_optin = allow_optin
+    )
+    con <- pg_connect_panel(deployment, allow_optin = allow_optin)
     manifest <- build_manifest_for(con)
     write_manifest(manifest, deployment = deployment, dir = archive_dir)
 

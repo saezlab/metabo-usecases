@@ -131,13 +131,16 @@ deployment_registry <- function() {
 #' @importFrom RPostgres Postgres
 #' @importFrom logger log_info
 #' @export
-pg_connect_panel <- function(deployment) {
+pg_connect_panel <- function(deployment, allow_optin = FALSE) {
 
     pool <- panel_connection_pool()
     handle <- pool[[deployment]]
 
     if (is.null(handle) || isFALSE(DBI::dbIsValid(handle))) {
-        record <- load_connection(deployment = deployment)
+        record <- load_connection(
+            deployment  = deployment,
+            allow_optin = allow_optin
+        )
         creds  <- resolve_credentials(
             record$credentials_source,
             record$credentials_path

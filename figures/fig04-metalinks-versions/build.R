@@ -15,7 +15,11 @@ set.seed(pipeline_seed())
 out_dir <- 'figures/fig04-metalinks-versions/out'
 fs::dir_create(out_dir)
 
-dep5 <- deployment_provenance('dev5')
+# Route the MetaLinksDB v2 query to prod — the latest build is now
+# served there (per 2026-06-17 review). `allow_optin = TRUE` because
+# the deployment registry classifies prod as opt-in to prevent
+# accidental routing for the rest of the pipeline.
+dep_active <- deployment_provenance('prod', allow_optin = TRUE)
 
 metalinks_v2_sql <- paste(
     'select',
@@ -38,11 +42,10 @@ metalinks_v2_sql <- paste(
     'where r.compound_canonical_id is not null and r.protein_uniprot is not null'
 )
 
-logger::log_info('Querying MetaLinksDB v2 from dev5')
-metalinks_v2_rows <- pg_query_panel(
-    'fig04-metalinks-versions',
-    metalinks_v2_sql
-)
+logger::log_info('Querying MetaLinksDB v2 from prod (allow_optin = TRUE)')
+prod_con <- pg_connect_panel('prod', allow_optin = TRUE)
+metalinks_v2_rows <- pg_query(prod_con, metalinks_v2_sql)
+attr(metalinks_v2_rows, 'deployment') <- 'prod'
 metalinks_v2 <- normalize_mpi_resource(
     resource = 'MetaLinksDB v2.0',
     interactions = metalinks_v2_rows,
@@ -64,7 +67,7 @@ metalinks_v2 <- normalize_mpi_resource(
     ),
     interaction_definition = 'one HMDB-UniProt-source-relation row from custom_views.metalinksdb_relations'
 )
-attr(metalinks_v2, 'deployment') <- 'dev5'
+attr(metalinks_v2, 'deployment') <- 'prod'
 
 logger::log_info('Loading MetaLinksDB v1 baseline')
 v1 <- metalinks_v1_snapshot()
@@ -259,8 +262,8 @@ queries <- list(query_record(metalinks_v2_rows))
 write_sidecar(
     artifact_id = 'fig04-metalinks-versions',
     artifact_path = file.path(out_dir, 'fig04-metalinks-versions.pdf'),
-    deployments = list(dep5$deployment),
-    manifests = list(dep5$manifest),
+    deployments = list(dep_active$deployment),
+    manifests = list(dep_active$manifest),
     script_path = 'figures/fig04-metalinks-versions/build.R',
     queries = queries,
     external_inputs = c(list(v1$external_input), unname(lapply(names(baselines), function(resource) {
