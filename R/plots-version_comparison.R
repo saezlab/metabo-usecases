@@ -728,7 +728,8 @@ fig04_compartment_panel <- function(
         gene_regulation       = "Gene regulation (TF–target, GRN)",
         signaling             = "Signaling (PPI)",
         allosteric_regulation = "Allosteric regulation (metabolite–enzyme)",
-        ligand_receptor       = "Ligand receptor (receptor–metabolite)"
+        ligand_receptor       = "Ligand receptor (receptor–metabolite)",
+        other                 = "Other interactions"
     )
 
     data <- cosmos_plus_by_compartment
@@ -775,6 +776,7 @@ fig04_compartment_panel <- function(
         "signaling"             ~ type_labels[["signaling"]],
         "allosteric_regulation" ~ type_labels[["allosteric_regulation"]],
         "ligand_receptor"       ~ type_labels[["ligand_receptor"]],
+        "other"                 ~ type_labels[["other"]],
         .default = data$interaction_type
     )
 
@@ -805,7 +807,7 @@ fig04_compartment_panel <- function(
             fill = NULL
         ) +
         ggplot2::guides(
-            fill = ggplot2::guide_legend(nrow = 3L, ncol = 2L)
+            fill = ggplot2::guide_legend(nrow = 4L, ncol = 2L)
         ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
