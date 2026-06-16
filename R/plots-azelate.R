@@ -97,18 +97,21 @@ register_azelate_colours <- function() {
 #' @param data Tibble from \code{\link{azelate_panel_c_data}}.
 #' @param width_mm Numeric: target physical panel width in mm.
 #' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
+#' @param legend_scale Numeric or \code{NULL}: passed to
+#'     \code{\link{theme_bw_metabo}}.
 #'
 #' @return A ggplot object.
 #'
 #' @importFrom dplyr group_by summarise arrange desc mutate
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_identity
-#' @importFrom ggplot2 scale_x_discrete labs theme element_text
+#' @importFrom ggplot2 labs theme element_text
 #' @importFrom rlang .data
 #' @export
 azelate_interaction_panel <- function(
     data,
     width_mm = 89L,
-    font_scale = 1
+    font_scale = 1,
+    legend_scale = NULL
 ) {
 
     # NSE vs. R CMD check workaround
@@ -153,9 +156,6 @@ azelate_interaction_panel <- function(
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_x_discrete(
-            labels = function(x) gsub("_", "\n", x)
-        ) +
         ggplot2::scale_fill_identity(
             guide  = "legend",
             name   = "Source",
@@ -168,11 +168,14 @@ azelate_interaction_panel <- function(
             y     = "Relation count"
         ) +
         theme_bw_metabo(
-            width_mm   = width_mm,
-            font_scale = font_scale
+            width_mm     = width_mm,
+            font_scale   = font_scale,
+            legend_scale = legend_scale
         ) +
         ggplot2::theme(
-            axis.text.x     = ggplot2::element_text(hjust = 0.5),
+            axis.text.x     = ggplot2::element_text(
+                angle = 45, hjust = 1
+            ),
             legend.position = "right"
         )
 }
@@ -192,6 +195,8 @@ azelate_interaction_panel <- function(
 #' @param data Tibble from \code{\link{azelate_panel_d_data}}.
 #' @param width_mm Numeric: target physical panel width in mm.
 #' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
+#' @param legend_scale Numeric or \code{NULL}: passed to
+#'     \code{\link{theme_bw_metabo}}.
 #'
 #' @return A ggplot object.
 #'
@@ -204,7 +209,8 @@ azelate_interaction_panel <- function(
 azelate_disease_panel <- function(
     data,
     width_mm = 89L,
-    font_scale = 1
+    font_scale = 1,
+    legend_scale = NULL
 ) {
 
     # NSE vs. R CMD check workaround
@@ -262,12 +268,13 @@ azelate_disease_panel <- function(
             y     = "Evidence count"
         ) +
         theme_bw_metabo(
-            width_mm   = width_mm,
-            font_scale = font_scale
+            width_mm     = width_mm,
+            font_scale   = font_scale,
+            legend_scale = legend_scale
         ) +
         ggplot2::theme(
             axis.text.x     = ggplot2::element_text(
-                angle = 30, hjust = 1
+                angle = 45, hjust = 1
             ),
             legend.position = "right"
         )

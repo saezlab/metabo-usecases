@@ -39,9 +39,15 @@ fs::dir_create(out_dir)
 
 dep5 <- deployment_provenance("dev5")
 
-# ── Composite-compact font scale (memory: composite_panel_label_sizes) ──────
-
-font_scale <- 2
+# ── Composite-compact label scales (memory: composite_panel_label_sizes) ────
+#
+# font_scale: body / axis / title size multiplier. ~1.7 lands axis
+# labels around 10 pt at the panel's rendered size in the composite.
+# legend_scale: separately tuned so the many-entry legends in Panels
+# E and F (9 resources) don't crowd the plot area. 1.1 lands legend
+# text around 6.6 pt with a proportionally smaller key swatch.
+font_scale   <- 1.7
+legend_scale <- 1.1
 
 # ── Data loading ─────────────────────────────────────────────────────────────
 
@@ -74,7 +80,8 @@ panel_a <- volcano_panel(
     xlim           = volcano_lims$xlim,
     ylim           = volcano_lims$ylim,
     width_mm       = 89L,
-    font_scale     = font_scale
+    font_scale     = font_scale,
+    legend_scale   = legend_scale
 )
 
 logger::log_info("[fig06] rendering Panel B (EGFR volcano)")
@@ -84,21 +91,24 @@ panel_b <- volcano_panel(
     xlim           = volcano_lims$xlim,
     ylim           = volcano_lims$ylim,
     width_mm       = 89L,
-    font_scale     = font_scale
+    font_scale     = font_scale,
+    legend_scale   = legend_scale
 )
 
 logger::log_info("[fig06] rendering Panel C (azelate interaction types)")
 panel_c <- azelate_interaction_panel(
     azelate_c,
-    width_mm   = 89L,
-    font_scale = font_scale
+    width_mm     = 89L,
+    font_scale   = font_scale,
+    legend_scale = legend_scale
 )
 
 logger::log_info("[fig06] rendering Panel D (azelate cancer associations)")
 panel_d <- azelate_disease_panel(
     azelate_d,
-    width_mm   = 89L,
-    font_scale = font_scale
+    width_mm     = 89L,
+    font_scale   = font_scale,
+    legend_scale = legend_scale
 )
 
 logger::log_info("[fig06] building Panel E PKN summaries (KRAS, EGFR)")
@@ -109,31 +119,37 @@ panel_e_kras <- gem_allosteric_panel(
     kras_summary,
     contrast_label = "KRAS",
     width_mm       = 89L,
-    font_scale     = font_scale
+    font_scale     = font_scale,
+    legend_scale   = legend_scale
 )
 panel_e_egfr <- gem_allosteric_panel(
     egfr_summary,
     contrast_label = "EGFR",
     width_mm       = 89L,
-    font_scale     = font_scale
+    font_scale     = font_scale,
+    legend_scale   = legend_scale
 )
 
 logger::log_info("[fig06] rendering Panel F sub-panels (location × direction)")
 panel_f_kras_up <- subcellular_location_panel(
     kras_summary, "KRAS", "up",
-    width_mm = 89L, font_scale = font_scale
+    width_mm = 89L, font_scale = font_scale,
+    legend_scale = legend_scale
 )
 panel_f_kras_down <- subcellular_location_panel(
     kras_summary, "KRAS", "down",
-    width_mm = 89L, font_scale = font_scale
+    width_mm = 89L, font_scale = font_scale,
+    legend_scale = legend_scale
 )
 panel_f_egfr_up <- subcellular_location_panel(
     egfr_summary, "EGFR", "up",
-    width_mm = 89L, font_scale = font_scale
+    width_mm = 89L, font_scale = font_scale,
+    legend_scale = legend_scale
 )
 panel_f_egfr_down <- subcellular_location_panel(
     egfr_summary, "EGFR", "down",
-    width_mm = 89L, font_scale = font_scale
+    width_mm = 89L, font_scale = font_scale,
+    legend_scale = legend_scale
 )
 
 # ── Save individual panels (per FR-026: SVG + PDF per panel) ─────────────────
@@ -301,6 +317,7 @@ write_sidecar(
         volcano_logfc_threshold  = 0.5,
         top_dems_per_direction   = 10L,
         font_scale               = font_scale,
+        legend_scale             = legend_scale,
         composite_dims_mm        = list(width = 180L, height = 220L),
         cosmos_pkn_source        = paste0(
             "vendored fixture from omnipath_metabo_case1/data/ ",

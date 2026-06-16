@@ -23,6 +23,26 @@ case_study_resource_order <- function() {
 }
 
 
+#' Strip the redundant "GEM:" prefix for display
+#'
+#' The underlying PKN edges carry the prefixed labels
+#' (\code{"GEM:Human-GEM"}, \code{"GEM:Recon3D"}, plus composite
+#' memberships like \code{"GEM:Human-GEM;KEGG"}), so the data column
+#' and the category-colour registry keys stay prefixed for
+#' downstream consumers. Legends and axis ticks display the cleaner
+#' \code{"Human-GEM"} / \code{"Recon3D"} forms via this helper.
+#'
+#' @param x Character vector.
+#' @return Character vector with every \code{"GEM:"} occurrence
+#'     removed.
+#'
+#' @keywords internal
+#' @noRd
+case_study_resource_display <- function(x) {
+    gsub("GEM:", "", x, fixed = TRUE)
+}
+
+
 #' Single-letter to full subcellular-location labels used in COSMOS PKN
 #'
 #' @return Named character vector keyed by single-letter code.
@@ -202,6 +222,8 @@ case_study_pkn_summary <- function(dem_tibble, pkn, top_n = 10L) {
 #'     \code{"KRAS"} or \code{"EGFR"}).
 #' @param width_mm Numeric: target physical panel width in mm.
 #' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
+#' @param legend_scale Numeric or \code{NULL}: passed to
+#'     \code{\link{theme_bw_metabo}}.
 #'
 #' @return A ggplot object.
 #'
@@ -214,7 +236,8 @@ gem_allosteric_panel <- function(
     summary_tibble,
     contrast_label,
     width_mm = 89L,
-    font_scale = 1
+    font_scale = 1,
+    legend_scale = NULL
 ) {
 
     # NSE vs. R CMD check workaround
@@ -250,7 +273,9 @@ gem_allosteric_panel <- function(
             breaks = unname(category_colour(
                 "resources", case_study_resource_order()
             )),
-            labels = case_study_resource_order()
+            labels = case_study_resource_display(
+                case_study_resource_order()
+            )
         ) +
         ggplot2::labs(
             title = contrast_label,
@@ -258,8 +283,9 @@ gem_allosteric_panel <- function(
             y     = "Number of edges"
         ) +
         theme_bw_metabo(
-            width_mm   = width_mm,
-            font_scale = font_scale
+            width_mm     = width_mm,
+            font_scale   = font_scale,
+            legend_scale = legend_scale
         ) +
         ggplot2::theme(
             axis.text.x     = ggplot2::element_text(
@@ -293,6 +319,8 @@ gem_allosteric_panel <- function(
 #'     filters \code{summary_tibble} to edges with that direction.
 #' @param width_mm Numeric: target physical panel width in mm.
 #' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
+#' @param legend_scale Numeric or \code{NULL}: passed to
+#'     \code{\link{theme_bw_metabo}}.
 #'
 #' @return A ggplot object.
 #'
@@ -308,7 +336,8 @@ subcellular_location_panel <- function(
     contrast_label,
     direction = c("up", "down"),
     width_mm = 89L,
-    font_scale = 1
+    font_scale = 1,
+    legend_scale = NULL
 ) {
 
     # NSE vs. R CMD check workaround
@@ -365,7 +394,9 @@ subcellular_location_panel <- function(
             breaks = unname(category_colour(
                 "resources", case_study_resource_order()
             )),
-            labels = case_study_resource_order()
+            labels = case_study_resource_display(
+                case_study_resource_order()
+            )
         ) +
         ggplot2::labs(
             title = sprintf("%s %s", contrast_label, direction),
@@ -373,8 +404,9 @@ subcellular_location_panel <- function(
             y     = "Number of edges"
         ) +
         theme_bw_metabo(
-            width_mm   = width_mm,
-            font_scale = font_scale
+            width_mm     = width_mm,
+            font_scale   = font_scale,
+            legend_scale = legend_scale
         ) +
         ggplot2::theme(
             axis.text.x     = ggplot2::element_text(

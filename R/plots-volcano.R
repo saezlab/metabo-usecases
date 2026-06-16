@@ -26,7 +26,11 @@
 #' @param width_mm Numeric: target physical panel width in mm; passed
 #'     to \code{\link{theme_bw_metabo}}.
 #' @param font_scale Numeric: passed to \code{\link{theme_bw_metabo}}.
+#' @param legend_scale Numeric or \code{NULL}: passed to
+#'     \code{\link{theme_bw_metabo}}.
 #' @param point_size Numeric: point size for \code{geom_point}.
+#' @param point_alpha Numeric: alpha for \code{geom_point}; lower
+#'     values reveal density in regions of overlapping points.
 #'
 #' @return A ggplot object.
 #'
@@ -54,7 +58,9 @@ volcano_panel <- function(
     ylim = NULL,
     width_mm = 89L,
     font_scale = 1,
-    point_size = 0.6
+    legend_scale = NULL,
+    point_size = 1.1,
+    point_alpha = 0.4
 ) {
 
     # NSE vs. R CMD check workaround
@@ -113,7 +119,7 @@ volcano_panel <- function(
         ) +
         ggplot2::geom_point(
             size  = point_size,
-            alpha = 0.7
+            alpha = point_alpha
         ) +
         ggplot2::scale_colour_manual(
             values = sig_colours,
@@ -126,8 +132,9 @@ volcano_panel <- function(
             y     = expression(-log[10] ~ italic(P))
         ) +
         theme_bw_metabo(
-            width_mm   = width_mm,
-            font_scale = font_scale
+            width_mm     = width_mm,
+            font_scale   = font_scale,
+            legend_scale = legend_scale
         ) +
         ggplot2::theme(legend.position = "top")
 

@@ -13,13 +13,18 @@
 #' @param width_mm Numeric: target physical figure width in mm.
 #'     \code{89} for single-column, \code{180} for double-column per
 #'     the Nature/Bioinformatics envelope (FR-017a).
-#' @param font_scale Numeric: multiplier applied to every font size
-#'     before the theme is constructed. Default \code{1} keeps the
+#' @param font_scale Numeric: multiplier applied to body / axis-label
+#'     / axis-tick / panel-title / strip / plot-tag font sizes before
+#'     the theme is constructed. Default \code{1} keeps the
 #'     \code{\link{font_sizes}} floor (FR-017a). Composites that
 #'     render each panel at a smaller-than-single-column physical
-#'     size can pass \code{2} or \code{2.5} so labels remain
-#'     readable in the compact composite (memory:
-#'     \code{feedback_composite_panel_label_sizes}).
+#'     size can pass \code{1.5}--\code{2.5} so labels remain readable
+#'     (memory: \code{feedback_composite_panel_label_sizes}).
+#' @param legend_scale Numeric or \code{NULL}: separate multiplier for
+#'     legend text / title / key size / spacing. \code{NULL} (default)
+#'     inherits \code{font_scale}. Pass a value smaller than
+#'     \code{font_scale} when a panel has many legend entries so the
+#'     legend block does not crowd the plot area.
 #'
 #' @return A ggplot2 theme object.
 #'
@@ -30,26 +35,40 @@
 #'     theme_bw_metabo(width_mm = 89)
 #'
 #' @importFrom ggplot2 theme_bw theme element_text element_line element_blank
-#' @importFrom ggplot2 element_rect rel
+#' @importFrom ggplot2 element_rect rel margin
+#' @importFrom grid unit
 #' @export
-theme_bw_metabo <- function(width_mm = 89, font_scale = 1) {
+theme_bw_metabo <- function(width_mm = 89,
+                            font_scale = 1,
+                            legend_scale = NULL) {
+
+    if (is.null(legend_scale)) {
+        legend_scale <- font_scale
+    }
 
     sizes <- font_sizes()
-    sizes <- lapply(sizes, function(s) s * font_scale)
+    body_sizes <- lapply(sizes, function(s) s * font_scale)
+    legend_size <- sizes$legend * legend_scale
 
     base_line <- ifelse(width_mm >= 180, 0.4, 0.3)
     grid_line <- ifelse(width_mm >= 180, 0.25, 0.2)
 
-    ggplot2::theme_bw(base_size = sizes$body) +
+    # Legend key + spacing scaled with legend_scale; the 2.4 mm base
+    # roughly matches a 6 pt key, so legend_scale == 1 stays close to
+    # ggplot2 defaults while larger values produce proportionally
+    # larger swatches.
+    key_size_mm <- 2.4 * legend_scale
+
+    ggplot2::theme_bw(base_size = body_sizes$body) +
         ggplot2::theme(
             text             = ggplot2::element_text(
                 family = "sans", colour = "black"
             ),
             axis.title       = ggplot2::element_text(
-                size = sizes$axis_label
+                size = body_sizes$axis_label
             ),
             axis.text        = ggplot2::element_text(
-                size = sizes$tick
+                size = body_sizes$tick
             ),
             axis.ticks       = ggplot2::element_line(
                 linewidth = base_line
@@ -63,25 +82,31 @@ theme_bw_metabo <- function(width_mm = 89, font_scale = 1) {
                 colour = "grey88", linewidth = grid_line
             ),
             plot.title       = ggplot2::element_text(
-                size = sizes$panel_title, face = "bold"
+                size = body_sizes$panel_title, face = "bold"
             ),
             plot.subtitle    = ggplot2::element_text(
-                size = sizes$body
+                size = body_sizes$body
             ),
             legend.title     = ggplot2::element_text(
-                size = sizes$legend, face = "bold"
+                size = legend_size, face = "bold"
             ),
             legend.text      = ggplot2::element_text(
-                size = sizes$legend
+                size = legend_size
+            ),
+            legend.key.size  = grid::unit(key_size_mm, "mm"),
+            legend.spacing.x = grid::unit(0.5 * legend_scale, "mm"),
+            legend.spacing.y = grid::unit(0.3 * legend_scale, "mm"),
+            legend.margin    = ggplot2::margin(
+                t = 0.5, r = 0.5, b = 0.5, l = 0.5, unit = "mm"
             ),
             strip.text       = ggplot2::element_text(
-                size = sizes$panel_title, face = "bold"
+                size = body_sizes$panel_title, face = "bold"
             ),
             strip.background = ggplot2::element_rect(
                 fill = "grey95", colour = NA
             ),
             plot.tag         = ggplot2::element_text(
-                size = sizes$panel_title * 1.2, face = "bold"
+                size = body_sizes$panel_title * 1.2, face = "bold"
             )
         )
 }
