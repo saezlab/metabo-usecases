@@ -29,7 +29,7 @@
 #' @importFrom readr read_csv
 #' @importFrom dplyr filter mutate bind_rows count n_distinct group_by
 #'     summarise arrange desc if_else case_match
-#' @importFrom tidyr unnest
+#' @importFrom tidyr unnest separate_rows
 #' @importFrom stringr str_extract_all
 #' @importFrom tibble tibble
 #' @importFrom digest digest
@@ -91,6 +91,8 @@ cosmos_plus_data <- function(
             "l"           ~ "Lysosome",
             "g"           ~ "Golgi apparatus",
             "v"           ~ "Vacuole/vesicle",
+            "i"           ~ "Mitochondrial intermembrane space",
+            "eg"          ~ "Extracellular (TCDB)",
             "unannotated" ~ "Unannotated",
             .default      = code
         )
@@ -139,6 +141,25 @@ cosmos_plus_data <- function(
         ) |>
         dplyr::arrange(dplyr::desc(n_interactions))
 
+    # Same as by_resource but semicolon-joined resource strings are split
+    # first so each constituent resource is tallied independently.
+    by_resource_split <- combined |>
+        tidyr::separate_rows(resource, sep = ";") |>
+        dplyr::group_by(resource) |>
+        dplyr::summarise(
+            n_metabolites  = dplyr::n_distinct(c(
+                source[source_type == "small_molecule"],
+                target[target_type == "small_molecule"]
+            )),
+            n_proteins     = dplyr::n_distinct(c(
+                source[source_type == "protein"],
+                target[target_type == "protein"]
+            )),
+            n_interactions = dplyr::n_distinct(source, target),
+            .groups        = "drop"
+        ) |>
+        dplyr::arrange(dplyr::desc(n_interactions))
+
     external_inputs <- list(
         list(
             kind        = "cosmos-plus-csv",
@@ -155,10 +176,11 @@ cosmos_plus_data <- function(
     )
 
     list(
-        by_type_species  = by_type_species,
-        by_compartment   = by_compartment,
-        by_resource      = by_resource,
-        external_inputs  = external_inputs
+        by_type_species   = by_type_species,
+        by_compartment    = by_compartment,
+        by_resource       = by_resource,
+        by_resource_split = by_resource_split,
+        external_inputs   = external_inputs
     )
 }
 

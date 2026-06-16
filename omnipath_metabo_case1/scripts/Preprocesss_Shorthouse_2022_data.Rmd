@@ -241,6 +241,13 @@ shorthouse_intensities_collapsed <-
 ```
 
 ```{r}
+dim(shorthouse_intensities_collapsed)
+dim(shorthouse_injections_collapsed)
+dim(shorthouse_ions)
+```
+
+
+```{r}
 Shorthouse_2022_preprocessed <- list(
     data_matrix = shorthouse_intensities_collapsed,
     samples = shorthouse_injections_collapsed,
