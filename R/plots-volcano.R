@@ -31,6 +31,14 @@
 #' @param point_size Numeric: point size for \code{geom_point}.
 #' @param point_alpha Numeric: alpha for \code{geom_point}; lower
 #'     values reveal density in regions of overlapping points.
+#' @param highlight Named character vector or \code{NULL}: rows whose
+#'     value in column \code{highlight_key} matches a \emph{name} of
+#'     this vector are emphasised — a larger amber outlined point is
+#'     overlaid and the corresponding \emph{value} is drawn as a
+#'     label next to the point. \code{NULL} (default) → no highlight.
+#'     Typical use: \code{highlight = c(HMDB0000784 = "Azelaic acid")}.
+#' @param highlight_key Character: column in \code{diff_tibble} to
+#'     match \code{names(highlight)} against. Default \code{"hmdb"}.
 #'
 #' @return A ggplot object.
 #'
@@ -60,7 +68,9 @@ volcano_panel <- function(
     font_scale = 1,
     legend_scale = NULL,
     point_size = 1.1,
-    point_alpha = 0.4
+    point_alpha = 0.4,
+    highlight = NULL,
+    highlight_key = "hmdb"
 ) {
 
     # NSE vs. R CMD check workaround
@@ -143,6 +153,60 @@ volcano_panel <- function(
     }
     if (!is.null(ylim)) {
         plt <- plt + ggplot2::scale_y_continuous(limits = ylim)
+    }
+
+    if (!is.null(highlight) && length(highlight) > 0L) {
+
+        # NSE vs. R CMD check workaround
+        display_label <- NULL
+
+        if (!highlight_key %in% names(diff_tibble)) {
+            rlang::abort(sprintf(
+                "highlight_key '%s' not present in diff_tibble columns",
+                highlight_key
+            ))
+        }
+
+        match_idx <- diff_tibble[[highlight_key]] %in% names(highlight)
+        hl_rows <- diff_tibble[which(match_idx), , drop = FALSE]
+
+        if (nrow(hl_rows) > 0L) {
+
+            hl_rows$display_label <- unname(
+                highlight[hl_rows[[highlight_key]]]
+            )
+
+            hl_colour <- unname(palette_lead()[["amber"]])
+
+            plt <- plt +
+                ggplot2::geom_point(
+                    data        = hl_rows,
+                    inherit.aes = FALSE,
+                    ggplot2::aes(
+                        x = .data$logFC,
+                        y = .data$neg_log10_p
+                    ),
+                    fill   = hl_colour,
+                    colour = "black",
+                    shape  = 21L,
+                    size   = point_size * 2.6,
+                    stroke = 0.4
+                ) +
+                ggplot2::geom_text(
+                    data        = hl_rows,
+                    inherit.aes = FALSE,
+                    ggplot2::aes(
+                        x     = .data$logFC,
+                        y     = .data$neg_log10_p,
+                        label = .data$display_label
+                    ),
+                    vjust    = -1.1,
+                    hjust    = 0.5,
+                    size     = font_scale * 2.4,
+                    fontface = "italic",
+                    colour   = "black"
+                )
+        }
     }
 
     plt

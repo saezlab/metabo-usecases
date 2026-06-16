@@ -73,6 +73,10 @@ volcano_lims <- volcano_shared_limits(list(kras_dem, egfr_dem))
 
 # ── Panel rendering ──────────────────────────────────────────────────────────
 
+# Highlight: azelaic acid (HMDB0000784) — Panels A / B + downstream
+# Panel C / D draw on the same metabolite as the worked example.
+azelate_highlight <- c(HMDB0000784 = "Azelaic acid")
+
 logger::log_info("[fig06] rendering Panel A (KRAS volcano)")
 panel_a <- volcano_panel(
     kras_dem,
@@ -81,7 +85,8 @@ panel_a <- volcano_panel(
     ylim           = volcano_lims$ylim,
     width_mm       = 89L,
     font_scale     = font_scale,
-    legend_scale   = legend_scale
+    legend_scale   = legend_scale,
+    highlight      = azelate_highlight
 )
 
 logger::log_info("[fig06] rendering Panel B (EGFR volcano)")
@@ -92,7 +97,8 @@ panel_b <- volcano_panel(
     ylim           = volcano_lims$ylim,
     width_mm       = 89L,
     font_scale     = font_scale,
-    legend_scale   = legend_scale
+    legend_scale   = legend_scale,
+    highlight      = azelate_highlight
 )
 
 logger::log_info("[fig06] rendering Panel C (azelate interaction types)")
