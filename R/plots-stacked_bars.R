@@ -382,6 +382,14 @@ subcellular_location_panel <- function(
     )
     sub <- tidyr::unnest(sub, cols = "loc")
 
+    # Cast loc to a factor with every canonical level so each F
+    # sub-panel renders an identical x-axis. Combined with
+    # scale_x_discrete(drop = FALSE), localizations absent from a
+    # given (contrast, direction) slice show as empty slots so bar
+    # widths stay constant for cross-sub-panel comparison.
+    loc_levels <- names(case_study_location_labels())
+    sub$loc <- factor(sub$loc, levels = loc_levels)
+
     counts <- dplyr::count(
         sub,
         .data$loc,
@@ -401,7 +409,10 @@ subcellular_location_panel <- function(
         )
     ) +
         ggplot2::geom_col(width = 0.7) +
-        ggplot2::scale_x_discrete(labels = case_study_location_labels()) +
+        ggplot2::scale_x_discrete(
+            labels = case_study_location_labels(),
+            drop   = FALSE
+        ) +
         ggplot2::scale_fill_manual(
             values = case_study_resource_palette(),
             breaks = resources,

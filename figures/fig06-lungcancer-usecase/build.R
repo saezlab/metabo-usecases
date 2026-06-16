@@ -229,7 +229,7 @@ f_grid <- (
 ef_block <- (e_col | f_grid) +
     patchwork::plot_layout(
         guides = "collect",
-        widths = c(0.4, 0.6)
+        widths = c(0.32, 0.68)
     ) &
     ggplot2::theme(legend.position = "bottom")
 
