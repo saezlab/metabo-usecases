@@ -1,27 +1,29 @@
 # figures/fig05-cosmos-pkn/build.R
 #
-# Figure 5: COSMOS+ PKN analysis — four pipeline panels (post-
-# 2026-06-14 six-figure renumbering; was Figure 4).
+# Figure 5: COSMOS+ PKN — schematic + two pipeline panels.
 #
-# Panel A: species-aware comparison of old COSMOS PKN vs. COSMOS+ by interaction type
-# Panel B: COSMOS+ interactions per annotated subcellular compartment
-# Panel C: entity and interaction counts per contributing resource in COSMOS+
-# Panel D: MetaLinksDB 2.0 vs. COSMOS+ comparison by interaction type
+# Active composite (this version):
+#   Top    : regulation-types schematic (manual asset, full width)
+#   Middle : Panel B — COSMOS+ interactions per compartment
+#   Bottom : Panel C — COSMOS+ entities per resource (grouped bars)
 #
-# Three manual schematics (pkn-to-binary-network, regulation-types,
-# moon-activity-inference) must exist under manual/ before the mixed-source
-# composite assembly step. Missing assets trigger a warning and skip the full
-# composite (spec Edge Case).
+# Panels A (old vs. COSMOS+ comparison) and D (MetaLinksDB vs.
+# COSMOS+) are still rendered as individual artifacts but are not
+# part of the active composite (colleague's call; see Figure 5
+# session 2026-06-16).
 #
 # Data sources:
-#   - inst/extdata/cosmos/meta_network.RData    (old COSMOS PKN, vendored)
-#   - inst/extdata/cosmos/cosmos_plus_human.csv (COSMOS+, vendored via T052a)
-#   - inst/extdata/cosmos/cosmos_plus_mouse.csv (COSMOS+, vendored via T052a)
-#   - custom_views.metalinksdb_relations on dev5 (MetaLinksDB 2.0, Panel D)
+#   - inst/extdata/cosmos/meta_network.RData    (old COSMOS PKN)
+#   - inst/extdata/cosmos/cosmos_plus_human.csv (COSMOS+)
+#   - inst/extdata/cosmos/cosmos_plus_mouse.csv (COSMOS+)
+#   - custom_views.metalinksdb_relations on dev5 (MetaLinksDB 2.0)
+#   - figures/fig05-cosmos-pkn/manual/regulation-types.png
+#     (schematic; PDF + PNG variants both present)
 
 suppressPackageStartupMessages({
     library(metabo.figures)
     library(ggplot2)
+    library(patchwork)
 })
 
 setup_pipeline_log('build:fig05-cosmos-pkn')
@@ -100,10 +102,11 @@ panel_c <- fig04_resource_contribution_panel(
     width_mm                = 89L
 )
 
-logger::log_info('[fig05] rendering Panel C (split) — resource contributions after semicolon splitting')
+logger::log_info('[fig05] rendering Panel C (grouped) — entities per resource as dodged bars')
 panel_c_split <- fig04_resource_contribution_panel(
     cosmos_plus_by_resource = cosmos_plus$by_resource_split,
-    width_mm                = 89L
+    width_mm                = 89L,
+    position                = 'dodge'
 )
 
 logger::log_info('[fig05] rendering Panel D (MetaLinksDB 2.0 vs. COSMOS+)')
@@ -156,88 +159,111 @@ for (name in names(panels_all)) {
     )
 }
 
-# ── Pipeline panel composite ─────────────────────────────────────────────────
+# ── Composite (schematic on top, Panel B, Panel C stacked) ──────────────────
+#
+# The regulation-types schematic is embedded as a raster grob via png
+# + grid + patchwork::wrap_elements. PDF is preferable for vector
+# graphics but neither pdftools nor magick are in the project's R
+# dependency surface, so we use the PNG variant; the source PDF is
+# kept alongside as the canonical asset.
 
-pipeline_composite <- compose_patchwork(panels, layout = list(ncol = 1L))
+schematic_png_path <- 'figures/fig05-cosmos-pkn/manual/regulation-types.png'
 
-ggsave(
-    filename = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
-    plot     = pipeline_composite,
-    width    = 200,
-    height   = 320,
-    units    = 'mm'
-)
-ggsave(
-    filename = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.svg'),
-    plot     = pipeline_composite,
-    width    = 200,
-    height   = 320,
-    units    = 'mm'
-)
-
-# ── Panel B + C sub-composite ────────────────────────────────────────────────
-
-bc_composite <- compose_patchwork(
-    list(panel_b = panel_b, panel_c = panel_c_split),
-    layout = list(ncol = 1L)
-)
-
-ggsave(
-    filename = file.path(out_dir, 'fig05-cosmos-pkn-bc.pdf'),
-    plot     = bc_composite,
-    width    = 200,
-    height   = 320,
-    units    = 'mm'
-)
-ggsave(
-    filename = file.path(out_dir, 'fig05-cosmos-pkn-bc.svg'),
-    plot     = bc_composite,
-    width    = 200,
-    height   = 320,
-    units    = 'mm'
-)
-
-# ── Full composite (pipeline panels + manual schematics) ─────────────────────
-
-manual_dir <- 'figures/fig05-cosmos-pkn/manual'
-schematic_slugs <- c(
-    'pkn-to-binary-network',
-    'regulation-types',
-    'moon-activity-inference'
-)
-schematic_pdfs <- file.path(manual_dir, paste0(schematic_slugs, '.pdf'))
-missing_schematics <- schematic_pdfs[!file.exists(schematic_pdfs)]
-
-if (length(missing_schematics) > 0L) {
-    logger::log_warn(paste0(
-        '[fig05] manual schematic(s) absent — skipping full composite. ',
-        'Missing: ', paste(basename(missing_schematics), collapse = ', ')
-    ))
-} else {
-    logger::log_info('[fig05] assembling full composite (pipeline + manual schematics)')
-    compose_mixed_source(
-        pipeline_pdf = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
-        manual_pdfs  = schematic_pdfs,
-        out_pdf      = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
-        out_svg      = file.path(out_dir, 'fig05-cosmos-pkn.svg')
+schematic_panel <- if (file.exists(schematic_png_path)) {
+    schematic_grob <- grid::rasterGrob(
+        png::readPNG(schematic_png_path, native = TRUE),
+        interpolate = TRUE
     )
+    patchwork::wrap_elements(full = schematic_grob) +
+        ggplot2::labs(tag = 'A')
+} else {
+    logger::log_warn(paste0(
+        '[fig05] schematic PNG missing at ', schematic_png_path,
+        ' — composite will be assembled without the top schematic panel.'
+    ))
+    NULL
 }
+
+if (!is.null(schematic_panel)) {
+    pipeline_composite <- (
+        schematic_panel /
+        (panel_b       + ggplot2::labs(tag = 'B')) /
+        (panel_c_split + ggplot2::labs(tag = 'C'))
+    ) +
+        patchwork::plot_layout(heights = c(1.0, 1.4, 1.4))
+} else {
+    pipeline_composite <- (
+        (panel_b       + ggplot2::labs(tag = 'A')) /
+        (panel_c_split + ggplot2::labs(tag = 'B'))
+    ) +
+        patchwork::plot_layout(heights = c(1, 1))
+}
+
+logger::log_info(paste0(
+    '[fig05] assembled composite (',
+    if (is.null(schematic_panel)) 'pipeline-only, schematic missing'
+    else 'schematic + B + C',
+    ')'
+))
+
+composite_width_mm  <- 180L
+composite_height_mm <- if (!is.null(schematic_panel)) 260L else 200L
+
+ggsave(
+    filename = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
+    plot     = pipeline_composite,
+    width    = composite_width_mm,
+    height   = composite_height_mm,
+    units    = 'mm'
+)
+ggsave(
+    filename = file.path(out_dir, 'fig05-cosmos-pkn.svg'),
+    plot     = pipeline_composite,
+    width    = composite_width_mm,
+    height   = composite_height_mm,
+    units    = 'mm'
+)
+
+# Retain the legacy pipeline-only artifacts for backward compatibility
+# (downstream consumers reference fig05-cosmos-pkn-pipeline.pdf).
+file.copy(
+    file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
+    file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
+    overwrite = TRUE
+)
+file.copy(
+    file.path(out_dir, 'fig05-cosmos-pkn.svg'),
+    file.path(out_dir, 'fig05-cosmos-pkn-pipeline.svg'),
+    overwrite = TRUE
+)
 
 # ── Caption ──────────────────────────────────────────────────────────────────
 
 caption_info <- compose_caption(
     figure_id      = 'fig05-cosmos-pkn',
-    composite_pdf  = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
+    composite_pdf  = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
     caption_source = 'figures/fig05-cosmos-pkn/caption.tex',
     out_dir        = out_dir,
-    panel_count    = 2L
+    panel_count    = if (!is.null(schematic_panel)) 3L else 2L
 )
 
 # ── Provenance sidecar ────────────────────────────────────────────────────────
 
+schematic_input <- if (!is.null(schematic_panel)) {
+    list(
+        kind        = 'schematic-regulation-types',
+        path        = schematic_png_path,
+        fingerprint = digest::digest(file = schematic_png_path,
+                                     algo = 'sha256'),
+        source      = 'manual asset (regulation-types)'
+    )
+} else {
+    NULL
+}
+
 write_sidecar(
     artifact_id     = 'fig05-cosmos-pkn',
-    artifact_path   = file.path(out_dir, 'fig05-cosmos-pkn-pipeline.pdf'),
+    artifact_path   = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
     deployments     = list(dep5$deployment),
     manifests       = list(dep5$manifest),
     script_path     = 'figures/fig05-cosmos-pkn/build.R',
@@ -249,12 +275,19 @@ write_sidecar(
             fingerprint        = attr(old_pkn, 'fingerprint'),
             species_assumption = 'human-only-or-unspecified'
         )),
-        cosmos_plus$external_inputs
+        cosmos_plus$external_inputs,
+        if (!is.null(schematic_input)) list(schematic_input) else list()
     ),
     parameters = list(
         old_cosmos_species_assumption = 'human-only-or-unspecified',
         panel_d_metalinks_deployment  = 'dev5',
-        panel_d_metalinks_view        = 'custom_views.metalinksdb_relations'
+        panel_d_metalinks_view        = 'custom_views.metalinksdb_relations',
+        active_composite              = 'schematic_b_c_vertical',
+        panel_c_position              = 'dodge',
+        composite_dims_mm             = list(
+            width  = composite_width_mm,
+            height = composite_height_mm
+        )
     ),
     seed    = pipeline_seed(),
     caption = caption_info

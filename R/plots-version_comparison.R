@@ -639,19 +639,25 @@ fig04_compartment_panel <- function(
 #' @param top_n Integer: number of individual resources to show.
 #'     Default 15.
 #' @param width_mm Numeric panel width in mm.
+#' @param position Character: bar arrangement. \code{"stack"} (default)
+#'     keeps the existing stacked layout; \code{"dodge"} draws
+#'     Metabolites and Proteins as side-by-side bars per resource.
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
-#'     position_stack coord_flip
+#'     position_stack position_dodge coord_flip
 #' @importFrom tidyr pivot_longer
 #' @importFrom dplyr mutate bind_rows slice_head
 #' @importFrom tibble tibble
-#' @importFrom rlang .data
+#' @importFrom rlang .data abort
 #' @export
 fig04_resource_contribution_panel <- function(
     cosmos_plus_by_resource,
     top_n    = 15L,
-    width_mm = 89L
+    width_mm = 89L,
+    position = c("stack", "dodge")
 ) {
+
+    position <- match.arg(position)
     resource <- entity_type <- count <- n_metabolites <- n_proteins <- NULL
     n_interactions <- NULL
 
@@ -705,6 +711,12 @@ fig04_resource_contribution_panel <- function(
         Proteins    = palette_n(2L)[[2L]]
     )
 
+    geom_position <- switch(
+        position,
+        stack = ggplot2::position_stack(),
+        dodge = ggplot2::position_dodge(width = 0.75)
+    )
+
     ggplot2::ggplot(
         long,
         ggplot2::aes(
@@ -714,7 +726,7 @@ fig04_resource_contribution_panel <- function(
         )
     ) +
         ggplot2::geom_col(
-            position = ggplot2::position_stack(),
+            position = geom_position,
             width    = 0.7
         ) +
         ggplot2::scale_fill_manual(values = entity_fills) +
