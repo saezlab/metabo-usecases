@@ -52,6 +52,30 @@ pretty_source <- function(x) {
 }
 
 
+#' Shorten the longest metabolite-class display labels
+#'
+#' A few HMDB-derived metabolite classes have names too long to fit
+#' the strip-layout's narrow per-panel width. This helper maps those
+#' few specifically-named classes to a publication-friendly short
+#' form; anything else is returned unchanged.
+#'
+#' @param x Character vector of raw metabolite-class names.
+#' @return Character vector with the long classes shortened.
+#'
+#' @keywords internal
+#' @noRd
+pretty_metabolite_class <- function(x) {
+    shortmap <- c(
+        "Amino acids, peptides, and analogues"      = "Amino acids",
+        "Carbohydrates and carbohydrate conjugates" = "Carbohydrates",
+        "Fatty acids and conjugates"                = "Fatty acids"
+    )
+    raw <- as.character(x)
+    hit <- shortmap[raw]
+    ifelse(is.na(hit), raw, unname(hit))
+}
+
+
 #' Canonicalise relation-type codes for display
 #'
 #' The v2 MetaLinksDB exposes four relation-type codes:
@@ -195,6 +219,22 @@ fig03_metabolite_class_panel <- function(data,
         ))
     }
 
+    # Shorten the few classes whose names overflow the strip
+    # layout's narrow per-panel width, then re-aggregate so
+    # duplicates (none expected here, but safe) collapse.
+    class_counts$metabolite_class_label <- pretty_metabolite_class(
+        class_counts$metabolite_class_label
+    )
+    class_counts <- dplyr::summarise(
+        dplyr::group_by(
+            class_counts,
+            .data$resource,
+            .data$metabolite_class_label
+        ),
+        n = sum(.data$n),
+        .groups = "drop"
+    )
+
     keep <- dplyr::summarise(
         dplyr::group_by(class_counts, .data$metabolite_class_label),
         total_n = sum(.data$n),
@@ -284,8 +324,8 @@ fig03_protein_class_panel <- function(data,
             "enzyme"                   = "Enzyme",
             "transporter"              = "Transporter",
             "catalytic receptor"       = "Catalytic receptor",
-            "nuclear hormone receptor" = "Nuclear hormone receptor",
-            "nhr"                      = "Nuclear hormone receptor",
+            "nuclear hormone receptor" = "NHR",
+            "nhr"                      = "NHR",
             "other protein"            = "Other",
             "other"                    = "Other"
         )
@@ -518,6 +558,13 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
             x    = "Source",
             y    = "Interactions",
             fill = NULL
+        ) +
+        # 4 relation types with names up to 15 chars don't fit on a
+        # single row in the strip-layout's narrow per-panel width;
+        # wrap to a 2x2 legend block so the "Pharmacodynamic" entry
+        # no longer overflows the right edge of the panel.
+        ggplot2::guides(
+            fill = ggplot2::guide_legend(nrow = 2L, byrow = TRUE)
         ) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
