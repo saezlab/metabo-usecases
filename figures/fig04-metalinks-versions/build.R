@@ -110,27 +110,27 @@ register_category_colours(
 )
 
 panels <- list(
-    coverage            = fig03_coverage_panel(fig03_rows, width_mm = 120L),
-    metabolite_classes  = fig03_metabolite_class_panel(fig03_rows, width_mm = 120L),
-    protein_classes     = fig03_protein_class_panel(fig03_rows, width_mm = 120L),
+    coverage            = fig03_coverage_panel(fig03_rows, width_mm = 60L),
+    metabolite_classes  = fig03_metabolite_class_panel(fig03_rows, width_mm = 60L),
+    protein_classes     = fig03_protein_class_panel(fig03_rows, width_mm = 60L),
     # FR-010d Panel D + FR-010e Panel E (Session 2026-06-15 review).
-    metalinks_overview  = fig03_metalinks_overview_panel(fig03_rows, width_mm = 120L),
-    relationship_types  = fig03_relationship_types_panel(fig03_rows, width_mm = 120L)
+    metalinks_overview  = fig03_metalinks_overview_panel(fig03_rows, width_mm = 60L),
+    relationship_types  = fig03_relationship_types_panel(fig03_rows, width_mm = 60L)
 )
 
 for (name in names(panels)) {
     ggsave(
         filename = file.path(out_dir, paste0(name, '.pdf')),
         plot = panels[[name]],
-        width = 120,
-        height = 90,
+        width = 80,
+        height = 110,
         units = 'mm'
     )
     ggsave(
         filename = file.path(out_dir, paste0(name, '.svg')),
         plot = panels[[name]],
-        width = 120,
-        height = 90,
+        width = 80,
+        height = 110,
         units = 'mm'
     )
 }
@@ -230,23 +230,39 @@ logger::log_info(
     '+ legend.csv to {supp_dir}'
 )
 
+# Single horizontal strip: all 5 panels in one row. Widths give the
+# metabolite-class panel more room because its class names are
+# notably longer than the others.
 composite <- compose_patchwork(
     panels,
-    layout = list(ncol = 2)
+    layout = list(
+        ncol   = 5,
+        widths = c(0.85, 1.40, 1.05, 1.00, 1.00)
+    )
 )
+
+# Bump panel-tag (A/B/C/D/E) size so the letters read at the strip's
+# shorter physical height.
+composite <- composite &
+    ggplot2::theme(
+        plot.tag = ggplot2::element_text(size = 16, face = 'bold')
+    )
+
+composite_width_mm  <- 320L
+composite_height_mm <- 115L
 
 ggsave(
     filename = file.path(out_dir, 'fig04-metalinks-versions.pdf'),
     plot = composite,
-    width = 240,
-    height = 220,
+    width = composite_width_mm,
+    height = composite_height_mm,
     units = 'mm'
 )
 ggsave(
     filename = file.path(out_dir, 'fig04-metalinks-versions.svg'),
     plot = composite,
-    width = 240,
-    height = 220,
+    width = composite_width_mm,
+    height = composite_height_mm,
     units = 'mm'
 )
 

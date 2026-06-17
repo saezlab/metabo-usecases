@@ -1,3 +1,92 @@
+#' Canonicalise upstream source names for display
+#'
+#' The MetaLinksDB v2.0 sources arrive in mixed case and acronym
+#' conventions (e.g. \code{"chembl"}, \code{"Stitch"},
+#' \code{"guidetopharma"}, \code{"Cellinker"}). This helper maps
+#' every observed form to a single canonical display label so the
+#' figure legend and axis labels look right.
+#'
+#' Unknown inputs are returned with the first letter upper-cased.
+#'
+#' @param x Character vector of raw source names.
+#' @return Character vector of pretty display labels.
+#'
+#' @keywords internal
+#' @noRd
+pretty_source <- function(x) {
+    canonical <- c(
+        bindingdb     = "BindingDB",
+        cellinker     = "CellInker",
+        cellphonedb   = "CellPhoneDB",
+        chebi         = "ChEBI",
+        chembl        = "ChEMBL",
+        drugcentral   = "DrugCentral",
+        foodb         = "FooDB",
+        guidetopharma = "GuideToPharma",
+        hmdb          = "HMDB",
+        hmr           = "HMR",
+        macdb         = "MACDB",
+        metatlas      = "MetAtlas",
+        mrclinksdb    = "MRClinksDB",
+        neuronchat    = "NeuronChat",
+        pfocr         = "PFOCR",
+        recon         = "Recon",
+        recon3d       = "Recon3D",
+        rhea          = "Rhea",
+        scconnect     = "scConnect",
+        stitch        = "STITCH",
+        swisslipids   = "SwissLipids",
+        tcdb          = "TCDB"
+    )
+
+    raw <- as.character(x)
+    key <- tolower(raw)
+    hit <- canonical[key]
+
+    out <- ifelse(
+        is.na(hit),
+        sub("^(.)", "\\U\\1", raw, perl = TRUE),
+        unname(hit)
+    )
+    out
+}
+
+
+#' Canonicalise relation-type codes for display
+#'
+#' The v2 MetaLinksDB exposes four relation-type codes:
+#' \code{transport}, \code{interaction}, \code{lr} (ligand-receptor),
+#' \code{pd} (pharmacodynamic / "potency depends on"). This helper
+#' maps each code to a publication-ready label.
+#'
+#' Unknown inputs are returned as-is (first letter upper-cased).
+#'
+#' @param x Character vector of raw relation_type codes.
+#' @return Character vector of display labels.
+#'
+#' @keywords internal
+#' @noRd
+pretty_relation_type <- function(x) {
+    canonical <- c(
+        transport   = "Transport",
+        interaction = "Interaction",
+        lr          = "Ligand-receptor",
+        pd          = "Pharmacodynamic",
+        receptor    = "Receptor"
+    )
+
+    raw <- as.character(x)
+    key <- tolower(raw)
+    hit <- canonical[key]
+    out <- ifelse(
+        is.na(hit),
+        sub("^(.)", "\\U\\1", raw, perl = TRUE),
+        unname(hit)
+    )
+    out
+}
+
+
 #' Build a placeholder Figure 3 panel when data are unavailable
 #'
 #' @param title Character scalar.
@@ -58,9 +147,20 @@ fig03_coverage_panel <- function(data, width_mm = 180L) {
             Metabolites = palette_lead()[['amber']],
             Proteins = palette_lead()[['magenta']]
         )) +
-        ggplot2::labs(x = NULL, y = 'Count', fill = NULL, title = 'Coverage') +
+        ggplot2::labs(x = NULL, y = "Count", fill = NULL) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = 'top')
+        ggplot2::theme(
+            plot.title       = ggplot2::element_blank(),
+            legend.position  = "top",
+            axis.text        = ggplot2::element_text(size = 9),
+            axis.title       = ggplot2::element_text(size = 11),
+            legend.text      = ggplot2::element_text(size = 8),
+            legend.title     = ggplot2::element_text(size = 9),
+            legend.key.size  = ggplot2::unit(0.3, "cm"),
+            axis.text.x      = ggplot2::element_text(
+                angle = 30, hjust = 1
+            )
+        )
 }
 
 
@@ -125,12 +225,16 @@ fig03_metabolite_class_panel <- function(data,
         ggplot2::scale_fill_identity() +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x = NULL,
-            y = 'Interactions',
-            title = 'Metabolite-class breadth'
+            x = "Metabolite class",
+            y = "Interactions"
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = 'none')
+        ggplot2::theme(
+            plot.title  = ggplot2::element_blank(),
+            legend.position = "none",
+            axis.text   = ggplot2::element_text(size = 9),
+            axis.title  = ggplot2::element_text(size = 11)
+        )
 }
 
 
@@ -157,29 +261,51 @@ fig03_protein_class_panel <- function(data,
         name = 'n'
     )
 
-    # Strip the trailing :OM:NNNN / :MI:NNNN ontology-id suffix
-    # from the protein-class strings produced by the Guide-to-
-    # Pharmacology join (e.g. "Gpcr:OM:0040" → "GPCR"). Also
-    # apply a few display-case fixes: GtP's "Gpcr"/"Vgic"/"Lgic"
-    # acronyms are conventionally all-caps in publications.
+    # Normalise the protein-class strings: strip the
+    # ":OM:NNNN" / ":MI:NNNN" ontology-id suffix (e.g.
+    # "Gpcr:OM:0040" → "Gpcr"), strip surrounding literal quote
+    # characters (some upstream sources emit "gpcr" with quotes),
+    # replace underscores with spaces, then apply a canonical
+    # display map so both "gpcr" and "Gpcr:OM:0040" land on the
+    # single "GPCR" label.
     pretty_protein_class <- function(x) {
-        out <- sub("\\s*:[A-Z]+:\\d+\\s*$", "", as.character(x))
+        out <- as.character(x)
+        # Strip OM-style suffix
+        out <- sub("\\s*:[A-Z]+:\\d+\\s*$", "", out)
+        # Strip leading/trailing literal " or ' characters
+        out <- gsub("^['\"]+|['\"]+$", "", out)
+        # Underscores → spaces
+        out <- gsub("_", " ", out)
         out <- trimws(out)
         renames <- c(
-            "Gpcr"               = "GPCR",
-            "Vgic"               = "VGIC",
-            "Lgic"               = "LGIC",
-            "Catalytic Receptor" = "Catalytic receptor",
-            "Nuclear Hormone Receptor" = "Nuclear hormone receptor",
-            "Other Protein"      = "Other"
+            "gpcr"                     = "GPCR",
+            "vgic"                     = "VGIC",
+            "lgic"                     = "LGIC",
+            "enzyme"                   = "Enzyme",
+            "transporter"              = "Transporter",
+            "catalytic receptor"       = "Catalytic receptor",
+            "nuclear hormone receptor" = "Nuclear hormone receptor",
+            "nhr"                      = "Nuclear hormone receptor",
+            "other protein"            = "Other",
+            "other"                    = "Other"
         )
-        hits <- match(tolower(out), tolower(names(renames)))
+        hits <- match(tolower(out), names(renames))
         has_rename <- !is.na(hits)
         out[has_rename] <- renames[hits[has_rename]]
         out
     }
     class_counts$protein_class_label <- pretty_protein_class(
         class_counts$protein_class_label
+    )
+    # Re-aggregate after normalisation so duplicate (resource,
+    # class) rows (e.g. "Gpcr:OM:0040" + "gpcr" both → "GPCR")
+    # collapse into one bar.
+    class_counts <- dplyr::summarise(
+        dplyr::group_by(
+            class_counts, .data$resource, .data$protein_class_label
+        ),
+        n = sum(.data$n),
+        .groups = "drop"
     )
 
     if (nrow(class_counts) == 0L) {
@@ -219,12 +345,16 @@ fig03_protein_class_panel <- function(data,
         ggplot2::scale_fill_identity() +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x = NULL,
-            y = 'Interactions',
-            title = 'Protein-class breadth'
+            x = "Protein class",
+            y = "Interactions"
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = 'none')
+        ggplot2::theme(
+            plot.title  = ggplot2::element_blank(),
+            legend.position = "none",
+            axis.text   = ggplot2::element_text(size = 9),
+            axis.title  = ggplot2::element_text(size = 11)
+        )
 }
 
 
@@ -272,9 +402,9 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
     )
 
     long <- data.frame(
-        source = rep(summary$source, 3L),
+        source = rep(pretty_source(summary$source), 3L),
         metric = rep(
-            c('Interactions', 'Metabolites', 'Proteins'),
+            c("Interactions", "Metabolites", "Proteins"),
             each = nrow(summary)
         ),
         n      = c(summary$Interactions, summary$Metabolites,
@@ -282,7 +412,7 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
     )
     long$metric <- factor(
         long$metric,
-        levels = c('Interactions', 'Metabolites', 'Proteins')
+        levels = c("Interactions", "Metabolites", "Proteins")
     )
 
     ggplot2::ggplot(
@@ -290,23 +420,30 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
         ggplot2::aes(x = .data$source, y = .data$n, fill = .data$metric)
     ) +
         ggplot2::geom_col(
-            position = ggplot2::position_dodge2(preserve = 'single'),
+            position = ggplot2::position_dodge2(preserve = "single"),
             width    = 0.8
         ) +
         ggplot2::scale_fill_manual(values = c(
-            Interactions = palette_lead()[['teal']],
-            Metabolites  = palette_lead()[['amber']],
-            Proteins     = palette_lead()[['magenta']]
+            Interactions = palette_lead()[["teal"]],
+            Metabolites  = palette_lead()[["amber"]],
+            Proteins     = palette_lead()[["magenta"]]
         )) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x     = NULL,
-            y     = 'Count',
-            fill  = NULL,
-            title = 'MetaLinksDB 2.0 overview'
+            x    = "Source",
+            y    = "Count",
+            fill = NULL
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = 'top')
+        ggplot2::theme(
+            plot.title       = ggplot2::element_blank(),
+            legend.position  = "top",
+            axis.text        = ggplot2::element_text(size = 9),
+            axis.title       = ggplot2::element_text(size = 11),
+            legend.text      = ggplot2::element_text(size = 8),
+            legend.title     = ggplot2::element_text(size = 9),
+            legend.key.size  = ggplot2::unit(0.3, "cm")
+        )
 }
 
 
@@ -330,7 +467,11 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
 
     source <- relation_type <- n <- NULL
 
-    kept_types <- c('transport', 'receptor', 'interaction')
+    # All four relation-type codes the prod metalinksdb view exposes
+    # (lower-case) — was previously narrowed to (transport, receptor,
+    # interaction) but `receptor` does not actually appear and `lr` /
+    # `pd` are real categories that belong in the panel.
+    kept_types <- c("transport", "interaction", "lr", "pd")
 
     sub <- dplyr::filter(
         data, tolower(.data$relation_type) %in% kept_types
@@ -338,17 +479,25 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
 
     if (nrow(sub) == 0L) {
         return(empty_fig03_panel(
-            title    = 'Relationship types',
-            subtitle = 'No transport / receptor / interaction rows',
+            title    = "Relationship types",
+            subtitle = "No transport / interaction / lr / pd rows",
             width_mm = width_mm
         ))
     }
 
     summary <- dplyr::count(
-        sub, .data$source, .data$relation_type, name = 'n'
+        sub, .data$source, .data$relation_type, name = "n"
     )
+    summary$source <- pretty_source(summary$source)
+    display_levels <- pretty_relation_type(kept_types)
     summary$relation_type <- factor(
-        tolower(summary$relation_type), levels = kept_types
+        pretty_relation_type(tolower(summary$relation_type)),
+        levels = display_levels
+    )
+
+    fill_values <- stats::setNames(
+        palette_n(as.integer(length(display_levels)), unknown = FALSE),
+        display_levels
     )
 
     ggplot2::ggplot(
@@ -360,23 +509,26 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
         )
     ) +
         ggplot2::geom_col(
-            position = ggplot2::position_dodge2(preserve = 'single'),
+            position = ggplot2::position_dodge2(preserve = "single"),
             width    = 0.8
         ) +
-        ggplot2::scale_fill_manual(values = c(
-            transport   = palette_lead()[['teal']],
-            receptor    = palette_lead()[['magenta']],
-            interaction = palette_lead()[['amber']]
-        )) +
+        ggplot2::scale_fill_manual(values = fill_values) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x     = NULL,
-            y     = 'Interactions',
-            fill  = NULL,
-            title = 'Relationship types'
+            x    = "Source",
+            y    = "Interactions",
+            fill = NULL
         ) +
         theme_bw_metabo(width_mm = width_mm) +
-        ggplot2::theme(legend.position = 'top')
+        ggplot2::theme(
+            plot.title       = ggplot2::element_blank(),
+            legend.position  = "top",
+            axis.text        = ggplot2::element_text(size = 9),
+            axis.title       = ggplot2::element_text(size = 11),
+            legend.text      = ggplot2::element_text(size = 8),
+            legend.title     = ggplot2::element_text(size = 9),
+            legend.key.size  = ggplot2::unit(0.3, "cm")
+        )
 }
 
 
