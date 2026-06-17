@@ -1072,6 +1072,8 @@ fig04_metalinks_cosmos_panel <- function(
     "GEM:Human-GEM"                 = "hGEM",
     "GEM:Mouse-GEM"                 = "mGEM",
     "GEM:Recon3D"                   = "R3D",
+    "Recon3D"                       = "R3D",
+    "GEM:iMM1415"                   = "iMM1415",
     "OmniPath:omnipath,ligrecextra" = "OmniPath-LR",
     "OmniPath:collectri"            = "Collectri",
     "MRCLinksDB"                    = "MRCLinks"

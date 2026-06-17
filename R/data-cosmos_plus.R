@@ -68,6 +68,23 @@ cosmos_plus_data <- function(
         combined <- human
     }
 
+    # Normalise inconsistent resource spellings before any grouping.
+    # Split each semicolon-joined resource string into tokens, remap aliases,
+    # deduplicate (e.g. Mouse-GEM;iMM1415 → Mouse-GEM), then rejoin.
+    normalise_resource <- function(x) {
+        vapply(x, function(r) {
+            parts <- strsplit(r, ";", fixed = TRUE)[[1L]]
+            parts <- dplyr::case_match(
+                parts,
+                "Recon3D"     ~ "GEM:Recon3D",
+                "GEM:iMM1415" ~ "GEM:Mouse-GEM",
+                .default      = parts
+            )
+            paste(unique(parts), collapse = ";")
+        }, character(1L), USE.NAMES = FALSE)
+    }
+    combined <- dplyr::mutate(combined, resource = normalise_resource(resource))
+
     # Shape (a): counts by interaction_type × species
     by_type_species <- combined |>
         dplyr::count(interaction_type, species, name = "n_interactions") |>
@@ -91,8 +108,8 @@ cosmos_plus_data <- function(
             "l"           ~ "Lysosome",
             "g"           ~ "Golgi apparatus",
             "v"           ~ "Vacuole/vesicle",
-            "i"           ~ "Mitochondrial intermembrane space",
-            "eg"          ~ "Extracellular (TCDB)",
+            "i"           ~ "Mitochondria",
+            "eg"          ~ "Extracellular",
             "unannotated" ~ "Unannotated",
             .default      = code
         )
