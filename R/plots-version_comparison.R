@@ -598,7 +598,7 @@ fig04_compartment_panel <- function(
         ggplot2::scale_fill_manual(values = fills) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x    = NULL,
+            x    = "Compartment",
             y    = "Interactions",
             fill = NULL
         ) +
@@ -737,7 +737,7 @@ fig04_resource_contribution_panel <- function(
         ggplot2::scale_fill_manual(values = entity_fills) +
         ggplot2::coord_flip() +
         ggplot2::labs(
-            x    = NULL,
+            x    = "Resource",
             y    = "Unique entities",
             fill = NULL
         ) +
