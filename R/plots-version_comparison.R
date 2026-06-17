@@ -645,19 +645,10 @@ fig04_cosmos_comparison_panel <- function(
     )
 
     plot_data <- dplyr::bind_rows(
-        dplyr::select(
-            old_rows,
-            interaction_type, n_interactions, panel_group
-        ),
-        dplyr::select(
-            new_rows,
-            interaction_type, n_interactions, panel_group
-        )
+        dplyr::select(old_rows, interaction_type, n_interactions, panel_group),
+        dplyr::select(new_rows, interaction_type, n_interactions, panel_group)
     )
-    plot_data$panel_group <- factor(
-        plot_data$panel_group,
-        levels = groups
-    )
+    plot_data$panel_group <- factor(plot_data$panel_group, levels = groups)
     plot_data$interaction_type <- factor(
         plot_data$interaction_type,
         levels = rev(all_types)
@@ -1067,12 +1058,12 @@ fig04_metalinks_cosmos_panel <- function(
 
 # Canonical abbreviation rules for COSMOS+ resource name strings.
 .resource_abbrev_single <- c(
-    "GEM_transporter:Human-GEM"     = "hGEM-T",
-    "GEM_transporter:Mouse-GEM"     = "mGEM-T",
+    "GEM_transporter:Human-GEM"     = "hGEM-Transporter",
+    "GEM_transporter:Mouse-GEM"     = "mGEM-Transporter",
     "GEM:Human-GEM"                 = "hGEM",
     "GEM:Mouse-GEM"                 = "mGEM",
-    "GEM:Recon3D"                   = "R3D",
-    "Recon3D"                       = "R3D",
+    "GEM:Recon3D"                   = "Recon3D",
+    "Recon3D"                       = "Recon3D",
     "GEM:iMM1415"                   = "iMM1415",
     "OmniPath:omnipath,ligrecextra" = "OmniPath-LR",
     "OmniPath:collectri"            = "Collectri",

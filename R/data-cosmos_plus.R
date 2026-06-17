@@ -77,7 +77,7 @@ cosmos_plus_data <- function(
             parts <- dplyr::case_match(
                 parts,
                 "Recon3D"     ~ "GEM:Recon3D",
-                "GEM:iMM1415" ~ "GEM:Mouse-GEM",
+                "GEM:iMM1415" ~ "iMM1415",
                 .default      = parts
             )
             paste(unique(parts), collapse = ";")
@@ -90,7 +90,7 @@ cosmos_plus_data <- function(
         dplyr::count(interaction_type, species, name = "n_interactions") |>
         dplyr::arrange(dplyr::desc(n_interactions))
 
-    # Shape (b): interactions per (compartment_name, interaction_type)
+# Shape (b): interactions per (compartment_name, interaction_type)
     # locations stores Python tuple repr strings e.g. "('c',)", "()"
     # Single-letter codes are expanded to full RECON/BiGG names.
     locs <- combined$locations
@@ -100,7 +100,7 @@ cosmos_plus_data <- function(
         dplyr::case_match(
             code,
             "c"           ~ "Cytoplasm",
-            "e"           ~ "Extracellular",
+            "e"           ~ "Cell membrane",
             "m"           ~ "Mitochondria",
             "r"           ~ "Endoplasmic reticulum",
             "x"           ~ "Peroxisome",
@@ -109,7 +109,7 @@ cosmos_plus_data <- function(
             "g"           ~ "Golgi apparatus",
             "v"           ~ "Vacuole/vesicle",
             "i"           ~ "Mitochondria",
-            "eg"          ~ "Extracellular",
+            "eg"          ~ "Cell membrane",
             "unannotated" ~ "Unannotated",
             .default      = code
         )

@@ -134,7 +134,7 @@ panels <- list(
 # ── Save individual panels ───────────────────────────────────────────────────
 
 panel_dims <- list(
-    panel_a       = c(120, 110),
+    panel_a       = c(180, 160),
     panel_b       = c(89,  140),
     panel_c       = c(89,  130),
     panel_c_split = c(89,  160),
