@@ -95,7 +95,7 @@ pretty_relation_type <- function(x) {
         transport   = "Transport",
         interaction = "Interaction",
         lr          = "Ligand-receptor",
-        pd          = "Pharmacodynamic",
+        pd          = "Drug-target",
         receptor    = "Receptor"
     )
 
@@ -383,6 +383,7 @@ fig03_protein_class_panel <- function(data,
     ) +
         ggplot2::geom_col(width = 0.7) +
         ggplot2::scale_fill_identity() +
+        ggplot2::scale_y_continuous(n.breaks = 3L) +
         ggplot2::coord_flip() +
         ggplot2::labs(
             x = "Protein class",
@@ -468,6 +469,7 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
             Metabolites  = palette_lead()[["amber"]],
             Proteins     = palette_lead()[["magenta"]]
         )) +
+        ggplot2::scale_y_continuous(n.breaks = 3L) +
         ggplot2::coord_flip() +
         ggplot2::labs(
             x    = "Source",
@@ -553,6 +555,7 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
             width    = 0.8
         ) +
         ggplot2::scale_fill_manual(values = fill_values) +
+        ggplot2::scale_y_continuous(n.breaks = 3L) +
         ggplot2::coord_flip() +
         ggplot2::labs(
             x    = "Source",
