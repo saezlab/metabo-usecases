@@ -731,21 +731,37 @@ fig04_cosmos_comparison_panel <- function(
                                                 padding = 0.15),
             width    = 0.75
         ) +
-        ggplot2::facet_wrap(
+        # facet_col (single column, strips on top) with space = "free" sizes
+        # each facet's height in proportion to its number of bars, so every
+        # bar renders at the SAME thickness and the two-bar "Metabolic
+        # reactions" facet is correspondingly shorter (feedback 2026-06-18).
+        ggforce::facet_col(
             ggplot2::vars(.data$facet),
-            ncol   = 1L,
-            scales = "free"
+            scales = "free",
+            space  = "free"
+        ) +
+        # Sparse ticks + compact "25k / 2M" labels so the per-facet edge
+        # counts no longer overlap (free x scale → applied per facet).
+        ggplot2::scale_x_continuous(
+            n.breaks = 3L,
+            labels   = scales::label_number(
+                scale_cut = c(0, k = 1e3, M = 1e6)
+            )
         ) +
         ggplot2::scale_fill_manual(values = org_fills, name = NULL,
                                    drop = FALSE) +
-        ggplot2::labs(x = "Edges / interactions", y = NULL, fill = NULL) +
+        ggplot2::labs(x = "Interactions", y = NULL, fill = NULL) +
+        # Organism legend as a single vertical column (feedback 2026-06-18).
+        ggplot2::guides(fill = ggplot2::guide_legend(ncol = 1L)) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
-            legend.position = "top",
-            strip.text      = ggplot2::element_text(face = "bold"),
-            axis.text       = ggplot2::element_text(size = 11),
-            axis.title      = ggplot2::element_text(size = 12),
-            legend.text     = ggplot2::element_text(size = 10)
+            legend.position  = "top",
+            legend.direction = "vertical",
+            strip.text       = ggplot2::element_text(face = "bold"),
+            axis.text        = ggplot2::element_text(size = 11),
+            axis.title       = ggplot2::element_text(size = 12),
+            legend.text      = ggplot2::element_text(size = .legend_text_pt),
+            legend.key.size  = ggplot2::unit(0.3, "cm")
         )
 }
 
@@ -773,14 +789,17 @@ fig04_compartment_panel <- function(
 ) {
     compartment_name <- interaction_type <- n_interactions <- total <- NULL
 
+    # Short legend labels so the 7-entry interaction-type legend fits its
+    # composite panel slot; the parenthetical clarifications (enzyme–metabolite
+    # etc.) live in the figure caption (feedback 2026-06-18).
     type_labels <- c(
-        catalysis             = "Metabolic reaction (enzyme–metabolite)",
-        transport             = "Transport (transporter–metabolite)",
-        gene_regulation       = "Gene regulation (TF–target, GRN)",
-        signaling             = "Signaling (PPI)",
-        allosteric_regulation = "Allosteric regulation (metabolite–enzyme)",
-        ligand_receptor       = "Ligand receptor (receptor–metabolite)",
-        other                 = "Other interactions"
+        catalysis             = "Metabolic reaction",
+        transport             = "Transport",
+        gene_regulation       = "Gene regulation",
+        signaling             = "Signaling",
+        allosteric_regulation = "Allosteric regulation",
+        ligand_receptor       = "Ligand receptor",
+        other                 = "Other"
     )
 
     data <- cosmos_plus_by_compartment
@@ -851,6 +870,14 @@ fig04_compartment_panel <- function(
             width    = 0.7
         ) +
         ggplot2::scale_fill_manual(values = fills) +
+        # Sparse ticks + compact "25k / 2M" labels so the interaction counts
+        # on the flipped axis no longer overlap (feedback 2026-06-18).
+        ggplot2::scale_y_continuous(
+            n.breaks = 3L,
+            labels   = scales::label_number(
+                scale_cut = c(0, k = 1e3, M = 1e6)
+            )
+        ) +
         ggplot2::coord_flip() +
         ggplot2::labs(
             x    = "Compartment",
@@ -866,7 +893,7 @@ fig04_compartment_panel <- function(
             plot.title       = ggplot2::element_blank(),
             axis.text        = ggplot2::element_text(size = 9),
             axis.title       = ggplot2::element_text(size = 12),
-            legend.text      = ggplot2::element_text(size = 7),
+            legend.text      = ggplot2::element_text(size = .legend_text_pt),
             legend.title     = ggplot2::element_text(size = 8),
             legend.key.size  = ggplot2::unit(0.3, "cm"),
             legend.spacing.y = ggplot2::unit(0.1, "cm")
@@ -990,21 +1017,32 @@ fig04_resource_contribution_panel <- function(
             width    = 0.7
         ) +
         ggplot2::scale_fill_manual(values = entity_fills) +
+        # Sparse ticks + compact "25k / 2M" labels so the entity counts on
+        # the flipped axis no longer overlap (feedback 2026-06-18).
+        ggplot2::scale_y_continuous(
+            n.breaks = 3L,
+            labels   = scales::label_number(
+                scale_cut = c(0, k = 1e3, M = 1e6)
+            )
+        ) +
         ggplot2::coord_flip() +
         ggplot2::labs(
             x    = "Resource",
             y    = "Unique entities",
             fill = NULL
         ) +
+        # Entity-type legend as a single vertical column (feedback 2026-06-18).
+        ggplot2::guides(fill = ggplot2::guide_legend(ncol = 1L)) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
-            legend.position = "top",
-            plot.title      = ggplot2::element_blank(),
-            axis.text       = ggplot2::element_text(size = 9),
-            axis.title      = ggplot2::element_text(size = 12),
-            legend.text     = ggplot2::element_text(size = 7),
-            legend.title    = ggplot2::element_text(size = 8),
-            legend.key.size = ggplot2::unit(0.3, "cm")
+            legend.position  = "top",
+            legend.direction = "vertical",
+            plot.title       = ggplot2::element_blank(),
+            axis.text        = ggplot2::element_text(size = 9),
+            axis.title       = ggplot2::element_text(size = 12),
+            legend.text      = ggplot2::element_text(size = .legend_text_pt),
+            legend.title     = ggplot2::element_text(size = 8),
+            legend.key.size  = ggplot2::unit(0.3, "cm")
         )
 }
 
@@ -1115,6 +1153,11 @@ fig04_metalinks_cosmos_panel <- function(
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
+
+# Shared legend text size (pt) for the Figure 5 composite data panels —
+# comparison (B), compartment (C), and resource (D) — so every legend
+# renders at one uniform size across the composite (feedback 2026-06-18).
+.legend_text_pt <- 8L
 
 # Canonical abbreviation rules for COSMOS+ resource name strings.
 .resource_abbrev_single <- c(

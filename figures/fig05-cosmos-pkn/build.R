@@ -214,9 +214,12 @@ schematic_panel <- if (file.exists(schematic_png_path)) {
     NULL
 }
 
-data_row <- (panel_comparison  + ggplot2::labs(tag = 'B')) |
-            (panel_compartment + ggplot2::labs(tag = 'C')) |
-            (panel_resource    + ggplot2::labs(tag = 'D'))
+# Data-row order (feedback 2026-06-18): compartment | resource | comparison,
+# i.e. the old-vs-COSMOS+ comparison moves to the rightmost slot (D) and the
+# compartment + resource panels shift left into B | C.
+data_row <- (panel_compartment + ggplot2::labs(tag = 'B')) |
+            (panel_resource    + ggplot2::labs(tag = 'C')) |
+            (panel_comparison  + ggplot2::labs(tag = 'D'))
 
 if (!is.null(schematic_panel)) {
     if (identical(composite_layout, 'comparison_fullwidth')) {
@@ -234,11 +237,12 @@ if (!is.null(schematic_panel)) {
             patchwork::plot_layout(heights = c(0.9, 1.0))
     }
 } else {
-    # No schematic: the three data panels alone, re-tagged A | B | C.
+    # No schematic: the three data panels alone, re-tagged A | B | C in the
+    # same compartment | resource | comparison order as the data row above.
     pipeline_composite <- (
-        (panel_comparison  + ggplot2::labs(tag = 'A')) |
-        (panel_compartment + ggplot2::labs(tag = 'B')) |
-        (panel_resource    + ggplot2::labs(tag = 'C'))
+        (panel_compartment + ggplot2::labs(tag = 'A')) |
+        (panel_resource    + ggplot2::labs(tag = 'B')) |
+        (panel_comparison  + ggplot2::labs(tag = 'C'))
     )
 }
 
@@ -356,8 +360,8 @@ write_sidecar(
         ),
         active_composite              = composite_layout,
         composite_panels              = paste(
-            'A:regulation-types-schematic', 'B:old-vs-COSMOS+ comparison',
-            'C:compartment-coverage', 'D:resource-contributions',
+            'A:regulation-types-schematic', 'B:compartment-coverage',
+            'C:resource-contributions', 'D:old-vs-COSMOS+ comparison',
             sep = '; '
         ),
         panel_c_position              = 'dodge',
