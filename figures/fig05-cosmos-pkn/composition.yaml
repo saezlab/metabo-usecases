@@ -1,61 +1,66 @@
 # FR-039: per-figure composition config for Figure 5
-# All seven slots are fixed — no deferred panel selection for Figure 5.
+# Composite (post-2026-06-18 merge): regulation-types schematic (A) + three
+# COSMOS+ data panels — comparison (B), compartments (C), resources (D).
+# The MetaLinksDB panel and the two un-vendored schematics are produced as
+# standalone artifacts and are NOT part of the composite (selected: false).
 
 figure_id: fig05-cosmos-pkn
-title: "COSMOS+ prior-knowledge network — scope extension, compartment coverage, resource contributions, and comparison with MetaLinksDB 2.0"
+title: "COSMOS+ prior-knowledge network — regulation-type schematic, scope comparison, compartment coverage, and resource contributions"
 
 panels:
-  - id: panel_a
+  - id: regulation_types
     label: "A"
+    mode: manual
+    path: "manual/regulation-types"
+    selected: true
+    description: "Regulation-type legend schematic — full-width top panel (FR-011, embedded)"
+
+  - id: panel_comparison
+    label: "B"
     mode: pipeline
     renderer: fig04_cosmos_comparison_panel
     selected: true
     description: "Species-aware comparison of old COSMOS PKN vs. COSMOS+ by interaction type (FR-011a)"
 
-  - id: panel_b
-    label: "B"
+  - id: panel_compartment
+    label: "C"
     mode: pipeline
     renderer: fig04_compartment_panel
     selected: true
     description: "COSMOS+ interactions per annotated subcellular compartment (FR-011b)"
 
-  - id: panel_c
-    label: "C"
+  - id: panel_resource
+    label: "D"
     mode: pipeline
     renderer: fig04_resource_contribution_panel
     selected: true
-    description: "Entity and interaction counts per contributing resource in COSMOS+ (FR-011c)"
+    description: "Entity and interaction counts per contributing resource in COSMOS+ (FR-011c; by_resource_split, dodged)"
 
-  - id: panel_d
-    label: "D"
+# Standalone artifacts — rendered but NOT composited (selected: false).
+standalone:
+  - id: panel_metalinks
     mode: pipeline
     renderer: fig04_metalinks_cosmos_panel
-    selected: true
-    description: "MetaLinksDB 2.0 vs. COSMOS+ comparison by interaction type (FR-011d)"
+    selected: false
+    description: "MetaLinksDB 2.0 vs. COSMOS+ comparison by interaction type (FR-011d; standalone)"
 
-schematics:
   - id: pkn_to_binary
-    label: "S1"
     mode: manual
     path: "manual/pkn-to-binary-network"
-    selected: true
-    description: "Schematic: how the signed directed OmniPath Metabo network is collapsed to a binary signed PKN"
-
-  - id: regulation_types
-    label: "S2"
-    mode: manual
-    path: "manual/regulation-types"
-    selected: true
-    description: "Regulation-type legend schematic"
+    selected: false
+    description: "Schematic: signed directed network collapsed to a binary signed PKN (deferred, not vendored)"
 
   - id: moon_inference
-    label: "S3"
     mode: manual
     path: "manual/moon-activity-inference"
-    selected: true
-    description: "MOON recursive-activity-inference schematic"
+    selected: false
+    description: "MOON recursive-activity-inference schematic (deferred, not vendored)"
 
 layout:
-  ncol: 2
-  panel_width_mm: 120
-  panel_height_mm: 90
+  # schematic A full width on top; B | C | D data panels in one row beneath.
+  # Set active_composite = 'comparison_fullwidth' in build.R to put B full
+  # width under the schematic with C | D as a bottom row instead.
+  active_composite: schematic_bcd_row
+  data_row_ncol: 3
+  composite_width_mm: 180
+  composite_height_mm: 200

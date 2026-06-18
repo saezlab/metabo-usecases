@@ -1,7 +1,7 @@
 # fig05-cosmos-pkn — COSMOS+ Prior-Knowledge Network (FR-011)
 
-**Mode**: mixed (one manual schematic at the top + two pipeline
-panels stacked vertically).
+**Mode**: mixed (one manual schematic at the top + three pipeline
+data panels in a row beneath).
 
 ## Purpose
 
@@ -11,33 +11,41 @@ subcellular compartments, and the relative contribution of each
 upstream resource. See FR-011 family in
 `specs/001-figures-pipeline/spec.md`.
 
-## Active composite (this revision)
+## Active composite (post-2026-06-18 merge)
+
+Four panels: the regulation-types schematic (A, full width, top) plus
+the three COSMOS+ data panels (B comparison, C compartments, D
+resources) in a side-by-side row beneath. The three data panels share a
+portrait `coord_flip` shape, so a single 3-across row fits them better
+than stretching the comparison across a full-width slot. Set
+`composite_layout <- 'comparison_fullwidth'` in `build.R` to instead put
+the comparison full-width under the schematic with C | D as a bottom row.
 
 | Panel | Source | Description |
 |------:|:-------|:------------|
 | A | Manual (`manual/regulation-types.png`) | Regulation-type schematic — visual key for the signed interaction categories the PKN carries. **Top, full width.** |
-| B | Pipeline (`fig04_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. **Bottom row, left.** |
-| C | Pipeline (`fig04_resource_contribution_panel`, `position = "dodge"`) | Metabolite (teal) + protein (magenta) entity counts per top-15 resources, **grouped (side-by-side) bars** rather than stacked. **Bottom row, right.** |
+| B | Pipeline (`fig04_cosmos_comparison_panel`) | Species-aware old COSMOS vs. COSMOS+ comparison by interaction type (3 bars/group). **Data row.** |
+| C | Pipeline (`fig04_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. **Data row.** |
+| D | Pipeline (`fig04_resource_contribution_panel`, `position = "dodge"`) | Metabolite (teal) + protein (magenta) entity counts per top-15 resources, **grouped (side-by-side) bars**. **Data row.** |
 
-Two additional pipeline panels stay rendered as standalone artifacts
-but are not included in the active composite:
+One pipeline panel stays rendered as a standalone artifact, not in the
+composite:
 
-- `panel_a.{pdf,svg}` — original FR-011a old COSMOS vs. COSMOS+
-  species-aware comparison.
-- `panel_d.{pdf,svg}` — original FR-011d MetaLinksDB 2.0 vs.
-  COSMOS+ comparison by interaction type.
+- `panel_d.{pdf,svg}` — FR-011d MetaLinksDB 2.0 vs. COSMOS+ comparison
+  by interaction type (the comparison panel, formerly standalone
+  `panel_a`, is now composite Panel B).
 
 ## Artifact IDs
 
 | ID | Kind | Mode |
 |----|------|------|
 | `fig05-cosmos-pkn` | figure-composite | mixed |
-| `fig05-cosmos-pkn/panel_a` | figure-panel | pipeline (standalone) |
-| `fig05-cosmos-pkn/panel_b` | figure-panel | pipeline (in composite) |
-| `fig05-cosmos-pkn/panel_c` | figure-panel | pipeline (in composite) |
-| `fig05-cosmos-pkn/panel_c_split` | figure-panel | pipeline (semicolon-split resources; dodged) |
-| `fig05-cosmos-pkn/panel_d` | figure-panel | pipeline (standalone) |
-| `fig05-cosmos-pkn/regulation-types` | schematic | manual (in composite) |
+| `fig05-cosmos-pkn/panel_a` | figure-panel | pipeline (comparison; composite Panel B) |
+| `fig05-cosmos-pkn/panel_b` | figure-panel | pipeline (compartments; composite Panel C) |
+| `fig05-cosmos-pkn/panel_c` | figure-panel | pipeline (resources, stacked; standalone variant) |
+| `fig05-cosmos-pkn/panel_c_split` | figure-panel | pipeline (resources, semicolon-split + dodged; composite Panel D) |
+| `fig05-cosmos-pkn/panel_d` | figure-panel | pipeline (MetaLinksDB; standalone) |
+| `fig05-cosmos-pkn/regulation-types` | schematic | manual (composite Panel A) |
 
 ## Deployment
 
@@ -49,7 +57,7 @@ the snapshot identifier recorded in the provenance sidecar.
 
 | File | Description |
 |------|-------------|
-| `out/fig05-cosmos-pkn.{pdf,svg}` | **Active composite** — schematic (A) full width on top; Panel B (compartments) and Panel C (resources, grouped) side by side below. 180×220 mm. |
+| `out/fig05-cosmos-pkn.{pdf,svg}` | **Active composite** — schematic (A) full width on top; Panel B (comparison), C (compartments), D (resources, grouped) side by side below. 180×200 mm. |
 | `out/fig05-cosmos-pkn-pipeline.{pdf,svg}` | Identical copy of the composite kept for backward compatibility with downstream consumers. |
 | `out/panel_{a,b,c,c_split,d}.{pdf,svg}` | Individual pipeline panels. |
 | `out/fig05-cosmos-pkn-with-caption.pdf` | Composite + typeset caption (xelatex + `tex/caption.sty`, FR-041). |

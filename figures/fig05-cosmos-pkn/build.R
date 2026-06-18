@@ -1,16 +1,18 @@
 # figures/fig05-cosmos-pkn/build.R
 #
-# Figure 5: COSMOS+ PKN — schematic + two pipeline panels.
+# Figure 5: COSMOS+ PKN — schematic + three pipeline panels.
 #
-# Active composite (this version):
-#   Top    : regulation-types schematic (manual asset, full width)
-#   Middle : Panel B — COSMOS+ interactions per compartment
-#   Bottom : Panel C — COSMOS+ entities per resource (grouped bars)
+# Active composite (post-2026-06-18 merge):
+#   Top : regulation-types schematic (manual asset, full width)   — tag A
+#   Row : Panel B — old-vs-COSMOS+ comparison by interaction type
+#         Panel C — COSMOS+ interactions per compartment
+#         Panel D — COSMOS+ entities per resource (grouped bars)
+#   (B | C | D side-by-side; set composite_layout = 'comparison_fullwidth'
+#    to put B full-width under the schematic with C | D beneath.)
 #
-# Panels A (old vs. COSMOS+ comparison) and D (MetaLinksDB vs.
-# COSMOS+) are still rendered as individual artifacts but are not
-# part of the active composite (colleague's call; see Figure 5
-# session 2026-06-16).
+# The MetaLinksDB 2.0 vs. COSMOS+ comparison is rendered as an individual
+# artifact (panel_d.{pdf,svg}) but is NOT part of the composite (FR-011d,
+# spec Session 2026-06-18).
 #
 # Data sources:
 #   - inst/extdata/cosmos/meta_network.RData    (old COSMOS PKN)
@@ -125,11 +127,13 @@ panels_all <- list(
     panel_d       = panel_d
 )
 
-# Main composite: Panel B and C (split) only; A and D saved individually
-panels <- list(
-    panel_b = panel_b,
-    panel_c = panel_c_split
-)
+# Composite (post-2026-06-18 merge): schematic (A) + comparison (B) +
+# compartments (C) + resources (D). The MetaLinksDB panel (panel_d) stays a
+# standalone artifact and is NOT composited. Aliases below carry the composite
+# panel lettering so the assembly reads in panel order.
+panel_comparison  <- panel_a        # FR-011a — composite Panel B
+panel_compartment <- panel_b        # FR-011b — composite Panel C
+panel_resource    <- panel_c_split  # FR-011c — composite Panel D
 
 # ── Save individual panels ───────────────────────────────────────────────────
 
@@ -159,13 +163,26 @@ for (name in names(panels_all)) {
     )
 }
 
-# ── Composite (schematic on top, Panel B, Panel C stacked) ──────────────────
+# ── Composite (schematic A on top + B | C | D data row) ─────────────────────
 #
-# The regulation-types schematic is embedded as a raster grob via png
-# + grid + patchwork::wrap_elements. PDF is preferable for vector
-# graphics but neither pdftools nor magick are in the project's R
-# dependency surface, so we use the PNG variant; the source PDF is
-# kept alongside as the canonical asset.
+# Post-2026-06-18 merge: four panels — the regulation-types schematic (A,
+# full width, top) plus the three COSMOS+ data panels
+#   B = old-vs-COSMOS+ comparison   (panel_comparison)
+#   C = compartment coverage        (panel_compartment)
+#   D = resource contributions      (panel_resource)
+# The three data panels share a portrait coord_flip shape, so they sit
+# side-by-side in one row rather than stretching the comparison across a
+# full-width slot. Set composite_layout <- 'comparison_fullwidth' to instead
+# place the comparison full width directly under the schematic, with C | D as
+# a bottom row. The chosen layout is recorded in the sidecar (active_composite).
+#
+# The regulation-types schematic is embedded as a raster grob via png + grid
+# + patchwork::wrap_elements (pdftools/magick are not in the dependency
+# surface, so the PNG variant is used; the source PDF is kept alongside as the
+# canonical asset). A missing schematic is non-fatal: the build warns and
+# composes the three data panels on their own (FR-011, T056f).
+
+composite_layout <- 'schematic_bcd_row'
 
 schematic_png_path <- 'figures/fig05-cosmos-pkn/manual/regulation-types.png'
 
@@ -184,23 +201,37 @@ schematic_panel <- if (file.exists(schematic_png_path)) {
     NULL
 }
 
+data_row <- (panel_comparison  + ggplot2::labs(tag = 'B')) |
+            (panel_compartment + ggplot2::labs(tag = 'C')) |
+            (panel_resource    + ggplot2::labs(tag = 'D'))
+
 if (!is.null(schematic_panel)) {
-    # A: schematic at 100% width on top.
-    # B | C: side-by-side bottom row.
-    bottom_row <- (panel_b       + ggplot2::labs(tag = 'B')) |
-                  (panel_c_split + ggplot2::labs(tag = 'C'))
-    pipeline_composite <- (schematic_panel / bottom_row) +
-        patchwork::plot_layout(heights = c(1.25, 1.0))
+    if (identical(composite_layout, 'comparison_fullwidth')) {
+        # A: schematic on top. B: comparison full width. C | D: bottom row.
+        cd_row <- (panel_compartment + ggplot2::labs(tag = 'C')) |
+                  (panel_resource    + ggplot2::labs(tag = 'D'))
+        pipeline_composite <-
+            (schematic_panel /
+             (panel_comparison + ggplot2::labs(tag = 'B')) /
+             cd_row) +
+            patchwork::plot_layout(heights = c(1.1, 1.0, 1.0))
+    } else {
+        # A: schematic on top. B | C | D: single data row underneath.
+        pipeline_composite <- (schematic_panel / data_row) +
+            patchwork::plot_layout(heights = c(0.9, 1.0))
+    }
 } else {
+    # No schematic: the three data panels alone, re-tagged A | B | C.
     pipeline_composite <- (
-        (panel_b       + ggplot2::labs(tag = 'A')) |
-        (panel_c_split + ggplot2::labs(tag = 'B'))
+        (panel_comparison  + ggplot2::labs(tag = 'A')) |
+        (panel_compartment + ggplot2::labs(tag = 'B')) |
+        (panel_resource    + ggplot2::labs(tag = 'C'))
     )
 }
 
 # Bump panel-letter (tag) size across the composite. patchwork's `&`
 # applies the theme to every nested plot, including wrap_elements
-# patches like the schematic — so A, B, C all render at the same
+# patches like the schematic — so A, B, C, D all render at the same
 # visually-large weight.
 pipeline_composite <- pipeline_composite &
     ggplot2::theme(
@@ -210,12 +241,20 @@ pipeline_composite <- pipeline_composite &
 logger::log_info(paste0(
     '[fig05] assembled composite (',
     if (is.null(schematic_panel)) 'pipeline-only, schematic missing'
-    else 'schematic on top, B | C bottom row',
+    else if (identical(composite_layout, 'comparison_fullwidth'))
+        'schematic on top, comparison full-width, C | D bottom row'
+    else 'schematic on top, B | C | D data row',
     ')'
 ))
 
 composite_width_mm  <- 180L
-composite_height_mm <- if (!is.null(schematic_panel)) 220L else 110L
+composite_height_mm <- if (is.null(schematic_panel)) {
+    110L
+} else if (identical(composite_layout, 'comparison_fullwidth')) {
+    260L
+} else {
+    200L
+}
 
 ggsave(
     filename = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
@@ -252,7 +291,7 @@ caption_info <- compose_caption(
     composite_pdf  = file.path(out_dir, 'fig05-cosmos-pkn.pdf'),
     caption_source = 'figures/fig05-cosmos-pkn/caption.tex',
     out_dir        = out_dir,
-    panel_count    = if (!is.null(schematic_panel)) 3L else 2L
+    panel_count    = if (!is.null(schematic_panel)) 4L else 3L
 )
 
 # ── Provenance sidecar ────────────────────────────────────────────────────────
@@ -288,9 +327,15 @@ write_sidecar(
     ),
     parameters = list(
         old_cosmos_species_assumption = 'human-only-or-unspecified',
-        panel_d_metalinks_deployment  = 'dev5',
-        panel_d_metalinks_view        = 'custom_views.metalinksdb_relations',
-        active_composite              = 'schematic_b_c_vertical',
+        metalinks_deployment          = 'dev5',
+        metalinks_view                = 'custom_views.metalinksdb_relations',
+        metalinks_panel               = 'standalone (not composited)',
+        active_composite              = composite_layout,
+        composite_panels              = paste(
+            'A:regulation-types-schematic', 'B:old-vs-COSMOS+ comparison',
+            'C:compartment-coverage', 'D:resource-contributions',
+            sep = '; '
+        ),
         panel_c_position              = 'dodge',
         composite_dims_mm             = list(
             width  = composite_width_mm,
