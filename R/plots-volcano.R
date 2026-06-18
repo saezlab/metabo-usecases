@@ -34,9 +34,11 @@
 #' @param highlight Named character vector or \code{NULL}: rows whose
 #'     value in column \code{highlight_key} matches a \emph{name} of
 #'     this vector are emphasised — a larger amber outlined point is
-#'     overlaid and the corresponding \emph{value} is drawn as a
-#'     label next to the point. \code{NULL} (default) → no highlight.
-#'     Typical use: \code{highlight = c(HMDB0000784 = "Azelaic acid")}.
+#'     overlaid and the corresponding \emph{value} is shown as a
+#'     \emph{legend entry} (not an on-plot text label, which is too
+#'     large and can clip near the plot edges). \code{NULL} (default)
+#'     → no highlight. Typical use:
+#'     \code{highlight = c(HMDB0000784 = "Azelaic acid")}.
 #' @param highlight_key Character: column in \code{diff_tibble} to
 #'     match \code{names(highlight)} against. Default \code{"hmdb"}.
 #'
@@ -52,7 +54,8 @@
 #' }
 #'
 #' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_vline
-#' @importFrom ggplot2 scale_colour_manual scale_x_continuous
+#' @importFrom ggplot2 scale_colour_manual scale_fill_manual
+#' @importFrom ggplot2 scale_x_continuous guides guide_legend
 #' @importFrom ggplot2 scale_y_continuous labs theme
 #' @importFrom rlang .data abort
 #' @importFrom dplyr mutate
@@ -178,33 +181,45 @@ volcano_panel <- function(
 
             hl_colour <- unname(palette_lead()[["amber"]])
 
+            # The highlighted compound is surfaced as a legend entry rather
+            # than an on-plot text label: the label text was oversized and
+            # clipped near the plot edges (top-right in the EGFR panel). The
+            # amber point maps `fill` to its display label, producing a
+            # separate fill legend (significance uses `colour`, so the two
+            # legends do not collide). One amber key per highlighted compound.
+            hl_levels <- unique(hl_rows$display_label)
+            hl_fills   <- stats::setNames(
+                rep(hl_colour, length(hl_levels)),
+                hl_levels
+            )
+
             plt <- plt +
                 ggplot2::geom_point(
                     data        = hl_rows,
                     inherit.aes = FALSE,
                     ggplot2::aes(
-                        x = .data$logFC,
-                        y = .data$neg_log10_p
+                        x    = .data$logFC,
+                        y    = .data$neg_log10_p,
+                        fill = .data$display_label
                     ),
-                    fill   = hl_colour,
                     colour = "black",
                     shape  = 21L,
                     size   = point_size * 2.6,
                     stroke = 0.4
                 ) +
-                ggplot2::geom_text(
-                    data        = hl_rows,
-                    inherit.aes = FALSE,
-                    ggplot2::aes(
-                        x     = .data$logFC,
-                        y     = .data$neg_log10_p,
-                        label = .data$display_label
-                    ),
-                    vjust    = -1.1,
-                    hjust    = 0.5,
-                    size     = font_scale * 2.4,
-                    fontface = "italic",
-                    colour   = "black"
+                ggplot2::scale_fill_manual(
+                    name   = NULL,
+                    values = hl_fills
+                ) +
+                ggplot2::guides(
+                    fill = ggplot2::guide_legend(
+                        override.aes = list(
+                            shape  = 21L,
+                            colour = "black",
+                            size   = 2.6,
+                            stroke = 0.4
+                        )
+                    )
                 )
         }
     }
