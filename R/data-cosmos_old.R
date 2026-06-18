@@ -1,11 +1,9 @@
-#' Load the old COSMOS prior-knowledge network
+#' Load the old COSMOS prior-knowledge network from cosmosR
 #'
-#' Reads the vendored `inst/extdata/cosmos/meta_network.RData` —
-#' the pre-OmniPath-Metabo COSMOS PKN serialised from
-#' \code{cosmosR/data/meta_network.RData} (v1.18.1). Returns
-#' edge counts per interaction-type category (FR-011, FR-011a)
-#' suitable for direct use in the grouped-bar comparison renderer
-#' in \code{\link{cosmos_old_vs_new}}.
+#' Installs \pkg{cosmosR} from \code{saezlab/cosmosR} on GitHub if not
+#' already present, then loads the \code{meta_network} dataset bundled
+#' with the package.  Returns edge counts per interaction-type category
+#' (FR-011, FR-011a) suitable for the grouped-bar comparison renderer.
 #'
 #' The old PKN contains ONLY edges derived from metabolic reactions.
 #' The comparison figure (FR-011a) must make the scope mismatch
@@ -14,42 +12,31 @@
 #'
 #' @return A tibble with columns \code{interaction_type} and
 #'     \code{n_edges}, ordered by \code{n_edges} descending.
-#'     Carries a \code{"source_path"} attribute (vendored file path)
-#'     and a \code{"fingerprint"} attribute (MD5 hex digest) for
+#'     Carries a \code{"source_pkg"} attribute (package name + version)
+#'     and a \code{"fingerprint"} attribute (package version string) for
 #'     sidecar recording.
 #'
 #' @importFrom rlang abort
 #' @importFrom dplyr count rename arrange desc
-#' @importFrom tibble as_tibble
-#' @importFrom digest digest
+#' @importFrom tibble as_tibble tibble
 #' @export
 cosmos_old_pkn <- function() {
 
-    rdata_path <- system.file(
-        "extdata", "cosmos", "meta_network.RData",
-        package = "metabo.figures"
-    )
+    if (!requireNamespace("devtools", quietly = TRUE)) {
+        install.packages("devtools")
+    }
 
-    if (!nzchar(rdata_path) || !file.exists(rdata_path)) {
-        rlang::abort(paste0(
-            "Vendored meta_network.RData not found. ",
-            "Re-vendor per inst/extdata/cosmos/SOURCE.md."
-        ))
+    if (!requireNamespace("cosmosR", quietly = TRUE)) {
+        devtools::install_github("saezlab/cosmosR")
     }
 
     env <- new.env(parent = emptyenv())
-    load(rdata_path, envir = env)
+    utils::data("meta_network", package = "cosmosR", envir = env)
 
-    # The cosmosR object is named `meta_network`; it is a data.frame
-    # with at minimum columns: source, interaction (sign), target.
-    # An optional `interaction_type` column carries the category used
-    # in FR-011a; fall back to inferring from edge count if absent.
-    obj_names <- ls(envir = env)
-    if (!"meta_network" %in% obj_names) {
-        rlang::abort(sprintf(
-            "meta_network.RData does not contain an object named meta_network. Found: %s",
-            paste(obj_names, collapse = ", ")
-        ))
+    if (!"meta_network" %in% ls(envir = env)) {
+        rlang::abort(
+            "cosmosR::meta_network dataset not found after loading the package."
+        )
     }
 
     pkn <- tibble::as_tibble(get("meta_network", envir = env))
@@ -60,7 +47,7 @@ cosmos_old_pkn <- function() {
             dplyr::rename(n_edges = n) |>
             dplyr::arrange(dplyr::desc(n_edges))
     } else {
-        # Older cosmosR builds use integer sign only — all edges are
+        # Older cosmosR builds carry integer sign only — all edges are
         # metabolic reactions by the scope of the old PKN.
         counts <- tibble::tibble(
             interaction_type = "metabolic_reactions",
@@ -68,9 +55,9 @@ cosmos_old_pkn <- function() {
         )
     }
 
-    fingerprint <- digest::digest(file = rdata_path, algo = "md5")
-    attr(counts, "source_path") <- rdata_path
-    attr(counts, "fingerprint") <- fingerprint
+    pkg_version <- as.character(utils::packageVersion("cosmosR"))
+    attr(counts, "source_pkg")  <- paste0("cosmosR@", pkg_version)
+    attr(counts, "fingerprint") <- pkg_version
 
     counts
 }

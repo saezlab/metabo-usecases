@@ -318,7 +318,7 @@ write_sidecar(
     external_inputs = c(
         list(list(
             kind               = 'old-cosmos-pkn',
-            path               = attr(old_pkn, 'source_path'),
+            source_pkg         = attr(old_pkn, 'source_pkg'),
             fingerprint        = attr(old_pkn, 'fingerprint'),
             species_assumption = 'human-only-or-unspecified'
         )),
