@@ -85,10 +85,23 @@ metalinks_v2_types <- pg_query_panel(
 
 # ── Panel rendering ──────────────────────────────────────────────────────────
 
-logger::log_info('[fig05] rendering Panel A (old COSMOS vs. COSMOS+)')
+# COSMOS+ protein-interaction PKN is sourced from OmniPath and is human-only.
+# These are the authoritative edge counts from the omnipath_metabo builders:
+#   from omnipath_metabo.datasets.cosmos._build import build_ppi, build_grn
+#   len(pd.DataFrame(build_ppi().network))  ->  Signaling (PPI)
+#   len(pd.DataFrame(build_grn().network))  ->  GRN
+# Captured 2026-06-18 on beauty (~/dev/omnipath-metabo, .venv). Re-run those
+# builders to refresh if the upstream OmniPath release changes.
+protein_omnipath_counts <- c(
+    'Signaling (PPI)' = 34367,
+    'GRN'             = 45976
+)
+
+logger::log_info('[fig05] rendering Panel A (faceted old COSMOS vs. COSMOS+)')
 panel_a <- fig04_cosmos_comparison_panel(
     old_pkn_tally               = old_pkn,
     cosmos_plus_by_type_species = cosmos_plus$by_type_species,
+    protein_omnipath_counts     = protein_omnipath_counts,
     width_mm                    = 120L
 )
 
@@ -138,7 +151,7 @@ panel_resource    <- panel_c_split  # FR-011c — composite Panel D
 # ── Save individual panels ───────────────────────────────────────────────────
 
 panel_dims <- list(
-    panel_a       = c(180, 160),
+    panel_a       = c(140, 185),
     panel_b       = c(89,  140),
     panel_c       = c(89,  130),
     panel_c_split = c(89,  160),
@@ -330,6 +343,17 @@ write_sidecar(
         metalinks_deployment          = 'dev5',
         metalinks_view                = 'custom_views.metalinksdb_relations',
         metalinks_panel               = 'standalone (not composited)',
+        comparison_facets             = paste(
+            'Protein interactions (Old COSMOS|Signaling(PPI)|GRN)',
+            'Metabolite interactions (Old COSMOS|Transporter|Allosteric|Receptor)',
+            'Metabolic reactions (Old COSMOS|New COSMOS)',
+            sep = '; '
+        ),
+        comparison_protein_source     = 'omnipath_metabo build_ppi()/build_grn() (human-only)',
+        comparison_protein_counts     = list(
+            `Signaling (PPI)` = unname(protein_omnipath_counts[['Signaling (PPI)']]),
+            GRN               = unname(protein_omnipath_counts[['GRN']])
+        ),
         active_composite              = composite_layout,
         composite_panels              = paste(
             'A:regulation-types-schematic', 'B:old-vs-COSMOS+ comparison',

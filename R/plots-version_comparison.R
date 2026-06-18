@@ -586,122 +586,163 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
 # Figure 4 renderers (T053)
 # ---------------------------------------------------------------------------
 
-#' Figure 4 Panel A: species-aware COSMOS old vs. COSMOS+ comparison
+#' Figure 5 Panel B: old COSMOS vs. COSMOS+ comparison, faceted
 #'
-#' Grouped-bar plot with three bars per interaction-type group:
-#' old-COSMOS (human), COSMOS+ human, COSMOS+ mouse.
+#' Three facets — one per interaction-type category distinguishable in
+#' the old COSMOS PKN: \strong{Protein interactions}, \strong{Metabolite
+#' interactions}, \strong{Metabolic reactions}. Bars are grouped on the
+#' y-axis and coloured \emph{only} by organism (human / mouse). The top
+#' group of every facet is the old COSMOS PKN, drawn as a single human
+#' bar; the remaining groups are the distinguishable COSMOS+ interaction
+#' types, most of which carry both a human and a mouse bar.
+#'
+#' Facet → group layout:
+#' \itemize{
+#'   \item Protein interactions: Old COSMOS | Signaling (PPI) | GRN
+#'         (the COSMOS+ protein PKN is sourced from OmniPath and is
+#'         human-only, so those two groups are single human bars; see
+#'         \code{protein_omnipath_counts}).
+#'   \item Metabolite interactions: Old COSMOS (STITCH) | Transporter |
+#'         Allosteric regulation (BRENDA) | Receptor.
+#'   \item Metabolic reactions: Old COSMOS (Recon3D) | New COSMOS
+#'         (Recon3D + KEGG + GEM; the COSMOS+ \code{catalysis} type).
+#' }
 #'
 #' @param old_pkn_tally Tibble from \code{\link{cosmos_old_pkn}} with
-#'     columns \code{interaction_type}, \code{n_edges}.
+#'     columns \code{interaction_type} (values \code{PPI},
+#'     \code{metabolite_protein}, \code{metabolic_reaction}) and
+#'     \code{n_edges}.
 #' @param cosmos_plus_by_type_species Tibble from
 #'     \code{cosmos_plus_data()$by_type_species} with columns
 #'     \code{interaction_type}, \code{species}, \code{n_interactions}.
+#' @param protein_omnipath_counts Named numeric or \code{NULL}: human
+#'     edge counts for the protein-interaction COSMOS+ groups, named
+#'     \code{"Signaling (PPI)"} and \code{"GRN"}, as returned by
+#'     \code{omnipath_metabo}'s \code{build_ppi()} / \code{build_grn()}.
+#'     \code{NULL} (default) → fall back to the human \code{signaling} /
+#'     \code{gene_regulation} rows of \code{cosmos_plus_by_type_species}.
 #' @param width_mm Numeric panel width in mm.
 #' @return A ggplot object.
 #' @importFrom ggplot2 ggplot aes geom_col scale_fill_manual labs
-#'     position_dodge coord_flip
-#' @importFrom dplyr mutate bind_rows select
-#' @importFrom tidyr complete
+#'     facet_wrap vars position_dodge2
+#' @importFrom dplyr bind_rows
+#' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
 fig04_cosmos_comparison_panel <- function(
     old_pkn_tally,
     cosmos_plus_by_type_species,
+    protein_omnipath_counts = NULL,
     width_mm = 180L
 ) {
-    interaction_type <- n_interactions <- panel_group <- NULL
+    facet <- group <- organism <- NULL
 
-    # Display labels and preferred ordering for interaction-type axis.
-    type_labels <- c(
-        metabolic_reaction    = "Metabolic reaction",
-        catalysis             = "Metabolic reaction",
-        PPI                   = "PPI",
-        metabolite_protein    = "Metabolite-protein",
-        signaling             = "Signaling",
-        ligand_receptor       = "Ligand-receptor",
-        gene_regulation       = "Gene regulation",
-        transport             = "Transport",
+    facet_levels <- c(
+        "Protein interactions",
+        "Metabolite interactions",
+        "Metabolic reactions"
+    )
+    # Desired top-to-bottom order of groups within their facets; Old COSMOS
+    # is shared across facets and pinned to the top of each.
+    group_top_to_bottom <- c(
+        "Old COSMOS",
+        "Signaling (PPI)", "GRN",
+        "Transporter", "Allosteric regulation", "Receptor",
+        "New COSMOS"
+    )
+
+    title_org <- function(s) {
+        ifelse(s == "human", "Human", ifelse(s == "mouse", "Mouse",
+               paste0(toupper(substr(s, 1L, 1L)), substr(s, 2L, nchar(s)))))
+    }
+
+    # ── Old COSMOS: one single (human) bar per facet ─────────────────────────
+    old_map <- c(
+        PPI                = "Protein interactions",
+        metabolite_protein = "Metabolite interactions",
+        metabolic_reaction = "Metabolic reactions"
+    )
+    od <- old_pkn_tally[old_pkn_tally$interaction_type %in% names(old_map), ,
+                        drop = FALSE]
+    old_rows <- tibble::tibble(
+        facet    = unname(old_map[od$interaction_type]),
+        group    = "Old COSMOS",
+        organism = "Human",
+        n        = as.numeric(od$n_edges)
+    )
+
+    # ── COSMOS+ metabolite + reaction groups (human + mouse) ─────────────────
+    new_facet <- c(
+        transport             = "Metabolite interactions",
+        allosteric_regulation = "Metabolite interactions",
+        ligand_receptor       = "Metabolite interactions",
+        catalysis             = "Metabolic reactions"
+    )
+    new_group <- c(
+        transport             = "Transporter",
         allosteric_regulation = "Allosteric regulation",
-        other                 = "Other"
+        ligand_receptor       = "Receptor",
+        catalysis             = "New COSMOS"
     )
-    type_order <- c(
-        "Metabolic reaction", "PPI", "Metabolite-protein",
-        "Signaling", "Ligand-receptor", "Gene regulation",
-        "Transport", "Allosteric regulation", "Other"
+    cp <- cosmos_plus_by_type_species[
+        cosmos_plus_by_type_species$interaction_type %in% names(new_facet), ,
+        drop = FALSE]
+    new_rows <- tibble::tibble(
+        facet    = unname(new_facet[cp$interaction_type]),
+        group    = unname(new_group[cp$interaction_type]),
+        organism = title_org(cp$species),
+        n        = as.numeric(cp$n_interactions)
     )
 
-    old_rows <- dplyr::mutate(
-        old_pkn_tally,
-        panel_group      = "Old COSMOS (human)",
-        n_interactions   = .data$n_edges,
-        interaction_type = dplyr::recode(
-            interaction_type, !!!type_labels
+    # ── COSMOS+ protein groups (human-only; OmniPath PPI / GRN) ──────────────
+    if (is.null(protein_omnipath_counts)) {
+        ps <- cosmos_plus_by_type_species[
+            cosmos_plus_by_type_species$interaction_type %in%
+                c("signaling", "gene_regulation") &
+                cosmos_plus_by_type_species$species == "human", , drop = FALSE]
+        protein_omnipath_counts <- stats::setNames(
+            as.numeric(ps$n_interactions),
+            ifelse(ps$interaction_type == "signaling", "Signaling (PPI)", "GRN")
         )
+    }
+    prot_rows <- tibble::tibble(
+        facet    = "Protein interactions",
+        group    = names(protein_omnipath_counts),
+        organism = "Human",
+        n        = as.numeric(protein_omnipath_counts)
     )
 
-    # Alias COSMOS+ catalysis → "Metabolic reaction" to align with old PKN.
-    new_rows <- dplyr::mutate(
-        cosmos_plus_by_type_species,
-        interaction_type = dplyr::recode(
-            interaction_type, !!!type_labels
-        ),
-        panel_group = dplyr::case_when(
-            species == "human" ~ "COSMOS+ (human)",
-            species == "mouse" ~ "COSMOS+ (mouse)",
-            .default           = paste0("COSMOS+ (", species, ")")
-        )
-    )
+    plot_data <- dplyr::bind_rows(old_rows, prot_rows, new_rows)
+    plot_data$facet <- factor(plot_data$facet, levels = facet_levels)
+    # ggplot draws the first y-factor level at the bottom; reverse the desired
+    # order so "Old COSMOS" (first entry) lands at the TOP of each facet.
+    plot_data$group <- factor(plot_data$group, levels = rev(group_top_to_bottom))
+    plot_data$organism <- factor(plot_data$organism, levels = c("Human", "Mouse"))
 
-    present_types <- intersect(
-        type_order,
-        unique(c(old_rows$interaction_type, new_rows$interaction_type))
-    )
-
-    groups <- c("Old COSMOS (human)", "COSMOS+ (human)", "COSMOS+ (mouse)")
-    fills  <- setNames(
-        palette_n(as.integer(length(groups)), unknown = FALSE),
-        groups
-    )
-
-    plot_data <- dplyr::bind_rows(
-        dplyr::select(old_rows, interaction_type, n_interactions, panel_group),
-        dplyr::select(new_rows, interaction_type, n_interactions, panel_group)
-    )
-    plot_data$panel_group <- factor(plot_data$panel_group, levels = groups)
-    plot_data$interaction_type <- factor(
-        plot_data$interaction_type,
-        levels = rev(present_types)
-    )
-    plot_data <- tidyr::complete(
-        plot_data,
-        interaction_type, panel_group,
-        fill = list(n_interactions = 0)
-    )
+    # Colour encodes organism only (lead palette: teal = human, amber = mouse).
+    org_fills <- c(Human = "#006384", Mouse = "#FEAF16")
 
     ggplot2::ggplot(
         plot_data,
-        ggplot2::aes(
-            x    = .data$interaction_type,
-            y    = .data$n_interactions,
-            fill = .data$panel_group
-        )
+        ggplot2::aes(x = .data$n, y = .data$group, fill = .data$organism)
     ) +
         ggplot2::geom_col(
-            position = ggplot2::position_dodge(0.8),
-            width    = 0.7
+            position = ggplot2::position_dodge2(preserve = "single",
+                                                padding = 0.15),
+            width    = 0.75
         ) +
-        ggplot2::scale_fill_manual(values = fills) +
-        ggplot2::coord_flip() +
-        ggplot2::labs(
-            x     = NULL,
-            y     = "Edges",
-            fill  = NULL,
-            title = "Old COSMOS vs. COSMOS+ by interaction type"
+        ggplot2::facet_wrap(
+            ggplot2::vars(.data$facet),
+            ncol   = 1L,
+            scales = "free"
         ) +
+        ggplot2::scale_fill_manual(values = org_fills, name = NULL,
+                                   drop = FALSE) +
+        ggplot2::labs(x = "Edges / interactions", y = NULL, fill = NULL) +
         theme_bw_metabo(width_mm = width_mm) +
         ggplot2::theme(
             legend.position = "top",
-            plot.title      = ggplot2::element_text(size = 14),
+            strip.text      = ggplot2::element_text(face = "bold"),
             axis.text       = ggplot2::element_text(size = 11),
             axis.title      = ggplot2::element_text(size = 12),
             legend.text     = ggplot2::element_text(size = 10)
@@ -1077,8 +1118,8 @@ fig04_metalinks_cosmos_panel <- function(
 
 # Canonical abbreviation rules for COSMOS+ resource name strings.
 .resource_abbrev_single <- c(
-    "GEM_transporter:Human-GEM"     = "hGEM-Transporter",
-    "GEM_transporter:Mouse-GEM"     = "mGEM-Transporter",
+    "GEM_transporter:Human-GEM"     = "hGEM-Tr",
+    "GEM_transporter:Mouse-GEM"     = "mGEM-Tr",
     "GEM:Human-GEM"                 = "hGEM",
     "GEM:Mouse-GEM"                 = "mGEM",
     "GEM:Recon3D"                   = "Recon3D",
