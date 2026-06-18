@@ -611,20 +611,39 @@ fig04_cosmos_comparison_panel <- function(
 ) {
     interaction_type <- n_interactions <- panel_group <- NULL
 
-    old_rows <- dplyr::mutate(
-        old_pkn_tally,
-        panel_group    = "Old COSMOS (human)",
-        n_interactions = .data$n_edges
+    # Display labels and preferred ordering for interaction-type axis.
+    type_labels <- c(
+        metabolic_reaction    = "Metabolic reaction",
+        catalysis             = "Metabolic reaction",
+        PPI                   = "PPI",
+        metabolite_protein    = "Metabolite-protein",
+        signaling             = "Signaling",
+        ligand_receptor       = "Ligand-receptor",
+        gene_regulation       = "Gene regulation",
+        transport             = "Transport",
+        allosteric_regulation = "Allosteric regulation",
+        other                 = "Other"
+    )
+    type_order <- c(
+        "Metabolic reaction", "PPI", "Metabolite-protein",
+        "Signaling", "Ligand-receptor", "Gene regulation",
+        "Transport", "Allosteric regulation", "Other"
     )
 
-    # Alias catalysis → metabolic_reactions so COSMOS+ GEM interactions
-    # align with the old PKN's metabolic_reactions bar group.
+    old_rows <- dplyr::mutate(
+        old_pkn_tally,
+        panel_group      = "Old COSMOS (human)",
+        n_interactions   = .data$n_edges,
+        interaction_type = dplyr::recode(
+            interaction_type, !!!type_labels
+        )
+    )
+
+    # Alias COSMOS+ catalysis → "Metabolic reaction" to align with old PKN.
     new_rows <- dplyr::mutate(
         cosmos_plus_by_type_species,
-        interaction_type = dplyr::case_match(
-            interaction_type,
-            "catalysis" ~ "metabolic_reactions",
-            .default    = interaction_type
+        interaction_type = dplyr::recode(
+            interaction_type, !!!type_labels
         ),
         panel_group = dplyr::case_when(
             species == "human" ~ "COSMOS+ (human)",
@@ -633,10 +652,10 @@ fig04_cosmos_comparison_panel <- function(
         )
     )
 
-    all_types <- sort(unique(c(
-        old_rows$interaction_type,
-        new_rows$interaction_type
-    )))
+    present_types <- intersect(
+        type_order,
+        unique(c(old_rows$interaction_type, new_rows$interaction_type))
+    )
 
     groups <- c("Old COSMOS (human)", "COSMOS+ (human)", "COSMOS+ (mouse)")
     fills  <- setNames(
@@ -651,7 +670,7 @@ fig04_cosmos_comparison_panel <- function(
     plot_data$panel_group <- factor(plot_data$panel_group, levels = groups)
     plot_data$interaction_type <- factor(
         plot_data$interaction_type,
-        levels = rev(all_types)
+        levels = rev(present_types)
     )
     plot_data <- tidyr::complete(
         plot_data,
