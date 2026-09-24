@@ -25,6 +25,12 @@ omnipath_metabo_case1/.RData
 omnipath_metabo_case1/.Ruserdata
 data/raw/lung-cancer/cellosaurus.txt
 
+# Analysis outputs (QC tables/plots) and tool logs written next to the Rmds
+analyses/*/output/
+analyses/**/MetaProViz_Results/
+analyses/**/metaproviz-log/
+analyses/**/omnipathr-log/
+
 # Python (uv-managed)
 **/__pycache__/
 *.pyc

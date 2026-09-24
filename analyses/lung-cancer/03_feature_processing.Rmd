@@ -20,31 +20,42 @@ library(stringr)
 library(MetaProViz)
 ```
 
+```{r paths}
+# All paths are resolved from the repository root via here::here(), so
+# this Rmd runs regardless of the working directory it is knitted from.
+#   raw_dir:     external inputs (see data/raw/lung-cancer/README.md)
+#   derived_dir: intermediates handed to later steps and to the figures
+#   output_dir:  QC tables and plots of this step (gitignored)
+raw_dir <- here::here("data", "raw", "lung-cancer")
+derived_dir <- here::here("data", "derived", "lung-cancer")
+output_dir <- here::here("analyses", "lung-cancer", "output", "03_feature_processing")
+```
+
 ```{r}
 
-if (!dir.exists("../Results/Feature_processing")) {
-  dir.create("../Results/Feature_processing", recursive = TRUE)
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/original")) {
-  dir.create("../Results/Feature_processing/original", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "original"))) {
+  dir.create(file.path(output_dir, "original"), recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/ID_QC")) {
-  dir.create("../Results/Feature_processing/ID_QC", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "ID_QC"))) {
+  dir.create(file.path(output_dir, "ID_QC"), recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/cleaned")) {
-  dir.create("../Results/Feature_processing/cleaned", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "cleaned"))) {
+  dir.create(file.path(output_dir, "cleaned"), recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/traverse")) {
-  dir.create("../Results/Feature_processing/traverse", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "traverse"))) {
+  dir.create(file.path(output_dir, "traverse"), recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/addEquivalent")) {
-  dir.create("../Results/Feature_processing/addEquivalent", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "addEquivalent"))) {
+  dir.create(file.path(output_dir, "addEquivalent"), recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/id_summary")) {
-  dir.create("../Results/Feature_processing/id_summary", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "id_summary"))) {
+  dir.create(file.path(output_dir, "id_summary"), recursive = TRUE)
 }
-if (!dir.exists("../Results/Feature_processing/id_summary_plots")) {
-  dir.create("../Results/Feature_processing/id_summary_plots", recursive = TRUE)
+if (!dir.exists(file.path(output_dir, "id_summary_plots"))) {
+  dir.create(file.path(output_dir, "id_summary_plots"), recursive = TRUE)
 }
 ```
 
@@ -165,7 +176,7 @@ calculate_none_delta <- function(df, from_category, to_category) {
 ```
 
 ```{r}
-load("../data/Shorthouse_2022.RData")
+load(file.path(derived_dir, "Shorthouse_2022.RData"))
 ```
 
 
@@ -203,7 +214,7 @@ features_Shorthouse_original <- Shorthouse_2022$features %>%
 # save original as csv
 write.csv(
     features_Shorthouse_original,
-    "../Results/Feature_processing/original/features_Shorthouse_original.csv",
+    file.path(output_dir, "original/features_Shorthouse_original.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -217,10 +228,10 @@ compare_pk_Shorthouse_original <-
         name_col = "name",
         metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
         plot_name = "Shorthouse_2022 original - overlap of ID types",
-        path = "../Results/Feature_processing/original"
+        path = file.path(output_dir, "original")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/original/compare_pk_Shorthouse_original.svg",
+  filename = file.path(output_dir, "original/compare_pk_Shorthouse_original.svg"),
   plot = compare_pk_Shorthouse_original$upset_plot,
   width = 12,
   height = 8
@@ -232,10 +243,10 @@ count_id_Shorthouse_original_HMDB <-
         delimiter = ";",
         "hmdb",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/original"
+        path = file.path(output_dir, "original")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_HMDB.svg",
+  filename = file.path(output_dir, "original/count_id_Shorthouse_original_HMDB.svg"),
   plot = count_id_Shorthouse_original_HMDB$Plot,
   width = 12,
   height = 8
@@ -247,10 +258,10 @@ count_id_Shorthouse_original_KEGG <-
         delimiter = ";",
         "kegg",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/original"
+        path = file.path(output_dir, "original")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_KEGG.svg",
+  filename = file.path(output_dir, "original/count_id_Shorthouse_original_KEGG.svg"),
   plot = count_id_Shorthouse_original_KEGG$Plot,
   width = 12,
   height = 8
@@ -262,10 +273,10 @@ count_id_Shorthouse_original_CHEBI <-
         delimiter = ";",
         "chebi",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/original"
+        path = file.path(output_dir, "original")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_CHEBI.svg",
+  filename = file.path(output_dir, "original/count_id_Shorthouse_original_CHEBI.svg"),
   plot = count_id_Shorthouse_original_CHEBI$Plot,
   width = 12,
   height = 8
@@ -277,10 +288,10 @@ count_id_Shorthouse_original_PUBCHEM <-
         delimiter = ";",
         "pubchem",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/original"
+        path = file.path(output_dir, "original")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/original/count_id_Shorthouse_original_PUBCHEM.svg",
+  filename = file.path(output_dir, "original/count_id_Shorthouse_original_PUBCHEM.svg"),
   plot = count_id_Shorthouse_original_PUBCHEM$Plot,
   width = 12,
   height = 8
@@ -322,9 +333,9 @@ none_summary_Shorthouse <- append_none_summary(none_summary_Shorthouse, features
 #         delimiter = ";",
 #         verbose = TRUE
 #     )
-# save(features_Shorthouse_compatibility_check, file = "../data/features_Shorthouse_compatibility_check.RData")
+# save(features_Shorthouse_compatibility_check, file = file.path(derived_dir, "features_Shorthouse_compatibility_check.RData"))
 
-load("../data/features_Shorthouse_compatibility_check.RData")
+load(file.path(derived_dir, "features_Shorthouse_compatibility_check.RData"))
 
 compatibility_by_feature_Shorthouse <- 
     features_Shorthouse_compatibility_check$ID_pair_compatibility %>%
@@ -358,31 +369,31 @@ length(unique(completely_incompatible_Shorthouse$name)) # 249
 # save ID QC results
 write.csv(
     features_Shorthouse_compatibility_check$ID_pair_compatibility,
-    "../Results/Feature_processing/ID_QC/features_Shorthouse_compatibility_check___ID_pair_compatibility.csv",
+    file.path(output_dir, "ID_QC/features_Shorthouse_compatibility_check___ID_pair_compatibility.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     features_Shorthouse_compatibility_check$data_with_compatibility,
-    "../Results/Feature_processing/ID_QC/features_Shorthouse_compatibility_check___data_with_compatibility.csv",
+    file.path(output_dir, "ID_QC/features_Shorthouse_compatibility_check___data_with_compatibility.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     fully_compatible_Shorthouse,
-    "../Results/Feature_processing/ID_QC/fully_compatible_Shorthouse.csv",
+    file.path(output_dir, "ID_QC/fully_compatible_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     partially_compatible_Shorthouse,
-    "../Results/Feature_processing/ID_QC/partially_compatible_Shorthouse.csv",
+    file.path(output_dir, "ID_QC/partially_compatible_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     completely_incompatible_Shorthouse,
-    "../Results/Feature_processing/ID_QC/completely_incompatible_Shorthouse.csv",
+    file.path(output_dir, "ID_QC/completely_incompatible_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -420,7 +431,7 @@ length(unique(partially_compatible_id_pair_rows_filtered$name))
 
 write.csv(
     partially_compatible_id_pair_rows_filtered,
-    "../Results/Feature_processing/ID_QC/partially_compatible_id_pair_rows_filtered_Shorthouse.csv",
+    file.path(output_dir, "ID_QC/partially_compatible_id_pair_rows_filtered_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -502,7 +513,7 @@ completely_incompatible_data_with_compatibility_processed <-
 
 write.csv(
     completely_incompatible_data_with_compatibility_processed,
-    "../Results/Feature_processing/ID_QC/completely_incompatible_data_with_compatibility_processed_Shorthouse.csv",
+    file.path(output_dir, "ID_QC/completely_incompatible_data_with_compatibility_processed_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -626,7 +637,7 @@ features_Shorthouse_cleaned <-
 # save as csv
 write.csv(
     features_Shorthouse_cleaned,
-    "../Results/Feature_processing/cleaned/features_Shorthouse_cleaned.csv",
+    file.path(output_dir, "cleaned/features_Shorthouse_cleaned.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -645,10 +656,10 @@ compare_pk_Shorthouse_cleaned <-
         name_col = "name",
         metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
         plot_name = "Shorthouse_2022 cleaned - overlap of ID types",
-        path = "../Results/Feature_processing/cleaned"
+        path = file.path(output_dir, "cleaned")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/cleaned/compare_pk_Shorthouse_cleaned.svg",
+  filename = file.path(output_dir, "cleaned/compare_pk_Shorthouse_cleaned.svg"),
   plot = compare_pk_Shorthouse_cleaned$upset_plot,
   width = 12,
   height = 8
@@ -660,10 +671,10 @@ count_id_Shorthouse_cleaned_HMDB <-
         delimiter = ";",
         "hmdb",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/cleaned"
+        path = file.path(output_dir, "cleaned")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_HMDB.svg",
+  filename = file.path(output_dir, "cleaned/count_id_Shorthouse_cleaned_HMDB.svg"),
   plot = count_id_Shorthouse_cleaned_HMDB$Plot,
   width = 12,
   height = 8
@@ -675,10 +686,10 @@ count_id_Shorthouse_cleaned_KEGG <-
         delimiter = ";",
         "kegg",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/cleaned"
+        path = file.path(output_dir, "cleaned")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_KEGG.svg",
+  filename = file.path(output_dir, "cleaned/count_id_Shorthouse_cleaned_KEGG.svg"),
   plot = count_id_Shorthouse_cleaned_KEGG$Plot,
   width = 12,
   height = 8
@@ -690,10 +701,10 @@ count_id_Shorthouse_cleaned_CHEBI <-
         delimiter = ";",
         "chebi",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/cleaned"
+        path = file.path(output_dir, "cleaned")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_CHEBI.svg",
+  filename = file.path(output_dir, "cleaned/count_id_Shorthouse_cleaned_CHEBI.svg"),
   plot = count_id_Shorthouse_cleaned_CHEBI$Plot,
   width = 12,
   height = 8
@@ -705,10 +716,10 @@ count_id_Shorthouse_cleaned_PUBCHEM <-
         delimiter = ";",
         "pubchem",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/cleaned"
+        path = file.path(output_dir, "cleaned")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/cleaned/count_id_Shorthouse_cleaned_PUBCHEM.svg",
+  filename = file.path(output_dir, "cleaned/count_id_Shorthouse_cleaned_PUBCHEM.svg"),
   plot = count_id_Shorthouse_cleaned_PUBCHEM$Plot,
   width = 12,
   height = 8
@@ -743,12 +754,12 @@ none_delta_Shorthouse <- calculate_none_delta(none_summary_Shorthouse, "original
 #         data = features_Shorthouse_cleaned,
 #         id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
 #         delimiter = ";",
-#         path = "../Results/Feature_processing/traverse"
+#         path = file.path(output_dir, "traverse")
 #     )
 # 
-# save(features_Shorthouse_traverse_ids, file = "../data/features_Shorthouse_traverse_ids.RData")
+# save(features_Shorthouse_traverse_ids, file = file.path(derived_dir, "features_Shorthouse_traverse_ids.RData"))
 
-load("../data/features_Shorthouse_traverse_ids.RData")
+load(file.path(derived_dir, "features_Shorthouse_traverse_ids.RData"))
 
 traverse_Shorthouse_ExpandedDF <- features_Shorthouse_traverse_ids$ExpandedDF
 traverse_Shorthouse_ID_pair_compatibility <- features_Shorthouse_traverse_ids$ID_pair_compatibility
@@ -833,7 +844,7 @@ features_Shorthouse_traverse <-
 # save as csv
 write.csv(
     features_Shorthouse_traverse,
-    "../Results/Feature_processing/traverse/features_Shorthouse_traverse.csv",
+    file.path(output_dir, "traverse/features_Shorthouse_traverse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -852,10 +863,10 @@ compare_pk_Shorthouse_traverse <-
         name_col = "name",
         metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
         plot_name = "Shorthouse_2022 traverse - overlap of ID types",
-        path = "../Results/Feature_processing/traverse"
+        path = file.path(output_dir, "traverse")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/traverse/compare_pk_Shorthouse_traverse.svg",
+  filename = file.path(output_dir, "traverse/compare_pk_Shorthouse_traverse.svg"),
   plot = compare_pk_Shorthouse_traverse$upset_plot,
   width = 12,
   height = 8
@@ -867,10 +878,10 @@ count_id_Shorthouse_traverse_HMDB <-
         delimiter = ";",
         "hmdb",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/traverse"
+        path = file.path(output_dir, "traverse")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_HMDB.svg",
+  filename = file.path(output_dir, "traverse/count_id_Shorthouse_traverse_HMDB.svg"),
   plot = count_id_Shorthouse_traverse_HMDB$Plot,
   width = 12,
   height = 8
@@ -882,10 +893,10 @@ count_id_Shorthouse_traverse_KEGG <-
         delimiter = ";",
         "kegg",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/traverse"
+        path = file.path(output_dir, "traverse")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_KEGG.svg",
+  filename = file.path(output_dir, "traverse/count_id_Shorthouse_traverse_KEGG.svg"),
   plot = count_id_Shorthouse_traverse_KEGG$Plot,
   width = 12,
   height = 8
@@ -897,10 +908,10 @@ count_id_Shorthouse_traverse_CHEBI <-
         delimiter = ";",
         "chebi",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/traverse"
+        path = file.path(output_dir, "traverse")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_CHEBI.svg",
+  filename = file.path(output_dir, "traverse/count_id_Shorthouse_traverse_CHEBI.svg"),
   plot = count_id_Shorthouse_traverse_CHEBI$Plot,
   width = 12,
   height = 8
@@ -912,10 +923,10 @@ count_id_Shorthouse_traverse_PUBCHEM <-
         delimiter = ";",
         "pubchem",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/traverse"
+        path = file.path(output_dir, "traverse")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/traverse/count_id_Shorthouse_traverse_PUBCHEM.svg",
+  filename = file.path(output_dir, "traverse/count_id_Shorthouse_traverse_PUBCHEM.svg"),
   plot = count_id_Shorthouse_traverse_PUBCHEM$Plot,
   width = 12,
   height = 8
@@ -980,7 +991,7 @@ equivalent_id_res_Shorthouse_HMDB <-
         data = Input_HMDB_Shorthouse_distinct,
         metadata_info = c(InputID = "hmdb"),
         from = "hmdb",
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 
 equivalent_id_res_Shorthouse_HMDB_clean <-
@@ -1054,7 +1065,7 @@ equivalent_id_res_Shorthouse_KEGG <-
         data = Input_KEGG_Shorthouse_distinct,
         metadata_info = c(InputID = "kegg"),
         from = "kegg",
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 
 equivalent_id_res_Shorthouse_KEGG_clean <-
@@ -1131,7 +1142,7 @@ equivalent_id_res_Shorthouse_CHEBI <-
         data = Input_CHEBI_Shorthouse_distinct,
         metadata_info = c(InputID = "chebi"),
         from = "chebi",
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 
 equivalent_id_res_Shorthouse_CHEBI_clean <-
@@ -1220,7 +1231,7 @@ equivalent_id_res_Shorthouse_PUBCHEM <-
         data = Input_PUBCHEM_Shorthouse_distinct,
         metadata_info = c(InputID = "pubchem"),
         from = "pubchem",
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 
 equivalent_id_res_Shorthouse_PUBCHEM_clean <-
@@ -1339,7 +1350,7 @@ features_Shorthouse_addEquivalent <-
 # save as csv
 write.csv(
     features_Shorthouse_addEquivalent,
-    "../Results/Feature_processing/addEquivalent/features_Shorthouse_addEquivalent.csv",
+    file.path(output_dir, "addEquivalent/features_Shorthouse_addEquivalent.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -1355,10 +1366,10 @@ compare_pk_Shorthouse_addEquivalent <-
         name_col = "name",
         metadata_info = list(Biocft = c("hmdb", "kegg", "chebi", "pubchem")),
         plot_name = "Shorthouse_2022 addEquivalent - overlap of ID types",
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/addEquivalent/compare_pk_Shorthouse_addEquivalent.svg",
+  filename = file.path(output_dir, "addEquivalent/compare_pk_Shorthouse_addEquivalent.svg"),
   plot = compare_pk_Shorthouse_traverse$upset_plot,
   width = 12,
   height = 8
@@ -1370,10 +1381,10 @@ count_id_Shorthouse_addEquivalent_HMDB <-
         delimiter = ";",
         "hmdb",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_HMDB.svg",
+  filename = file.path(output_dir, "addEquivalent/count_id_Shorthouse_addEquivalent_HMDB.svg"),
   plot = count_id_Shorthouse_addEquivalent_HMDB$Plot,
   width = 12,
   height = 8
@@ -1385,10 +1396,10 @@ count_id_Shorthouse_addEquivalent_KEGG <-
         delimiter = ";",
         "kegg",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_KEGG.svg",
+  filename = file.path(output_dir, "addEquivalent/count_id_Shorthouse_addEquivalent_KEGG.svg"),
   plot = count_id_Shorthouse_addEquivalent_KEGG$Plot,
   width = 12,
   height = 8
@@ -1400,10 +1411,10 @@ count_id_Shorthouse_addEquivalent_CHEBI <-
         delimiter = ";",
         "chebi",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_CHEBI.svg",
+  filename = file.path(output_dir, "addEquivalent/count_id_Shorthouse_addEquivalent_CHEBI.svg"),
   plot = count_id_Shorthouse_addEquivalent_CHEBI$Plot,
   width = 12,
   height = 8
@@ -1415,10 +1426,10 @@ count_id_Shorthouse_addEquivalent_PUBCHEM <-
         delimiter = ";",
         "pubchem",
         fill_colors = c(`No ID` = "#006384", `Single ID` = "#9F0162", `Multiple IDs` = "#BEBEBE"),
-        path = "../Results/Feature_processing/addEquivalent"
+        path = file.path(output_dir, "addEquivalent")
     )
 ggplot2::ggsave(
-  filename = "../Results/Feature_processing/addEquivalent/count_id_Shorthouse_addEquivalent_PUBCHEM.svg",
+  filename = file.path(output_dir, "addEquivalent/count_id_Shorthouse_addEquivalent_PUBCHEM.svg"),
   plot = count_id_Shorthouse_addEquivalent_PUBCHEM$Plot,
   width = 12,
   height = 8
@@ -1457,25 +1468,25 @@ none_delta_Shorthouse <- rbind(
 # save id summary
 write.csv(
     id_summary_Shorthouse,
-    "../Results/Feature_processing/id_summary/id_summary_Shorthouse.csv",
+    file.path(output_dir, "id_summary/id_summary_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     delta_df_Shorthouse,
-    "../Results/Feature_processing/id_summary/delta_df_Shorthouse.csv",
+    file.path(output_dir, "id_summary/delta_df_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     none_summary_Shorthouse,
-    "../Results/Feature_processing/id_summary/none_summary_Shorthouse.csv",
+    file.path(output_dir, "id_summary/none_summary_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
 write.csv(
     none_delta_Shorthouse,
-    "../Results/Feature_processing/id_summary/none_delta_Shorthouse.csv",
+    file.path(output_dir, "id_summary/none_delta_Shorthouse.csv"),
     row.names = TRUE,
     fileEncoding = "UTF-8"
 )
@@ -1678,25 +1689,25 @@ print(p_total_ids_by_type)
 ```
 ```{r}
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_data_version.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_stacked_by_data_version.svg"),
   plot = p_id_stacked_by_version,
   width = 16,
   height = 8
 )
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_data_version.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_total_ids_by_data_version.svg"),
   plot = p_total_ids_by_version,
   width = 16,
   height = 8
 )
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_id_type.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_stacked_by_id_type.svg"),
   plot = p_id_stacked_by_type,
   width = 16,
   height = 8
 )
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_id_type.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_total_ids_by_id_type.svg"),
   plot = p_total_ids_by_type,
   width = 16,
   height = 8
@@ -1853,25 +1864,25 @@ print(p_total_ids_by_type_with_delta)
 
 ```{r}
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_data_version_with_delta.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_stacked_by_data_version_with_delta.svg"),
   plot = p_id_stacked_by_version_with_delta,
   width = 16,
   height = 8
 )
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_data_version_with_delta.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_total_ids_by_data_version_with_delta.svg"),
   plot = p_total_ids_by_version_with_delta,
   width = 16,
   height = 8
 )
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_stacked_by_id_type_with_delta.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_stacked_by_id_type_with_delta.svg"),
   plot = p_id_stacked_by_type_with_delta,
   width = 16,
   height = 8
 )
 ggsave(
-  filename = "../Results/Feature_processing/id_summary_plots/id_summary_total_ids_by_id_type_with_delta.svg",
+  filename = file.path(output_dir, "id_summary_plots/id_summary_total_ids_by_id_type_with_delta.svg"),
   plot = p_total_ids_by_type_with_delta,
   width = 16,
   height = 8
@@ -1969,7 +1980,7 @@ print(p_delta_comp_vs_original)
 
 features_Shorthouse_extended <- 
     read.csv(
-        "../Results/Feature_processing/addEquivalent/features_Shorthouse_addEquivalent.csv", 
+        file.path(output_dir, "addEquivalent/features_Shorthouse_addEquivalent.csv"), 
         row.names=1, 
         header = TRUE, 
         encoding="UTF-8", 
@@ -1979,7 +1990,7 @@ features_Shorthouse_extended <-
 Shorthouse_2022_extended <- Shorthouse_2022
 Shorthouse_2022_extended$features <- features_Shorthouse_extended
 
-save(Shorthouse_2022_extended, file = "../data/Shorthouse_2022_extended.RData")
+save(Shorthouse_2022_extended, file = file.path(derived_dir, "Shorthouse_2022_extended.RData"))
 
 ```
 

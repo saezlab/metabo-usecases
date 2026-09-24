@@ -24,11 +24,22 @@ library(purrr)
 library(SummarizedExperiment)
 ```
 
+```{r paths}
+# All paths are resolved from the repository root via here::here(), so
+# this Rmd runs regardless of the working directory it is knitted from.
+#   raw_dir:     external inputs (see data/raw/lung-cancer/README.md)
+#   derived_dir: intermediates handed to later steps and to the figures
+#   output_dir:  QC tables and plots of this step (gitignored)
+raw_dir <- here::here("data", "raw", "lung-cancer")
+derived_dir <- here::here("data", "derived", "lung-cancer")
+output_dir <- here::here("analyses", "lung-cancer", "output", "01_preprocess")
+```
+
 ```{r load_data}
 # samples
 shorthouse_injections_raw <- 
     read_xlsx(
-        "../data/msb202211006-sup-0002-datasetev1.xlsx",
+        file.path(raw_dir, "msb202211006-sup-0002-datasetev1.xlsx"),
         sheet = "Sheet1"
     ) 
 
@@ -38,7 +49,7 @@ names(shorthouse_injections_raw)
 # features
 shorthouse_ions_raw <- 
     read_xlsx(
-        "../data/msb202211006-sup-0003-datasetev2.xlsx",
+        file.path(raw_dir, "msb202211006-sup-0003-datasetev2.xlsx"),
         sheet = "Sheet1"
     )
 
@@ -48,7 +59,7 @@ names(shorthouse_ions_raw)
 # intensities
 shorthouse_intensities_raw <- 
     read_xlsx(
-        "../data/msb202211006-sup-0004-datasetev3.xlsx",
+        file.path(raw_dir, "msb202211006-sup-0004-datasetev3.xlsx"),
         sheet = "Sheet1"
     ) 
 
@@ -254,7 +265,7 @@ Shorthouse_2022_preprocessed <- list(
     features = shorthouse_ions
 )
 
-save(Shorthouse_2022_preprocessed, file = "../data/Shorthouse_2022_preprocessed.RData")
+save(Shorthouse_2022_preprocessed, file = file.path(derived_dir, "Shorthouse_2022_preprocessed.RData"))
 ```
 
 ```{r cleanup}

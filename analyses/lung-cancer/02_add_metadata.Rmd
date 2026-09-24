@@ -17,8 +17,19 @@ library(stringr)
 library(ggplot2)
 ```
 
+```{r paths}
+# All paths are resolved from the repository root via here::here(), so
+# this Rmd runs regardless of the working directory it is knitted from.
+#   raw_dir:     external inputs (see data/raw/lung-cancer/README.md)
+#   derived_dir: intermediates handed to later steps and to the figures
+#   output_dir:  QC tables and plots of this step (gitignored)
+raw_dir <- here::here("data", "raw", "lung-cancer")
+derived_dir <- here::here("data", "derived", "lung-cancer")
+output_dir <- here::here("analyses", "lung-cancer", "output", "02_add_metadata")
+```
+
 ```{r prepare_cellosaurus}
-cellosaurus_path <- "../data/cellosaurus.txt"
+cellosaurus_path <- file.path(raw_dir, "cellosaurus.txt")
 cellosaurus_url <- "https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt"
 
 if (!file.exists(cellosaurus_path)) {
@@ -44,7 +55,7 @@ if (length(cellosaurus_first_line) != 1 || !grepl("^ID\\s+#", cellosaurus_first_
 ```{r read_cellosaurus}
 ## read in cellosaurus flat file:
 # download https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt file and remove headers to get cellosaurus.txt
-cellosaurus <- read_file("../data/cellosaurus.txt")
+cellosaurus <- read_file(file.path(raw_dir, "cellosaurus.txt"))
 entries <- str_split(cellosaurus, "(?m)^//\\s*$")[[1]]
 entries <- entries[nzchar(str_trim(entries))]
 
@@ -69,7 +80,7 @@ parse_entry <- function(block) {
   )
 }
 
-if (!file.exists("../data/cellosaurus_entry_lookup.RData")) {
+if (!file.exists(file.path(derived_dir, "cellosaurus_entry_lookup.RData"))) {
     entry_lookup <- map_dfr(entries, parse_entry) %>%
         filter(!is.na(ac), !is.na(name_or_synonym)) %>%
         distinct(ac, name_or_synonym, .keep_all = TRUE) %>%
@@ -77,16 +88,16 @@ if (!file.exists("../data/cellosaurus_entry_lookup.RData")) {
         mutate(name_or_synonym = sub("^#", "", name_or_synonym)) %>%
         select(ac, id, name_or_synonym)
 
-    save(entry_lookup, file = "../data/cellosaurus_entry_lookup.RData")
+    save(entry_lookup, file = file.path(derived_dir, "cellosaurus_entry_lookup.RData"))
 } else {
-    load("../data/cellosaurus_entry_lookup.RData")
+    load(file.path(derived_dir, "cellosaurus_entry_lookup.RData"))
 }
 
 head(entry_lookup)
 ```
 
 ```{r}
-load("../data/Shorthouse_2022_preprocessed.RData")
+load(file.path(derived_dir, "Shorthouse_2022_preprocessed.RData"))
 
 # map Cellosaurus accessions to Shorthouse_2022 cell line names by the name or synonym
 cell_lines <- 
@@ -492,7 +503,7 @@ Shorthouse_2022$samples <-
 
 
 ```{r saving}
-save(Shorthouse_2022, file = "../data/Shorthouse_2022.RData")
+save(Shorthouse_2022, file = file.path(derived_dir, "Shorthouse_2022.RData"))
 ```
 
 ```{r}
