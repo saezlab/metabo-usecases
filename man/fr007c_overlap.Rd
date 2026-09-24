@@ -4,7 +4,7 @@
 \alias{fr007c_overlap}
 \title{FR-007c resource-overlap data layer}
 \usage{
-fr007c_overlap(panel_id = "fig02-overview")
+fr007c_overlap(panel_id = "database-content")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

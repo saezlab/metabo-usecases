@@ -15,7 +15,7 @@ Named list with elements \code{definitions}, \code{runtime},
 \code{path} (absolute), \code{sha256}.
 }
 \description{
-Reads \code{figures/fig01-architecture/panel-a-stats/digest-config.yaml}
+Reads \code{figures/architecture/panel-a-stats/digest-config.yaml}
 (FR-043; see \code{contracts/panel-a-stats.schema.json}). The
 returned list carries two top-level namespaces:
 }

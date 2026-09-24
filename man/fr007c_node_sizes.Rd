@@ -4,7 +4,7 @@
 \alias{fr007c_node_sizes}
 \title{Per-resource entity / interaction counts for FR-007c node sizes}
 \usage{
-fr007c_node_sizes(panel_id = "fig02-overview")
+fr007c_node_sizes(panel_id = "database-content")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

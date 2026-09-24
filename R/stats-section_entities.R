@@ -12,7 +12,7 @@
 #' promotion).
 #'
 #' @param panel_id Character: panel id for deployment routing.
-#'     Defaults to \code{"fig01-architecture"}.
+#'     Defaults to \code{"architecture"}.
 #'
 #' @return A tibble of DigestMetric rows with columns
 #'     \code{section_id}, \code{metric_name}, \code{value},
@@ -25,7 +25,7 @@
 #' @importFrom logger log_info
 #' @importFrom tibble tibble
 #' @export
-section_entities <- function(panel_id = "fig01-architecture") {
+section_entities <- function(panel_id = "architecture") {
 
     facet <- "panel_a_stats_entities"
 

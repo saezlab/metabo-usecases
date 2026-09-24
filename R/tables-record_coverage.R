@@ -23,7 +23,7 @@
 #'   \item{deployment_facet}{Character or NULL: the registry-facet
 #'     name to pass to \code{\link{pg_query_panel}} so dev3 vs dev4
 #'     routing follows the registry. \code{NULL} means the panel's
-#'     default deployment (dev3 for tab03-record-coverage).}
+#'     default deployment (dev3 for record-coverage).}
 #'   \item{note}{Character: short rationale when \code{kind == "blank"}.}
 #' }
 #'
@@ -141,7 +141,7 @@ record_coverage_expert_overrides <- function() {
 #' \code{rb_and_cardinality(<source bitmap>, <scope bitmap>)} per
 #' resource. \code{kind = "entity"} reads \code{facet_entity_bitmap},
 #' \code{kind = "relation"} reads \code{facet_relation_bitmap}.
-#' Routing follows \code{panel_deployment("tab03-record-coverage",
+#' Routing follows \code{panel_deployment("record-coverage",
 #' facet = deployment_facet)}: rows with
 #' \code{deployment_facet = "structures"} route to dev4, every other
 #' row to dev3.
@@ -150,7 +150,7 @@ record_coverage_expert_overrides <- function() {
 #'     \code{\link{record_coverage_row_definitions}} with
 #'     \code{kind \%in\% c("entity", "relation")}.
 #' @param panel_id Character: panel identifier (default
-#'     \code{"tab03-record-coverage"}).
+#'     \code{"record-coverage"}).
 #'
 #' @return A tibble with columns \code{resource}, \code{n} (the count
 #'     for that resource on that row). Carries the \code{"deployment"}
@@ -160,7 +160,7 @@ record_coverage_expert_overrides <- function() {
 #' @export
 record_coverage_row_counts <- function(
     row_def,
-    panel_id = "tab03-record-coverage"
+    panel_id = "record-coverage"
 ) {
 
     bitmap_table <- if (identical(row_def$kind, "entity")) {
@@ -213,7 +213,7 @@ record_coverage_row_counts <- function(
 #' wide pivot has consistent shape.
 #'
 #' @param panel_id Character: panel identifier (default
-#'     \code{"tab03-record-coverage"}).
+#'     \code{"record-coverage"}).
 #'
 #' @return A long-format tibble with columns \code{row_label},
 #'     \code{row_kind}, \code{resource}, \code{n},
@@ -230,7 +230,7 @@ record_coverage_row_counts <- function(
 #' @importFrom tibble tibble
 #' @export
 record_coverage_long <- function(
-    panel_id = "tab03-record-coverage"
+    panel_id = "record-coverage"
 ) {
 
     rows <- record_coverage_row_definitions()

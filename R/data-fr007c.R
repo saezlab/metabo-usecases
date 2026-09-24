@@ -19,7 +19,7 @@
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007c_overlap <- function(panel_id = "fig02-overview") {
+fr007c_overlap <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT da.name AS source_a,
@@ -63,7 +63,7 @@ fr007c_overlap <- function(panel_id = "fig02-overview") {
 #' @importFrom DBI dbGetQuery
 #' @importFrom dplyr bind_rows
 #' @export
-fr007c_node_sizes <- function(panel_id = "fig02-overview") {
+fr007c_node_sizes <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT resource_id AS resource,

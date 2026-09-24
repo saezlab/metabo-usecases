@@ -368,7 +368,7 @@ classifier_definition_label <- function(
 #' (post-2026-06-14 dev5 integrated-build promotion).
 #'
 #' @param panel_id Character: panel id for deployment routing.
-#'     Defaults to \code{"fig01-architecture"}.
+#'     Defaults to \code{"architecture"}.
 #' @param definitions Named list: the \code{definitions:} namespace
 #'     from \code{\link{digest_definitions}}. \code{NULL} (default) →
 #'     loaded via \code{\link{digest_definitions}()}.
@@ -383,7 +383,7 @@ classifier_definition_label <- function(
 #' @importFrom tibble tibble
 #' @export
 section_mpi <- function(
-    panel_id = "fig01-architecture",
+    panel_id = "architecture",
     definitions = NULL
 ) {
 

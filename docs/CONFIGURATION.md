@@ -31,11 +31,11 @@ default_deployment: dev3       # dev3 (default) | dev4 | dev5 (refused)
 credentials_source: env        # env | file | pgpass
 credentials_path: null         # required when credentials_source == "file"
 overrides:                     # optional — user-side per-(panel, facet) routing
-  fig01-overview:
+  database-content:
     structures: dev4
     panel_e: dev4
     ramp_conflict: dev4
-  tab02-ramp-comparison:
+  ramp-comparison:
     default: dev4
 ```
 

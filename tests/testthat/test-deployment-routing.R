@@ -40,23 +40,23 @@ test_that("built-in registry routes the FR-030 panels to dev4", {
     cfg <- list(default_deployment = "dev3", overrides = list())
 
     expect_equal(
-        panel_deployment("fig01-overview", "structures", config = cfg),
+        panel_deployment("database-content", "structures", config = cfg),
         "dev4"
     )
     expect_equal(
-        panel_deployment("fig01-overview", "panel_e", config = cfg),
+        panel_deployment("database-content", "panel_e", config = cfg),
         "dev4"
     )
     expect_equal(
-        panel_deployment("fig01-overview", "ramp_conflict", config = cfg),
+        panel_deployment("database-content", "ramp_conflict", config = cfg),
         "dev4"
     )
     expect_equal(
-        panel_deployment("tab02-ramp-comparison", config = cfg),
+        panel_deployment("ramp-comparison", config = cfg),
         "dev4"
     )
     expect_equal(
-        panel_deployment("fig01-overview", config = cfg),
+        panel_deployment("database-content", config = cfg),
         "dev3"
     )
 })
@@ -66,17 +66,17 @@ test_that("user-config overrides win over the built-in registry", {
     cfg <- list(
         default_deployment = "dev3",
         overrides = list(
-            `fig01-overview` = list(structures = "dev5")
+            `database-content` = list(structures = "dev5")
         )
     )
 
     expect_equal(
-        panel_deployment("fig01-overview", "structures", config = cfg),
+        panel_deployment("database-content", "structures", config = cfg),
         "dev5"
     )
     # The override only matches its specific facet — fall back otherwise.
     expect_equal(
-        panel_deployment("fig01-overview", "panel_e", config = cfg),
+        panel_deployment("database-content", "panel_e", config = cfg),
         "dev4"
     )
 })
@@ -86,18 +86,18 @@ test_that("user-config panel-level default wins over the global default", {
     cfg <- list(
         default_deployment = "dev3",
         overrides = list(
-            `fig07-supplement` = list(default = "dev4")
+            `supplementary-example` = list(default = "dev4")
         )
     )
 
     expect_equal(
-        panel_deployment("fig07-supplement", config = cfg),
+        panel_deployment("supplementary-example", config = cfg),
         "dev4"
     )
     # A facet-specific lookup that doesn't match anything still falls
     # back to the panel-level default before the global default.
     expect_equal(
-        panel_deployment("fig07-supplement", "unknown", config = cfg),
+        panel_deployment("supplementary-example", "unknown", config = cfg),
         "dev4"
     )
 })

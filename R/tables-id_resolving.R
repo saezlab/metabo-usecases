@@ -2,7 +2,7 @@
 #'
 #' Queries \code{identifier_evidence} joined to
 #' \code{vocab_identifier_type} and \code{entity_evidence_identifier}
-#' on \code{dev3} (default for \code{tab01-id-resolving}). The
+#' on \code{dev3} (default for \code{id-resolving}). The
 #' identifier types are bucketed into a hand-picked set of
 #' manuscript-relevant categories (chemical structure, chemical names,
 #' resource-specific chemical ids, gene/protein ids) rather than the
@@ -20,7 +20,7 @@
 #' derived table lands.
 #'
 #' @param panel_id Character: panel identifier (default
-#'     \code{"tab01-id-resolving"} — routes to \code{dev3}).
+#'     \code{"id-resolving"} — routes to \code{dev3}).
 #'
 #' @return A long-format tibble with columns \code{resource},
 #'     \code{id_type} (the hand-picked bucket label),
@@ -35,7 +35,7 @@
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-tbl_id_resolving_counts <- function(panel_id = "tab01-id-resolving") {
+tbl_id_resolving_counts <- function(panel_id = "id-resolving") {
 
     buckets <- tbl_id_resolving_buckets()
     case_when <- vapply(seq_along(buckets), function(i) {

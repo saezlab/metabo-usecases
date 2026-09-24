@@ -6,7 +6,7 @@
 \usage{
 build_panel_a_digest(
   snapshot_id = NULL,
-  out_dir = "figures/fig01-architecture/panel-a-stats",
+  out_dir = "figures/architecture/panel-a-stats",
   config_path = NULL,
   caption_sty = "tex/caption.sty",
   validate_schema = TRUE
@@ -21,7 +21,7 @@ digest's \code{metadata.snapshot_id}; mismatch aborts. If
 \code{dev5.build_manifest} and records it.}
 
 \item{out_dir}{Character: output directory. Defaults to
-\code{figures/fig01-architecture/panel-a-stats/} relative to the
+\code{figures/architecture/panel-a-stats/} relative to the
 repo root.}
 
 \item{config_path}{Character or \code{NULL}: digest-config.yaml

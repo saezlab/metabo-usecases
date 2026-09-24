@@ -18,7 +18,7 @@
 #' @return Invisibly the resolved log file path.
 #'
 #' @examples
-#' setup_pipeline_log("build:fig02-overview")
+#' setup_pipeline_log("build:database-content")
 #' logger::log_info("Rendering Panel B")
 #'
 #' @importFrom logger log_appender log_layout layout_glue_generator appender_file

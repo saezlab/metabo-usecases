@@ -42,7 +42,7 @@ plot_fr007c_networks <- function(data,
     data <- data[data$overlap >= as.integer(min_overlap), , drop = FALSE]
 
     if (is.null(node_sizes)) {
-        node_sizes <- fr007c_node_sizes("fig02-overview")
+        node_sizes <- fr007c_node_sizes("database-content")
     }
 
     # Union graph for the shared layout.
@@ -229,7 +229,7 @@ plot_fr007c_networks <- function(data,
     plots <- Filter(Negate(is.null), plots)
 
     # No inner plot_annotation here — when this patchwork is
-    # composed into Figure 2 by figures/fig02-overview/build.R,
+    # composed into Figure 2 by figures/database-content/build.R,
     # the outer plot_annotation(tag_levels = "A") owns the figure
     # caption + tag styling. The methodological detail (shared
     # qgraph FR layout, min_overlap = 100) lives in caption.tex

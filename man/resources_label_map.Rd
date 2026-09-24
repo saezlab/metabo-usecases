@@ -4,7 +4,7 @@
 \alias{resources_label_map}
 \title{Resource short-label lookup}
 \usage{
-resources_label_map(panel_id = "fig02-overview")
+resources_label_map(panel_id = "database-content")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

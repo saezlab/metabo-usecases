@@ -25,7 +25,7 @@
 #' @importFrom tibble tibble
 #' @export
 section_annotation <- function(
-    panel_id = "fig01-architecture",
+    panel_id = "architecture",
     runtime = NULL
 ) {
 

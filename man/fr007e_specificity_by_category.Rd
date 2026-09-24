@@ -4,11 +4,11 @@
 \alias{fr007e_specificity_by_category}
 \title{FR-007e specificity × chemical category data layer}
 \usage{
-fr007e_specificity_by_category(panel_id = "fig02-overview")
+fr007e_specificity_by_category(panel_id = "database-content")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier. Default
-\code{"fig02-overview"}.}
+\code{"database-content"}.}
 }
 \value{
 Tibble with columns \code{category}, \code{specificity},
@@ -26,7 +26,7 @@ are pre-computed on \code{dev4}'s \code{facet_entity_bitmap}.
 Per-cell counts via \code{rb_and_cardinality}: ~25 ms for the
 6 × 6 = 36-cell cross-tab.
 
-Routes to \code{dev4} via \code{pg_query_panel("fig02-overview",
+Routes to \code{dev4} via \code{pg_query_panel("database-content",
 facet = "panel_e")}.
 }
 \examples{

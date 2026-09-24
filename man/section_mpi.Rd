@@ -4,11 +4,11 @@
 \alias{section_mpi}
 \title{Section 2 — Metabolite-Protein Interactions (FR-043b)}
 \usage{
-section_mpi(panel_id = "fig01-architecture", definitions = NULL)
+section_mpi(panel_id = "architecture", definitions = NULL)
 }
 \arguments{
 \item{panel_id}{Character: panel id for deployment routing.
-Defaults to \code{"fig01-architecture"}.}
+Defaults to \code{"architecture"}.}
 
 \item{definitions}{Named list: the \code{definitions:} namespace
 from \code{\link{digest_definitions}}. \code{NULL} (default) →

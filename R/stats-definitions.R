@@ -31,13 +31,13 @@ sql_sha256 <- function(sql) {
 #' @keywords internal
 #' @noRd
 default_digest_config_path <- function() {
-    "figures/fig01-architecture/panel-a-stats/digest-config.yaml"
+    "figures/architecture/panel-a-stats/digest-config.yaml"
 }
 
 
 #' Load the Panel A digest configuration
 #'
-#' Reads \code{figures/fig01-architecture/panel-a-stats/digest-config.yaml}
+#' Reads \code{figures/architecture/panel-a-stats/digest-config.yaml}
 #' (FR-043; see \code{contracts/panel-a-stats.schema.json}). The
 #' returned list carries two top-level namespaces:
 #'

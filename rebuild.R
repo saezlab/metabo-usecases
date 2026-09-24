@@ -69,13 +69,13 @@ usage <- function() c(
     "Usage: ./rebuild.sh [OPTIONS] [TARGET ...]",
     "",
     "Targets:",
-    "  fig01-overview                 a single figure folder by id",
+    "  database-content                 a single figure folder by id",
     "  figures                        every figure under figures/",
     "  tables                         every table under tables/",
     "  main                           every main-text artifact",
     "  supplementary                  every supplementary artifact",
-    "  fig01-overview/panelB          a single panel by panel-id",
-    "  fig01-overview:depends         the artifact plus its dependents",
+    "  database-content/panelB          a single panel by panel-id",
+    "  database-content:depends         the artifact plus its dependents",
     "",
     "Options:",
     "  --deployment NAME              override the beauty deployment",
@@ -126,6 +126,39 @@ setup_run_log <- function(args, snapshot_label = "pending") {
 }
 
 
+# ---- manuscript order ------------------------------------------------------
+
+# Artifact folders (figures/<id>, tables/<id>) in manuscript order, as
+# numbered in manuscript.yaml. Entries set to null (not built here) are
+# skipped.
+manuscript_order <- function(path = "manuscript.yaml") {
+
+    if (!file.exists(path)) return(character(0))
+    numbering <- yaml::read_yaml(path)
+
+    in_order <- function(section) {
+        items <- Filter(Negate(is.null), numbering[[section]])
+        items <- items[order(as.integer(names(items)))]
+        file.path(section, unlist(items, use.names = FALSE))
+    }
+
+    c(in_order("figures"), in_order("tables"))
+}
+
+
+# Sort paths by the manuscript position of the artifact folder they live
+# in; paths outside the listed folders go last, alphabetically.
+sort_by_manuscript <- function(paths, artifacts = manuscript_order()) {
+
+    rank <- vapply(paths, function(p) {
+        hit <- which(startsWith(p, paste0(artifacts, "/")))
+        if (length(hit) == 0L) length(artifacts) + 1L else hit[[1L]]
+    }, integer(1L))
+
+    paths[order(rank, paths)]
+}
+
+
 # ---- work-plan discovery ---------------------------------------------------
 
 discover_targets <- function(targets) {
@@ -136,7 +169,7 @@ discover_targets <- function(targets) {
         list.files("tables",  pattern = "build\\.R$", full.names = TRUE,
                    recursive = TRUE)
     )
-    builds <- sort(builds)
+    builds <- sort_by_manuscript(builds)
 
     if (length(targets) == 0L) return(builds)
 
@@ -228,7 +261,10 @@ main <- function() {
             full.names = TRUE, recursive = TRUE
         )
         if (length(pdfs) > 0L) {
-            assemble_bundle(sort(pdfs), output = "out/manuscript-bundle.pdf")
+            assemble_bundle(
+                sort_by_manuscript(pdfs),
+                output = "out/manuscript-bundle.pdf"
+            )
         }
     }
 

@@ -24,7 +24,7 @@
 
 Re-vendor whenever `omnipath-metabo` releases a new COSMOS PKN build.
 After re-generation, update the version, commit hash, date, and fingerprints above,
-then re-run `./rebuild.sh fig04-cosmos-pkn`.
+then re-run `./rebuild.sh cosmos-pkn`.
 
 ## Generation instructions
 

@@ -42,6 +42,7 @@ figures/<id>/out/, tables/<id>/out/   PDF/SVG/CSV + provenance (gitignored)
 | `data/derived/` | Results of the analyses; the input for figures and tables. |
 | `data/vendored/` | Pinned third-party snapshots (old COSMOS PKN, COSMOS+, MPI baselines), each with a source note. |
 | `figures/` | One folder per figure: `build.R`, `caption.tex`, `README.md`, and `manual/` for hand-made assets. |
+| `manuscript.yaml` | Figure and table numbering in the manuscript; the only place numbers are defined. |
 | `tables/` | One folder per table, same structure. |
 | `R/`, `man/`, `tests/`, `DESCRIPTION`, `NAMESPACE` | R package `metabo.figures` and its tests. |
 | `inst/extdata/` | Package resources: palettes, logos, JSON schema, connection template. |
@@ -60,16 +61,19 @@ figures/<id>/out/, tables/<id>/out/   PDF/SVG/CSV + provenance (gitignored)
 
 ### Figures and tables
 
+Folders are named by content; `manuscript.yaml` maps them to figure and
+table numbers, so renumbering means editing only that file.
+
 | Folder | Content |
 |---|---|
-| `figures/fig01-architecture/` | Architecture diagram (manual asset) and database statistics |
-| `figures/fig02-overview/` | Database content overview |
-| `figures/fig04-metalinks-versions/` | MetaLinksDB v1 vs v2 and other metabolite–protein interaction resources |
-| `figures/fig05-cosmos-pkn/` | Old COSMOS PKN vs COSMOS+ |
-| `figures/fig06-lungcancer-usecase/` | Cancer cell lines use case |
-| `tables/tab01-id-resolving/` | Identifier resolving across integrated resources |
-| `tables/tab02-ramp-comparison/` | RaMP InChIKey conflicts |
-| `tables/tab03-record-coverage/` | Resource × record-type coverage |
+| `figures/architecture/` | Architecture diagram (manual asset) and database statistics |
+| `figures/database-content/` | Database content overview |
+| `figures/metalinks-versions/` | MetaLinksDB v1 vs v2 and other metabolite–protein interaction resources |
+| `figures/cosmos-pkn/` | Old COSMOS PKN vs COSMOS+ |
+| `figures/cancer-cell-lines/` | Cancer cell lines use case |
+| `tables/id-resolving/` | Identifier resolving across integrated resources |
+| `tables/ramp-comparison/` | RaMP InChIKey conflicts |
+| `tables/record-coverage/` | Resource × record-type coverage |
 
 ## Running
 
@@ -79,7 +83,7 @@ only, so the pipeline runs there (or through an SSH tunnel). See
 
 ```sh
 ./rebuild.sh --dry-run                     # list what would be built
-./rebuild.sh fig06-lungcancer-usecase      # build one figure
+./rebuild.sh cancer-cell-lines      # build one figure
 ./rebuild.sh --png --bundle --check        # build everything, with checks
 tail -f logs/latest.log                    # follow the pipeline log
 ```

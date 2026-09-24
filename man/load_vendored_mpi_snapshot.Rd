@@ -2,7 +2,7 @@
 % Please edit documentation in R/data-mpi_resource_snapshots.R
 \name{load_vendored_mpi_snapshot}
 \alias{load_vendored_mpi_snapshot}
-\title{Load a vendored MPI baseline snapshot from inst/extdata}
+\title{Load a vendored MPI baseline snapshot from data/vendored}
 \usage{
 load_vendored_mpi_snapshot(
   resource,
@@ -23,6 +23,6 @@ Tibble of normalized rows, or an empty tibble when missing and
 }
 \description{
 Reads one of the manually-normalized Figure 3 baseline files from
-\verb{inst/extdata/fig03-mpi-baselines/}. Supported file formats are CSV,
+\verb{data/vendored/mpi-baselines/}. Supported file formats are CSV,
 TSV, and JSON.
 }

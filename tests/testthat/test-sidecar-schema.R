@@ -30,11 +30,11 @@ test_that("write_sidecar emits deployments: array with build_id", {
         writeLines("dummy", artifact_path)
 
         sc <- write_sidecar(
-            artifact_id   = "fig01-overview",
+            artifact_id   = "database-content",
             artifact_path = artifact_path,
             deployments   = list(deployment),
             manifests     = list(manifest),
-            script_path   = "figures/fig01-overview/build.R",
+            script_path   = "figures/database-content/build.R",
             queries       = list(
                 list(
                     sql         = "SELECT 1",
@@ -48,7 +48,7 @@ test_that("write_sidecar emits deployments: array with build_id", {
         expect_true(file.exists(side_path))
 
         loaded <- jsonlite::fromJSON(side_path, simplifyVector = FALSE)
-        expect_equal(loaded$artifact_id, "fig01-overview")
+        expect_equal(loaded$artifact_id, "database-content")
         expect_equal(length(loaded$deployments), 1L)
         expect_equal(loaded$deployments[[1L]]$name, "dev3")
         expect_equal(loaded$deployments[[1L]]$db_port, 5403L)
@@ -93,11 +93,11 @@ test_that("write_sidecar lists every deployment a panel touched", {
         writeLines("dummy", "out/multi.pdf")
 
         write_sidecar(
-            artifact_id   = "fig01-overview",
+            artifact_id   = "database-content",
             artifact_path = "out/multi.pdf",
             deployments   = list(dep3, dep4),
             manifests     = list(m3, m4),
-            script_path   = "figures/fig01-overview/build.R"
+            script_path   = "figures/database-content/build.R"
         )
 
         loaded <- jsonlite::fromJSON(

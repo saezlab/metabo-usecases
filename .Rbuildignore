@@ -33,6 +33,7 @@
 ^rebuild\.R$
 ^rebuild\.sh$
 ^manifest-config\.yaml$
+^manuscript\.yaml$
 
 # Editor / OS noise.
 ^\.vscode$

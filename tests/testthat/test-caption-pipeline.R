@@ -37,7 +37,7 @@ test_that("compose_caption fails when (a)/(b)/... count != panel_count", {
     withr::with_tempdir({
         caption <- "\\figpanel{a}{x} \\figpanel{b}{y}"
         writeLines(caption, "caption.tex")
-        writeLines("dummy composite", "fig01.pdf")
+        writeLines("dummy composite", "figure.pdf")
         # Provide a stub caption.sty so the pre-flight existence
         # check passes; xelatex is not invoked because the
         # FR-041b check fires first.
@@ -45,8 +45,8 @@ test_that("compose_caption fails when (a)/(b)/... count != panel_count", {
 
         expect_error(
             compose_caption(
-                figure_id      = "fig01-overview",
-                composite_pdf  = "fig01.pdf",
+                figure_id      = "database-content",
+                composite_pdf  = "figure.pdf",
                 caption_source = "caption.tex",
                 out_dir        = ".",
                 panel_count    = 3L,
@@ -60,13 +60,13 @@ test_that("compose_caption fails when (a)/(b)/... count != panel_count", {
 test_that("compose_caption errors on missing caption source", {
 
     withr::with_tempdir({
-        writeLines("dummy", "fig01.pdf")
+        writeLines("dummy", "figure.pdf")
         writeLines("\\NeedsTeXFormat{LaTeX2e}", "caption.sty")
 
         expect_error(
             compose_caption(
-                figure_id      = "fig01-overview",
-                composite_pdf  = "fig01.pdf",
+                figure_id      = "database-content",
+                composite_pdf  = "figure.pdf",
                 caption_source = "missing.tex",
                 out_dir        = ".",
                 panel_count    = 1L,

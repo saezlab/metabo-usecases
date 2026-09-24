@@ -22,8 +22,8 @@ A named list with elements \code{by_type_species},
 }
 \description{
 Reads the vendored COSMOS+ CSVs produced by T052a from
-\code{inst/extdata/cosmos/cosmos_plus_human.csv} and
-\code{inst/extdata/cosmos/cosmos_plus_mouse.csv} and derives three
+\code{data/vendored/cosmos/cosmos_plus_human.csv} and
+\code{data/vendored/cosmos/cosmos_plus_mouse.csv} and derives three
 shapes for Figure 4:
 }
 \details{

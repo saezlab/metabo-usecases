@@ -1,0 +1,321 @@
+# figures/metalinks-versions/build.R
+#
+# First implementation slice of the Figure 3 pipeline. Uses the current
+# MetaLinksDB v2 combined network contract, the OmnipathR MetaLinksDB v1
+# SQLite baseline, and any vendored baseline snapshots already present.
+
+suppressPackageStartupMessages({
+    library(metabo.figures)
+    library(ggplot2)
+})
+
+setup_pipeline_log('build:metalinks-versions')
+set.seed(pipeline_seed())
+
+out_dir <- 'figures/metalinks-versions/out'
+fs::dir_create(out_dir)
+
+# Route the MetaLinksDB v2 query to prod — the latest build is now
+# served there (per 2026-06-17 review). `allow_optin = TRUE` because
+# the deployment registry classifies prod as opt-in to prevent
+# accidental routing for the rest of the pipeline.
+dep_active <- deployment_provenance('prod', allow_optin = TRUE)
+
+metalinks_v2_sql <- paste(
+    'select',
+    '  r.compound_canonical_id as hmdb,',
+    '  r.protein_uniprot as uniprot,',
+    '  s.source as source,',
+    "  coalesce(rt.relation_type, 'interaction') as relation_type,",
+    '  r.source_count,',
+    '  case when r.pubmed_ids is null then null else cardinality(r.pubmed_ids) end as citation_count,',
+    '  r.best_pchembl_value as affinity_value,',
+    '  coalesce(ca.lipid_sub_class, ca.lipid_main_class, ca.lipid_category) as metabolite_class,',
+    '  coalesce(pa.gtp_functional_classes[1], pa.uniprot_protein_families[1]) as protein_class',
+    'from custom_views.metalinksdb_relations r',
+    'left join lateral unnest(r.sources) as s(source) on true',
+    'left join lateral unnest(r.relation_types) as rt(relation_type) on true',
+    'left join custom_views.metalinksdb_compound_annotations ca',
+    '  on ca.compound_entity_id = r.compound_entity_id',
+    'left join custom_views.metalinksdb_protein_annotations pa',
+    '  on pa.protein_entity_id = r.protein_entity_id',
+    'where r.compound_canonical_id is not null and r.protein_uniprot is not null'
+)
+
+logger::log_info('Querying MetaLinksDB v2 from prod (allow_optin = TRUE)')
+prod_con <- pg_connect_panel('prod', allow_optin = TRUE)
+metalinks_v2_rows <- pg_query(prod_con, metalinks_v2_sql)
+attr(metalinks_v2_rows, 'deployment') <- 'prod'
+metalinks_v2 <- normalize_mpi_resource(
+    resource = 'MetaLinksDB v2.0',
+    interactions = metalinks_v2_rows,
+    metabolite_key = 'hmdb',
+    protein_key = 'uniprot',
+    source_col = 'source',
+    relation_type_col = 'relation_type',
+    metabolite_class = metalinks_v2_rows,
+    metabolite_class_key = 'hmdb',
+    metabolite_class_col = 'metabolite_class',
+    protein_class = metalinks_v2_rows,
+    protein_class_key = 'uniprot',
+    protein_class_col = 'protein_class',
+    evidence_cols = list(
+        source_count = 'source_count',
+        citation_count = 'citation_count',
+        affinity_value = 'affinity_value',
+        curation_mode = NULL
+    ),
+    interaction_definition = 'one HMDB-UniProt-source-relation row from custom_views.metalinksdb_relations'
+)
+attr(metalinks_v2, 'deployment') <- 'prod'
+
+logger::log_info('Loading MetaLinksDB v1 baseline')
+v1 <- metalinks_v1_snapshot()
+
+baseline_resources <- c('CellPhoneDB', 'scConnect', 'STITCH')
+baselines <- list()
+excluded_resources <- character(0)
+
+for (resource in baseline_resources) {
+    snapshot <- load_vendored_mpi_snapshot(resource)
+    if (nrow(snapshot) == 0L) {
+        excluded_resources <- c(excluded_resources, resource)
+    } else {
+        baselines[[resource]] <- snapshot
+    }
+}
+
+all_rows <- c(
+    list(metalinks_v2, v1$data),
+    baselines
+)
+fig03_rows <- do.call(dplyr::bind_rows, all_rows)
+
+resources <- sort(unique(fig03_rows$resource))
+register_category_colours(
+    'resources',
+    setNames(
+        palette_n(as.integer(length(resources)), unknown = FALSE),
+        resources
+    )
+)
+
+relation_types <- sort(unique(fig03_rows$relation_type))
+register_category_colours(
+    'interaction_types',
+    setNames(
+        palette_n(as.integer(length(relation_types)), unknown = FALSE),
+        relation_types
+    )
+)
+
+panels <- list(
+    coverage            = fig03_coverage_panel(fig03_rows, width_mm = 60L),
+    metabolite_classes  = fig03_metabolite_class_panel(fig03_rows, width_mm = 60L),
+    protein_classes     = fig03_protein_class_panel(fig03_rows, width_mm = 60L),
+    # FR-010d Panel D + FR-010e Panel E (Session 2026-06-15 review).
+    metalinks_overview  = fig03_metalinks_overview_panel(fig03_rows, width_mm = 60L),
+    relationship_types  = fig03_relationship_types_panel(fig03_rows, width_mm = 60L)
+)
+
+for (name in names(panels)) {
+    ggsave(
+        filename = file.path(out_dir, paste0(name, '.pdf')),
+        plot = panels[[name]],
+        width = 80,
+        height = 110,
+        units = 'mm'
+    )
+    ggsave(
+        filename = file.path(out_dir, paste0(name, '.svg')),
+        plot = panels[[name]],
+        width = 80,
+        height = 110,
+        units = 'mm'
+    )
+}
+
+
+# ---- FR-010h + FR-010i: per-panel supplementary CSVs + legend.csv ----------
+#
+# For every panel we emit a CSV under out/supplementary/<panel_slug>/
+# containing the harmonized MPI rows that drive that panel's counts.
+# A central legend.csv catalogues each file so downstream readers can
+# understand what they describe without reading the renderer code.
+
+supp_dir <- file.path(out_dir, 'supplementary')
+fs::dir_create(supp_dir)
+
+supplementary_specs <- list(
+    list(
+        slug = '4A',
+        title = 'Coverage (FR-010a)',
+        rows  = fig03_rows,
+        description = paste(
+            'All harmonized metabolite-protein interaction rows fed into',
+            'Panel A. The panel reports per-resource counts of unique',
+            'interactions, metabolites (HMDB basis), and proteins',
+            '(UniProt basis); this file is the source of those counts.'
+        )
+    ),
+    list(
+        slug = '4B',
+        title = 'Metabolite class breadth (FR-010b)',
+        rows  = fig03_rows[!is.na(fig03_rows$metabolite_class_label) &
+                           nzchar(as.character(fig03_rows$metabolite_class_label)), ],
+        description = paste(
+            'Subset of harmonized MPI rows carrying a non-empty',
+            'metabolite_class label. Panel B counts unique (resource,',
+            'metabolite_class) cells from this subset.'
+        )
+    ),
+    list(
+        slug = '4C',
+        title = 'Protein class breadth (FR-010c)',
+        rows  = fig03_rows[!is.na(fig03_rows$protein_class_label) &
+                           nzchar(as.character(fig03_rows$protein_class_label)), ],
+        description = paste(
+            'Subset of harmonized MPI rows carrying a non-empty',
+            'protein_class label. Panel C counts unique (resource,',
+            'protein_class) cells; the renderer further strips the',
+            ':OM:NNNN ontology-code tail before display.'
+        )
+    ),
+    list(
+        slug = '4D',
+        title = 'MetaLinksDB 2.0 overview (FR-010d)',
+        rows  = fig03_rows[fig03_rows$resource == 'MetaLinksDB v2.0', ],
+        description = paste(
+            'MetaLinksDB v2.0 rows only. Panel D reports unique',
+            'interactions, metabolites, and proteins per upstream source',
+            'as a grouped bar chart (not stacked).'
+        )
+    ),
+    list(
+        slug = '4E',
+        title = 'Relationship types (FR-010e)',
+        rows  = fig03_rows[
+            tolower(fig03_rows$relation_type) %in%
+                c('transport', 'receptor', 'interaction'), ],
+        description = paste(
+            'Subset restricted to the three FR-010e categories',
+            '(transport / receptor / interaction). Panel E counts unique',
+            '(source, relation_type) cells from this subset.'
+        )
+    )
+)
+
+legend_rows <- list()
+for (spec in supplementary_specs) {
+    panel_dir <- file.path(supp_dir, spec$slug)
+    fs::dir_create(panel_dir)
+    csv_name <- sprintf('%s_rows.csv', tolower(gsub('[^A-Za-z0-9]+', '_',
+                                                    spec$title)))
+    csv_path <- file.path(panel_dir, csv_name)
+    readr::write_csv(spec$rows, csv_path)
+    legend_rows[[length(legend_rows) + 1L]] <- data.frame(
+        panel_slug   = spec$slug,
+        panel_title  = spec$title,
+        file         = file.path('supplementary', spec$slug, csv_name),
+        n_rows       = nrow(spec$rows),
+        n_columns    = ncol(spec$rows),
+        description  = spec$description,
+        stringsAsFactors = FALSE
+    )
+}
+legend_df <- do.call(rbind, legend_rows)
+readr::write_csv(legend_df, file.path(supp_dir, 'legend.csv'))
+logger::log_info(
+    'FR-010h/i: wrote {length(supplementary_specs)} supplementary CSVs ',
+    '+ legend.csv to {supp_dir}'
+)
+
+# Single horizontal strip: all 5 panels in one row. Widths give the
+# metabolite-class panel more room because its class names are
+# notably longer than the others.
+composite <- compose_patchwork(
+    panels,
+    layout = list(
+        ncol   = 5,
+        widths = c(0.85, 1.40, 1.05, 1.00, 1.00)
+    )
+)
+
+# Bump panel-tag (A/B/C/D/E) size so the letters read at the strip's
+# shorter physical height.
+composite <- composite &
+    ggplot2::theme(
+        plot.tag = ggplot2::element_text(size = 16, face = 'bold')
+    )
+
+composite_width_mm  <- 320L
+composite_height_mm <- 115L
+
+ggsave(
+    filename = file.path(out_dir, 'metalinks-versions.pdf'),
+    plot = composite,
+    width = composite_width_mm,
+    height = composite_height_mm,
+    units = 'mm'
+)
+ggsave(
+    filename = file.path(out_dir, 'metalinks-versions.svg'),
+    plot = composite,
+    width = composite_width_mm,
+    height = composite_height_mm,
+    units = 'mm'
+)
+
+caption_info <- compose_caption(
+    figure_id = 'metalinks-versions',
+    composite_pdf = file.path(out_dir, 'metalinks-versions.pdf'),
+    caption_source = 'figures/metalinks-versions/caption.tex',
+    out_dir = out_dir,
+    panel_count = 5L
+)
+
+queries <- list(query_record(metalinks_v2_rows))
+write_sidecar(
+    artifact_id = 'metalinks-versions',
+    artifact_path = file.path(out_dir, 'metalinks-versions.pdf'),
+    deployments = list(dep_active$deployment),
+    manifests = list(dep_active$manifest),
+    script_path = 'figures/metalinks-versions/build.R',
+    queries = queries,
+    external_inputs = c(list(v1$external_input), unname(lapply(names(baselines), function(resource) {
+        list(
+            kind = 'vendored-mpi-baseline',
+            path = file.path('data/vendored/mpi-baselines',
+                             paste0(snapshot_slug(resource), '.csv')),
+            source = resource,
+            fingerprint = NA_character_
+        )
+    }))),
+    parameters = list(
+        counting_basis = list(
+            metabolites = 'HMDB',
+            proteins = 'UniProt'
+        ),
+        included_resources = resources,
+        excluded_resources = excluded_resources,
+        optional_artifacts = character(0),
+        class_system = list(
+            metabolites = 'ChEBI-oriented baseline when available; current baseline snapshots may still carry source-native labels',
+            proteins = 'UniProt-derived / Guide to Pharmacology'
+        ),
+        evidence_availability = lapply(resources, function(resource) {
+            resource_rows <- fig03_rows[fig03_rows$resource == resource, ]
+            list(
+                resource = resource,
+                source_count = TRUE,
+                citation_count = any(!is.na(resource_rows$citation_count)),
+                affinity_value = any(!is.na(resource_rows$affinity_value)),
+                curation_mode = any(!is.na(resource_rows$curation_mode) & resource_rows$curation_mode != '')
+            )
+        })
+    ),
+    seed = pipeline_seed(),
+    caption = caption_info
+)
+
+logger::log_info('Figure 4 build complete')

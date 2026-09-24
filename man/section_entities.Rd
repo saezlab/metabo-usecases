@@ -4,11 +4,11 @@
 \alias{section_entities}
 \title{Section 1 — Entities (FR-043a)}
 \usage{
-section_entities(panel_id = "fig01-architecture")
+section_entities(panel_id = "architecture")
 }
 \arguments{
 \item{panel_id}{Character: panel id for deployment routing.
-Defaults to \code{"fig01-architecture"}.}
+Defaults to \code{"architecture"}.}
 }
 \value{
 A tibble of DigestMetric rows with columns

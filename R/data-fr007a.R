@@ -93,7 +93,7 @@ fr007a_projection <- function(class_col) {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_entities <- function(panel_id = "fig02-overview") {
+fr007a_entities <- function(panel_id = "database-content") {
 
     sql <- "
         WITH
@@ -235,7 +235,7 @@ fr007a_entities <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_interactions <- function(panel_id = "fig02-overview") {
+fr007a_interactions <- function(panel_id = "database-content") {
 
     sql <- "
         WITH
@@ -357,7 +357,7 @@ fr007a_interactions <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_associations <- function(panel_id = "fig02-overview") {
+fr007a_associations <- function(panel_id = "database-content") {
 
     sql <- sprintf("
         WITH classified AS (
@@ -422,7 +422,7 @@ fr007a_associations <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_identifiers_major <- function(panel_id = "fig02-overview",
+fr007a_identifiers_major <- function(panel_id = "database-content",
                                      top_n = 8L) {
 
     sql <- sprintf("
@@ -494,7 +494,7 @@ fr007a_identifiers_major <- function(panel_id = "fig02-overview",
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_identifiers_authoritative <- function(panel_id = "fig02-overview") {
+fr007a_identifiers_authoritative <- function(panel_id = "database-content") {
 
     sql <- sprintf("
         WITH id_sources AS (
@@ -568,7 +568,7 @@ fr007a_identifiers_authoritative <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_structures <- function(panel_id = "fig02-overview") {
+fr007a_structures <- function(panel_id = "database-content") {
 
     sql <- "
         WITH
@@ -660,7 +660,7 @@ fr007a_structures <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-fr007a_literature <- function(panel_id = "fig02-overview") {
+fr007a_literature <- function(panel_id = "database-content") {
 
     sql <- sprintf("
         WITH lit_ann AS (
@@ -729,7 +729,7 @@ fr007a_literature <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-resources_label_map <- function(panel_id = "fig02-overview") {
+resources_label_map <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT resource_id,
@@ -759,7 +759,7 @@ resources_label_map <- function(panel_id = "fig02-overview") {
 #' @importFrom dplyr bind_rows
 #' @importFrom logger log_info
 #' @export
-fr007a_overview <- function(panel_id = "fig02-overview",
+fr007a_overview <- function(panel_id = "database-content",
                             identifiers = c("major", "authoritative")) {
 
     identifiers <- match.arg(identifiers)

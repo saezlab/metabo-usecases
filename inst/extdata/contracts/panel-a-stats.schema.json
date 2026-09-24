@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://saezlab.org/schemas/metabo-figures/panel-a-stats.schema.json",
   "title": "Figure 1 Panel A Statistics Digest (FR-043 family)",
-  "description": "JSON file written at `figures/fig01-overview/panel-a-stats/stats.json`. Carries the five-section headline counts (Entities, Metabolite-Protein Interactions, Interactions, Structures, Annotation) plus per-section contributing-resource counts that back the numbers the author hand-transcribes into the manually-authored Panel A diagram. The digest is bound to the same snapshot identifier as Figure 1's other artifacts (FR-043h) and its provenance lives in the sibling `stats.provenance.json`. Added 2026-06-14.",
+  "description": "JSON file written at `figures/architecture/panel-a-stats/stats.json`. Carries the five-section headline counts (Entities, Metabolite-Protein Interactions, Interactions, Structures, Annotation) plus per-section contributing-resource counts that back the numbers the author hand-transcribes into the manually-authored Panel A diagram. The digest is bound to the same snapshot identifier as Figure 1's other artifacts (FR-043h) and its provenance lives in the sibling `stats.provenance.json`. Added 2026-06-14.",
   "type": "object",
   "required": ["metadata", "sections"],
   "additionalProperties": false,

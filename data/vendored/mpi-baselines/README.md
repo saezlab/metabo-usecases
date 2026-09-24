@@ -2,7 +2,7 @@
 
 Vendored baseline snapshots of external metabolite-protein interaction (MPI)
 resources for the MetaLinksDB comparison figure
-(`figures/fig04-metalinks-versions/`) belong here. Loaded by
+(`figures/metalinks-versions/`) belong here. Loaded by
 `load_vendored_mpi_snapshot()`.
 
 Expected shape:

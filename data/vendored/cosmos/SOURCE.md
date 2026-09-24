@@ -21,4 +21,4 @@ panel makes this scope extension explicit.
 Re-vendor when cosmosR releases a new version that updates this object, or
 when the upstream GitHub file changes
 (https://github.com/saezlab/cosmosR/blob/master/data/meta_network.RData).
-After refresh, recompute MD5 above and re-run ./rebuild.sh fig04-cosmos-pkn.
+After refresh, recompute MD5 above and re-run ./rebuild.sh cosmos-pkn.

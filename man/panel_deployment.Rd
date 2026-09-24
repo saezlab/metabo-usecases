@@ -8,8 +8,8 @@ panel_deployment(panel_id, facet = NULL, config = NULL)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier
-(e.g. \code{"fig01-architecture"} or
-\code{"tab02-ramp-comparison"}).}
+(e.g. \code{"architecture"} or
+\code{"ramp-comparison"}).}
 
 \item{facet}{Character or \code{NULL}: facet identifier
 (e.g. \code{"structures"}, \code{"ramp_conflict"},
@@ -45,10 +45,10 @@ when a future build cycle re-introduces a per-panel split.
 }
 \examples{
 \dontrun{
-panel_deployment("fig01-architecture")                          # "dev5"
-panel_deployment("fig01-architecture", "structures")            # "dev5"
-panel_deployment("fig01-architecture", "ramp_conflict")         # "dev5"
-panel_deployment("tab02-ramp-comparison")                   # "dev5"
+panel_deployment("architecture")                          # "dev5"
+panel_deployment("architecture", "structures")            # "dev5"
+panel_deployment("architecture", "ramp_conflict")         # "dev5"
+panel_deployment("ramp-comparison")                   # "dev5"
 }
 
 }

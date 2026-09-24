@@ -15,7 +15,7 @@ tables_compose_caption(
 }
 \arguments{
 \item{table_id}{Character: artifact id (e.g.
-\code{"tab01-id-resolving"}).}
+\code{"id-resolving"}).}
 
 \item{table_pdf}{Character: path to the bare table PDF the caption
 describes.}
@@ -51,10 +51,10 @@ multiple sub-tables, pass the appropriate count.
 \examples{
 \dontrun{
 tables_compose_caption(
-    table_id       = "tab01-id-resolving",
-    table_pdf      = "tables/tab01-id-resolving/out/tab01-id-resolving.pdf",
-    caption_source = "tables/tab01-id-resolving/caption.tex",
-    out_dir        = "tables/tab01-id-resolving/out",
+    table_id       = "id-resolving",
+    table_pdf      = "tables/id-resolving/out/id-resolving.pdf",
+    caption_source = "tables/id-resolving/caption.tex",
+    out_dir        = "tables/id-resolving/out",
     panel_count    = 1L
 )
 }

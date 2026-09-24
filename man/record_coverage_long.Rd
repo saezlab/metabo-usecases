@@ -4,11 +4,11 @@
 \alias{record_coverage_long}
 \title{Long tibble of (row, resource, n) for the FR-015a checkmark table}
 \usage{
-record_coverage_long(panel_id = "tab03-record-coverage")
+record_coverage_long(panel_id = "record-coverage")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default
-\code{"tab03-record-coverage"}).}
+\code{"record-coverage"}).}
 }
 \value{
 A long-format tibble with columns \code{row_label},

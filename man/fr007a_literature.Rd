@@ -4,7 +4,7 @@
 \alias{fr007a_literature}
 \title{FR-007a Literature references facet — per-resource + Total}
 \usage{
-fr007a_literature(panel_id = "fig02-overview")
+fr007a_literature(panel_id = "database-content")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier.}

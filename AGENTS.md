@@ -14,6 +14,7 @@ used for the first preprint.
 | `data/raw/<name>/` | External inputs, with a README stating where they come from. |
 | `data/derived/<name>/` | Files written by the scripts in `analyses/<name>/`; figures read from here. |
 | `figures/`, `tables/` | One folder per figure/table: `build.R`, `caption.tex`, `README.md`. |
+| `manuscript.yaml` | Figure/table numbering. Name folders, ids and functions by content, never by number. |
 | `R/`, `man/`, `tests/`, `DESCRIPTION` | R package `metabo.figures`: shared data loaders, plots, styles, provenance. |
 | `python/`, `tex/`, `lib/` | Python, LaTeX and bash helpers used by the pipeline. |
 | `data/vendored/` | Pinned third-party snapshots (COSMOS PKNs, MPI baselines), each with a source note. |
@@ -38,12 +39,12 @@ On beauty, a wrapper sets up the connection environment by sourcing
 `~/.config/metabo-figures/env.sh`:
 
 ```bash
-~/.local/bin/with-metabo-figures-env ./rebuild.sh fig04-metalinks-versions
+~/.local/bin/with-metabo-figures-env ./rebuild.sh metalinks-versions
 ```
 
 For development, load the package and source one build script:
 
 ```bash
 ~/.local/bin/with-metabo-figures-env Rscript -e \
-  'pkgload::load_all(".", export_all = FALSE, quiet = TRUE); source("figures/fig04-metalinks-versions/build.R")'
+  'pkgload::load_all(".", export_all = FALSE, quiet = TRUE); source("figures/metalinks-versions/build.R")'
 ```
