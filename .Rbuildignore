@@ -11,8 +11,7 @@
 ^figures$
 ^tables$
 ^lib$
-^logs$
-^manifests$
+^build$
 ^python$
 ^tex$
 ^preview$

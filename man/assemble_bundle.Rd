@@ -4,14 +4,14 @@
 \alias{assemble_bundle}
 \title{Concatenate every pipeline PDF into the manuscript bundle}
 \usage{
-assemble_bundle(pdf_paths, output = "out/manuscript-bundle.pdf")
+assemble_bundle(pdf_paths, output = "build/manuscript-bundle.pdf")
 }
 \arguments{
 \item{pdf_paths}{Character vector of input PDF paths in the desired
 bundle order.}
 
 \item{output}{Path to the output bundle PDF; defaults to
-\code{out/manuscript-bundle.pdf}.}
+\code{build/manuscript-bundle.pdf}.}
 }
 \value{
 Invisibly the bundle path.
@@ -28,7 +28,7 @@ unified pipeline log under \code{[bash][INFO][pdftk:bundle]}.
 assemble_bundle(
     c("figures/database-content/out/database-content.pdf",
       "figures/metalinks-versions/out/metalinks-versions.pdf"),
-    output = "out/manuscript-bundle.pdf"
+    output = "build/manuscript-bundle.pdf"
 )
 }
 

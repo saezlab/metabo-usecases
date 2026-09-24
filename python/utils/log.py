@@ -6,7 +6,7 @@ format documented in
 
     <ISO-8601-with-tz> [Python][<level>][<component>] <message>
 
-Falls back to ``logs/orphan-<PID>.log`` with a stderr warning when the
+Falls back to ``build/logs/orphan-<PID>.log`` with a stderr warning when the
 env var is missing.
 """
 
@@ -33,7 +33,7 @@ def _resolve_log_path() -> Path:
     if raw:
         return Path(raw)
 
-    fallback = Path("logs") / f"orphan-{os.getpid()}.log"
+    fallback = Path("build") / "logs" / f"orphan-{os.getpid()}.log"
     fallback.parent.mkdir(parents=True, exist_ok=True)
     os.environ["METABO_FIGURES_LOG"] = str(fallback)
     print(

@@ -14,7 +14,7 @@
 : "${METABO_FIGURES_LOG:=}"
 
 if [ -z "$METABO_FIGURES_LOG" ]; then
-    METABO_FIGURES_LOG="logs/orphan-$$.log"
+    METABO_FIGURES_LOG="build/logs/orphan-$$.log"
     mkdir -p "$(dirname "$METABO_FIGURES_LOG")"
     printf '[lib/log.sh] WARNING: METABO_FIGURES_LOG not set; using %s\n' \
         "$METABO_FIGURES_LOG" >&2

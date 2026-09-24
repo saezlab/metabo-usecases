@@ -16,13 +16,13 @@ test_that("R setup_pipeline_log writes lines in the contract format", {
     expect_match(lines[[1L]], pattern)
 })
 
-test_that("setup_pipeline_log falls back to logs/orphan-PID.log without env", {
+test_that("setup_pipeline_log falls back to build/logs/orphan-PID.log without env", {
 
     withr::with_envvar(c(METABO_FIGURES_LOG = ""), {
         withr::with_tempdir({
             expect_warning(setup_pipeline_log("test:fallback"))
-            expect_true(grepl("logs/orphan-", Sys.getenv("METABO_FIGURES_LOG")))
-            expect_true(dir.exists("logs"))
+            expect_true(grepl("build/logs/orphan-", Sys.getenv("METABO_FIGURES_LOG")))
+            expect_true(dir.exists(file.path("build", "logs")))
         })
     })
 })

@@ -168,7 +168,7 @@ sidecar_deployment_entry <- function(entry) {
 #' Convenience helper for \code{build.R} orchestrators: opens / reuses
 #' a panel-pool connection to \code{deployment}, reads
 #' \code{build_manifest} natively (cycle-001+), archives the manifest
-#' under \code{manifests/}, and returns both the augmented deployment
+#' under \code{build/manifests/}, and returns both the augmented deployment
 #' record (ready for the sidecar's \code{deployments} array) and the
 #' manifest itself (for \code{write_sidecar}'s parallel
 #' \code{manifests} arg).
@@ -176,7 +176,7 @@ sidecar_deployment_entry <- function(entry) {
 #' @param deployment Character: deployment label
 #'     (e.g. \code{"dev3"}, \code{"dev4"}).
 #' @param archive_dir Character: directory for the archived
-#'     manifest JSON / SHA256 files; defaults to \code{"manifests"}.
+#'     manifest JSON / SHA256 files; defaults to \code{"build/manifests"}.
 #'
 #' @return A list with two elements:
 #'   \itemize{
@@ -203,7 +203,7 @@ sidecar_deployment_entry <- function(entry) {
 #' @importFrom logger log_info
 #' @export
 deployment_provenance <- function(deployment,
-                                  archive_dir = "manifests",
+                                  archive_dir = file.path("build", "manifests"),
                                   allow_optin = FALSE) {
 
     record <- load_connection(

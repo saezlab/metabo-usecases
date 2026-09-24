@@ -96,7 +96,7 @@ usage <- function() c(
 
 setup_run_log <- function(args, snapshot_label = "pending") {
 
-    log_dir <- file.path(getwd(), "logs")
+    log_dir <- file.path(getwd(), "build", "logs")
     dir.create(log_dir, showWarnings = FALSE, recursive = TRUE)
     ts <- format(Sys.time(), "%Y%m%dT%H%M%S")
     log_path <- file.path(
@@ -263,7 +263,7 @@ main <- function() {
         if (length(pdfs) > 0L) {
             assemble_bundle(
                 sort_by_manuscript(pdfs),
-                output = "out/manuscript-bundle.pdf"
+                output = "build/manuscript-bundle.pdf"
             )
         }
     }

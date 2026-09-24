@@ -99,7 +99,7 @@ METABO_FIGURES_LOG=<absolute-path-to-log-file>
 ```
 
 Set automatically by `rebuild.R`. Scripts run outside `rebuild.R` (e.g.
-during development) fall back to `logs/orphan-<PID>.log` with a stderr
+during development) fall back to `build/logs/orphan-<PID>.log` with a stderr
 warning. See `specs/001-figures-pipeline/contracts/log-format.md` for the
 full contract.
 

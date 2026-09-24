@@ -52,13 +52,8 @@ python/.venv/
 *.blg
 
 # Pipeline runtime
-logs/rebuild-*.log
-logs/orphan-*.log
-logs/latest.log
+build/
 **/out/
-manifests/*.json
-manifests/*.SHA256
-manuscript-bundle.pdf
 
 # Environment
 .env
@@ -72,8 +67,6 @@ Thumbs.db
 .idea/
 
 # Keep the directories themselves
-!logs/.gitkeep
-!manifests/.gitkeep
 !**/out/.gitkeep
 
 # Local-preview drop zone (rsync'd from beauty for visual inspection)

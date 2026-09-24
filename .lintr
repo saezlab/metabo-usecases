@@ -25,6 +25,7 @@ exclusions: list(
     "tikz",
     "tex",
     "python",
+    "build",
     "logs",
     "out"
 )

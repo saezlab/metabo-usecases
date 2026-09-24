@@ -9,7 +9,7 @@
 #' @param pdf_paths Character vector of input PDF paths in the desired
 #'     bundle order.
 #' @param output Path to the output bundle PDF; defaults to
-#'     \code{out/manuscript-bundle.pdf}.
+#'     \code{build/manuscript-bundle.pdf}.
 #'
 #' @return Invisibly the bundle path.
 #'
@@ -18,7 +18,7 @@
 #' assemble_bundle(
 #'     c("figures/database-content/out/database-content.pdf",
 #'       "figures/metalinks-versions/out/metalinks-versions.pdf"),
-#'     output = "out/manuscript-bundle.pdf"
+#'     output = "build/manuscript-bundle.pdf"
 #' )
 #' }
 #'
@@ -27,7 +27,7 @@
 #' @importFrom logger log_info
 #' @export
 assemble_bundle <- function(pdf_paths,
-                            output = "out/manuscript-bundle.pdf") {
+                            output = "build/manuscript-bundle.pdf") {
 
     if (length(pdf_paths) == 0L) {
         rlang::abort("assemble_bundle() requires at least one input PDF")

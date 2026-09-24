@@ -78,7 +78,7 @@ The pipeline must run **where it can reach `127.0.0.1:540x`** — i.e. on beauty
 # 1. edit the figures code in your local clone
 # 2. push it to your beauty checkout (fast, no commit):
 rsync -az -e "ssh -p2323" --delete \
-  --exclude .git --exclude '*.Rproj.user' --exclude 'logs/' --exclude '.venv' \
+  --exclude .git --exclude '*.Rproj.user' --exclude 'build/' --exclude '.venv' \
   ~/omnipath-metabo/usecases/   omnipath@omnipathdb.org:~/figures-work/usecases/
 # 3. run it on beauty (DB is local there):
 ssh -p2323 omnipath@omnipathdb.org \

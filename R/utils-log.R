@@ -30,6 +30,7 @@ setup_pipeline_log <- function(component) {
 
     if (!nzchar(log_path)) {
         log_path <- file.path(
+            "build",
             "logs",
             sprintf("orphan-%d.log", Sys.getpid())
         )
