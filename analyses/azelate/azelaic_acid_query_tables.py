@@ -1276,7 +1276,7 @@ def build_relations_human(relation_query_hits: pd.DataFrame, direct_relations: p
     )
 
 
-def build_fig3_panel_c_data(relations: pd.DataFrame) -> pd.DataFrame:
+def build_interaction_types_by_source(relations: pd.DataFrame) -> pd.DataFrame:
     resolved = relations[relations["entity_resolution_status"].eq("resolved")].copy()
     rows = [
         {
@@ -1309,7 +1309,7 @@ def cancer_mask(df: pd.DataFrame) -> pd.Series:
     )
 
 
-def build_fig3_panel_d_data(macdb_long: pd.DataFrame) -> pd.DataFrame:
+def build_cancer_assoc_by_sample_type(macdb_long: pd.DataFrame) -> pd.DataFrame:
     if macdb_long.empty:
         return pd.DataFrame()
     cancer = macdb_long[macdb_long["matched_seed_resolution_status"].eq("resolved") & cancer_mask(macdb_long)].copy()
@@ -1447,8 +1447,8 @@ def build_supplement_tables(
     tables["food_occurrence"] = food_occurrence
     tables["metabolic_reactions"] = metabolic_reactions
     tables["macdb_associations"] = curate_macdb_associations(macdb_long)
-    tables["fig3_panel_C_data"] = build_fig3_panel_c_data(relations)
-    tables["fig3_panel_D_data"] = build_fig3_panel_d_data(macdb_long)
+    tables["interaction_types_by_source"] = build_interaction_types_by_source(relations)
+    tables["cancer_assoc_by_sample_type"] = build_cancer_assoc_by_sample_type(macdb_long)
     tables["fig_mindmap_data"] = build_fig_mindmap_data(mindmap_nodes, mindmap_edges)
     return tables
 
@@ -1475,8 +1475,8 @@ def save_outputs(tables: dict[str, pd.DataFrame], outdir: Path, figure_paths: di
         "food_occurrence": "FooDB/food occurrence relations linked to the queried seed entities.",
         "metabolic_reactions": "Direct metabolic reaction or transport relations linked to the queried seed entities.",
         "macdb_associations": "MACDB disease-association evidence in long format with original sample/tissue annotations retained.",
-        "fig3_panel_C_data": "Resolved-only source-by-interaction counts used for Fig. 3 panel C.",
-        "fig3_panel_D_data": "Resolved-only cancer association study-unit counts by disease type and sample type used for Fig. 3 panel D.",
+        "interaction_types_by_source": "Resolved-only source-by-interaction counts used for use-case figure panel C.",
+        "cancer_assoc_by_sample_type": "Resolved-only cancer association study-unit counts by disease type and sample type used for use-case figure panel D.",
         "fig_mindmap_data": "Resolved-only node and edge records used for the azelaic-acid/Azelate mindmap.",
     }
     legend = pd.DataFrame(
@@ -1569,9 +1569,14 @@ def make_manifest(
     return manifest_path
 
 
+# Paths relative to the repository root (this file: analyses/azelate/).
+REPO_ROOT = Path(__file__).resolve().parents[2]
+OUTDIR = REPO_ROOT / "data" / "derived" / "azelate"
+
+
 def run_pipeline(
     api_base: str = API_BASE,
-    outdir: str | Path = "outputs",
+    outdir: str | Path = OUTDIR,
     query_terms: list[str] | None = None,
     progress: bool = False,
 ) -> PipelineResult:

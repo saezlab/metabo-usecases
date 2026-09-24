@@ -19,9 +19,11 @@ import numpy as np
 import pandas as pd
 
 
-ROOT = Path("outputs")
+# Paths relative to the repository root (this file: analyses/azelate/).
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ROOT = REPO_ROOT / "data" / "derived" / "azelate"
 CSV_DIR = ROOT / "csvs"
-RICH_DIR = ROOT / "figures"
+RICH_DIR = REPO_ROOT / "analyses" / "azelate" / "output" / "figures"  # gitignored
 
 SOURCE_COLORS = {
     "chembl": "#31688e",
@@ -258,14 +260,14 @@ def make_extra_mindmap(tables: dict[str, pd.DataFrame], out_dir: Path) -> Path:
     return savefig(fig, out_dir / "extra_evidence_atlas_mindmap.png")
 
 
-def make_fig3_panel_D_cancer_stacked(tables: dict[str, pd.DataFrame], out_dir: Path) -> Path:
+def make_cancer_assoc_by_sample_type_plot(tables: dict[str, pd.DataFrame], out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
-    summary = tables["fig3_panel_D_data"].copy()
+    summary = tables["cancer_assoc_by_sample_type"].copy()
     if summary.empty:
         fig, ax = plt.subplots(figsize=(8, 4))
         ax.text(0.5, 0.5, "No resolved cancer association data available", ha="center", va="center")
         ax.axis("off")
-        return savefig(fig, out_dir / "fig3_panel_D_cancer_associations_sample_type.png")
+        return savefig(fig, out_dir / "cancer_assoc_by_sample_type.png")
     order = summary.groupby("disease_type")["evidence_count"].sum().sort_values(ascending=False).index
     pivot = summary.pivot_table(index="disease_type", columns="sample_type", values="evidence_count", aggfunc="sum", fill_value=0)
     tissue_order = [col for col in pivot.sum(axis=0).sort_values(ascending=False).index]
@@ -281,16 +283,16 @@ def make_fig3_panel_D_cancer_stacked(tables: dict[str, pd.DataFrame], out_dir: P
     ax.set_xticklabels([wrap(label, 18) for label in pivot.index], rotation=35, ha="right")
     for i, total in enumerate(pivot.sum(axis=1)):
         ax.text(i, total + 0.35, str(int(total)), ha="center", va="bottom", fontsize=9, color="#333333")
-    return savefig(fig, out_dir / "fig3_panel_D_cancer_associations_sample_type.png")
+    return savefig(fig, out_dir / "cancer_assoc_by_sample_type.png")
 
 
-def make_fig3_panel_C_interaction_type_barplot(tables: dict[str, pd.DataFrame], out_dir: Path) -> Path:
-    counts = tables["fig3_panel_C_data"].rename(columns={"relation_count": "count"}).copy()
+def make_interaction_types_by_source_plot(tables: dict[str, pd.DataFrame], out_dir: Path) -> Path:
+    counts = tables["interaction_types_by_source"].rename(columns={"relation_count": "count"}).copy()
     if counts.empty:
         fig, ax = plt.subplots(figsize=(8, 4))
         ax.text(0.5, 0.5, "No resolved interaction data available", ha="center", va="center")
         ax.axis("off")
-        return savefig(fig, out_dir / "fig3_panel_C_interaction_type_barplot.png")
+        return savefig(fig, out_dir / "interaction_types_by_source.png")
     order = counts.groupby("interaction_type")["count"].sum().sort_values(ascending=False).index
     source_order = counts.groupby("source")["count"].sum().sort_values(ascending=False).index
     pivot = counts.pivot_table(index="interaction_type", columns="source", values="count", aggfunc="sum", fill_value=0)
@@ -306,7 +308,7 @@ def make_fig3_panel_C_interaction_type_barplot(tables: dict[str, pd.DataFrame], 
     ax.legend(title="Source", bbox_to_anchor=(1.02, 1), loc="upper left")
     for i, total in enumerate(pivot.sum(axis=1)):
         ax.text(i, total + 0.35, str(int(total)), ha="center", va="bottom", fontsize=9)
-    return savefig(fig, out_dir / "fig3_panel_C_interaction_type_barplot.png")
+    return savefig(fig, out_dir / "interaction_types_by_source.png")
 
 
 def make_extra_target_type_by_source(tables: dict[str, pd.DataFrame], out_dir: Path) -> Path:
@@ -335,13 +337,13 @@ def make_extra_target_type_by_source(tables: dict[str, pd.DataFrame], out_dir: P
 def make_all_visualizations(root: Path = ROOT, out_dir: Path | None = None) -> pd.DataFrame:
     set_style()
     csv_dir = root / "csvs"
-    out_dir = out_dir or (root / "figures")
+    out_dir = out_dir or RICH_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     tables = resolved_tables_for_plots(load_tables(csv_dir))
 
     figure_funcs = [
-        ("main_fig3_panel", "C", "Interaction type by source", make_fig3_panel_C_interaction_type_barplot),
-        ("main_fig3_panel", "D", "Cancer associations by sample type", make_fig3_panel_D_cancer_stacked),
+        ("main_panel", "C", "Interaction type by source", make_interaction_types_by_source_plot),
+        ("main_panel", "D", "Cancer associations by sample type", make_cancer_assoc_by_sample_type_plot),
         ("extra", "", "Evidence atlas mindmap", make_extra_mindmap),
         ("extra", "", "Target type by source", make_extra_target_type_by_source),
     ]

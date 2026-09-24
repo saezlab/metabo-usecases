@@ -1,6 +1,8 @@
 # Azelate OmniPath FastAPI Queries, Figures, and Supplementary Tables
 
-This folder contains the azelate OmniPath metabo FastAPI workflow, including plots and tables generation code.
+Azelate evidence retrieval from the OmniPath Metabo FastAPI (Daniele
+Bottazzi), part of the cancer cell lines use case. It produces the data for
+Figure 6 panels C and D and the azelate supplementary workbook.
 
 ## What Is Queried
 
@@ -17,26 +19,40 @@ The two source-specific records are retained in the supplement tables as `unreso
 ## Folder Contents
 
 ```text
-notebooks/
-  azelaic_acid_query_tables.py
-  azelaic_acid_query_tables.ipynb
-  azelaic_acid_plots.py
-  azelaic_acid_plots.ipynb
+analyses/azelate/                 code (this folder)
+  azelaic_acid_query_tables.py      API queries -> tables, workbook, manifest
+  azelaic_acid_query_tables.ipynb   notebook wrapper around the .py module
+  azelaic_acid_plots.py             preview plots from the CSVs
+  azelaic_acid_plots.ipynb          notebook wrapper around the .py module
+  output/figures/                   preview plots (gitignored)
 
-outputs/
+data/derived/azelate/             results (tracked)
   azelaic_acid_tables.xlsx
   manifest.json
   csvs/
-  figures/
 ```
+
+Figure 6 reads `csvs/interaction_types_by_source.csv` (panel C) and
+`csvs/cancer_assoc_by_sample_type.csv` (panel D) and draws its own panels in
+R. The PNGs written by `azelaic_acid_plots.py` are only previews.
 
 ## Main Outputs
 
 The main supplement workbook is:
 
 ```text
-outputs/azelaic_acid_tables.xlsx
+data/derived/azelate/azelaic_acid_tables.xlsx
 ```
+
+Planned: the workbook is a paper deliverable and should become a `tables/`
+artifact that `rebuild.sh` builds from the CSVs in `data/derived/azelate/`,
+with a caption and provenance. Until then the query script writes it
+directly.
+
+Note: the tracked workbook and `manifest.json` date from the 2026-06-03
+run, before the rename, so their sheet and table names are still
+`fig3_panel_C_data` and `fig3_panel_D_data`. The CSVs have already been
+renamed; the next run brings all of them in line.
 
 Workbook sheets:
 - `legend`: Sheet descriptions and row/column counts.
@@ -47,23 +63,20 @@ Workbook sheets:
 - `food_occurrence`: FooDB/food occurrence relations.
 - `metabolic_reactions`: Direct metabolic reaction or transport relations.
 - `macdb_associations`: MACDB disease-association evidence in long format.
-- `fig3_panel_C_data`: Resolved-only data for the interaction-type/source stacked barplot.
-- `fig3_panel_D_data`: Resolved-only cancer association counts by disease type and sample type.
+- `interaction_types_by_source`: Resolved-only data for the interaction-type/source stacked barplot.
+- `cancer_assoc_by_sample_type`: Resolved-only cancer association counts by disease type and sample type.
 - `fig_mindmap_data`: Resolved-only node/edge data for the mindmap.
 
 The `csvs/` folder contains one CSV per workbook data sheet.
 
 ## Figures
 
-Generated figures are in:
-
-```text
-outputs/figures/
-```
+Preview figures are written to `analyses/azelate/output/figures/`
+(gitignored).
 
 Main figure panels:
-- `fig3_panel_C_interaction_type_barplot.png`
-- `fig3_panel_D_cancer_associations_sample_type.png`
+- `interaction_types_by_source.png`
+- `cancer_assoc_by_sample_type.png`
 
 Extra figures:
 - `extra_evidence_atlas_mindmap.png`
@@ -73,16 +86,17 @@ Extra figures:
 
 ## Regenerate Tables And Workbook
 
-From this folder:
+From the repository root (paths are resolved relative to the scripts, so
+any working directory works):
 
 ```bash
-python3 -u notebooks/azelaic_acid_query_tables.py
+python3 -u analyses/azelate/azelaic_acid_query_tables.py
 ```
 
-This regenerates:
-- `outputs/csvs/*.csv`
-- `outputs/azelaic_acid_tables.xlsx`
-- `outputs/manifest.json`
+This regenerates, in `data/derived/azelate/`:
+- `csvs/*.csv`
+- `azelaic_acid_tables.xlsx`
+- `manifest.json`
 
 The script uses live FastAPI calls, so network access to `https://dev.omnipathdb.org/api` is required.
 
@@ -91,14 +105,11 @@ The script uses live FastAPI calls, so network access to `https://dev.omnipathdb
 Run the figure script after regenerating the tables:
 
 ```bash
-python3 -u notebooks/azelaic_acid_plots.py
+python3 -u analyses/azelate/azelaic_acid_plots.py
 ```
 
-This reads the curated CSVs and writes figures into:
-
-```text
-outputs/figures/
-```
+This reads the CSVs and writes preview figures into
+`analyses/azelate/output/figures/`.
 
 Plots use only rows marked `resolved`. Unresolved seed records remain in the supplement workbook/CSVs.
 
@@ -107,8 +118,8 @@ Plots use only rows marked `resolved`. Unresolved seed records remain in the sup
 From this folder:
 
 ```bash
-jupyter nbconvert --execute --to notebook --inplace notebooks/azelaic_acid_query_tables.ipynb --ExecutePreprocessor.timeout=1200
-jupyter nbconvert --execute --to notebook --inplace notebooks/azelaic_acid_plots.ipynb --ExecutePreprocessor.timeout=600
+jupyter nbconvert --execute --to notebook --inplace azelaic_acid_query_tables.ipynb --ExecutePreprocessor.timeout=1200
+jupyter nbconvert --execute --to notebook --inplace azelaic_acid_plots.ipynb --ExecutePreprocessor.timeout=600
 ```
 
 Run the extraction notebook before the visualization notebook.

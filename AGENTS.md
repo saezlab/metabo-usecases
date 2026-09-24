@@ -18,7 +18,6 @@ used for the first preprint.
 | `python/`, `tex/`, `lib/` | Python, LaTeX and bash helpers used by the pipeline. |
 | `inst/extdata/` | Vendored snapshots and manually made assets. |
 | `docs/` | `CONFIGURATION.md` (connection config), `DB_ACCESS.md` (database access on beauty). |
-| `omnipath_metabo_case1/` | Legacy folder: COSMOS-PKN extension and azelate notebooks, still to be moved. |
 
 ## Rules
 

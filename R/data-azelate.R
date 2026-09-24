@@ -1,14 +1,14 @@
 #' Load the azelate Panel C source table
 #'
 #' Reads
-#' \code{omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_C_data.csv}
+#' \code{data/derived/azelate/csvs/interaction_types_by_source.csv}
 #' — the resolved-only interaction-type × source × relation-count
 #' table produced by
-#' \code{omnipath_metabo_case1/azelate_fig_tables/notebooks/azelaic_acid_query_tables.py}.
+#' \code{analyses/azelate/azelaic_acid_query_tables.py}.
 #' Drives Figure 6 Panel C (interaction-type composition for the
 #' resolved \emph{Azelate} entity, stacked by upstream source).
 #'
-#' @param csv_path Character: path to \code{fig3_panel_C_data.csv}.
+#' @param csv_path Character: path to \code{interaction_types_by_source.csv}.
 #'     Defaults to the repo-relative vendored location.
 #'
 #' @return A tibble with columns \code{interaction_type},
@@ -28,11 +28,11 @@
 #' @export
 azelate_panel_c_data <- function(
     csv_path = file.path(
-        "omnipath_metabo_case1",
-        "azelate_fig_tables",
-        "outputs",
+        "data",
+        "derived",
+        "azelate",
         "csvs",
-        "fig3_panel_C_data.csv"
+        "interaction_types_by_source.csv"
     )
 ) {
 
@@ -41,7 +41,7 @@ azelate_panel_c_data <- function(
             paste0(
                 "Azelate Panel C source CSV not found at %s. ",
                 "Regenerate via azelaic_acid_query_tables.py per ",
-                "omnipath_metabo_case1/azelate_fig_tables/README.md."
+                "analyses/azelate/README.md."
             ),
             csv_path
         ))
@@ -72,12 +72,12 @@ azelate_panel_c_data <- function(
 #' Load the azelate Panel D source table
 #'
 #' Reads
-#' \code{omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_D_data.csv}
+#' \code{data/derived/azelate/csvs/cancer_assoc_by_sample_type.csv}
 #' — the resolved-only cancer-association table grouped by disease
 #' type and sample (tissue) type, produced by the same azelate
 #' extraction notebook as Panel C. Drives Figure 6 Panel D.
 #'
-#' @param csv_path Character: path to \code{fig3_panel_D_data.csv}.
+#' @param csv_path Character: path to \code{cancer_assoc_by_sample_type.csv}.
 #'     Defaults to the repo-relative vendored location.
 #'
 #' @return A tibble with columns \code{disease_type},
@@ -95,11 +95,11 @@ azelate_panel_c_data <- function(
 #' @export
 azelate_panel_d_data <- function(
     csv_path = file.path(
-        "omnipath_metabo_case1",
-        "azelate_fig_tables",
-        "outputs",
+        "data",
+        "derived",
+        "azelate",
         "csvs",
-        "fig3_panel_D_data.csv"
+        "cancer_assoc_by_sample_type.csv"
     )
 ) {
 
@@ -108,7 +108,7 @@ azelate_panel_d_data <- function(
             paste0(
                 "Azelate Panel D source CSV not found at %s. ",
                 "Regenerate via azelaic_acid_query_tables.py per ",
-                "omnipath_metabo_case1/azelate_fig_tables/README.md."
+                "analyses/azelate/README.md."
             ),
             csv_path
         ))
