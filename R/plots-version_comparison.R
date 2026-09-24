@@ -121,7 +121,7 @@ pretty_relation_type <- function(x) {
 #' @importFrom tibble tibble
 #' @keywords internal
 #' @noRd
-empty_fig03_panel <- function(title, subtitle, width_mm = 89L) {
+empty_metalinks_panel <- function(title, subtitle, width_mm = 89L) {
     ggplot2::ggplot(
         tibble::tibble(label = subtitle, value = 0, fill_hex = '#BEBEBE'),
         ggplot2::aes(x = label, y = value, fill = fill_hex)
@@ -142,13 +142,13 @@ empty_fig03_panel <- function(title, subtitle, width_mm = 89L) {
 #' @importFrom ggplot2 ggplot aes geom_col labs scale_fill_manual theme
 #' @importFrom rlang .data
 #' @export
-fig03_coverage_panel <- function(data, width_mm = 180L) {
+metalinks_coverage_panel <- function(data, width_mm = 180L) {
 
     resource <- metric <- n <- NULL
 
     summary <- summarize_mpi_coverage(data)
     if (nrow(summary) == 0L) {
-        return(empty_fig03_panel(
+        return(empty_metalinks_panel(
             title = 'Coverage',
             subtitle = 'No comparable resources available',
             width_mm = width_mm
@@ -198,7 +198,7 @@ fig03_coverage_panel <- function(data, width_mm = 180L) {
 #' @importFrom ggplot2 ggplot aes geom_col coord_flip labs scale_fill_identity theme
 #' @importFrom rlang .data
 #' @export
-fig03_metabolite_class_panel <- function(data,
+metalinks_metabolite_class_panel <- function(data,
                                          width_mm = 180L,
                                          top_n = 10L) {
 
@@ -212,7 +212,7 @@ fig03_metabolite_class_panel <- function(data,
     )
 
     if (nrow(class_counts) == 0L) {
-        return(empty_fig03_panel(
+        return(empty_metalinks_panel(
             title = 'Metabolite classes',
             subtitle = 'No metabolite-class annotations available',
             width_mm = width_mm
@@ -288,7 +288,7 @@ fig03_metabolite_class_panel <- function(data,
 #' @importFrom ggplot2 ggplot aes geom_col coord_flip labs scale_fill_identity theme
 #' @importFrom rlang .data
 #' @export
-fig03_protein_class_panel <- function(data,
+metalinks_protein_class_panel <- function(data,
                                       width_mm = 180L,
                                       top_n = 10L) {
 
@@ -349,7 +349,7 @@ fig03_protein_class_panel <- function(data,
     )
 
     if (nrow(class_counts) == 0L) {
-        return(empty_fig03_panel(
+        return(empty_metalinks_panel(
             title = 'Protein classes',
             subtitle = 'No protein-class annotations available',
             width_mm = width_mm
@@ -416,7 +416,7 @@ fig03_protein_class_panel <- function(data,
 #' @importFrom ggplot2 scale_fill_manual theme position_dodge2
 #' @importFrom rlang .data
 #' @export
-fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
+metalinks_overview_panel <- function(data, width_mm = 180L) {
 
     resource <- source <- metric <- n <- NULL
 
@@ -425,7 +425,7 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
     )
 
     if (nrow(metalinks) == 0L) {
-        return(empty_fig03_panel(
+        return(empty_metalinks_panel(
             title    = 'MetaLinksDB 2.0 overview',
             subtitle = 'No MetaLinksDB v2.0 rows available',
             width_mm = width_mm
@@ -505,7 +505,7 @@ fig03_metalinks_overview_panel <- function(data, width_mm = 180L) {
 #' @importFrom ggplot2 scale_fill_manual theme position_dodge2
 #' @importFrom rlang .data
 #' @export
-fig03_relationship_types_panel <- function(data, width_mm = 180L) {
+metalinks_relationship_types_panel <- function(data, width_mm = 180L) {
 
     source <- relation_type <- n <- NULL
 
@@ -520,7 +520,7 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
     )
 
     if (nrow(sub) == 0L) {
-        return(empty_fig03_panel(
+        return(empty_metalinks_panel(
             title    = "Relationship types",
             subtitle = "No transport / interaction / lr / pd rows",
             width_mm = width_mm
@@ -629,7 +629,7 @@ fig03_relationship_types_panel <- function(data, width_mm = 180L) {
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-fig04_cosmos_comparison_panel <- function(
+cosmos_comparison_panel <- function(
     old_pkn_tally,
     cosmos_plus_by_type_species,
     protein_omnipath_counts = NULL,
@@ -782,7 +782,7 @@ fig04_cosmos_comparison_panel <- function(
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-fig04_compartment_panel <- function(
+cosmos_compartment_panel <- function(
     cosmos_plus_by_compartment,
     top_n    = 12L,
     width_mm = 89L
@@ -932,7 +932,7 @@ fig04_compartment_panel <- function(
 #' @importFrom tibble tibble
 #' @importFrom rlang .data abort
 #' @export
-fig04_resource_contribution_panel <- function(
+cosmos_resource_contribution_panel <- function(
     cosmos_plus_by_resource,
     top_n    = 15L,
     width_mm = 89L,
@@ -1069,7 +1069,7 @@ fig04_resource_contribution_panel <- function(
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-fig04_metalinks_cosmos_panel <- function(
+metalinks_cosmos_panel <- function(
     metalinks_counts,
     cosmos_plus_by_type_species,
     width_mm = 120L

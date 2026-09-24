@@ -3,7 +3,7 @@
 # Orchestrates the Figure 2 build (post-2026-06-14 six-figure
 # renumbering): queries dev5 for the FR-007 quantitative panel data,
 # renders every FR-007a..f variant + the composite-selected subset
-# (A: fr007a-total, B: fr007e, C: fr007c, D: fr007d) via ggplot,
+# (A: resource-overview-total, B: specificity, C: resource-overlap, D: entity-interaction) via ggplot,
 # composes via tex/compose_fig02.tex, and writes the provenance
 # sidecar. The architecture asset (formerly Panel A) and the FR-043
 # statistics digest moved to Figure 1 — see
@@ -144,40 +144,40 @@ for (name in names(panels)) {
 # facet_*_bitmap path (expected ~10s) per the cycle-001 contract.
 
 logger::log_info("FR-007a — running 6-facet overview")
-fr007a_data <- fr007a_overview()
+resource_overview_data <- resource_overview_overview()
 
 # Append the queries to the sidecar's queries list so every value
 # traces back. Use a single placeholder record at the moment — each
 # per-facet query is logged via pg_query_panel and its hash is
 # captured there; we don't currently combine them into one record.
 queries <- c(queries, list(
-    list(sql = "fr007a_overview()", row_count = nrow(fr007a_data),
+    list(sql = "resource_overview_overview()", row_count = nrow(resource_overview_data),
          result_hash = substr(
-             digest::digest(fr007a_data, algo = "sha256"), 1L, 12L
+             digest::digest(resource_overview_data, algo = "sha256"), 1L, 12L
          ))
 ))
 
-fr007a_plot <- plot_fr007a_overview(fr007a_data, width_mm = 320L)
+resource_overview_plot <- plot_resource_overview(resource_overview_data, width_mm = 320L)
 # Full 6-facet × per-band resource matrix — moves to supplementary
 # in the iteration plan; still emitted as a stand-alone artifact.
-ggsave(file.path(out_dir, "fr007a-overview-supplementary.pdf"), fr007a_plot,
+ggsave(file.path(out_dir, "resource-overview-supplementary.pdf"), resource_overview_plot,
        width = 320, height = 200, units = "mm")
-ggsave(file.path(out_dir, "fr007a-overview-supplementary.svg"), fr007a_plot,
+ggsave(file.path(out_dir, "resource-overview-supplementary.svg"), resource_overview_plot,
        width = 320, height = 200, units = "mm")
 logger::log_info(
     "FR-007a overview (supplementary) written to ",
-    "{out_dir}/fr007a-overview-supplementary.{{pdf,svg}}"
+    "{out_dir}/resource-overview-supplementary.{{pdf,svg}}"
 )
 
 # Tiny "Total-only" variant — 6 facets stacked vertically, one pair
 # of horizontal bars each. This is the candidate for the main
 # composite Figure 1.
-fr007a_total_plot <- plot_fr007a_total(fr007a_data, width_mm = 180L)
-ggsave(file.path(out_dir, "fr007a-total.pdf"), fr007a_total_plot,
+resource_overview_total_plot <- plot_resource_overview_total(resource_overview_data, width_mm = 180L)
+ggsave(file.path(out_dir, "resource-overview-total.pdf"), resource_overview_total_plot,
        width = 180, height = 200, units = "mm")
-ggsave(file.path(out_dir, "fr007a-total.svg"), fr007a_total_plot,
+ggsave(file.path(out_dir, "resource-overview-total.svg"), resource_overview_total_plot,
        width = 180, height = 200, units = "mm")
-logger::log_info("FR-007a total written to {out_dir}/fr007a-total.{{pdf,svg}}")
+logger::log_info("FR-007a total written to {out_dir}/resource-overview-total.{{pdf,svg}}")
 
 # ---- FR-007e — structural specificity × chemical category (dev5) ----------
 #
@@ -185,111 +185,111 @@ logger::log_info("FR-007a total written to {out_dir}/fr007a-total.{{pdf,svg}}")
 # metabolic_domain on dev5 (~25 ms data layer). Stand-alone artifact.
 
 logger::log_info("FR-007e — running specificity x category")
-fr007e_data <- fr007e_specificity_by_category()
+specificity_data <- specificity_by_category()
 queries <- c(queries, list(
-    list(sql = "fr007e_specificity_by_category()",
-         row_count = nrow(fr007e_data),
+    list(sql = "specificity_by_category()",
+         row_count = nrow(specificity_data),
          result_hash = substr(
-             digest::digest(fr007e_data, algo = "sha256"), 1L, 12L
+             digest::digest(specificity_data, algo = "sha256"), 1L, 12L
          ))
 ))
-fr007e_plot <- plot_fr007e(fr007e_data, width_mm = 180L)
-ggsave(file.path(out_dir, "fr007e-specificity.pdf"), fr007e_plot,
+specificity_plot <- plot_specificity_by_category(specificity_data, width_mm = 180L)
+ggsave(file.path(out_dir, "specificity-by-category.pdf"), specificity_plot,
        width = 180, height = 110, units = "mm")
-ggsave(file.path(out_dir, "fr007e-specificity.svg"), fr007e_plot,
+ggsave(file.path(out_dir, "specificity-by-category.svg"), specificity_plot,
        width = 180, height = 110, units = "mm")
-logger::log_info("FR-007e specificity written to {out_dir}/fr007e-specificity.{{pdf,svg}}")
+logger::log_info("FR-007e specificity written to {out_dir}/specificity-by-category.{{pdf,svg}}")
 
 # ---- FR-007b — coverage profile (Entities / Molecular / Structures) -------
 
 logger::log_info("FR-007b — running coverage profile (all variants)")
-fr007b_data <- fr007b_coverage("all")
+coverage_profile_data <- coverage_profile("all")
 queries <- c(queries, list(
-    list(sql = "fr007b_coverage(\"all\")",
-         row_count = nrow(fr007b_data),
+    list(sql = "coverage_profile(\"all\")",
+         row_count = nrow(coverage_profile_data),
          result_hash = substr(
-             digest::digest(fr007b_data, algo = "sha256"), 1L, 12L
+             digest::digest(coverage_profile_data, algo = "sha256"), 1L, 12L
          ))
 ))
-fr007b_plot <- plot_fr007b_coverage(fr007b_data, width_mm = 180L)
-ggsave(file.path(out_dir, "fr007b-coverage.pdf"), fr007b_plot,
+coverage_profile_plot <- plot_coverage_profile(coverage_profile_data, width_mm = 180L)
+ggsave(file.path(out_dir, "coverage-profile.pdf"), coverage_profile_plot,
        width = 180, height = 100, units = "mm")
-ggsave(file.path(out_dir, "fr007b-coverage.svg"), fr007b_plot,
+ggsave(file.path(out_dir, "coverage-profile.svg"), coverage_profile_plot,
        width = 180, height = 100, units = "mm")
-logger::log_info("FR-007b coverage written to {out_dir}/fr007b-coverage.{{pdf,svg}}")
+logger::log_info("FR-007b coverage written to {out_dir}/coverage-profile.{{pdf,svg}}")
 
 # ---- FR-007d — entity x interaction-type matrix (top participant types) ---
 
 logger::log_info("FR-007d — running entity x interaction-type matrix")
-fr007d_data <- fr007d_entity_x_interaction(n_types = 8L)
+entity_interaction_data <- entity_by_interaction_type(n_types = 8L)
 queries <- c(queries, list(
-    list(sql = "fr007d_entity_x_interaction()",
-         row_count = nrow(fr007d_data),
+    list(sql = "entity_by_interaction_type()",
+         row_count = nrow(entity_interaction_data),
          result_hash = substr(
-             digest::digest(fr007d_data, algo = "sha256"), 1L, 12L
+             digest::digest(entity_interaction_data, algo = "sha256"), 1L, 12L
          ))
 ))
-fr007d_plot <- plot_fr007d_matrix(fr007d_data, width_mm = 180L)
-ggsave(file.path(out_dir, "fr007d-matrix.pdf"), fr007d_plot,
+entity_interaction_plot <- plot_entity_interaction_matrix(entity_interaction_data, width_mm = 180L)
+ggsave(file.path(out_dir, "entity-interaction-matrix.pdf"), entity_interaction_plot,
        width = 180, height = 180, units = "mm")
-ggsave(file.path(out_dir, "fr007d-matrix.svg"), fr007d_plot,
+ggsave(file.path(out_dir, "entity-interaction-matrix.svg"), entity_interaction_plot,
        width = 180, height = 180, units = "mm")
-logger::log_info("FR-007d matrix written to {out_dir}/fr007d-matrix.{{pdf,svg}}")
+logger::log_info("FR-007d matrix written to {out_dir}/entity-interaction-matrix.{{pdf,svg}}")
 
 # ---- FR-007c — resource-overlap networks (Molecular entities, Interactions)
 
 logger::log_info("FR-007c — running resource overlap networks")
-fr007c_data <- fr007c_overlap()
+resource_overlap_data <- resource_overlap()
 queries <- c(queries, list(
-    list(sql = "fr007c_overlap()",
-         row_count = nrow(fr007c_data),
+    list(sql = "resource_overlap()",
+         row_count = nrow(resource_overlap_data),
          result_hash = substr(
-             digest::digest(fr007c_data, algo = "sha256"), 1L, 12L
+             digest::digest(resource_overlap_data, algo = "sha256"), 1L, 12L
          ))
 ))
-fr007c_plot <- plot_fr007c_networks(fr007c_data,
+resource_overlap_plot <- plot_resource_overlap(resource_overlap_data,
                                     min_overlap = 100L,
                                     width_mm    = 320L)
-ggsave(file.path(out_dir, "fr007c-networks.pdf"), fr007c_plot,
+ggsave(file.path(out_dir, "resource-overlap-networks.pdf"), resource_overlap_plot,
        width = 320, height = 160, units = "mm")
-ggsave(file.path(out_dir, "fr007c-networks.svg"), fr007c_plot,
+ggsave(file.path(out_dir, "resource-overlap-networks.svg"), resource_overlap_plot,
        width = 320, height = 160, units = "mm")
-logger::log_info("FR-007c networks written to {out_dir}/fr007c-networks.{{pdf,svg}}")
+logger::log_info("FR-007c networks written to {out_dir}/resource-overlap-networks.{{pdf,svg}}")
 
 # ---- Composite -------------------------------------------------------------
 #
 # Post-2026-06-14 six-figure renumbering: the architecture asset
 # moved to Figure 1 (figures/architecture/). Figure 2's
 # composite assembles the four FR-007 panels via patchwork —
-# A: fr007a-total spans the full 180 mm top row (~80 mm tall, six
+# A: resource-overview-total spans the full 180 mm top row (~80 mm tall, six
 # horizontal facets), B/C/D fill the bottom row at ~60 mm wide each
 # (~80 mm tall). Half-page composite ~180 × 160 mm.
 
 logger::log_info("Composing Figure 2 (patchwork: A wide / B,C,D row)")
 
-# Use patchwork wrap_elements() to make the inner fr007a-total
+# Use patchwork wrap_elements() to make the inner resource-overview-total
 # patchwork an atomic unit so its 6 sub-facets don't get
 # auto-tagged. Outer-level plot_annotation(tag_levels = "A") then
 # assigns A / B / C / D to the four top-level slots.
-# Wrap every nested patchwork (fr007a-total is a 6-facet row;
-# fr007c is a 2-network row) in wrap_elements() so the outer
+# Wrap every nested patchwork (resource-overview-total is a 6-facet row;
+# resource-overlap is a 2-network row) in wrap_elements() so the outer
 # composite treats them as atomic cells. Without this, the inner
 # plot_layout / plot_annotation calls bleed up into the outer
 # grid.
 #
 # Layout (180 × 180 mm, portrait):
-#   row 1 — A: fr007a-total           full width × ~45 mm
-#   row 2 — B: fr007c networks        full width × ~80 mm
-#   row 3 — C: fr007e | D: fr007d     1/3 + 2/3 width × ~55 mm
+#   row 1 — A: resource-overview-total           full width × ~45 mm
+#   row 2 — B: resource-overlap networks        full width × ~80 mm
+#   row 3 — C: specificity | D: entity-interaction     1/3 + 2/3 width × ~55 mm
 #
 # The top row is flat by design — each facet has just 2 bars,
 # so a thicker top row would make those bars top-heavy. Row 3's
-# 1:2 width split gives fr007d (8 entity-type facets, 2x4 grid)
-# the room it needs while fr007e (6 chemical-category facets,
+# 1:2 width split gives entity-interaction (8 entity-type facets, 2x4 grid)
+# the room it needs while specificity (6 chemical-category facets,
 # 2x3 grid) compresses comfortably.
 bottom_row <- (
-    patchwork::wrap_elements(full = fr007e_plot) |
-    patchwork::wrap_elements(full = fr007d_plot)
+    patchwork::wrap_elements(full = specificity_plot) |
+    patchwork::wrap_elements(full = entity_interaction_plot)
 ) +
     # C : D = 2 : 3 (≈72 mm : 108 mm at 180 mm composite width).
     # Slightly wider C than the previous 1 : 2 split so the
@@ -299,9 +299,9 @@ bottom_row <- (
     patchwork::plot_layout(widths = c(2, 3))
 
 composite <- (
-    patchwork::wrap_elements(full = fr007a_total_plot)
+    patchwork::wrap_elements(full = resource_overview_total_plot)
     /
-    patchwork::wrap_elements(full = fr007c_plot)
+    patchwork::wrap_elements(full = resource_overlap_plot)
     /
     bottom_row
 ) +
@@ -337,8 +337,8 @@ logger::log_info(
 
 # ---- Caption (FR-040..FR-041a, SC-011) -------------------------------------
 #
-# Figure 2 is a four-panel composite (A: fr007a-total, B: fr007e,
-# C: fr007c, D: fr007d). FR-041b requires the caption's (a)/(b)/(c)/(d)
+# Figure 2 is a four-panel composite (A: resource-overview-total, B: specificity,
+# C: resource-overlap, D: entity-interaction). FR-041b requires the caption's (a)/(b)/(c)/(d)
 # sub-letter count to equal the composite panel count (4).
 
 caption_info <- compose_caption(

@@ -18,21 +18,21 @@ panels:
   - id: panel_comparison
     label: "B"
     mode: pipeline
-    renderer: fig04_cosmos_comparison_panel
+    renderer: cosmos_comparison_panel
     selected: true
     description: "Species-aware comparison of old COSMOS PKN vs. COSMOS+ by interaction type (FR-011a)"
 
   - id: panel_compartment
     label: "C"
     mode: pipeline
-    renderer: fig04_compartment_panel
+    renderer: cosmos_compartment_panel
     selected: true
     description: "COSMOS+ interactions per annotated subcellular compartment (FR-011b)"
 
   - id: panel_resource
     label: "D"
     mode: pipeline
-    renderer: fig04_resource_contribution_panel
+    renderer: cosmos_resource_contribution_panel
     selected: true
     description: "Entity and interaction counts per contributing resource in COSMOS+ (FR-011c; by_resource_split, dodged)"
 
@@ -40,7 +40,7 @@ panels:
 standalone:
   - id: panel_metalinks
     mode: pipeline
-    renderer: fig04_metalinks_cosmos_panel
+    renderer: metalinks_cosmos_panel
     selected: false
     description: "MetaLinksDB 2.0 vs. COSMOS+ comparison by interaction type (FR-011d; standalone)"
 

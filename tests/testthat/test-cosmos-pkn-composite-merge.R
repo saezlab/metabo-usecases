@@ -26,7 +26,7 @@ test_that("comparison panel folds catalysis into metabolic_reactions", {
         n_interactions   = c(50L, 30L, 40L)
     )
 
-    p <- fig04_cosmos_comparison_panel(old_pkn, new_by_type_species)
+    p <- cosmos_comparison_panel(old_pkn, new_by_type_species)
     expect_s3_class(p, "gg")
 
     types <- as.character(unique(p$data$interaction_type))
@@ -45,7 +45,7 @@ test_that("comparison panel keeps three species groups", {
         n_interactions   = c(30L, 20L)
     )
 
-    p <- fig04_cosmos_comparison_panel(old_pkn, new_by_type_species)
+    p <- cosmos_comparison_panel(old_pkn, new_by_type_species)
     groups <- as.character(unique(p$data$panel_group))
     expect_setequal(
         groups,
@@ -107,7 +107,7 @@ test_that("composition.yaml declares the four-panel composite", {
         function(p) if (is.null(p$renderer)) NA_character_ else p$renderer,
         character(1L)
     )
-    expect_true("fig04_cosmos_comparison_panel" %in% renderers)
+    expect_true("cosmos_comparison_panel" %in% renderers)
 
     # MetaLinksDB panel must be standalone, not composited.
     standalone <- if (is.null(cfg$standalone)) list() else cfg$standalone
@@ -116,5 +116,5 @@ test_that("composition.yaml declares the four-panel composite", {
         function(p) if (is.null(p$renderer)) NA_character_ else p$renderer,
         character(1L)
     )
-    expect_true("fig04_metalinks_cosmos_panel" %in% standalone_renderers)
+    expect_true("metalinks_cosmos_panel" %in% standalone_renderers)
 })

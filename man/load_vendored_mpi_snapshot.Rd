@@ -6,7 +6,7 @@
 \usage{
 load_vendored_mpi_snapshot(
   resource,
-  root = fig03_baseline_dir(),
+  root = mpi_baseline_dir(),
   required = FALSE
 )
 }

@@ -89,9 +89,9 @@ all_rows <- c(
     list(metalinks_v2, v1$data),
     baselines
 )
-fig03_rows <- do.call(dplyr::bind_rows, all_rows)
+mpi_rows <- do.call(dplyr::bind_rows, all_rows)
 
-resources <- sort(unique(fig03_rows$resource))
+resources <- sort(unique(mpi_rows$resource))
 register_category_colours(
     'resources',
     setNames(
@@ -100,7 +100,7 @@ register_category_colours(
     )
 )
 
-relation_types <- sort(unique(fig03_rows$relation_type))
+relation_types <- sort(unique(mpi_rows$relation_type))
 register_category_colours(
     'interaction_types',
     setNames(
@@ -110,12 +110,12 @@ register_category_colours(
 )
 
 panels <- list(
-    coverage            = fig03_coverage_panel(fig03_rows, width_mm = 60L),
-    metabolite_classes  = fig03_metabolite_class_panel(fig03_rows, width_mm = 60L),
-    protein_classes     = fig03_protein_class_panel(fig03_rows, width_mm = 60L),
+    coverage            = metalinks_coverage_panel(mpi_rows, width_mm = 60L),
+    metabolite_classes  = metalinks_metabolite_class_panel(mpi_rows, width_mm = 60L),
+    protein_classes     = metalinks_protein_class_panel(mpi_rows, width_mm = 60L),
     # FR-010d Panel D + FR-010e Panel E (Session 2026-06-15 review).
-    metalinks_overview  = fig03_metalinks_overview_panel(fig03_rows, width_mm = 60L),
-    relationship_types  = fig03_relationship_types_panel(fig03_rows, width_mm = 60L)
+    metalinks_overview  = metalinks_overview_panel(mpi_rows, width_mm = 60L),
+    relationship_types  = metalinks_relationship_types_panel(mpi_rows, width_mm = 60L)
 )
 
 for (name in names(panels)) {
@@ -150,7 +150,7 @@ supplementary_specs <- list(
     list(
         slug = '4A',
         title = 'Coverage (FR-010a)',
-        rows  = fig03_rows,
+        rows  = mpi_rows,
         description = paste(
             'All harmonized metabolite-protein interaction rows fed into',
             'Panel A. The panel reports per-resource counts of unique',
@@ -161,8 +161,8 @@ supplementary_specs <- list(
     list(
         slug = '4B',
         title = 'Metabolite class breadth (FR-010b)',
-        rows  = fig03_rows[!is.na(fig03_rows$metabolite_class_label) &
-                           nzchar(as.character(fig03_rows$metabolite_class_label)), ],
+        rows  = mpi_rows[!is.na(mpi_rows$metabolite_class_label) &
+                           nzchar(as.character(mpi_rows$metabolite_class_label)), ],
         description = paste(
             'Subset of harmonized MPI rows carrying a non-empty',
             'metabolite_class label. Panel B counts unique (resource,',
@@ -172,8 +172,8 @@ supplementary_specs <- list(
     list(
         slug = '4C',
         title = 'Protein class breadth (FR-010c)',
-        rows  = fig03_rows[!is.na(fig03_rows$protein_class_label) &
-                           nzchar(as.character(fig03_rows$protein_class_label)), ],
+        rows  = mpi_rows[!is.na(mpi_rows$protein_class_label) &
+                           nzchar(as.character(mpi_rows$protein_class_label)), ],
         description = paste(
             'Subset of harmonized MPI rows carrying a non-empty',
             'protein_class label. Panel C counts unique (resource,',
@@ -184,7 +184,7 @@ supplementary_specs <- list(
     list(
         slug = '4D',
         title = 'MetaLinksDB 2.0 overview (FR-010d)',
-        rows  = fig03_rows[fig03_rows$resource == 'MetaLinksDB v2.0', ],
+        rows  = mpi_rows[mpi_rows$resource == 'MetaLinksDB v2.0', ],
         description = paste(
             'MetaLinksDB v2.0 rows only. Panel D reports unique',
             'interactions, metabolites, and proteins per upstream source',
@@ -194,8 +194,8 @@ supplementary_specs <- list(
     list(
         slug = '4E',
         title = 'Relationship types (FR-010e)',
-        rows  = fig03_rows[
-            tolower(fig03_rows$relation_type) %in%
+        rows  = mpi_rows[
+            tolower(mpi_rows$relation_type) %in%
                 c('transport', 'receptor', 'interaction'), ],
         description = paste(
             'Subset restricted to the three FR-010e categories',
@@ -304,7 +304,7 @@ write_sidecar(
             proteins = 'UniProt-derived / Guide to Pharmacology'
         ),
         evidence_availability = lapply(resources, function(resource) {
-            resource_rows <- fig03_rows[fig03_rows$resource == resource, ]
+            resource_rows <- mpi_rows[mpi_rows$resource == resource, ]
             list(
                 resource = resource,
                 source_count = TRUE,

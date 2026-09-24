@@ -98,7 +98,7 @@ protein_omnipath_counts <- c(
 )
 
 logger::log_info('[cosmos-pkn] rendering Panel A (faceted old COSMOS vs. COSMOS+)')
-panel_a <- fig04_cosmos_comparison_panel(
+panel_a <- cosmos_comparison_panel(
     old_pkn_tally               = old_pkn,
     cosmos_plus_by_type_species = cosmos_plus$by_type_species,
     protein_omnipath_counts     = protein_omnipath_counts,
@@ -106,26 +106,26 @@ panel_a <- fig04_cosmos_comparison_panel(
 )
 
 logger::log_info('[cosmos-pkn] rendering Panel B (COSMOS+ compartments)')
-panel_b <- fig04_compartment_panel(
+panel_b <- cosmos_compartment_panel(
     cosmos_plus_by_compartment = cosmos_plus$by_compartment,
     width_mm                   = 89L
 )
 
 logger::log_info('[cosmos-pkn] rendering Panel C (COSMOS+ resource contributions)')
-panel_c <- fig04_resource_contribution_panel(
+panel_c <- cosmos_resource_contribution_panel(
     cosmos_plus_by_resource = cosmos_plus$by_resource,
     width_mm                = 89L
 )
 
 logger::log_info('[cosmos-pkn] rendering Panel C (grouped) — entities per resource as dodged bars')
-panel_c_split <- fig04_resource_contribution_panel(
+panel_c_split <- cosmos_resource_contribution_panel(
     cosmos_plus_by_resource = cosmos_plus$by_resource_split,
     width_mm                = 89L,
     position                = 'dodge'
 )
 
 logger::log_info('[cosmos-pkn] rendering Panel D (MetaLinksDB 2.0 vs. COSMOS+)')
-panel_d <- fig04_metalinks_cosmos_panel(
+panel_d <- metalinks_cosmos_panel(
     metalinks_counts            = metalinks_v2_types,
     cosmos_plus_by_type_species = cosmos_plus$by_type_species,
     width_mm                    = 120L

@@ -24,9 +24,9 @@ the comparison full-width under the schematic with C | D as a bottom row.
 | Panel | Source | Description |
 |------:|:-------|:------------|
 | A | Manual (`manual/regulation-types.png`) | Regulation-type schematic — visual key for the signed interaction categories the PKN carries. **Top, full width.** |
-| B | Pipeline (`fig04_cosmos_comparison_panel`) | Species-aware old COSMOS vs. COSMOS+ comparison by interaction type (3 bars/group). **Data row.** |
-| C | Pipeline (`fig04_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. **Data row.** |
-| D | Pipeline (`fig04_resource_contribution_panel`, `position = "dodge"`) | Metabolite (teal) + protein (magenta) entity counts per top-15 resources, **grouped (side-by-side) bars**. **Data row.** |
+| B | Pipeline (`cosmos_comparison_panel`) | Species-aware old COSMOS vs. COSMOS+ comparison by interaction type (3 bars/group). **Data row.** |
+| C | Pipeline (`cosmos_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. **Data row.** |
+| D | Pipeline (`cosmos_resource_contribution_panel`, `position = "dodge"`) | Metabolite (teal) + protein (magenta) entity counts per top-15 resources, **grouped (side-by-side) bars**. **Data row.** |
 
 One pipeline panel stays rendered as a standalone artifact, not in the
 composite:
@@ -70,7 +70,7 @@ the snapshot identifier recorded in the provenance sidecar.
   vendored `meta_network.RData`.
 - `R/data-cosmos_plus.R` — `cosmos_plus_data()` for the vendored
   `cosmos_plus_{human,mouse}.csv`.
-- `R/plots-version_comparison.R` — the four `fig04_*` renderer
+- `R/plots-version_comparison.R` — the four `cosmos_*` / `metalinks_cosmos_*` renderer
   functions (legacy naming — kept until a deliberate package-wide
   function rename).
 - `data/vendored/cosmos/{meta_network.RData,cosmos_plus_*.csv}` —

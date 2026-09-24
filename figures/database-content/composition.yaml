@@ -22,7 +22,7 @@ panels:
   # bottom. Each facet has its own legend with a scale title below
   # it.
   - id: faceted_resource_total
-    file: fr007a-total.pdf
+    file: resource-overview-total.pdf
     label: A
     position: top
     width_mm: 180
@@ -30,7 +30,7 @@ panels:
 
   # Panel B: FR-007e structural specificity × chemical category.
   - id: structural_specificity
-    file: fr007e-specificity.pdf
+    file: specificity-by-category.pdf
     label: B
     position: bottom-left
     width_mm: 60
@@ -41,7 +41,7 @@ panels:
   # 1k → dot, 1M → meaningfully bigger; entity-panel thin edges
   # cut off (top-30% by overlap weight retained).
   - id: resource_overlap_networks
-    file: fr007c-networks.pdf
+    file: resource-overlap-networks.pdf
     label: C
     position: bottom-centre
     width_mm: 60
@@ -49,13 +49,13 @@ panels:
 
   # Panel D: FR-007d entity × interaction-type matrix.
   - id: entity_interaction_matrix
-    file: fr007d-matrix.pdf
+    file: entity-interaction-matrix.pdf
     label: D
     position: bottom-right
     width_mm: 60
     height_mm: 80
 
-# Other FR-007 panel artifacts (fr007a per-resource supplementary,
-# fr007b coverage, fr007f RaMP-conflict) keep their stand-alone
+# Other FR-007 panel artifacts (resource-overview per-resource supplementary,
+# coverage-profile coverage, ramp-conflict RaMP-conflict) keep their stand-alone
 # emission in out/ but are not part of the main composite per
 # Session 2026-06-14.

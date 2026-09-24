@@ -45,11 +45,11 @@ FR-039) — the rest stay as supplementary artifacts.
 
 | FR | Artifact (`out/...`) | Size | Source / deployment | What it shows |
 |---|---|---|---|---|
-| 007a | `fr007a-overview.{pdf,svg}` | 320×200 mm | bitmap path on dev3 + dev4 (~85 s) | 6-facet resource overview (Entities, Associations, Interactions, Identifiers, Structures, Literature) × 3 magnitude bands; each (facet, resource) shows shared/unique + major-class stacked bars; 7 titled legends |
-| 007b | `fr007b-coverage.{pdf,svg}` | 180×100 mm | `entity_source_count` on dev3 (+ `metabo_entity_structural_specificity` on dev4) | Coverage line graph: items present in ≥ N resources, colour-coded by variant (Entities, Molecular entities, Structures); log y |
-| 007c | `fr007c-networks.{pdf,svg}` | 320×160 mm | `resource_overlap_summary` on dev3 (537 + 90 edges) | Two networks (Molecular entities, Interactions); shared Kamada-Kawai layout so the same resource sits at the same position in both; edges ≥ 100 only, log-scaled thickness |
-| 007d | `fr007d-matrix.{pdf,svg}` | 180×110 mm | `facet_relation_bitmap` on dev3 (~150 ms) | Top-8 `participant_type` × 3 `interaction_class` bar plot; log y |
-| 007e | `fr007e-specificity.{pdf,svg}` | 180×110 mm | `facet_entity_bitmap` on dev4 (~25 ms) | 6 chemical categories × 6 specificity levels; log y |
+| 007a | `resource-overview.{pdf,svg}` | 320×200 mm | bitmap path on dev3 + dev4 (~85 s) | 6-facet resource overview (Entities, Associations, Interactions, Identifiers, Structures, Literature) × 3 magnitude bands; each (facet, resource) shows shared/unique + major-class stacked bars; 7 titled legends |
+| 007b | `coverage-profile.{pdf,svg}` | 180×100 mm | `entity_source_count` on dev3 (+ `metabo_entity_structural_specificity` on dev4) | Coverage line graph: items present in ≥ N resources, colour-coded by variant (Entities, Molecular entities, Structures); log y |
+| 007c | `resource-overlap-networks.{pdf,svg}` | 320×160 mm | `resource_overlap_summary` on dev3 (537 + 90 edges) | Two networks (Molecular entities, Interactions); shared Kamada-Kawai layout so the same resource sits at the same position in both; edges ≥ 100 only, log-scaled thickness |
+| 007d | `entity-interaction-matrix.{pdf,svg}` | 180×110 mm | `facet_relation_bitmap` on dev3 (~150 ms) | Top-8 `participant_type` × 3 `interaction_class` bar plot; log y |
+| 007e | `specificity-by-category.{pdf,svg}` | 180×110 mm | `facet_entity_bitmap` on dev4 (~25 ms) | 6 chemical categories × 6 specificity levels; log y |
 | 007f | `panelG.{pdf,svg}` (legacy slug) | 89×60 mm | `metabo_ramp_inchikey_conflict` on dev4 | RaMP InChIKey-conflict reasons (stereo / specificity / tautomer / similar / unrelated) |
 
 Composite + caption pipeline:

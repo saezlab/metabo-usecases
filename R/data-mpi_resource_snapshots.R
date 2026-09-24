@@ -160,7 +160,7 @@ normalize_mpi_resource <- function(resource,
 #' @importFrom rlang abort
 #' @export
 load_vendored_mpi_snapshot <- function(resource,
-                                       root = fig03_baseline_dir(),
+                                       root = mpi_baseline_dir(),
                                        required = FALSE) {
 
     slug <- snapshot_slug(resource)
@@ -199,7 +199,7 @@ load_vendored_mpi_snapshot <- function(resource,
 #' @return Character scalar path.
 #' @keywords internal
 #' @noRd
-fig03_baseline_dir <- function() {
+mpi_baseline_dir <- function() {
     file.path('data', 'vendored', 'mpi-baselines')
 }
 
