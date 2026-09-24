@@ -14,20 +14,29 @@ to new ones.
 | `analyses/<name>/` | Upstream analyses (Rmd, notebooks) that produce the inputs for figures. QC outputs go to `analyses/<name>/output/` (gitignored). |
 | `data/raw/<name>/` | External inputs, with a README stating where they come from. |
 | `data/derived/<name>/` | Files written by the scripts in `analyses/<name>/`; figures read from here. |
-| `figures/`, `tables/` | One folder per figure/table: `build.R`, `caption.tex`, `README.md`. |
-| `manuscript.yaml` | Figure/table numbering. Name folders, ids and functions by content, never by number. |
+| `figures/`, `tables/` | One folder per figure/table, named by content: `build.R`, `caption.tex`, `README.md`, and `manual/` for hand-made assets. Outputs go to `out/` (gitignored). |
+| `manuscript.yaml` | Figure/table numbering; `rebuild.R` orders builds and the bundle by it. |
 | `R/`, `man/`, `tests/`, `DESCRIPTION` | R package `metabo.figures`: shared data loaders, plots, styles, provenance. |
 | `python/`, `tex/`, `lib/` | Python, LaTeX and bash helpers used by the pipeline. |
 | `data/vendored/` | Pinned third-party snapshots (COSMOS PKNs, MPI baselines), each with a source note. |
 | `inst/extdata/` | Package resources: palettes, logos, JSON schema, connection template. |
 | `docs/` | `CONFIGURATION.md` (connection config), `DB_ACCESS.md` (database access on beauty). |
+| `build/` | Pipeline run output (gitignored): `logs/` (`latest.log`), `manifests/`, `manuscript-bundle.pdf`. |
 
 ## Rules
 
 - Every file in `data/derived/` must be written by a script in `analyses/`.
   Do not commit outputs that no script in the repo produces.
-- Use repo-root-relative paths (`here::here()` in R). No personal absolute
-  paths.
+- Figures and tables read only from `data/derived/`, `data/vendored/` and the
+  live database. Paper deliverables come out of `figures/` or `tables/`;
+  `data/derived/` holds intermediate results.
+- Name folders, ids, functions and files by content, never by figure or table
+  number; numbers live only in `manuscript.yaml`.
+- No personal absolute paths. Analyses resolve paths from the repository root
+  (`here::here()` in R, `Path(__file__)` in Python); the pipeline runs from
+  the repository root and uses paths relative to it.
+- Stage files explicitly and check `git status` before committing; local
+  untracked files must not end up in commits.
 - Trunk-based development on `main`.
 
 ## Running the pipeline and reaching the database

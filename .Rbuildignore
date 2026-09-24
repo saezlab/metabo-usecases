@@ -24,6 +24,7 @@
 
 # Top-level project docs that aren't R-package docs.
 ^AGENTS\.md$
+^CLAUDE\.md$
 ^\.gitattributes$
 ^README\.md$
 ^RESTRUCTURING\.md$
