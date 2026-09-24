@@ -1,61 +1,110 @@
 # metabo-usecases
 
-Reproducible pipeline that regenerates every figure and table for the
-OmniPath Metabo manuscript — main text and supplementary — from a pinned
-OmniPath Postgres snapshot.
+Code and data behind the figures and tables of the **OmniPath Metabo**
+manuscript: the use-case analyses, and a pipeline that rebuilds every figure
+and table from the OmniPath database and the analysis results.
 
-The repository is structured as an R package (`metabo.figures`) with
-adjacent figure/table workspace directories, Python helpers under
-`python/`, LaTeX composite-assembly + caption sources under `tex/`,
-manual vendored assets under `inst/extdata/manual/` (including the
-Figure 1 Panel A architecture PDF/SVG authored in Inkscape), and a
-single top-level rebuild entrypoint.
+> The tag [`preprint_v0`](https://github.com/saezlab/metabo-usecases/tree/preprint_v0) marks the state used for
+> the first preprint. The `restructure` branch reorganises the repository
+> for the next version (see `AGENTS.md` for the current conventions).
 
-## Quick start
+## How the repository works
 
-```sh
-ssh -p 2323 omnipath@omnipathdb.org   # development happens on beauty
-cd ~/dev/metabo-usecases
-./rebuild.sh --dry-run                 # print the work plan
-./rebuild.sh --png --bundle --check    # full rebuild with checks
-tail -f logs/latest.log                # follow the unified pipeline log
+```
+data/raw/            external inputs (e.g. published supplementary data)
+      │
+      ▼
+analyses/<name>/     use-case analyses (Rmd, Python, notebooks)
+      │
+      ▼
+data/derived/<name>/ analysis results, written only by scripts in analyses/
+      │                                        OmniPath Postgres (live)
+      ▼                                                 │
+figures/<id>/, tables/<id>/   build.R per figure/table ◄┘
+      │
+      ▼
+figures/<id>/out/, tables/<id>/out/   PDF/SVG/CSV + provenance (gitignored)
 ```
 
-See the full quickstart and contracts in the saezverse spec:
-- Spec: `saezverse/ai/specifications/omnipath-metabo-figures/specs/001-figures-pipeline/spec.md`
-- Plan: `…/plan.md`
-- Quickstart: `…/quickstart.md`
-- Contracts: `…/contracts/`
+- **Analyses** are run by hand, in the order given in each folder's README.
+  They write the files that figures and tables read.
+- **Figures and tables** are rebuilt by one entry point, `./rebuild.sh`,
+  which runs every `figures/*/build.R` and `tables/*/build.R`. The shared
+  code (data loaders, plots, styles, provenance) is the R package
+  `metabo.figures` in `R/`.
 
-## Deliverables
+## Folders
 
-- **Figure 1** — workflow-architecture diagram (manual Inkscape asset,
-  vendored under `inst/extdata/manual/architecture/`) + quantitative
-  database-content panels
-- **Figure 2** — webapp screenshots (manual asset)
-- **Figure 3** — MetalinksDB v1 vs v2 comparison
-- **Figure 4** — old vs new COSMOS PKN comparison + included schematic graphics
-- **Figure 5** — lung-cancer use case (refactored from `omnipath_metabo_case1`)
-- **Tables** — ID resolving (Methods), RaMP comparison (Methods),
-  supplementary tables
-- Optional **manuscript bundle**: a single PDF concatenating every artifact
-  in submission order
+| Folder | Contents |
+|---|---|
+| `analyses/` | Use-case analyses, one folder each (see below). |
+| `data/raw/` | External inputs, each folder with a README stating the source. |
+| `data/derived/` | Results of the analyses; the input for figures and tables. |
+| `figures/` | One folder per figure: `build.R`, `caption.tex`, `README.md`. |
+| `tables/` | One folder per table, same structure. |
+| `R/`, `man/`, `tests/`, `DESCRIPTION`, `NAMESPACE` | R package `metabo.figures` and its tests. |
+| `inst/extdata/` | Vendored snapshots (old COSMOS PKN, COSMOS+, MPI baselines), manual assets, palettes, connection template. |
+| `python/`, `tex/`, `lib/` | Python, LaTeX and bash helpers used by the pipeline. |
+| `docs/` | `CONFIGURATION.md` (database connection config), `DB_ACCESS.md` (reaching the databases on beauty). |
+| `logs/`, `manifests/` | Pipeline run logs and build manifests (contents gitignored). |
+
+### Analyses
+
+| Folder | Content | Used by |
+|---|---|---|
+| `analyses/cancer-cell-lines/` | Shorthouse 2022 cancer cell line metabolomics: preprocessing, Cellosaurus metadata, feature processing, differential analysis. | Figure 6 |
+| `analyses/cancer-cell-lines-cosmos/` | Connects the differential metabolites to the COSMOS prior-knowledge network. | Figure 6 |
+| `analyses/azelate/` | Azelate evidence retrieval from the OmniPath Metabo API; supplementary workbook. | Figure 6, supplement |
+| `analyses/ramp-ambiguity/` | Exploration of ambiguous RaMP ID mappings (runs on dev2 only). | — |
+
+### Figures and tables
+
+| Folder | Content |
+|---|---|
+| `figures/fig01-architecture/` | Architecture diagram (manual asset) and database statistics |
+| `figures/fig02-overview/` | Database content overview |
+| `figures/fig04-metalinks-versions/` | MetaLinksDB v1 vs v2 and other metabolite–protein interaction resources |
+| `figures/fig05-cosmos-pkn/` | Old COSMOS PKN vs COSMOS+ |
+| `figures/fig06-lungcancer-usecase/` | Cancer cell lines use case |
+| `tables/tab01-id-resolving/` | Identifier resolving across integrated resources |
+| `tables/tab02-ramp-comparison/` | RaMP InChIKey conflicts |
+| `tables/tab03-record-coverage/` | Resource × record-type coverage |
+
+## Running
+
+The OmniPath Postgres instances run on `beauty` and listen on localhost
+only, so the pipeline runs there (or through an SSH tunnel). See
+`docs/DB_ACCESS.md` and `docs/CONFIGURATION.md`.
+
+```sh
+./rebuild.sh --dry-run                     # list what would be built
+./rebuild.sh fig06-lungcancer-usecase      # build one figure
+./rebuild.sh --png --bundle --check        # build everything, with checks
+tail -f logs/latest.log                    # follow the pipeline log
+```
+
+Analyses are run by hand; each folder's README gives the run order and
+what the scripts read and write. Paths are resolved from the repository
+root, so the working directory does not matter.
+
+## Environment
+
+Currently: R dependencies of the pipeline are listed in `DESCRIPTION`,
+Python helpers are managed with `uv` (`python/uv.lock`), and system tools
+(LaTeX, libpq, pdftk) come from `shell.nix` on beauty. The analyses'
+dependencies are not yet declared. A pinned Docker image covering R,
+Python and system tools is planned.
 
 ## Conventions
 
-- **R code style**: follows `human/guidelines/r-coding-style.md` in the
-  saezverse repository (roxygen2 docstring order, < 80-char lines,
-  hanging closing parens, pipes over intermediate variables, `snake_case`
-  with no `get_` prefix, `logger::log_*` for output, `@importFrom` per
-  function, single implicit return).
-- **Trunk-based development on `main`**; the `UseCase2` branch is a
-  backup for future case studies and is not pulled into `main`.
-- **Logging**: every R, Python, bash, and captured xelatex line writes to
-  one file pointed at by `METABO_FIGURES_LOG`; line format in
-  `contracts/log-format.md`.
-- **Reproducibility**: every artifact emits a provenance sidecar; per-build
-  manifests and snapshot identifiers are written to `manifests/`.
+- Every file in `data/derived/` is written by a script in `analyses/`.
+- No personal absolute paths; resolve paths from the repository root.
+- Every built artifact gets a provenance sidecar; build manifests go to
+  `manifests/`.
+- R code follows the Saez lab R style guide
+  (`human/guidelines/r-coding-style.md` in the saezverse repository).
+- Trunk-based development on `main`.
 
 ## License
 
-BSD 3-Clause — see `LICENSE`.
+BSD 3-Clause, see `LICENSE`.
