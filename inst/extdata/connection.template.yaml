@@ -1,7 +1,7 @@
 # Copy to ~/.config/metabo-figures/connection.yaml (or to project root as
 # `connection.yaml` — gitignored — for project-local override).
 #
-# See CONFIGURATION.md for the full schema.
+# See docs/CONFIGURATION.md for the full schema.
 #
 # The 2026-06-14 dev5 integrated-build promotion collapsed the previous
 # (2026-06-09) per-panel deployment matrix into a single-deployment
