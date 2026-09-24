@@ -60,7 +60,7 @@ API as part of the T066 refactor.
 
 | Path | Role |
 |------|------|
-| `omnipath_metabo_case1/Results/Differential_Analysis/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx` | Differential analysis output — sheets `KRAS_filt_limma`, `EGFR_filt_limma` drive Panels A, B; both drive top-DEM ChEBI lookup for Panels E, F. |
+| `data/derived/lung-cancer/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx` (written by `analyses/lung-cancer/04_differential_analysis.Rmd`) | Differential analysis output — sheets `KRAS_filt_limma`, `EGFR_filt_limma` drive Panels A, B; both drive top-DEM ChEBI lookup for Panels E, F. |
 | `omnipath_metabo_case1/data/pkn_allosteric.csv` | COSMOS allosteric PKN edges (vendored fixture). Drives Panels E, F. |
 | `omnipath_metabo_case1/data/pkn_enzyme_metabolite.csv` | COSMOS enzyme-metabolite PKN edges (vendored fixture). Drives Panels E, F. |
 | `omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_C_data.csv` | Resolved-only interaction-type × source × relation-count table for Azelate; drives Panel C. |

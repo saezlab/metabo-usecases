@@ -23,8 +23,7 @@ omnipath_metabo_case1/scripts/omnipathr-log/
 omnipath_metabo_case1/scripts/MetaProViz_Results/
 omnipath_metabo_case1/.RData
 omnipath_metabo_case1/.Ruserdata
-omnipath_metabo_case1/data/cellosaurus.txt
-omnipath_metabo_case1/data/cellosaurus_entry_lookup.RData
+data/raw/lung-cancer/cellosaurus.txt
 
 # Python (uv-managed)
 **/__pycache__/

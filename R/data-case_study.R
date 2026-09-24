@@ -2,7 +2,7 @@
 #'
 #' Reads one limma sheet (`KRAS_filt_limma` or `EGFR_filt_limma`) from
 #' the vendored
-#' \code{omnipath_metabo_case1/Results/Differential_Analysis/}
+#' \code{data/derived/lung-cancer/}
 #' ExtendedDataTable xlsx and returns a tibble suitable for the
 #' Figure 6 Panel A / B volcanos and Panels E / F top-DEM ChEBI
 #' lookup.
@@ -35,9 +35,9 @@
 case_study_differential <- function(
     contrast,
     xlsx_path = file.path(
-        "omnipath_metabo_case1",
-        "Results",
-        "Differential_Analysis",
+        "data",
+        "derived",
+        "lung-cancer",
         "ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx"
     )
 ) {
