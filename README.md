@@ -40,10 +40,11 @@ figures/<id>/out/, tables/<id>/out/   PDF/SVG/CSV + provenance (gitignored)
 | `analyses/` | Use-case analyses, one folder each (see below). |
 | `data/raw/` | External inputs, each folder with a README stating the source. |
 | `data/derived/` | Results of the analyses; the input for figures and tables. |
-| `figures/` | One folder per figure: `build.R`, `caption.tex`, `README.md`. |
+| `data/vendored/` | Pinned third-party snapshots (old COSMOS PKN, COSMOS+, MPI baselines), each with a source note. |
+| `figures/` | One folder per figure: `build.R`, `caption.tex`, `README.md`, and `manual/` for hand-made assets. |
 | `tables/` | One folder per table, same structure. |
 | `R/`, `man/`, `tests/`, `DESCRIPTION`, `NAMESPACE` | R package `metabo.figures` and its tests. |
-| `inst/extdata/` | Vendored snapshots (old COSMOS PKN, COSMOS+, MPI baselines), manual assets, palettes, connection template. |
+| `inst/extdata/` | Package resources: palettes, logos, JSON schema, connection template. |
 | `python/`, `tex/`, `lib/` | Python, LaTeX and bash helpers used by the pipeline. |
 | `docs/` | `CONFIGURATION.md` (database connection config), `DB_ACCESS.md` (reaching the databases on beauty). |
 | `logs/`, `manifests/` | Pipeline run logs and build manifests (contents gitignored). |

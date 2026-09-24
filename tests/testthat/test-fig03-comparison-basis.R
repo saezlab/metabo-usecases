@@ -1,7 +1,7 @@
 test_that("cosmos_old_pkn returns tibble with required columns", {
     skip_if_not(
         file.exists(here::here(
-            "inst", "extdata", "cosmos", "meta_network.RData"
+            "data", "vendored", "cosmos", "meta_network.RData"
         )),
         "meta_network.RData not vendored"
     )
@@ -17,7 +17,7 @@ test_that("cosmos_old_pkn returns tibble with required columns", {
 test_that("cosmos_old_pkn attaches source_path and fingerprint attributes", {
     skip_if_not(
         file.exists(here::here(
-            "inst", "extdata", "cosmos", "meta_network.RData"
+            "data", "vendored", "cosmos", "meta_network.RData"
         )),
         "meta_network.RData not vendored"
     )
@@ -32,7 +32,7 @@ test_that("cosmos_old_pkn attaches source_path and fingerprint attributes", {
 test_that("cosmos_old_vs_new returns both panel_b and panel_c", {
     skip_if_not(
         file.exists(here::here(
-            "inst", "extdata", "cosmos", "meta_network.RData"
+            "data", "vendored", "cosmos", "meta_network.RData"
         )),
         "meta_network.RData not vendored"
     )

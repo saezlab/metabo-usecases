@@ -1,6 +1,9 @@
-# Figure 3 baseline snapshots
+# MPI resource baseline snapshots
 
-Vendored baseline snapshots for external MPI resources used in Figure 3 belong here.
+Vendored baseline snapshots of external metabolite-protein interaction (MPI)
+resources for the MetaLinksDB comparison figure
+(`figures/fig04-metalinks-versions/`) belong here. Loaded by
+`load_vendored_mpi_snapshot()`.
 
 Expected shape:
 - `resource`

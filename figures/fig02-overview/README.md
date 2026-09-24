@@ -7,7 +7,7 @@
 
 | Panel | Source | Notes |
 |------:|:-------|:------|
-| A | Vendored manual asset (`inst/extdata/manual/architecture/omnipath-architecture-new2026.pdf`) | FR-005 / FR-005a — SHA-256 fingerprint pinned in the asset folder's `README.md` and verified by `build.R` before include; mismatch fails the rebuild. |
+| A | Vendored manual asset (`figures/fig01-architecture/manual/omnipath-architecture-new2026.pdf`) | FR-005 / FR-005a — SHA-256 fingerprint pinned in the asset folder's `README.md` and verified by `build.R` before include; mismatch fails the rebuild. |
 | B+ | Pipeline (R/plots/db_content + R/plots/ramp_conflict) | One PDF per FR-007a–FR-007f variant; the composite-selection config (FR-007g, FR-039) picks the subset that appears in the composite. |
 
 ## Caption draft (pre–FR-040 source)

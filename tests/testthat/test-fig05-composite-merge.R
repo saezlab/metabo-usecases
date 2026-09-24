@@ -6,8 +6,8 @@
 
 cosmos_csvs_present <- function() {
     all(file.exists(c(
-        here::here("inst", "extdata", "cosmos", "cosmos_plus_human.csv"),
-        here::here("inst", "extdata", "cosmos", "cosmos_plus_mouse.csv")
+        here::here("data", "vendored", "cosmos", "cosmos_plus_human.csv"),
+        here::here("data", "vendored", "cosmos", "cosmos_plus_mouse.csv")
     )))
 }
 

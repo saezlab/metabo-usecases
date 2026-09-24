@@ -16,7 +16,8 @@ used for the first preprint.
 | `figures/`, `tables/` | One folder per figure/table: `build.R`, `caption.tex`, `README.md`. |
 | `R/`, `man/`, `tests/`, `DESCRIPTION` | R package `metabo.figures`: shared data loaders, plots, styles, provenance. |
 | `python/`, `tex/`, `lib/` | Python, LaTeX and bash helpers used by the pipeline. |
-| `inst/extdata/` | Vendored snapshots and manually made assets. |
+| `data/vendored/` | Pinned third-party snapshots (COSMOS PKNs, MPI baselines), each with a source note. |
+| `inst/extdata/` | Package resources: palettes, logos, JSON schema, connection template. |
 | `docs/` | `CONFIGURATION.md` (connection config), `DB_ACCESS.md` (database access on beauty). |
 
 ## Rules

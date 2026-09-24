@@ -13,7 +13,7 @@ rebuild to fail (FR-005a). To refresh the asset:
 3. Recompute the PDF SHA-256 (`sha256sum *.pdf`) and update the
    `pdf_sha256` line below.
 4. Bump the `last_edit_date` field.
-5. Re-run `./rebuild.sh fig01-overview` — the rebuild fails fast if
+5. Re-run `./rebuild.sh fig01-architecture` — the rebuild fails fast if
    the PDF on disk does not match the pinned `pdf_sha256`.
 
 ## Files

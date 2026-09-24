@@ -6,7 +6,7 @@
 # to figures/fig02-overview/. This script:
 #
 # - verifies the vendored architecture asset's SHA-256 against
-#   inst/extdata/manual/architecture/README.md (FR-005a),
+#   figures/fig01-architecture/manual/README.md (FR-005a),
 # - copies the vendored PDF + SVG to out/fig01-architecture.{pdf,svg},
 # - invokes build_panel_a_digest() to refresh
 #   panel-a-stats/{stats.json, stats.csv, stats.md, stats.pdf,
@@ -35,7 +35,7 @@ dep5 <- deployment_provenance("dev5")
 
 # ---- Vendored architecture asset (FR-005, FR-005a) ------------------------
 
-architecture_dir    <- "inst/extdata/manual/architecture"
+architecture_dir    <- "figures/fig01-architecture/manual"
 architecture_pdf    <- file.path(
     architecture_dir, "omnipath-architecture-new2026.pdf"
 )

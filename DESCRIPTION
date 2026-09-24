@@ -12,7 +12,7 @@ Description: Reproducible pipeline that regenerates every figure and table for
     the OmniPath Metabo manuscript (main text and supplementary) from a
     pinned OmniPath Postgres snapshot. Plots are ggplot2 + tidyverse; the
     Figure 1A workflow-architecture diagram is a manual Inkscape asset
-    vendored under inst/extdata/manual/architecture/ (fingerprint-verified
+    vendored under figures/fig01-architecture/manual/ (fingerprint-verified
     on every rebuild); composites are assembled automatically via
     patchwork, LaTeX pdfpages, svgutils, and pdftk. See
     specs/001-figures-pipeline/ in the saezverse repository for the spec,

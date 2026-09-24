@@ -8,7 +8,7 @@ Inputs:
   `dev5` integrated build.
 - MetaLinksDB v1.0 from the SQLite shipped by `OmnipathR`.
 - Vendored normalized baseline snapshots under
-  `inst/extdata/fig04-mpi-baselines/` for external MPI resources
+  `data/vendored/mpi-baselines/` for external MPI resources
   (CellPhoneDB, scConnect, STITCH).
 
 Outputs:

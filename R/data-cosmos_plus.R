@@ -1,8 +1,8 @@
 #' Load COSMOS+ prior-knowledge network data from vendored CSVs
 #'
 #' Reads the vendored COSMOS+ CSVs produced by T052a from
-#' \code{inst/extdata/cosmos/cosmos_plus_human.csv} and
-#' \code{inst/extdata/cosmos/cosmos_plus_mouse.csv} and derives three
+#' \code{data/vendored/cosmos/cosmos_plus_human.csv} and
+#' \code{data/vendored/cosmos/cosmos_plus_mouse.csv} and derives three
 #' shapes for Figure 4:
 #'
 #' \enumerate{
@@ -211,12 +211,5 @@ cosmos_plus_data <- function(
 cosmos_plus_csv_path <- function(species = c("human", "mouse")) {
     species <- match.arg(species)
     filename <- paste0("cosmos_plus_", species, ".csv")
-    installed <- system.file(
-        "extdata", "cosmos", filename,
-        package = "metabo.figures"
-    )
-    if (nzchar(installed) && file.exists(installed)) {
-        return(installed)
-    }
-    file.path("inst", "extdata", "cosmos", filename)
+    file.path("data", "vendored", "cosmos", filename)
 }

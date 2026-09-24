@@ -140,10 +140,10 @@ normalize_mpi_resource <- function(resource,
 }
 
 
-#' Load a vendored MPI baseline snapshot from inst/extdata
+#' Load a vendored MPI baseline snapshot from data/vendored
 #'
 #' Reads one of the manually-normalized Figure 3 baseline files from
-#' `inst/extdata/fig03-mpi-baselines/`. Supported file formats are CSV,
+#' `data/vendored/mpi-baselines/`. Supported file formats are CSV,
 #' TSV, and JSON.
 #'
 #' @param resource Character scalar naming the resource.
@@ -200,17 +200,7 @@ load_vendored_mpi_snapshot <- function(resource,
 #' @keywords internal
 #' @noRd
 fig03_baseline_dir <- function() {
-    installed <- system.file(
-        'extdata',
-        'fig03-mpi-baselines',
-        package = 'metabo.figures'
-    )
-
-    if (nzchar(installed)) {
-        installed
-    } else {
-        'inst/extdata/fig03-mpi-baselines'
-    }
+    file.path('data', 'vendored', 'mpi-baselines')
 }
 
 

@@ -15,9 +15,9 @@
 # spec Session 2026-06-18).
 #
 # Data sources:
-#   - inst/extdata/cosmos/meta_network.RData    (old COSMOS PKN)
-#   - inst/extdata/cosmos/cosmos_plus_human.csv (COSMOS+)
-#   - inst/extdata/cosmos/cosmos_plus_mouse.csv (COSMOS+)
+#   - data/vendored/cosmos/meta_network.RData    (old COSMOS PKN)
+#   - data/vendored/cosmos/cosmos_plus_human.csv (COSMOS+)
+#   - data/vendored/cosmos/cosmos_plus_mouse.csv (COSMOS+)
 #   - custom_views.metalinksdb_relations on dev5 (MetaLinksDB 2.0)
 #   - figures/fig05-cosmos-pkn/manual/regulation-types.png
 #     (schematic; PDF + PNG variants both present)

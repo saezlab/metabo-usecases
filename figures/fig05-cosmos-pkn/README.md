@@ -73,7 +73,7 @@ the snapshot identifier recorded in the provenance sidecar.
 - `R/plots-version_comparison.R` — the four `fig04_*` renderer
   functions (legacy naming — kept until a deliberate package-wide
   function rename).
-- `inst/extdata/cosmos/{meta_network.RData,cosmos_plus_*.csv}` —
+- `data/vendored/cosmos/{meta_network.RData,cosmos_plus_*.csv}` —
   vendored input data.
 - `manual/regulation-types.{pdf,png}` — hand-authored schematic
   (the PNG variant is embedded in the composite via

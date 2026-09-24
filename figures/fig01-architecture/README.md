@@ -10,7 +10,7 @@ to live next to it are now Figure 2 (under
 
 ## Inputs
 
-- `inst/extdata/manual/architecture/omnipath-architecture-new2026.{pdf,svg}`
+- `figures/fig01-architecture/manual/omnipath-architecture-new2026.{pdf,svg}`
   — vendored Inkscape source, SHA-256-pinned in the folder's README.md
   (FR-005, FR-005a).
 - `digest-config.yaml` under `panel-a-stats/` — definition variants for the
@@ -46,9 +46,9 @@ against dev5, recompiles the caption, and writes the sidecar.
 When the Inkscape source is re-edited and a new PDF/SVG exported:
 
 1. Copy the new files to
-   `inst/extdata/manual/architecture/omnipath-architecture-new2026.{pdf,svg}`.
+   `figures/fig01-architecture/manual/omnipath-architecture-new2026.{pdf,svg}`.
 2. Recompute the SHA-256 fingerprint and update the value in
-   `inst/extdata/manual/architecture/README.md` (also bump the
+   `figures/fig01-architecture/manual/README.md` (also bump the
    `last_edit_date` field).
 3. Re-run `./rebuild.sh fig01-architecture`. The rebuild fails fast if the
    PDF on disk does not match the README fingerprint.
