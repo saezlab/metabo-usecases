@@ -5,6 +5,9 @@
 ^\.git$
 
 # Project-level dirs that aren't part of the R package surface.
+^analyses$
+^data$
+^docs$
 ^figures$
 ^tables$
 ^lib$
@@ -21,7 +24,8 @@
 ^test-output$
 
 # Top-level project docs that aren't R-package docs.
-^CONFIGURATION\.md$
+^AGENTS\.md$
+^\.gitattributes$
 ^README\.md$
 ^shell\.nix$
 ^connection\.yaml$
