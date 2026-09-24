@@ -1,15 +1,17 @@
-# Lung-cancer use case (Shorthouse 2022)
+# Cancer cell lines use case
 
-Metabolomics of lung-cancer cell lines from Shorthouse et al. 2022
-(<https://pubmed.ncbi.nlm.nih.gov/36321551/>): KRAS- and EGFR-mutant vs.
-other cell lines. The differential-analysis output feeds Figure 6.
+Metabolomics of cancer cell lines from Shorthouse et al. 2022
+(<https://pubmed.ncbi.nlm.nih.gov/36321551/>). The current contrasts are
+KRAS- and EGFR-mutant vs. other lung-cancer cell lines; further contrasts
+within the cancer cell lines may follow. The differential-analysis output
+feeds Figure 6.
 
 ## Run order
 
-| Step | Reads | Writes to `data/derived/lung-cancer/` |
+| Step | Reads | Writes to `data/derived/cancer-cell-lines/` |
 |---|---|---|
-| `01_preprocess.Rmd` | Shorthouse supplementary xlsx (`data/raw/lung-cancer/`) | `Shorthouse_2022_preprocessed.RData` |
-| `02_add_metadata.Rmd` | + `cellosaurus.txt` (`data/raw/lung-cancer/`) | `Shorthouse_2022.RData`, `cellosaurus_entry_lookup.RData` |
+| `01_preprocess.Rmd` | Shorthouse supplementary xlsx (`data/raw/cancer-cell-lines/`) | `Shorthouse_2022_preprocessed.RData` |
+| `02_add_metadata.Rmd` | + `cellosaurus.txt` (`data/raw/cancer-cell-lines/`) | `Shorthouse_2022.RData`, `cellosaurus_entry_lookup.RData` |
 | `03_feature_processing.Rmd` | `Shorthouse_2022.RData` | `Shorthouse_2022_extended.RData` |
 | `04_differential_analysis.Rmd` | `Shorthouse_2022_extended.RData` | `ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx` |
 

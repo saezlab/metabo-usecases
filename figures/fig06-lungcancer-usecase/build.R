@@ -15,7 +15,7 @@
 #   F — Subcellular-compartment edges (KRAS up/down, EGFR up/down)
 #
 # Inputs consumed (all repo-local):
-#   - data/derived/lung-cancer/ExtendedDataTable_...xlsx
+#   - data/derived/cancer-cell-lines/ExtendedDataTable_...xlsx
 #   - omnipath_metabo_case1/data/pkn_{allosteric,enzyme_metabolite}.csv
 #   - omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_{C,D}_data.csv
 #
@@ -288,7 +288,7 @@ external_inputs <- list(
         kind        = "shorthouse-differential-analysis",
         path        = attr(kras_dem, "source_path"),
         fingerprint = attr(kras_dem, "fingerprint"),
-        source      = "analyses/lung-cancer/04_differential_analysis.Rmd",
+        source      = "analyses/cancer-cell-lines/04_differential_analysis.Rmd",
         sheets      = c("KRAS_filt_limma", "EGFR_filt_limma")
     ),
     list(

@@ -2,7 +2,7 @@
 #'
 #' Reads one limma sheet (`KRAS_filt_limma` or `EGFR_filt_limma`) from
 #' the vendored
-#' \code{data/derived/lung-cancer/}
+#' \code{data/derived/cancer-cell-lines/}
 #' ExtendedDataTable xlsx and returns a tibble suitable for the
 #' Figure 6 Panel A / B volcanos and Panels E / F top-DEM ChEBI
 #' lookup.
@@ -37,7 +37,7 @@ case_study_differential <- function(
     xlsx_path = file.path(
         "data",
         "derived",
-        "lung-cancer",
+        "cancer-cell-lines",
         "ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx"
     )
 ) {

@@ -23,7 +23,7 @@ omnipath_metabo_case1/scripts/omnipathr-log/
 omnipath_metabo_case1/scripts/MetaProViz_Results/
 omnipath_metabo_case1/.RData
 omnipath_metabo_case1/.Ruserdata
-data/raw/lung-cancer/cellosaurus.txt
+data/raw/cancer-cell-lines/cellosaurus.txt
 
 # Analysis outputs (QC tables/plots) and tool logs written next to the Rmds
 analyses/*/output/
