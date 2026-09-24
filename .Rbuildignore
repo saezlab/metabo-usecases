@@ -26,6 +26,7 @@
 ^AGENTS\.md$
 ^\.gitattributes$
 ^README\.md$
+^RESTRUCTURING\.md$
 ^shell\.nix$
 ^connection\.yaml$
 ^db-version\.txt$

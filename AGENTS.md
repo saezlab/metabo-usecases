@@ -4,7 +4,8 @@ Notes for coding agents (and humans) working in this repository.
 
 The repository is being restructured on the `restructure` branch; the
 layout below reflects that branch. The tag `preprint_v0` marks the state
-used for the first preprint.
+used for the first preprint; `RESTRUCTURING.md` maps old names and paths
+to new ones.
 
 ## Layout
 

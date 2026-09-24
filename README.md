@@ -6,7 +6,8 @@ and table from the OmniPath database and the analysis results.
 
 > The tag [`preprint_v0`](https://github.com/saezlab/metabo-usecases/tree/preprint_v0) marks the state used for
 > the first preprint. The `restructure` branch reorganises the repository
-> for the next version (see `AGENTS.md` for the current conventions).
+> for the next version: see `RESTRUCTURING.md` for what changed and
+> `AGENTS.md` for the current conventions.
 
 ## How the repository works
 
