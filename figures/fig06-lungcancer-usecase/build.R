@@ -16,7 +16,7 @@
 #
 # Inputs consumed (all repo-local):
 #   - data/derived/cancer-cell-lines/ExtendedDataTable_...xlsx
-#   - omnipath_metabo_case1/data/pkn_{allosteric,enzyme_metabolite}.csv
+#   - data/derived/cancer-cell-lines-cosmos/pkn_{allosteric,enzyme_metabolite}.csv
 #   - omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_{C,D}_data.csv
 #
 # The full Differential_Analysis.Rmd / 01_cosmos_pkn.py refactor is
@@ -335,7 +335,7 @@ write_sidecar(
         legend_scale             = legend_scale,
         composite_dims_mm        = list(width = 180L, height = 215L),
         cosmos_pkn_source        = paste0(
-            "vendored fixture from omnipath_metabo_case1/data/ ",
+            "from data/derived/cancer-cell-lines-cosmos/ ",
             "(pending T066 omnipath-client refactor)"
         ),
         azelate_source           = paste0(

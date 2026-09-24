@@ -1,15 +1,13 @@
+from pathlib import Path
+
 import pandas as pd
 from omnipath_metabo.datasets import cosmos
 
-DATA_FILE = (
-    "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg"
-    "/00_project/CCLE_case_study/data"
-    "/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx"
-)
-OUT_DIR = (
-    "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg"
-    "/00_project/CCLE_case_study/data"
-)
+# Paths relative to the repository root (this file: analyses/<name>/).
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DATA_FILE = REPO_ROOT / "data/derived/cancer-cell-lines/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx"
+OUT_DIR = REPO_ROOT / "data/derived/cancer-cell-lines-cosmos"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Load and filter DEMs ──────────────────────────────────────────────────────
 

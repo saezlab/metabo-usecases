@@ -86,8 +86,8 @@ case_study_differential <- function(
 
 #' Load the vendored COSMOS PKN CSV fixtures
 #'
-#' Reads \code{omnipath_metabo_case1/data/pkn_allosteric.csv} and
-#' \code{omnipath_metabo_case1/data/pkn_enzyme_metabolite.csv} produced
+#' Reads \code{data/derived/cancer-cell-lines-cosmos/pkn_allosteric.csv} and
+#' \code{data/derived/cancer-cell-lines-cosmos/pkn_enzyme_metabolite.csv} produced
 #' by the legacy \code{01_cosmos_pkn.py} script. These are treated as
 #' a fixture pending the T066 refactor that will fetch the COSMOS PKN
 #' from the OmniPath Metabo API via \code{omnipath-client}.
@@ -117,7 +117,7 @@ case_study_differential <- function(
 #' @importFrom digest digest
 #' @export
 case_study_cosmos_pkn <- function(
-    pkn_dir = file.path("omnipath_metabo_case1", "data")
+    pkn_dir = file.path("data", "derived", "cancer-cell-lines-cosmos")
 ) {
 
     files <- list(
@@ -174,7 +174,7 @@ case_study_cosmos_pkn <- function(
 #' Top-N up-and-down DEMs by limma t-statistic for a contrast
 #'
 #' Reproduces the legacy
-#' \code{omnipath_metabo_case1/scripts/02_connect_dem_pkn.R}
+#' \code{analyses/cancer-cell-lines-cosmos/02_connect_dem_pkn.R}
 #' \code{top10_dem()} selection: top-N by largest positive t plus
 #' top-N by smallest negative t, returned sorted by descending t.
 #'
@@ -210,7 +210,7 @@ case_study_top_dems <- function(diff_tibble, n = 10L) {
 #' Expand the semicolon-separated ChEBI column to a unique ID vector
 #'
 #' Reproduces the legacy
-#' \code{omnipath_metabo_case1/scripts/02_connect_dem_pkn.R}
+#' \code{analyses/cancer-cell-lines-cosmos/02_connect_dem_pkn.R}
 #' \code{extract_chebi()} helper.
 #'
 #' @param diff_tibble Tibble with a \code{chebi} column.

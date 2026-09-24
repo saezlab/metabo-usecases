@@ -5,11 +5,12 @@ library(stringr)
 library(ggplot2)
 library(patchwork)
 
-DATA_FILE <- "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg/00_project/CCLE_case_study/data/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx"
-PKN_DIR   <- "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg/00_project/CCLE_case_study/data"
-FIG_DIR   <- "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg/00_project/CCLE_case_study/figure"
+# Paths relative to the repository root (resolved with here::here()).
+DATA_FILE <- here::here("data", "derived", "cancer-cell-lines", "ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx")
+PKN_DIR   <- here::here("data", "derived", "cancer-cell-lines-cosmos")
+FIG_DIR   <- here::here("analyses", "cancer-cell-lines-cosmos", "output")
 
-dir.create(FIG_DIR, showWarnings = FALSE)
+dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 
 # ── Colour palette (in canonical order) ───────────────────────────────────────
 

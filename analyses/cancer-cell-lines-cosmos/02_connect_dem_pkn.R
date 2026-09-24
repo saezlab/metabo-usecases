@@ -3,8 +3,9 @@ library(dplyr)
 library(tidyr)
 library(knitr)
 
-DATA_FILE <- "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg/00_project/CCLE_case_study/data/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx"
-PKN_DIR   <- "/Users/priscilla/Library/CloudStorage/OneDrive-UniversitätHeidelberg/00_project/CCLE_case_study/data"
+# Paths relative to the repository root (resolved with here::here()).
+DATA_FILE <- here::here("data", "derived", "cancer-cell-lines", "ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx")
+PKN_DIR   <- here::here("data", "derived", "cancer-cell-lines-cosmos")
 
 
 # ── Helper ────────────────────────────────────────────────────────────────────

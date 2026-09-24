@@ -47,8 +47,10 @@ the figures-pipeline R-package layout. See spec FR-012 family in
 
 ## Deployment
 
-Currently DB-independent: every panel reads from a vendored CSV /
-xlsx in `omnipath_metabo_case1/`. The build still resolves `dev5`
+Currently DB-independent: every panel reads a CSV / xlsx produced
+by an analysis (`data/derived/cancer-cell-lines/`,
+`data/derived/cancer-cell-lines-cosmos/`, and the azelate outputs still
+in `omnipath_metabo_case1/`). The build still resolves `dev5`
 solely to anchor the snapshot identifier in the provenance sidecar
 so Figure 6 binds to the same `build_id` as the rest of the
 pipeline. Panels C / D will move to live `metabo.omnipathdb.org` /
@@ -61,8 +63,8 @@ API as part of the T066 refactor.
 | Path | Role |
 |------|------|
 | `data/derived/cancer-cell-lines/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx` (written by `analyses/cancer-cell-lines/04_differential_analysis.Rmd`) | Differential analysis output — sheets `KRAS_filt_limma`, `EGFR_filt_limma` drive Panels A, B; both drive top-DEM ChEBI lookup for Panels E, F. |
-| `omnipath_metabo_case1/data/pkn_allosteric.csv` | COSMOS allosteric PKN edges (vendored fixture). Drives Panels E, F. |
-| `omnipath_metabo_case1/data/pkn_enzyme_metabolite.csv` | COSMOS enzyme-metabolite PKN edges (vendored fixture). Drives Panels E, F. |
+| `data/derived/cancer-cell-lines-cosmos/pkn_allosteric.csv` | COSMOS allosteric PKN edges (vendored fixture). Drives Panels E, F. |
+| `data/derived/cancer-cell-lines-cosmos/pkn_enzyme_metabolite.csv` | COSMOS enzyme-metabolite PKN edges (vendored fixture). Drives Panels E, F. |
 | `omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_C_data.csv` | Resolved-only interaction-type × source × relation-count table for Azelate; drives Panel C. |
 | `omnipath_metabo_case1/azelate_fig_tables/outputs/csvs/fig3_panel_D_data.csv` | Resolved-only disease-type × sample-type × evidence-count table for Azelate (MACDB); drives Panel D. |
 
