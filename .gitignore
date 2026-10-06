@@ -9,3 +9,7 @@ omnipath_metabo_case1/.Ruserdata
 omnipath_metabo_case1/data/cellosaurus.txt
 omnipath_metabo_case1/data/cellosaurus_entry_lookup.RData
 .env
+
+# case study 2: track result/ directory structure, not its generated contents
+omnipath_metabo_case2/result/*/*
+!omnipath_metabo_case2/result/*/.gitkeep
