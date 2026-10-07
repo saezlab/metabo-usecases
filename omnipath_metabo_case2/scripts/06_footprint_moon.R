@@ -48,6 +48,29 @@ pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
 measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
 
 ## ---------------------------------------------------------------------
+## 6.0 Drop generic cofactor metabolites (added 2026-10-07, via
+## result/moon/network_size_per_timepoint.csv investigation): CHEBI:24636
+## (proton, H+) is not a measured feature -- it's a nuclear particle that
+## appears as a byproduct/cofactor in 4,201 GEM (enzyme_met) and 495
+## transporter edges in the PKN, orders of magnitude more promiscuous
+## than any real metabolite (the next-largest GEM hub has ~190 edges).
+## When MOON's own propagation happens to push its score over the
+## primary/secondary threshold (it did, at 8h/16h, via its transporter
+## edges), reattach_gem_edges()'s either-endpoint rule pulls in its
+## entire GEM reaction list, ballooning reattached-GEM-edge counts
+## (3,553-4,217 at 8h/16h vs 220-2,220 elsewhere) without representing
+## any real biological signal. Dropped from the PKN before any MOON step
+## -- not just from GEM reattachment -- so it also can't inflate
+## transporter-mediated reachability or appear as a pruned node at all.
+cofactor_metabolites <- c("CHEBI:24636")  # proton (H+)
+bare_chebi <- function(node_id) sub("_[a-z]+$", "", sub("^Metab__", "", node_id))
+is_cofactor_edge <- bare_chebi(pkn_edges$source) %in% cofactor_metabolites |
+    bare_chebi(pkn_edges$target) %in% cofactor_metabolites
+cat("Dropping", sum(is_cofactor_edge), "edges touching excluded cofactor metabolite(s):",
+    paste(cofactor_metabolites, collapse = ", "), "\n")
+pkn_edges <- pkn_edges[!is_cofactor_edge, ]
+
+## ---------------------------------------------------------------------
 ## 6.1 GEM exemption (T021, FR-014/015): split before MOON ever sees it
 ## ---------------------------------------------------------------------
 
