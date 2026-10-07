@@ -179,5 +179,81 @@ cat("\nExcluded (FR-003, recorded not dropped):", nrow(excluded_features),
     "lipid/FFA features (acyl-CoA/acyl-carnitine species breakdown deferred to 02_lipidID.r)\n")
 
 measured_features <- rbind(measured_features, excluded_features)
+
+## ---------------------------------------------------------------------
+## 4.5 Resolve each non-excluded feature against the PK entity set (T012)
+## ---------------------------------------------------------------------
+#
+# Two distinct translations, matching each layer's native ID space in the
+# Row column (research.md's T012 scope): metabolome/plasma_metabolome
+# carry a KEGG Compound ID (e.g. "metabolite;...;C01035") -- the PKN uses
+# ChEBI, so this needs KEGGREST::keggConv() (confirmed live 2026-10-07, one
+# bulk call for all unique compounds). proteome/transcriptome/
+# phosphoproteome carry an Entrez ID via "mmu:<id>" (phosphosite rows also
+# carry a "-<site>" suffix, stripped here) -- the PKN's kinase-substrate
+# layers are protein-level only (confirmed: no site-suffixed node IDs
+# anywhere in the snapshot), so phosphosites resolve to their parent
+# protein's UniProt accession via org.Mm.eg.db, same as proteome/
+# transcriptome; site-level specificity is lost at the PK-matching step,
+# an inherent limitation of the PKN's own notation, not of this mapping.
+
+measured_features$pk_node_id <- NA_character_
+
+# PKN-side bare-ID lookup, reusing parse_cosmos_node_id() (T005) rather
+# than re-deriving the COSMOS node grammar by hand.
+pkn_node_ids <- unique(c(pkn_edges$source, pkn_edges$target))
+pkn_node_info <- lapply(pkn_node_ids, parse_cosmos_node_id)
+pkn_chebi_set <- unique(stats::na.omit(vapply(pkn_node_info, function(x) x$chebi_id, character(1))))
+pkn_uniprot_set <- unique(stats::na.omit(vapply(pkn_node_info, function(x) x$uniprot_id, character(1))))
+
+# -- Metabolite layers: KEGG Compound -> ChEBI
+metab_rows <- measured_features$omics_layer %in% c("metabolome", "plasma_metabolome") & !measured_features$excluded
+kegg_ids <- sub("^.*;([A-Za-z0-9]+)$", "\\1", measured_features$feature_id[metab_rows])
+unique_kegg <- unique(kegg_ids)
+kegg_to_chebi <- tryCatch({
+    conv <- KEGGREST::keggConv("chebi", paste0("cpd:", unique_kegg))
+    setNames(sub("^chebi:", "", conv), sub("^cpd:", "", names(conv)))
+}, error = function(e) {
+    warning("KEGGREST lookup failed, metabolites will be unmapped: ", conditionMessage(e))
+    character(0)
+})
+resolved_chebi <- unname(kegg_to_chebi[kegg_ids])
+measured_features$pk_node_id[metab_rows] <- ifelse(is.na(resolved_chebi), NA_character_, paste0("CHEBI:", resolved_chebi))
+cat("\nKEGG->ChEBI:", length(unique_kegg), "unique compounds,",
+    sum(!is.na(kegg_to_chebi[unique_kegg])), "resolved\n")
+
+# -- Gene/protein layers: Entrez -> UniProt (preferring a candidate already in the PKN)
+gene_rows <- measured_features$omics_layer %in% c("proteome", "transcriptome", "phosphoproteome") & !measured_features$excluded
+entrez_ids <- sub("^.*mmu:([0-9]+)(-[^;]*)?$", "\\1", measured_features$feature_id[gene_rows])
+suppressMessages(library(org.Mm.eg.db))
+uniprot_map_df <- AnnotationDbi::select(org.Mm.eg.db, keys = unique(entrez_ids), keytype = "ENTREZID", columns = "UNIPROT")
+uniprot_map_df <- uniprot_map_df[!is.na(uniprot_map_df$UNIPROT), ]
+entrez_to_uniprot_candidates <- split(uniprot_map_df$UNIPROT, uniprot_map_df$ENTREZID)
+resolve_uniprot <- function(entrez_id) {
+    candidates <- entrez_to_uniprot_candidates[[entrez_id]]
+    if (is.null(candidates)) return(NA_character_)
+    in_pkn <- candidates[candidates %in% pkn_uniprot_set]
+    if (length(in_pkn) > 0) in_pkn[1] else candidates[1]
+}
+measured_features$pk_node_id[gene_rows] <- vapply(entrez_ids, resolve_uniprot, character(1))
+cat("Entrez->UniProt:", length(unique(entrez_ids)), "unique genes,",
+    sum(!is.na(vapply(unique(entrez_ids), resolve_uniprot, character(1)))), "resolved\n")
+
+# -- mapping_status: distinguish "resolved to an ID, but that ID isn't a PKN
+# node" from "excluded_scope" (FR-003) from "excluded by this cycle's exclusion list"
+measured_features$mapping_status <- ifelse(
+    measured_features$excluded, "excluded_scope",
+    ifelse(
+        is.na(measured_features$pk_node_id), "unmapped_no_pk_entry",
+        ifelse(
+            measured_features$omics_layer %in% c("metabolome", "plasma_metabolome"),
+            ifelse(measured_features$pk_node_id %in% pkn_chebi_set, "mapped", "unmapped_no_pk_entry"),
+            ifelse(measured_features$pk_node_id %in% pkn_uniprot_set, "mapped", "unmapped_no_pk_entry")
+        )
+    )
+)
+cat("\nmapping_status:\n")
+print(table(measured_features$mapping_status))
+
 saveRDS(measured_features, "result/pk_retrieval/measured_features.rds")
-cat("Saved result/pk_retrieval/measured_features.rds:", nrow(measured_features), "rows\n")
+cat("\nSaved result/pk_retrieval/measured_features.rds:", nrow(measured_features), "rows\n")
