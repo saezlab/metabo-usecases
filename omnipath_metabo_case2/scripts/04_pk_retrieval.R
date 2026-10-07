@@ -206,6 +206,13 @@ pkn_node_info <- lapply(pkn_node_ids, parse_cosmos_node_id)
 pkn_chebi_set <- unique(stats::na.omit(vapply(pkn_node_info, function(x) x$chebi_id, character(1))))
 pkn_uniprot_set <- unique(stats::na.omit(vapply(pkn_node_info, function(x) x$uniprot_id, character(1))))
 
+# Reverse lookup: bare ChEBI/UniProt -> every actual PKN node ID sharing it
+# (multiple compartments for a metabolite; multiple Gene{N}__ indices for a
+# protein) -- needed by T013 to expand a resolved bare ID into the PKN nodes
+# it actually touches.
+bare_ids <- vapply(pkn_node_info, function(x) if (!is.na(x$chebi_id)) x$chebi_id else x$uniprot_id, character(1))
+bare_to_pkn_nodes <- split(pkn_node_ids, bare_ids)
+
 # -- Metabolite layers: KEGG Compound -> ChEBI
 metab_rows <- measured_features$omics_layer %in% c("metabolome", "plasma_metabolome") & !measured_features$excluded
 kegg_ids <- sub("^.*;([A-Za-z0-9]+)$", "\\1", measured_features$feature_id[metab_rows])
@@ -257,3 +264,52 @@ print(table(measured_features$mapping_status))
 
 saveRDS(measured_features, "result/pk_retrieval/measured_features.rds")
 cat("\nSaved result/pk_retrieval/measured_features.rds:", nrow(measured_features), "rows\n")
+
+## ---------------------------------------------------------------------
+## 4.6 Build the two per-genotype GenotypeNetworks (T013)
+## ---------------------------------------------------------------------
+#
+# The measured feature *panel* is identical across genotypes (confirmed
+# 2026-10-07: same 80 samples, same panel), so what actually makes a WT
+# network differ from an ob/ob network is which features are significant
+# IN THAT GENOTYPE's own time-course -- from S2's within-genotype DEA
+# calls (WT_change/ob/ob_change in {NS, Up, Down}), not the between-
+# genotype t_stat T010 computed (that's MOON's input, used later,
+# per-timepoint not per-genotype -- see spec.md FR-013 correction).
+
+dea_sheets <- c(
+    metabolome = "metabolite", proteome = "protein", transcriptome = "transcript",
+    phosphoproteome = "phosphorylation", plasma_metabolome = "plasma metabolite"
+)
+dea_calls <- do.call(rbind, lapply(names(dea_sheets), function(layer) {
+    raw <- as.data.frame(readxl::read_excel("data/ads2547_data_file_s2.xlsx", sheet = dea_sheets[[layer]]))
+    data.frame(
+        feature_id = raw$Row, WT_change = raw$WT_change, ob_ob_change = raw[["ob/ob_change"]],
+        stringsAsFactors = FALSE
+    )
+}))
+
+feature_pk <- unique(measured_features[!measured_features$excluded, c("feature_id", "pk_node_id", "mapping_status")])
+feature_pk <- merge(feature_pk, dea_calls, by = "feature_id", all.x = TRUE)
+
+build_genotype_network <- function(change_col) {
+    is_significant <- feature_pk[[change_col]] %in% c("Up", "Down") & feature_pk$mapping_status == "mapped"
+    significant_bare_ids <- unique(feature_pk$pk_node_id[is_significant])
+    genotype_pkn_nodes <- unique(unlist(bare_to_pkn_nodes[significant_bare_ids]))
+    edges <- pkn_edges[pkn_edges$source %in% genotype_pkn_nodes | pkn_edges$target %in% genotype_pkn_nodes, ]
+    nodes <- unique(c(edges$source, edges$target))
+    list(nodes = nodes, edges = edges, n_significant_features = length(significant_bare_ids))
+}
+
+genotype_networks <- list(WT = build_genotype_network("WT_change"), ob_ob = build_genotype_network("ob_ob_change"))
+
+dir.create("result/networks", recursive = TRUE, showWarnings = FALSE)
+for (g in names(genotype_networks)) {
+    net <- genotype_networks[[g]]
+    cat(sprintf(
+        "\n%s network: %d significant mapped features -> %d nodes, %d edges\n",
+        g, net$n_significant_features, length(net$nodes), nrow(net$edges)
+    ))
+    write.csv(net$edges, sprintf("result/networks/%s_network_edges.csv", g), row.names = FALSE)
+    saveRDS(net, sprintf("result/networks/%s_network.rds", g))
+}
