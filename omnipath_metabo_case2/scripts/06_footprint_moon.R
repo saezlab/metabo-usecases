@@ -22,12 +22,20 @@
 # readout gate" uses); raw phosphosite values are no longer injected
 # directly -- they're consumed only as decoupleR's input matrix.
 #
-# Upstream/downstream direction (metabolite=upstream, genes=downstream)
-# follows FR-007's own chain (metabolite->receptor->kinase->TF->GRN->
-# enzyme<->metabolite, i.e. metabolite-as-ligand driving transcription),
-# not the cosmosR vignette's "RNA+metabolomics" example, whose opposite
-# direction (TF-activity=upstream, metabolite=downstream) describes a
-# different causal scenario (transcriptional control of metabolism).
+# Upstream/downstream direction CORRECTED 2026-10-07 (third pass): per
+# Morita et al.'s own framing of the starvation response (signaling/PPI
+# and TF activity driving the transcriptional/metabolic response, with
+# metabolite levels as the downstream consequence/readout, not the
+# initiating signal), upstream = TF activity + kinase/PPI activity
+# (footprint-derived), downstream = metabolite t-stats. This is also
+# cosmosR's own standard "RNA/activity + metabolomics" scenario (its
+# internal compress_same_children() names the downstream-input argument
+# metab_input, i.e. downstream=metabolite is the library's default
+# assumption) -- the earlier metabolite-upstream framing was carried over
+# from the spatial pilot's ligand-upstream design and does not apply here.
+# Spatial-COSMOS-MISTy's run_moon_scoring() gained a metab_side= argument
+# to support this (compartment-fans whichever side is actually metabolite;
+# previously hard-coded to fan upstream_input only).
 #
 # Run from omnipath_metabo_case2/, after scripts/04_pk_retrieval.R and
 # scripts/05_network_topology.R.
@@ -118,22 +126,26 @@ build_moon_inputs <- function(tp) {
         measured_features$timepoint_h == tp & !measured_features$excluded &
             measured_features$mapping_status == "mapped" & !is.na(measured_features$t_stat),
     ]
-    upstream_rows <- tp_features[tp_features$omics_layer %in% c("metabolome", "plasma_metabolome"), ]
-    upstream_input <- stats::setNames(upstream_rows$t_stat, upstream_rows$pk_node_id)
-    upstream_input <- upstream_input[!duplicated(names(upstream_input))]
 
-    # Raw transcript/protein t-stats only (legitimate as-is for a gene's
-    # own node; vignette's "RNA target expression" / "functional-readout
-    # gate" uses). TF/kinase activity scores (FR-011, computed above) are
-    # NOT injected here: run_moon_scoring()'s internal
-    # filter_incohrent_TF_target() is hard-coded to expect downstream_input
-    # as measured GRN-target values for its coherence check -- mixing in
-    # TF-activity-keyed entries (which are GRN *sources*, not targets)
-    # collapsed the network to empty after a few pruning iterations
-    # (confirmed 2026-10-07). TF/kinase activity is reported as its own
-    # artifact instead (6.6 below), not forced into this wrapper's slot.
-    raw_rows <- tp_features[tp_features$omics_layer %in% c("proteome", "transcriptome"), ]
-    downstream_input <- stats::setNames(raw_rows$t_stat, raw_rows$pk_node_id)
+    # Upstream: TF activity + kinase/PPI activity (footprint-derived, 6.2).
+    # 335 proteins score as both a GRN source (TF) and a PPI source (kinase)
+    # -- the PKN has one node per UniProt ID regardless of role, so an
+    # overlap needs one scalar value, not two. Averaged rather than picking
+    # one arbitrarily; both are genuine activity-footprint estimates of the
+    # same underlying protein's signaling output.
+    tf_tp <- tf_activity[tf_activity$condition == as.character(tp), c("source", "score")]
+    kin_tp <- kinase_activity[kinase_activity$condition == as.character(tp), c("source", "score")]
+    combined <- rbind(tf_tp, kin_tp)
+    upstream_input <- tapply(combined$score, combined$source, mean)
+    upstream_input <- stats::setNames(as.numeric(upstream_input), names(upstream_input))
+
+    # Downstream: metabolite t-stats -- the measured functional readout of
+    # the signaling/transcriptional response (Morita et al.'s own framing;
+    # also cosmosR's standard scenario, see comment above). Compartment-
+    # fanned by run_moon_scoring(metab_side="downstream") below, same as
+    # the pilot fans metabolite upstream_input.
+    met_rows <- tp_features[tp_features$omics_layer %in% c("metabolome", "plasma_metabolome"), ]
+    downstream_input <- stats::setNames(met_rows$t_stat, met_rows$pk_node_id)
     downstream_input <- downstream_input[!duplicated(names(downstream_input))]
 
     list(upstream_input = upstream_input, downstream_input = downstream_input)
@@ -146,13 +158,20 @@ build_moon_inputs <- function(tp) {
 run_one_timepoint <- function(tp) {
     inputs <- build_moon_inputs(tp)
     cat(sprintf(
-        "\n--- timepoint %sh: %d upstream (metabolite) | %d downstream (raw transcript+protein target) ---\n",
+        "\n--- timepoint %sh: %d upstream (TF+kinase activity) | %d downstream (metabolite) ---\n",
         tp, length(inputs$upstream_input), length(inputs$downstream_input)
     ))
 
+    # grn=NULL: filter_incohrent_TF_target()'s coherence check merges TF
+    # scores against downstream_input keyed by the TF's GRN-regulon targets
+    # (genes) -- with downstream_input now metabolite-keyed, that merge is
+    # structurally empty (no-op), so it's skipped rather than left as dead
+    # weight. The TF-activity footprint already incorporates the grn
+    # regulon (6.2's run_ulm() call); this filter would have re-checked
+    # coherence against raw RNA, which we no longer feed in.
     moon_scoring_result <- run_moon_scoring(
         node_activities = inputs[c("upstream_input", "downstream_input")],
-        pkn = pkn_for_moon, grn = grn_for_moon,
+        pkn = pkn_for_moon, grn = NULL, metab_side = "downstream",
         n_steps = 6, statistic = "ulm", compartments = all_compartments
     )
     # level0_exempt=TRUE (reduce_moon_network()'s default) is designed for
@@ -161,11 +180,15 @@ run_one_timepoint <- function(tp) {
     # value regardless of magnitude. Our "level 0" values are Welch's
     # t-statistics over n=5 replicates per group -- already a real
     # statistical signal, not a raw single reading -- so level0_exempt=FALSE
-    # applies normal thresholding uniformly (decided 2026-10-07). primary=3/
-    # secondary=2 is the highest threshold that stays stable (not an
-    # erratic per-timepoint cliff) across all 8 timepoints -- confirmed via
-    # sweep, see commit history.
-    pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 3, secondary_thresh = 2, level0_exempt = FALSE)
+    # applies normal thresholding uniformly (decided 2026-10-07).
+    # primary=1.5/secondary=1.0 (re-swept 2026-10-07 after the upstream/
+    # downstream direction correction -- TF/kinase activity scores have a
+    # different magnitude distribution than the old metabolite-t-stat
+    # upstream signal, so the old primary=3/secondary=2 collapsed 6 of 8
+    # timepoints to 0 nodes). 1.5/1.0 is the highest threshold where every
+    # timepoint stays stable (106-314 nodes); above it, individual
+    # timepoints (first 16h/24h, then earlier ones) collapse one at a time.
+    pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 1.5, secondary_thresh = 1.0, level0_exempt = FALSE)
     pruned <- reattach_gem_edges(pruned, gem_edges)
     pruned$timepoint_h <- tp
 
@@ -202,10 +225,10 @@ cat("Saved result/moon/{<timepoint>h_moon_result,all_timepoints}.rds\n")
 ## 6.6 Save TF/kinase activity footprint as its own artifact (FR-011)
 ## ---------------------------------------------------------------------
 #
-# Reported independently rather than injected into moon() -- see 6.3's
-# comment for why mixing it into downstream_input breaks
-# filter_incohrent_TF_target(). Still satisfies FR-011 as a standalone
-# per-timepoint footprint-inference deliverable.
+# Long-form duplicate of what 6.3 already feeds into moon() as
+# upstream_input (per-source, not per-protein-averaged) -- kept as a
+# standalone artifact for direct TF/kinase activity inspection without
+# needing to re-derive it from a moon_results pruned-network object.
 
 footprint_activity <- rbind(
     data.frame(node_id = tf_activity$source, timepoint_h = as.numeric(tf_activity$condition),
