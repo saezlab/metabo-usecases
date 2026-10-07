@@ -147,6 +147,7 @@ measured_features <- do.call(rbind, lapply(names(omics_sheets), function(layer) 
     layer_result
 
 }))
+measured_features$excluded <- FALSE
 
 cat("\nMeasured features:", nrow(measured_features), "rows (",
     length(unique(measured_features$feature_id)), "unique feature IDs x",
@@ -155,5 +156,28 @@ cat("\nMeasured features:", nrow(measured_features), "rows (",
 print(table(measured_features$omics_layer) / length(unique(measured_features$timepoint_h)))
 cat("rows with a computable t_stat:", sum(!is.na(measured_features$t_stat)), "of", nrow(measured_features), "\n")
 
+## ---------------------------------------------------------------------
+## 4.4 Record (not silently drop) excluded lipid/FFA/acyl species (T011, FR-003)
+## ---------------------------------------------------------------------
+#
+# "lipid"/"FFAandAcyls" use the same clean Row-ID scheme as the included
+# layers (e.g. "lipid;CE;C02530") and are the direct per-timepoint
+# counterparts excluded here. "Lipid_all"/"Acylcarnitine_AcylCoA_all" are a
+# fuller, raw species-level breakdown of this same excluded scope (the
+# complex lipid-name-parsing pipeline 02_lipidID.r already targets) --
+# not loaded again here, to avoid double-counting the same exclusion.
+excluded_sheets <- c(lipid = "lipid", ffa_acyl = "FFAandAcyls")
+excluded_features <- do.call(rbind, lapply(names(excluded_sheets), function(layer) {
+    raw <- as.data.frame(readxl::read_excel("data/ads2547_data_file_s1.xlsx", sheet = excluded_sheets[[layer]]))
+    data.frame(
+        feature_id = raw$Row, timepoint_h = NA_integer_, t_stat = NA_real_,
+        omics_layer = layer, tissue = "liver", excluded = TRUE,
+        stringsAsFactors = FALSE
+    )
+}))
+cat("\nExcluded (FR-003, recorded not dropped):", nrow(excluded_features),
+    "lipid/FFA features (acyl-CoA/acyl-carnitine species breakdown deferred to 02_lipidID.r)\n")
+
+measured_features <- rbind(measured_features, excluded_features)
 saveRDS(measured_features, "result/pk_retrieval/measured_features.rds")
-cat("Saved result/pk_retrieval/measured_features.rds\n")
+cat("Saved result/pk_retrieval/measured_features.rds:", nrow(measured_features), "rows\n")
