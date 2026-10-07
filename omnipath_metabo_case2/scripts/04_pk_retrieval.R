@@ -80,3 +80,80 @@ pkn_edges <- merge(pkn_edges, snapshot_provenance, by = "category", all.x = TRUE
 dir.create("result/pk_retrieval", recursive = TRUE, showWarnings = FALSE)
 saveRDS(pkn_edges, "result/pk_retrieval/pkn_edges.rds")
 cat("\nSaved result/pk_retrieval/pkn_edges.rds:", nrow(pkn_edges), "rows,", ncol(pkn_edges), "cols\n")
+
+## ---------------------------------------------------------------------
+## 4.3 Load Morita et al. measured features + per-timepoint t-stat (T010)
+## ---------------------------------------------------------------------
+#
+# FR-012's "t-value of the ob/ob-vs-WT comparison at each timepoint" is not
+# a column the paper provides directly -- S2's DEA sheets are WITHIN-
+# genotype time-course stats (does WT change over time; does ob/ob change
+# over time), not a BETWEEN-genotype-at-a-timepoint comparison. Computed
+# here from S1's raw per-sample values (5 WT + 5 ob/ob per timepoint,
+# uniform across all 5 omics layers -- confirmed 2026-10-07) via Welch's
+# t-test (no assumption of equal WT/ob-ob variance).
+#
+# transcript/phosphorylation aren't in 00_excel_to_h5.py's .h5 conversion
+# (2026-10-07 decision): read directly from xlsx here for all 5 layers --
+# 04_pk_retrieval.R is R, and 00/01's .h5 output is pandas-written, awkward
+# to read from R, so reading xlsx directly (via readxl, already a
+# case-study-2 dependency via 02_lipidID.r) is simpler and self-contained
+# for every layer, not just the two missing ones.
+
+sample_info <- as.data.frame(readxl::read_excel(
+    "data/ads2547_data_file_s1.xlsx", sheet = "Sample_information"
+))
+
+omics_sheets <- c(
+    metabolome = "metabolite", proteome = "protein", transcriptome = "transcript",
+    phosphoproteome = "phosphorylation", plasma_metabolome = "plasma metabolite"
+)
+omics_tissue <- c(
+    metabolome = "liver", proteome = "liver", transcriptome = "liver",
+    phosphoproteome = "liver", plasma_metabolome = "plasma"
+)
+
+#' Welch's t-statistic, vectorized over rows (features) of two sample matrices.
+welch_t_rows <- function(mat_wt, mat_ob) {
+    n_wt <- rowSums(!is.na(mat_wt)); n_ob <- rowSums(!is.na(mat_ob))
+    mean_wt <- rowMeans(mat_wt, na.rm = TRUE); mean_ob <- rowMeans(mat_ob, na.rm = TRUE)
+    var_wt <- apply(mat_wt, 1, var, na.rm = TRUE); var_ob <- apply(mat_ob, 1, var, na.rm = TRUE)
+    se <- sqrt(var_wt / n_wt + var_ob / n_ob)
+    t_stat <- (mean_ob - mean_wt) / se
+    t_stat[n_wt < 2 | n_ob < 2] <- NA_real_
+    t_stat
+}
+
+measured_features <- do.call(rbind, lapply(names(omics_sheets), function(layer) {
+
+    raw <- as.data.frame(readxl::read_excel("data/ads2547_data_file_s1.xlsx", sheet = omics_sheets[[layer]]))
+    rownames(raw) <- raw$Row
+    sample_matrix <- as.matrix(raw[, setdiff(names(raw), "Row"), drop = FALSE])
+
+    timepoints <- sort(unique(sample_info$time))
+    per_timepoint <- lapply(timepoints, function(tp) {
+        wt_samples <- sample_info$MouseID[sample_info$time == tp & sample_info$genotype == "WT"]
+        ob_samples <- sample_info$MouseID[sample_info$time == tp & sample_info$genotype == "ob/ob"]
+        data.frame(
+            feature_id = rownames(sample_matrix),
+            timepoint_h = tp,
+            t_stat = welch_t_rows(sample_matrix[, wt_samples, drop = FALSE], sample_matrix[, ob_samples, drop = FALSE]),
+            stringsAsFactors = FALSE
+        )
+    })
+    layer_result <- do.call(rbind, per_timepoint)
+    layer_result$omics_layer <- layer
+    layer_result$tissue <- omics_tissue[[layer]]
+    layer_result
+
+}))
+
+cat("\nMeasured features:", nrow(measured_features), "rows (",
+    length(unique(measured_features$feature_id)), "unique feature IDs x",
+    length(unique(measured_features$timepoint_h)), "timepoints ) across",
+    length(omics_sheets), "omics layers\n")
+print(table(measured_features$omics_layer) / length(unique(measured_features$timepoint_h)))
+cat("rows with a computable t_stat:", sum(!is.na(measured_features$t_stat)), "of", nrow(measured_features), "\n")
+
+saveRDS(measured_features, "result/pk_retrieval/measured_features.rds")
+cat("Saved result/pk_retrieval/measured_features.rds\n")
