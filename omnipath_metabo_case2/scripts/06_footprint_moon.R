@@ -155,7 +155,17 @@ run_one_timepoint <- function(tp) {
         pkn = pkn_for_moon, grn = grn_for_moon,
         n_steps = 6, statistic = "ulm", compartments = all_compartments
     )
-    pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 1.5, secondary_thresh = 1)
+    # level0_exempt=TRUE (reduce_moon_network()'s default) is designed for
+    # the spatial pilot's single-sample-per-spot data, where a measured
+    # value has no replication/variance behind it and so is taken at face
+    # value regardless of magnitude. Our "level 0" values are Welch's
+    # t-statistics over n=5 replicates per group -- already a real
+    # statistical signal, not a raw single reading -- so level0_exempt=FALSE
+    # applies normal thresholding uniformly (decided 2026-10-07). primary=3/
+    # secondary=2 is the highest threshold that stays stable (not an
+    # erratic per-timepoint cliff) across all 8 timepoints -- confirmed via
+    # sweep, see commit history.
+    pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 3, secondary_thresh = 2, level0_exempt = FALSE)
     pruned <- reattach_gem_edges(pruned, gem_edges)
     pruned$timepoint_h <- tp
 
