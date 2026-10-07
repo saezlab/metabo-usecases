@@ -61,3 +61,29 @@ print(comparison[, c("published_network", "genotype", "published_node_count", "o
 dir.create("result", recursive = TRUE, showWarnings = FALSE)
 write.csv(comparison, "result/fig2_comparison.csv", row.names = FALSE)
 cat("\nSaved result/fig2_comparison.csv\n")
+
+## ---------------------------------------------------------------------
+## SC-002 (User Story 2, T019): chain-completeness checks from 05_network_topology.R
+## ---------------------------------------------------------------------
+
+full_chain <- if (file.exists("result/networks/example_full_chain.rds")) readRDS("result/networks/example_full_chain.rds") else NULL
+partial_chain <- readRDS("result/networks/example_partial_chain.rds")
+transporter_edges <- readRDS("result/networks/liver_blood_transporter_edges.rds")
+
+sc002 <- data.frame(
+    check = c(
+        "full metabolite->receptor->kinase->TF->GRN->enzyme<->metabolite chain exists",
+        "partial metabolite<->enzyme chain (no signaling participant) exists",
+        "liver<->blood transporter edge exists"
+    ),
+    pass = c(!is.null(full_chain), nrow(partial_chain) > 0, nrow(transporter_edges) > 0),
+    count = c(if (is.null(full_chain)) 0 else nrow(full_chain), nrow(partial_chain), nrow(transporter_edges)),
+    stringsAsFactors = FALSE
+)
+
+cat("\nSC-002: chain-completeness checks\n\n")
+print(sc002)
+stopifnot(all(sc002$pass))
+
+write.csv(sc002, "result/sc002_chain_completeness.csv", row.names = FALSE)
+cat("\nSaved result/sc002_chain_completeness.csv\n")
