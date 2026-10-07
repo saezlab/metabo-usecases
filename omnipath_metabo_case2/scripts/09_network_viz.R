@@ -1,27 +1,34 @@
 # User Story 3 visualization (spec 002-case-study-2-network): render each
-# timepoint's pruned mechanistic network, GEM (enzyme-metabolite)
-# centered -- GRN/allosteric/PPI/transporter edges are kept only where
-# they directly touch a GEM node (enzyme or metabolite); any node with no
-# direct connection to the GEM backbone is dropped. Decided 2026-10-07
-# after the edge-category stats showed GEM is the single largest category
-# at every timepoint (2,474-4,094 edges, bigger than GRN), while receptors
-# are genuinely rare (1-5 edges) -- the uncentered viz_cosmos_network()
-# attempt buried this structure under the much larger mRNA-expression
-# cluster.
+# timepoint's pruned mechanistic network, GEM (enzyme-metabolite) centered.
+#
+# Redesigned 2026-10-07 (second pass): dropped Spatial-COSMOS-MISTy's
+# viz_cosmos_network() entirely -- it hard-codes a strict linear pipeline
+# order (Metabolite -> ... -> GRN -> mRNA expression, cosmos_network_
+# role_levels) built for the spatial pilot's single-direction upstream-
+# ligand/downstream-target framing. Our GEM-centered view isn't that: GEM
+# is a hub multiple other categories (GRN, allosteric, PPI, transporter)
+# attach to from different sides, not a one-way cascade. Standard
+# force-directed/stress graph layout (igraph + ggraph), letting actual
+# topology -- not a manually assigned role -- determine node position, is
+# the right tool here. "stress" layout (vs "fr") was chosen after visual
+# comparison: it separates individual hub-and-spoke structures into
+# distinguishable petals rather than one overlapping mass.
+#
+# GEM is the structural backbone: GRN/allosteric/PPI/transporter edges are
+# kept only where they directly touch a GEM node (enzyme or metabolite);
+# any node with no direct connection to the GEM backbone is dropped.
 #
 # Run from omnipath_metabo_case2/, after scripts/06_footprint_moon.R.
 
 suppressMessages(pkgload::load_all("../../Spatial-COSMOS-MISTy"))
+suppressMessages(library(igraph))
+suppressMessages(library(ggraph))
+suppressMessages(library(ggplot2))
 source("scripts/lib/pk_helpers.R")
 
-PKN_DIR <- "../../Spatial-COSMOS-MISTy/data/PKN"
 pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
 moon_results <- readRDS("result/moon/all_timepoints.rds")
 
-# File-origin category lookup (which cosmos_pkn_<category>.csv an edge
-# came from), independent of whether annotate_cosmos_network() later finds
-# a resource/evidence match for it -- same lookup used for the edge-
-# category-by-origin stats.
 origin_key <- paste(pkn_edges$source, pkn_edges$target)
 origin_lookup <- stats::setNames(pkn_edges$category, origin_key)
 category_of <- function(source, target) {
@@ -30,63 +37,52 @@ category_of <- function(source, target) {
     ifelse(!is.na(fwd), fwd, rev)
 }
 
+category_colors <- c(
+    enzyme_met = "#e31a1c", grn = "#ff7f00", ppi = "#b15928",
+    allosteric = "#33a02c", transporters = "#1f78b4", receptors = "#6a3d9a"
+)
+
 dir.create("result/networks/viz", recursive = TRUE, showWarnings = FALSE)
 
 for (tp in names(moon_results)) {
 
     pruned <- moon_results[[tp]]
-    gem_edges <- pruned$gem_edges  # full, not capped -- GEM is the backbone now
+    gem_edges <- pruned$gem_edges  # full, not capped -- GEM is the backbone
     gem_nodes <- unique(c(gem_edges$source, gem_edges$target))
 
     signed <- pruned$edges
     signed$category <- category_of(signed$source, signed$target)
-    non_gem_touching_gem <- signed[signed$source %in% gem_nodes | signed$target %in% gem_nodes, ]
+    connecting <- signed[signed$source %in% gem_nodes | signed$target %in% gem_nodes, ]
 
-    gem_for_annot <- gem_edges
-    names(gem_for_annot)[names(gem_for_annot) == "mor"] <- "interaction"
-    all_edges <- unique(rbind(
-        non_gem_touching_gem[, c("source", "target", "interaction")],
-        gem_for_annot[, c("source", "target", "interaction")]
+    edges <- unique(rbind(
+        data.frame(from = gem_edges$source, to = gem_edges$target, category = "enzyme_met", stringsAsFactors = FALSE),
+        data.frame(from = connecting$source, to = connecting$target, category = connecting$category, stringsAsFactors = FALSE)
     ))
 
-    nodes_df <- data.frame(source = unique(c(all_edges$source, all_edges$target)), stringsAsFactors = FALSE)
-    annotated <- annotate_cosmos_network(nodes_df, all_edges, pkn_unformat_dir = PKN_DIR)
+    node_names <- unique(c(edges$from, edges$to))
+    node_type <- ifelse(grepl("^Metab__", node_names), "metabolite", "gene_protein")
+    nodes <- data.frame(name = node_names, node_type = node_type, stringsAsFactors = FALSE)
 
-    # Override the resource-matched edge_category (only ~36% coverage for
-    # GEM edges -- the rest fall into "pending" and get misclassified into
-    # classify_cosmos_node_roles()'s generic fallback bucket) with the
-    # reliable file-origin category instead, mapped to the same vocabulary
-    # cosmos_edge_category_map uses internally.
-    origin_to_display <- c(
-        enzyme_met = "metabolic enzyme", grn = "GRN", ppi = "PPI",
-        allosteric = "allosteric regulation", transporters = "transport", receptors = "ligand-receptor"
-    )
-    edge_origin <- ifelse(
-        paste(all_edges$source, all_edges$target) %in% paste(gem_for_annot$source, gem_for_annot$target),
-        "enzyme_met", category_of(all_edges$source, all_edges$target)
-    )
-    annotated$edges$edge_category <- unname(origin_to_display[edge_origin])
+    g <- graph_from_data_frame(edges, directed = TRUE, vertices = nodes)
+    V(g)$degree <- igraph::degree(g, mode = "all")
 
-    type_lookup <- stats::setNames(pruned$nodes$type, pruned$nodes$source)
-    annotated$nodes$type <- type_lookup[annotated$nodes$source]
-    annotated$nodes$type[is.na(annotated$nodes$type)] <- "other"
+    cat(sprintf("%sh: %d nodes, %d edges, computing stress layout...\n", tp, nrow(nodes), nrow(edges)))
+    set.seed(1)
+    layout <- create_layout(g, layout = "stress")
 
-    cat(sprintf(
-        "%sh: %d GEM-backbone nodes -> %d total nodes (+%d connecting non-GEM), %d edges (%d GEM + %d connecting)\n",
-        tp, length(gem_nodes), nrow(annotated$nodes), nrow(annotated$nodes) - length(gem_nodes),
-        nrow(annotated$edges), nrow(gem_for_annot), nrow(non_gem_touching_gem)
-    ))
+    p <- ggraph(layout) +
+        geom_edge_link(aes(color = category), alpha = 0.25, width = 0.3) +
+        geom_node_point(aes(shape = node_type, size = degree), fill = "grey30", color = "black", alpha = 0.7) +
+        scale_edge_color_manual(values = category_colors, name = "Edge category") +
+        scale_shape_manual(values = c(metabolite = 23, gene_protein = 21), name = "Node type") +
+        scale_size_continuous(range = c(0.5, 6), name = "Degree") +
+        theme_void() +
+        labs(title = sprintf("Case study 2, %sh -- GEM-centered subnetwork (stress layout)", tp)) +
+        theme(plot.background = element_rect(fill = "white", color = NA))
 
-    result <- viz_cosmos_network(
-        nodes = annotated$nodes, edges = annotated$edges,
-        label_mode = "none",
-        plot_name = sprintf("case_study_2_%sh_gem_centered", tp),
-        save_plot = "png",
-        path = "result/networks/viz",
-        width = 16,
-        print_plot = FALSE
-    )
-    cat("  saved:", result$saved_files, "\n")
+    out_file <- sprintf("result/networks/viz/case_study_2_%sh_stress.png", tp)
+    ggsave(out_file, p, width = 16, height = 16, dpi = 150, limitsize = FALSE)
+    cat("  saved:", out_file, "\n")
 }
 
-cat("\nAll GEM-centered timepoint network plots saved to result/networks/viz/\n")
+cat("\nAll GEM-centered stress-layout plots saved to result/networks/viz/\n")
