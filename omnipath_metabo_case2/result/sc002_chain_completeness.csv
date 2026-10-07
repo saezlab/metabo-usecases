@@ -1,0 +1,4 @@
+"check","pass","count"
+"full metabolite->receptor->kinase->TF->GRN->enzyme<->metabolite chain exists",TRUE,6
+"partial metabolite<->enzyme chain (no signaling participant) exists",TRUE,1
+"liver<->blood transporter edge exists",TRUE,59

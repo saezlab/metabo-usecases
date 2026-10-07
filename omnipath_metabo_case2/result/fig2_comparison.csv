@@ -1,0 +1,5 @@
+"genotype","published_network","published_node_count","published_edge_count","our_node_count","our_edge_count","node_fold_increase","edge_fold_increase"
+"ob_ob","Data File S5 (global transomic network)",1677,11010,34067,103790,20.3,9.4
+"WT","Data File S5 (global transomic network)",2022,16252,36258,113508,17.9,7
+"ob_ob","Data File S6 (metabolic network)",692,1418,34067,103790,49.2,73.2
+"WT","Data File S6 (metabolic network)",957,2318,36258,113508,37.9,49
