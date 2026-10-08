@@ -206,6 +206,23 @@ for (tp in TIMEPOINTS) {
     score_lookup <- stats::setNames(pruned$nodes$score, pruned$nodes$source)
     level_lookup <- stats::setNames(pruned$nodes$level, pruned$nodes$source)
     type_lookup <- stats::setNames(pruned$nodes$type, pruned$nodes$source)
+    # GEM reaction-instance nodes are collapsed to "GEMenz__<UniProt>" above
+    # (collapse_gem_instances()), but pruned$nodes$source never contains
+    # that prefix -- GEM is excluded from MOON's own scoring graph (FR-014/
+    # 015 sign exemption), so a collapsed enzyme id matches nothing in
+    # score_lookup and silently comes back NA for every enzyme node (found
+    # 2026-10-08 while adding score-based node coloring). Falls back to the
+    # bare UniProt's own score, if that same protein is independently
+    # scored elsewhere in the network (e.g. as a PPI/kinase node) --
+    # otherwise stays NA (no signaling-layer score exists for it).
+    score_for <- function(id) {
+        if (id %in% names(score_lookup)) return(unname(score_lookup[[id]]))
+        if (grepl("^GEMenz__", id)) {
+            uniprot <- sub("^GEMenz__", "", id)
+            if (uniprot %in% names(score_lookup)) return(unname(score_lookup[[uniprot]]))
+        }
+        NA_real_
+    }
     # Reaction placeholder with no real protein behind it (Gene<N>__
     # orphanReac<id>[_rev]) -- not biologically meaningful on its own, just
     # a GEM-model bookkeeping node. Flagged so the viz script can mute it
@@ -218,7 +235,7 @@ for (tp in TIMEPOINTS) {
         node_type = node_type,
         layer = layer,
         is_orphan = is_orphan,
-        score = score_lookup[node_names],
+        score = vapply(node_names, score_for, numeric(1)),
         level = level_lookup[node_names],
         moon_type = type_lookup[node_names],  # upstream_input / level0 / other / NA (GEM-only, no MOON score)
         stringsAsFactors = FALSE

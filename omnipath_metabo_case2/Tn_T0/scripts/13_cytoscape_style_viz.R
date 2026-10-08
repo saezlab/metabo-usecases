@@ -1,11 +1,19 @@
 # Renders the GEM-instance-merged network (scripts/12_cytoscape_export.R's
 # output) as a plain scattered/force-directed layout -- NOT the layered
 # TF/mRNA/PPI/enzyme/metabolite structure from 09_network_viz.R -- with
-# node labels and the same node color/shape scheme set up interactively in
-# Cytoscape (metabolite = light green diamond, gene_protein = orange
-# circle), plus a high-contrast edge-category palette. Orphan reaction
+# node labels, shape by node_type (metabolite = diamond, gene_protein =
+# circle), and a high-contrast edge-category palette. Orphan reaction
 # placeholder nodes (is_orphan in the att table) are dropped entirely from
 # this figure -- they remain in the Cytoscape export files themselves.
+#
+# Node FILL changed 2026-10-08 from node_type color to MOON score
+# (diverging, blue = down / red = up, renormalized per pair to that
+# network's own max |score|) -- requested so direction is visible on the
+# main per-pair figures, not just the one-off ATP-focus figure. Enzyme
+# nodes with no independent signaling-layer score (most GEM-only ones --
+# see 12_cytoscape_export.R's score_for() note) render grey (NA), which is
+# itself informative: it marks "this protein is in the GEM backbone but
+# was never scored by MOON."
 #
 # Run from omnipath_metabo_case2/, after scripts/12_cytoscape_export.R.
 
@@ -25,7 +33,6 @@ TIMEPOINTS <- as.vector(outer(c("WT", "ob"), c("2", "4", "6", "8", "12", "16", "
 # stayed readable up to ~60 nodes, metabolite-only kicked in by ~150).
 DENSE_LABEL_THRESHOLD <- 200
 
-node_colors <- c(metabolite = "#ADDD8E", gene_protein = "#FEC44F")
 # High-contrast categorical palette (RColorBrewer Set1, yellow dropped --
 # too low-contrast on white): red/blue/green/purple/orange/brown are each
 # maximally separated in hue, not just "6 distinct colors" -- important
@@ -34,6 +41,14 @@ edge_colors <- c(
     enzyme_met = "#E41A1C", grn = "#377EB8", ppi = "#4DAF4A",
     allosteric = "#984EA3", transporters = "#FF7F00", receptors = "#A65628"
 )
+
+# Node fill switched 2026-10-08 from node_type (metabolite/gene_protein) to
+# MOON score direction -- matches the ATP-focus figure
+# (14_atp_focus_viz.R), requested so the same up/down-regulation reading
+# applies to the main per-pair figures, not just that one-off. node_type
+# is still encoded via shape (diamond/circle). Diverging scale, symmetric
+# around 0 and renormalized PER FIGURE to that pair's own max |score| --
+# a fixed cross-pair scale would wash out smaller-swing pairs.
 
 dir.create("Tn_T0/result/networks/cytoscape", recursive = TRUE, showWarnings = FALSE)
 
@@ -53,6 +68,7 @@ for (tp in TIMEPOINTS) {
     g <- graph_from_data_frame(edges[, c("source", "target")], directed = TRUE, vertices = att[, "node", drop = FALSE])
     idx <- match(V(g)$name, att$node)
     V(g)$node_type <- att$node_type[idx]
+    V(g)$score <- att$score[idx]
     V(g)$degree <- igraph::degree(g, mode = "all")
 
     # Drop leaf gene/protein nodes (degree 1) -- a gene hanging off a
@@ -88,14 +104,19 @@ for (tp in TIMEPOINTS) {
                         max.overlaps = Inf, segment.size = 0.15, bg.color = "white", bg.r = 0.1)
     }
 
+    score_limit <- max(abs(V(g)$score), na.rm = TRUE)
+
     p <- ggraph(gl) +
         geom_edge_link(aes(color = category), alpha = 0.6, width = 0.5) +
-        geom_node_point(aes(shape = node_type, fill = node_type, size = degree), color = "black", stroke = 0.3) +
+        geom_node_point(aes(shape = node_type, fill = score, size = degree), color = "black", stroke = 0.3) +
         label_layer +
         scale_edge_color_manual(values = edge_colors, name = "Edge category") +
         scale_shape_manual(values = c(metabolite = 23, gene_protein = 21), name = "Node type") +
-        scale_fill_manual(values = node_colors, name = "Node type") +
+        scale_fill_gradient2(low = "#2166AC", mid = "#F7F7F7", high = "#B2182B", midpoint = 0,
+                              limits = c(-score_limit, score_limit), na.value = "grey80",
+                              name = "MOON score\n(blue = down, red = up)") +
         scale_size_continuous(range = c(2, 10), name = "Degree") +
+        guides(fill = guide_colorbar(order = 1)) +
         theme_void(base_size = 13) +
         theme(plot.background = element_rect(fill = "white", color = NA)) +
         labs(title = sprintf("Case study 2, %sh -- GEM-instance-merged network", tp))
