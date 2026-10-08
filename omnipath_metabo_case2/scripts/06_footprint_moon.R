@@ -62,7 +62,16 @@ measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
 ## any real biological signal. Dropped from the PKN before any MOON step
 ## -- not just from GEM reattachment -- so it also can't inflate
 ## transporter-mediated reachability or appear as a pruned node at all.
-cofactor_metabolites <- c("CHEBI:24636")  # proton (H+)
+## Added 2026-10-08: CHEBI:17544 (bicarbonate, HCO3-) and CHEBI:29311
+## (chlorine radical, Cl.) -- both generic inorganic species (146-219 PKN
+## edges each) rather than metabolites informative for this study, same
+## rationale as the proton. CHEBI:29311 in particular looks like it may be
+## a GEM-resource annotation artifact (a free chlorine radical has no
+## obvious role in general liver metabolism, unlike HCO3- which is a
+## legitimate, common carboxylation co-substrate -- but removed anyway,
+## per the same "not analytically informative for this study" call as the
+## proton and HCO3-).
+cofactor_metabolites <- c("CHEBI:24636", "CHEBI:17544", "CHEBI:29311")  # proton (H+), bicarbonate (HCO3-), chlorine radical (Cl.)
 bare_chebi <- function(node_id) sub("_[a-z]+$", "", sub("^Metab__", "", node_id))
 is_cofactor_edge <- bare_chebi(pkn_edges$source) %in% cofactor_metabolites |
     bare_chebi(pkn_edges$target) %in% cofactor_metabolites
@@ -205,12 +214,16 @@ run_one_timepoint <- function(tp) {
     # statistical signal, not a raw single reading -- so level0_exempt=FALSE
     # applies normal thresholding uniformly (decided 2026-10-07).
     # primary=1.5/secondary=1.0 (re-swept 2026-10-07 after the upstream/
-    # downstream direction correction -- TF/kinase activity scores have a
-    # different magnitude distribution than the old metabolite-t-stat
-    # upstream signal, so the old primary=3/secondary=2 collapsed 6 of 8
-    # timepoints to 0 nodes). 1.5/1.0 is the highest threshold where every
-    # timepoint stays stable (106-314 nodes); above it, individual
-    # timepoints (first 16h/24h, then earlier ones) collapse one at a time.
+    # downstream direction correction). Briefly raised to 1.75/1.25
+    # (2026-10-08), then reverted back down (2026-10-08, same day) after
+    # confirming it was the direct cause of ATP (CHEBI:15422) dropping out
+    # of the 24h network -- ATP's raw footprint-independent score stayed
+    # 8.81 throughout (way past either threshold), but at 1.75/1.25 it had
+    # no sign-coherent path left to any upstream seed within n_steps=6, so
+    # reduce_moon_network()'s connectivity requirement cut it entirely
+    # despite the score. 1.5/1.0 restores that path. (Separately, cofactor
+    # exclusion below also affects 24h's connectivity -- see that block's
+    # own comment; the two issues are independent, diagnosed separately.)
     pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 1.5, secondary_thresh = 1.0, level0_exempt = FALSE)
     pruned <- reattach_gem_edges(pruned, gem_edges)
     pruned$timepoint_h <- tp
