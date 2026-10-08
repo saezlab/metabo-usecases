@@ -75,12 +75,104 @@ measured_features <- readRDS("Tn_T0/result/pk_retrieval/measured_features.rds")
 ## legitimate, common carboxylation co-substrate -- but removed anyway,
 ## per the same "not analytically informative for this study" call as the
 ## proton and HCO3-).
-cofactor_metabolites <- c("CHEBI:24636", "CHEBI:17544", "CHEBI:29311")  # proton (H+), bicarbonate (HCO3-), chlorine radical (Cl.)
+##
+## Expanded 2026-10-08, per colleague recommendation: adopted the seed ID
+## list from saezlab/MetaProViz's get_exclusion_metabolites()
+## (R/GetPriorKnowledge.R), which curates exactly this class of
+## generic/currency species (its own "ions" and "atoms" classes -- the
+## function's "small_molecules" class is KEGG-seeded; its ids below are
+## the ones that also carry the "ions"/"small_molecules" tag after KEGG
+## seeds were translated to CHEBI). Fetched the source directly
+## (`gh api repos/saezlab/MetaProViz/contents/R/GetPriorKnowledge.R`), not
+## from a summary. That function seeds 14+16 KEGG ids and ~467 native
+## CHEBI ids (ions = children of CHEBI:24867, atoms = children of
+## CHEBI:33250); the 27 unique KEGG seeds were translated to CHEBI via
+## KEGGREST::keggConv() (same mechanism already used in 04/12 of this
+## pipeline). Restricted to the subset that actually touches an edge in
+## our own PKN (64 of ~486 candidates do; the rest are real CHEBI terms
+## but never appear as PKN nodes here, so listing them would be a no-op)
+## -- every one of those 64 was independently re-confirmed by name via a
+## direct ChEBI OLS lookup (not trusted from MetaProViz's comments alone),
+## e.g. water, dioxygen, CO2, H2O2, NH3/NH4+, nitric/nitrous
+## oxide/nitrite, the generic "fatty acid" class term, "metal cation", and
+## a long tail of bare metal atoms/ions (Na, K, Ca, Mg, Fe, Zn, Mn, Cu,
+## etc.) that are GEM cofactor annotations, not measured study
+## metabolites. Net effect: +6,960 edges newly dropped beyond the
+## original 3-id list (confirmed against the WT_vs_ob PKN snapshot, which
+## this feature's PKN is derived from the same way).
+cofactor_metabolites <- c(
+    "CHEBI:24636",  # proton (H+)
+    "CHEBI:17544",  # bicarbonate (HCO3-)
+    "CHEBI:29311",  # chlorine radical (Cl.)
+    "CHEBI:15377",  # water
+    "CHEBI:15379",  # dioxygen
+    "CHEBI:15858",  # bromide
+    "CHEBI:16134",  # ammonia
+    "CHEBI:16240",  # hydrogen peroxide
+    "CHEBI:16301",  # nitrite
+    "CHEBI:16382",  # iodide
+    "CHEBI:16480",  # nitric oxide
+    "CHEBI:16526",  # carbon dioxide
+    "CHEBI:16793",  # mercury(2+)
+    "CHEBI:17051",  # fluoride
+    "CHEBI:17996",  # chloride
+    "CHEBI:18248",  # iron atom
+    "CHEBI:18276",  # dihydrogen
+    "CHEBI:18291",  # manganese atom
+    "CHEBI:18361",  # diphosphate(4-)
+    "CHEBI:18420",  # magnesium(2+)
+    "CHEBI:18421",  # superoxide
+    "CHEBI:22984",  # calcium atom
+    "CHEBI:25213",  # metal cation
+    "CHEBI:25567",  # nitrous acid
+    "CHEBI:25805",  # oxygen atom
+    "CHEBI:26216",  # potassium atom
+    "CHEBI:26708",  # sodium atom
+    "CHEBI:27363",  # zinc atom
+    "CHEBI:27563",  # arsenic atom
+    "CHEBI:27568",  # selenium atom
+    "CHEBI:27594",  # carbon atom
+    "CHEBI:27698",  # vanadium atom
+    "CHEBI:27998",  # tungsten atom
+    "CHEBI:28938",  # ammonium
+    "CHEBI:29033",  # iron(2+)
+    "CHEBI:29034",  # iron(3+)
+    "CHEBI:29035",  # manganese(2+)
+    "CHEBI:29036",  # copper(2+)
+    "CHEBI:29101",  # sodium(1+)
+    "CHEBI:29103",  # potassium(1+)
+    "CHEBI:29105",  # zinc(2+)
+    "CHEBI:29108",  # calcium(2+)
+    "CHEBI:29191",  # hydroxyl
+    "CHEBI:29287",  # gold atom
+    "CHEBI:30452",  # tellurium atom
+    "CHEBI:30502",  # beryllium(2+)
+    "CHEBI:30514",  # caesium atom
+    "CHEBI:33336",  # lanthanum atom
+    "CHEBI:33341",  # titanium atom
+    "CHEBI:33364",  # platinum atom
+    "CHEBI:33375",  # gadolinium atom
+    "CHEBI:35104",  # strontium(2+)
+    "CHEBI:35366",  # fatty acid (generic class term)
+    "CHEBI:37136",  # barium(2+)
+    "CHEBI:39124",  # calcium ion
+    "CHEBI:48775",  # cadmium(2+)
+    "CHEBI:48828",  # cobalt(2+)
+    "CHEBI:49470",  # aluminium(3+)
+    "CHEBI:49666",  # iridium atom
+    "CHEBI:49701",  # lanthanum(3+)
+    "CHEBI:49713",  # lithium(1+)
+    "CHEBI:49786",  # nickel(2+)
+    "CHEBI:49807",  # lead(2+)
+    "CHEBI:49847",  # rubidium(1+)
+    "CHEBI:84043"   # gallium(3+)
+)
 bare_chebi <- function(node_id) sub("_[a-z]+$", "", sub("^Metab__", "", node_id))
 is_cofactor_edge <- bare_chebi(pkn_edges$source) %in% cofactor_metabolites |
     bare_chebi(pkn_edges$target) %in% cofactor_metabolites
-cat("Dropping", sum(is_cofactor_edge), "edges touching excluded cofactor metabolite(s):",
-    paste(cofactor_metabolites, collapse = ", "), "\n")
+cat("Dropping", sum(is_cofactor_edge), "edges touching", length(cofactor_metabolites),
+    "excluded cofactor metabolites (3 original + 62 from MetaProViz's",
+    "get_exclusion_metabolites() that touch this PKN)\n")
 pkn_edges <- pkn_edges[!is_cofactor_edge, ]
 
 ## ---------------------------------------------------------------------
@@ -217,6 +309,16 @@ build_moon_inputs <- function(gt_key) {
 # WT_16h, collapse to 0 nodes at 1.5/1.0 on this signal). Sweep result:
 # primary=1.10/secondary=0.60 is the highest threshold where all 14 pairs
 # stay non-empty (397-668 nodes); 1.15/0.65 drops WT_16h to 0.
+#
+# Re-validated 2026-10-08 (same day) after expanding the cofactor
+# exclusion list (65 ids, up from 3, via MetaProViz's
+# get_exclusion_metabolites() -- see 6.0's comment): unlike 002, this
+# feature's 1.10/0.60 threshold still holds all 14 pairs non-empty with
+# the extra 6,960 edges removed (333-466 nodes; smallest is ob_6h at 333,
+# down from its earlier 397-ish floor but still well clear of 0) --
+# re-checked via the same scoring-checkpoint + reduce_moon_network() sweep
+# methodology, not assumed just because 002's analogous threshold needed
+# to move.
 PRIMARY_THRESH <- 1.10
 SECONDARY_THRESH <- 0.60
 

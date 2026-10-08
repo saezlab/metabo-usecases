@@ -71,12 +71,103 @@ measured_features <- readRDS("WT_vs_ob/result/pk_retrieval/measured_features.rds
 ## legitimate, common carboxylation co-substrate -- but removed anyway,
 ## per the same "not analytically informative for this study" call as the
 ## proton and HCO3-).
-cofactor_metabolites <- c("CHEBI:24636", "CHEBI:17544", "CHEBI:29311")  # proton (H+), bicarbonate (HCO3-), chlorine radical (Cl.)
+##
+## Expanded 2026-10-08, per colleague recommendation: adopted the seed ID
+## list from saezlab/MetaProViz's get_exclusion_metabolites()
+## (R/GetPriorKnowledge.R), which curates exactly this class of
+## generic/currency species (its own "ions" and "atoms" classes -- the
+## function's "small_molecules" class is KEGG-seeded; its ids below are
+## the ones that also carry the "ions"/"small_molecules" tag after KEGG
+## seeds were translated to CHEBI). Fetched the source directly
+## (`gh api repos/saezlab/MetaProViz/contents/R/GetPriorKnowledge.R`), not
+## from a summary. That function seeds 14+16 KEGG ids and ~467 native
+## CHEBI ids (ions = children of CHEBI:24867, atoms = children of
+## CHEBI:33250); the 27 unique KEGG seeds were translated to CHEBI via
+## KEGGREST::keggConv() (same mechanism already used in 04/12 of this
+## pipeline). Restricted to the subset that actually touches an edge in
+## our own PKN (64 of ~486 candidates do; the rest are real CHEBI terms
+## but never appear as PKN nodes here, so listing them would be a no-op)
+## -- every one of those 64 was independently re-confirmed by name via a
+## direct ChEBI OLS lookup (not trusted from MetaProViz's comments alone),
+## e.g. water, dioxygen, CO2, H2O2, NH3/NH4+, nitric/nitrous
+## oxide/nitrite, the generic "fatty acid" class term, "metal cation", and
+## a long tail of bare metal atoms/ions (Na, K, Ca, Mg, Fe, Zn, Mn, Cu,
+## etc.) that are GEM cofactor annotations, not measured study
+## metabolites. Net effect: +6,960 edges newly dropped beyond the
+## original 3-id list (12,021 total vs 5,061 before, out of 202,858).
+cofactor_metabolites <- c(
+    "CHEBI:24636",  # proton (H+)
+    "CHEBI:17544",  # bicarbonate (HCO3-)
+    "CHEBI:29311",  # chlorine radical (Cl.)
+    "CHEBI:15377",  # water
+    "CHEBI:15379",  # dioxygen
+    "CHEBI:15858",  # bromide
+    "CHEBI:16134",  # ammonia
+    "CHEBI:16240",  # hydrogen peroxide
+    "CHEBI:16301",  # nitrite
+    "CHEBI:16382",  # iodide
+    "CHEBI:16480",  # nitric oxide
+    "CHEBI:16526",  # carbon dioxide
+    "CHEBI:16793",  # mercury(2+)
+    "CHEBI:17051",  # fluoride
+    "CHEBI:17996",  # chloride
+    "CHEBI:18248",  # iron atom
+    "CHEBI:18276",  # dihydrogen
+    "CHEBI:18291",  # manganese atom
+    "CHEBI:18361",  # diphosphate(4-)
+    "CHEBI:18420",  # magnesium(2+)
+    "CHEBI:18421",  # superoxide
+    "CHEBI:22984",  # calcium atom
+    "CHEBI:25213",  # metal cation
+    "CHEBI:25567",  # nitrous acid
+    "CHEBI:25805",  # oxygen atom
+    "CHEBI:26216",  # potassium atom
+    "CHEBI:26708",  # sodium atom
+    "CHEBI:27363",  # zinc atom
+    "CHEBI:27563",  # arsenic atom
+    "CHEBI:27568",  # selenium atom
+    "CHEBI:27594",  # carbon atom
+    "CHEBI:27698",  # vanadium atom
+    "CHEBI:27998",  # tungsten atom
+    "CHEBI:28938",  # ammonium
+    "CHEBI:29033",  # iron(2+)
+    "CHEBI:29034",  # iron(3+)
+    "CHEBI:29035",  # manganese(2+)
+    "CHEBI:29036",  # copper(2+)
+    "CHEBI:29101",  # sodium(1+)
+    "CHEBI:29103",  # potassium(1+)
+    "CHEBI:29105",  # zinc(2+)
+    "CHEBI:29108",  # calcium(2+)
+    "CHEBI:29191",  # hydroxyl
+    "CHEBI:29287",  # gold atom
+    "CHEBI:30452",  # tellurium atom
+    "CHEBI:30502",  # beryllium(2+)
+    "CHEBI:30514",  # caesium atom
+    "CHEBI:33336",  # lanthanum atom
+    "CHEBI:33341",  # titanium atom
+    "CHEBI:33364",  # platinum atom
+    "CHEBI:33375",  # gadolinium atom
+    "CHEBI:35104",  # strontium(2+)
+    "CHEBI:35366",  # fatty acid (generic class term)
+    "CHEBI:37136",  # barium(2+)
+    "CHEBI:39124",  # calcium ion
+    "CHEBI:48775",  # cadmium(2+)
+    "CHEBI:48828",  # cobalt(2+)
+    "CHEBI:49470",  # aluminium(3+)
+    "CHEBI:49666",  # iridium atom
+    "CHEBI:49701",  # lanthanum(3+)
+    "CHEBI:49713",  # lithium(1+)
+    "CHEBI:49786",  # nickel(2+)
+    "CHEBI:49807",  # lead(2+)
+    "CHEBI:49847",  # rubidium(1+)
+    "CHEBI:84043"   # gallium(3+)
+)
 bare_chebi <- function(node_id) sub("_[a-z]+$", "", sub("^Metab__", "", node_id))
 is_cofactor_edge <- bare_chebi(pkn_edges$source) %in% cofactor_metabolites |
     bare_chebi(pkn_edges$target) %in% cofactor_metabolites
-cat("Dropping", sum(is_cofactor_edge), "edges touching excluded cofactor metabolite(s):",
-    paste(cofactor_metabolites, collapse = ", "), "\n")
+cat("Dropping", sum(is_cofactor_edge), "edges touching", length(cofactor_metabolites),
+    "excluded cofactor metabolites (3 original + 62 from MetaProViz's",
+    "get_exclusion_metabolites() that touch this PKN)\n")
 pkn_edges <- pkn_edges[!is_cofactor_edge, ]
 
 ## ---------------------------------------------------------------------
@@ -224,7 +315,15 @@ run_one_timepoint <- function(tp) {
     # despite the score. 1.5/1.0 restores that path. (Separately, cofactor
     # exclusion below also affects 24h's connectivity -- see that block's
     # own comment; the two issues are independent, diagnosed separately.)
-    pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 1.5, secondary_thresh = 1.0, level0_exempt = FALSE)
+    # Re-swept AGAIN 2026-10-08 after expanding the cofactor exclusion list
+    # (65 ids, up from 3): 1.5/1.0 now collapses 12h to 0 nodes -- removing
+    # 6,960 more edges changes connectivity, not just score magnitude, same
+    # lesson as every prior resweep in this project. Checkpointed
+    # run_moon_scoring() per timepoint and swept reduce_moon_network() alone
+    # (cheap) at the same 1.5:1.0 ratio: 1.36/0.91 is the exact boundary
+    # (12h first goes to 0 at 1.37); settled on 1.35/0.90 for a small
+    # safety margin, same round-number style as the original sweep.
+    pruned <- reduce_moon_network(moon_scoring_result, primary_thresh = 1.35, secondary_thresh = 0.90, level0_exempt = FALSE)
     pruned <- reattach_gem_edges(pruned, gem_edges)
     pruned$timepoint_h <- tp
 

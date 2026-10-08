@@ -25,7 +25,7 @@
 #    (build_cosmos_metabolite_pathway_sets(), live KEGG query, cached).
 #
 # Operates directly on reduce_moon_network()'s ALREADY-thresholded output
-# (per-timepoint primary=1.5/secondary=1.0, 06_footprint_moon.R), not the
+# (per-timepoint primary=1.35/secondary=0.90, 06_footprint_moon.R), not the
 # raw unthresholded moon_res/pruned_pkn the spatial pilot's own
 # 09_pathway_control.R uses with its own separate top_node_threshold=3/
 # background_threshold=1.5 -- those pilot defaults were tuned for a
@@ -35,10 +35,10 @@
 # restricted to source_original %in% pruned$nodes$source before being
 # handed to pathway_control_analysis(), and pruned_pkn is the final
 # (edges + reattached gem_edges) display network, not the broader n-step-
-# reachable candidate graph -- so top_node_threshold=1.5 reuses the same
+# reachable candidate graph -- so top_node_threshold=1.35 reuses the same
 # primary threshold pruning already applied, and background_threshold=0
 # means "background = every node that survived pruning" (they already
-# cleared >= secondary=1.0), rather than re-filtering a second time on a
+# cleared >= secondary=0.90), rather than re-filtering a second time on a
 # different scale.
 #
 # Run from omnipath_metabo_case2/, after scripts/06_footprint_moon.R.
@@ -101,8 +101,8 @@ run_one_timepoint <- function(tp, pruned) {
             pathways = pathways,
             uniprot_symbol_map = uniprot_symbol_map,
             chebi_name_map = chebi_name_map,
-            top_node_threshold = 1.5,   # == 06_footprint_moon.R's primary_thresh
-            background_threshold = 0,   # background = every pruned-network node (already >= secondary_thresh=1.0)
+            top_node_threshold = 1.35,   # == 06_footprint_moon.R's primary_thresh
+            background_threshold = 0,   # background = every pruned-network node (already >= secondary_thresh=0.90)
             # Widened from pilot defaults (2/3, 2026-10-08): first pass found
             # only 1 of 80 tested pathways across all 8 timepoints was a real
             # metabolic-process pathway (vs. signaling/immune/ECM) -- drivers
@@ -189,7 +189,7 @@ run_one_timepoint_gem <- function(tp, pruned) {
             gem_edges = full_gem_edges,
             pathways = met_pathways,
             chebi_name_map = chebi_name_map,
-            top_node_threshold = 1.5,  # == 06_footprint_moon.R's primary_thresh
+            top_node_threshold = 1.35,  # == 06_footprint_moon.R's primary_thresh
             n_steps_metabolite = 2     # metabolites sharing 1 enzyme/reaction with the driver
         ),
         error = function(e) {
