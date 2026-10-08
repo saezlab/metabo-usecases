@@ -15,6 +15,10 @@ suppressMessages(library(ggplot2))
 suppressMessages(library(ggrepel))
 
 TIMEPOINTS <- c("0", "2", "4", "6", "8", "12", "16", "24")
+# Denser timepoints (post leaf-trim: 2h=251, 12h=149, 16h=176, 24h=449
+# nodes) -- gene/protein labels alone create unreadable clutter at that
+# density; metabolite-only labels still convey the figure's point.
+METABOLITE_LABELS_ONLY <- c("2", "12", "16", "24")
 
 node_colors <- c(metabolite = "#ADDD8E", gene_protein = "#FEC44F")
 # High-contrast categorical palette (RColorBrewer Set1, yellow dropped --
@@ -45,6 +49,18 @@ for (tp in TIMEPOINTS) {
     idx <- match(V(g)$name, att$node)
     V(g)$node_type <- att$node_type[idx]
     V(g)$degree <- igraph::degree(g, mode = "all")
+
+    # Drop leaf gene/protein nodes (degree 1) -- a gene hanging off a
+    # single hub with no further connections (e.g. a lone Cyp450 paralog,
+    # an Acp2/Acp5/Acp6 dangling off one metabolite) adds clutter without
+    # adding network structure. Metabolite leaves are kept -- they're the
+    # figure's actual subject, not incidental. Single pass, not iterative:
+    # a node that becomes degree-1 only after this cut stays, so this
+    # doesn't cascade into stripping the network further than asked.
+    leaf_genes <- V(g)$name[V(g)$node_type == "gene_protein" & V(g)$degree == 1]
+    g <- delete_vertices(g, leaf_genes)
+    V(g)$degree <- igraph::degree(g, mode = "all")  # recompute after the cut, for node sizing
+
     E(g)$category <- edges$category[match(
         paste(as_edgelist(g)[, 1], as_edgelist(g)[, 2]),
         paste(edges$source, edges$target)
@@ -59,11 +75,18 @@ for (tp in TIMEPOINTS) {
     gl$x <- gl$x * 0.6
     gl$y <- gl$y * 0.6
 
+    label_layer <- if (tp %in% METABOLITE_LABELS_ONLY) {
+        geom_node_text(data = function(x) subset(x, node_type == "metabolite"), aes(label = name), repel = TRUE,
+                        size = 3.6, max.overlaps = Inf, segment.size = 0.15, bg.color = "white", bg.r = 0.1)
+    } else {
+        geom_node_text(aes(label = name), repel = TRUE, size = 3.6,
+                        max.overlaps = Inf, segment.size = 0.15, bg.color = "white", bg.r = 0.1)
+    }
+
     p <- ggraph(gl) +
         geom_edge_link(aes(color = category), alpha = 0.6, width = 0.5) +
         geom_node_point(aes(shape = node_type, fill = node_type, size = degree), color = "black", stroke = 0.3) +
-        geom_node_text(aes(label = name), repel = TRUE, size = 3.6,
-                        max.overlaps = Inf, segment.size = 0.15, bg.color = "white", bg.r = 0.1) +
+        label_layer +
         scale_edge_color_manual(values = edge_colors, name = "Edge category") +
         scale_shape_manual(values = c(metabolite = 23, gene_protein = 21), name = "Node type") +
         scale_fill_manual(values = node_colors, name = "Node type") +

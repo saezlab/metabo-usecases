@@ -92,6 +92,18 @@ if (file.exists(kegg_chebi_cache)) {
 }
 cat("Name coverage: measured panel", length(chebi_name_map), "| KEGG fallback", length(kegg_chebi_name_map), "\n")
 
+# A handful of ids still miss both of the above -- not because they're
+# unnamed, but because ChEBI records protonation-state variants (e.g.
+# arachidonic acid vs. its conjugate base arachidonate) as *separate* ids,
+# and KEGG's own compound<->chebi conversion only points at one of them.
+# keggConv("chebi","cpd:C00219") -> chebi:15843 (arachidonic acid), but
+# this PKN's GEM node uses CHEBI:32395 (arachidonate) -- confirmed via
+# direct ChEBI OLS lookup, not guessed. Manual aliases for cases found
+# this way, checked individually (not a general proton-state resolver).
+manual_chebi_name_overrides <- c(
+    "CHEBI:32395" = "Arachidonate"
+)
+
 #' Collapses every `Gene<N>__<UniProt>[_rev]` GEM reaction-instance id for
 #' the same protein into one merged id. omnipath-metabo's GEM builder gives
 #' a multi-step enzyme (e.g. Fasn/P19096, fatty acid synthase, which
@@ -121,6 +133,7 @@ label_for <- function(node_id) {
         compartment <- sub("^.*_([a-z]+)$", "\\1", node_id)
         name <- if (chebi %in% names(chebi_name_map)) chebi_name_map[[chebi]]
                 else if (chebi %in% names(kegg_chebi_name_map)) kegg_chebi_name_map[[chebi]]
+                else if (chebi %in% names(manual_chebi_name_overrides)) manual_chebi_name_overrides[[chebi]]
                 else chebi
         return(paste0(name, "_", compartment))  # compartment suffix kept -- different compartments are different nodes
     }
