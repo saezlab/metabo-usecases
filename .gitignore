@@ -10,10 +10,16 @@ omnipath_metabo_case1/data/cellosaurus.txt
 omnipath_metabo_case1/data/cellosaurus_entry_lookup.RData
 .env
 
-# case study 2: track result/ directory structure, not its generated contents
+# case study 2: track result/ directory structure and PDF figures, but not
+# other generated contents (CSVs, RDS, Cytoscape .sif/.att tables, PNGs --
+# all regenerable from scripts)
 # (WT_vs_ob/ = cross-sectional ob/ob-vs-WT-per-timepoint design; Tn_T0/ = within-
 # genotype time-vs-baseline design, sibling pipelines sharing only case2's data/)
-omnipath_metabo_case2/WT_vs_ob/result/*/*
-!omnipath_metabo_case2/WT_vs_ob/result/*/.gitkeep
-omnipath_metabo_case2/Tn_T0/result/*/*
-!omnipath_metabo_case2/Tn_T0/result/*/.gitkeep
+omnipath_metabo_case2/WT_vs_ob/result/**
+!omnipath_metabo_case2/WT_vs_ob/result/**/
+!omnipath_metabo_case2/WT_vs_ob/result/**/*.pdf
+!omnipath_metabo_case2/WT_vs_ob/result/**/.gitkeep
+omnipath_metabo_case2/Tn_T0/result/**
+!omnipath_metabo_case2/Tn_T0/result/**/
+!omnipath_metabo_case2/Tn_T0/result/**/*.pdf
+!omnipath_metabo_case2/Tn_T0/result/**/.gitkeep
