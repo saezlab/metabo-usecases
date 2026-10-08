@@ -4,8 +4,8 @@
 #
 # Run from omnipath_metabo_case2/, after scripts/06_footprint_moon.R.
 
-moon_results <- readRDS("result/moon/all_timepoints.rds")
-measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
+moon_results <- readRDS("WT_vs_ob/result/moon/all_timepoints.rds")
+measured_features <- readRDS("WT_vs_ob/result/pk_retrieval/measured_features.rds")
 
 timepoints <- as.numeric(names(moon_results))
 
@@ -45,7 +45,7 @@ size_table <- size_table[order(size_table$timepoint_h), ]
 
 cat("=== Network size per timepoint ===\n")
 print(size_table, row.names = FALSE)
-write.csv(size_table, "result/moon/network_size_per_timepoint.csv", row.names = FALSE)
+write.csv(size_table, "WT_vs_ob/result/moon/network_size_per_timepoint.csv", row.names = FALSE)
 
 ## ---------------------------------------------------------------------
 ## 2. Key metabolites: trajectory of MOON score across timepoints
@@ -80,7 +80,7 @@ cat(sprintf(
     nrow(metab_wide), length(unique(metab_long$chebi_id))
 ))
 print(metab_wide, row.names = FALSE)
-write.csv(metab_wide, "result/moon/metabolite_trajectories.csv", row.names = FALSE)
+write.csv(metab_wide, "WT_vs_ob/result/moon/metabolite_trajectories.csv", row.names = FALSE)
 
 ## ---------------------------------------------------------------------
 ## 3. Key drivers: TF/kinase upstream_input nodes, trajectory across
@@ -103,6 +103,6 @@ driver_wide <- driver_wide[order(-driver_wide$range), c("uniprot", "symbol", sco
 
 cat("\n=== Top 15 TF/kinase drivers by largest swing in activity score across timepoints ===\n")
 print(head(driver_wide, 15), row.names = FALSE)
-write.csv(driver_wide, "result/moon/driver_trajectories.csv", row.names = FALSE)
+write.csv(driver_wide, "WT_vs_ob/result/moon/driver_trajectories.csv", row.names = FALSE)
 
 cat("\nSaved result/moon/{network_size_per_timepoint,metabolite_trajectories,driver_trajectories}.csv\n")

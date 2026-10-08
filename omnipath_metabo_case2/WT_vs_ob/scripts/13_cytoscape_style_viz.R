@@ -30,12 +30,12 @@ edge_colors <- c(
     allosteric = "#984EA3", transporters = "#FF7F00", receptors = "#A65628"
 )
 
-dir.create("result/networks/cytoscape", recursive = TRUE, showWarnings = FALSE)
+dir.create("WT_vs_ob/result/networks/cytoscape", recursive = TRUE, showWarnings = FALSE)
 
 for (tp in TIMEPOINTS) {
 
-    att <- read.csv(sprintf("result/networks/cytoscape/%sh_att.csv", tp))
-    edges <- read.csv(sprintf("result/networks/cytoscape/%sh_edge_att.csv", tp))
+    att <- read.csv(sprintf("WT_vs_ob/result/networks/cytoscape/%sh_att.csv", tp))
+    edges <- read.csv(sprintf("WT_vs_ob/result/networks/cytoscape/%sh_edge_att.csv", tp))
 
     # Orphan reaction placeholders (Gene<N>__orphanReac<id>[_rev], no real
     # protein behind them) are dropped entirely from this figure -- not
@@ -95,9 +95,9 @@ for (tp in TIMEPOINTS) {
         theme(plot.background = element_rect(fill = "white", color = NA)) +
         labs(title = sprintf("Case study 2, %sh -- GEM-instance-merged network", tp))
 
-    out_file <- sprintf("result/networks/cytoscape/%sh_styled.pdf", tp)
+    out_file <- sprintf("WT_vs_ob/result/networks/cytoscape/%sh_styled.pdf", tp)
     ggsave(out_file, p, width = 13, height = 11, limitsize = FALSE)
     cat(sprintf("%sh: %d nodes, %d edges -> %s\n", tp, vcount(g), ecount(g), out_file))
 }
 
-cat("\nAll styled PDFs saved to result/networks/cytoscape/\n")
+cat("\nAll styled PDFs saved to WT_vs_ob/result/networks/cytoscape/\n")

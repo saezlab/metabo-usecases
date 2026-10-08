@@ -15,8 +15,8 @@
 # than guessing which one is literally "Figure 2" without the main text.
 
 genotype_networks <- list(
-    WT = readRDS("result/networks/WT_network.rds"),
-    ob_ob = readRDS("result/networks/ob_ob_network.rds")
+    WT = readRDS("WT_vs_ob/result/networks/WT_network.rds"),
+    ob_ob = readRDS("WT_vs_ob/result/networks/ob_ob_network.rds")
 )
 
 published_network_counts <- function(data_file, label) {
@@ -59,16 +59,16 @@ print(comparison[, c("published_network", "genotype", "published_node_count", "o
                       "node_fold_increase", "published_edge_count", "our_edge_count", "edge_fold_increase")])
 
 dir.create("result", recursive = TRUE, showWarnings = FALSE)
-write.csv(comparison, "result/fig2_comparison.csv", row.names = FALSE)
+write.csv(comparison, "WT_vs_ob/result/fig2_comparison.csv", row.names = FALSE)
 cat("\nSaved result/fig2_comparison.csv\n")
 
 ## ---------------------------------------------------------------------
 ## SC-002 (User Story 2, T019): chain-completeness checks from 05_network_topology.R
 ## ---------------------------------------------------------------------
 
-full_chain <- if (file.exists("result/networks/example_full_chain.rds")) readRDS("result/networks/example_full_chain.rds") else NULL
-partial_chain <- readRDS("result/networks/example_partial_chain.rds")
-transporter_edges <- readRDS("result/networks/liver_blood_transporter_edges.rds")
+full_chain <- if (file.exists("WT_vs_ob/result/networks/example_full_chain.rds")) readRDS("WT_vs_ob/result/networks/example_full_chain.rds") else NULL
+partial_chain <- readRDS("WT_vs_ob/result/networks/example_partial_chain.rds")
+transporter_edges <- readRDS("WT_vs_ob/result/networks/liver_blood_transporter_edges.rds")
 
 sc002 <- data.frame(
     check = c(
@@ -85,5 +85,5 @@ cat("\nSC-002: chain-completeness checks\n\n")
 print(sc002)
 stopifnot(all(sc002$pass))
 
-write.csv(sc002, "result/sc002_chain_completeness.csv", row.names = FALSE)
+write.csv(sc002, "WT_vs_ob/result/sc002_chain_completeness.csv", row.names = FALSE)
 cat("\nSaved result/sc002_chain_completeness.csv\n")

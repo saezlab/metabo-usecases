@@ -42,10 +42,10 @@
 
 suppressMessages(pkgload::load_all("../../Spatial-COSMOS-MISTy"))
 suppressMessages(library(decoupleR))
-source("scripts/lib/pk_helpers.R")
+source("WT_vs_ob/scripts/lib/pk_helpers.R")
 
-pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
-measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
+pkn_edges <- readRDS("WT_vs_ob/result/pk_retrieval/pkn_edges.rds")
+measured_features <- readRDS("WT_vs_ob/result/pk_retrieval/measured_features.rds")
 
 ## ---------------------------------------------------------------------
 ## 6.0 Drop generic cofactor metabolites (added 2026-10-07, via
@@ -239,7 +239,7 @@ run_one_timepoint <- function(tp) {
 ## 6.5 Loop over all 8 timepoints (T023) -- not x genotypes
 ## ---------------------------------------------------------------------
 
-dir.create("result/moon", recursive = TRUE, showWarnings = FALSE)
+dir.create("WT_vs_ob/result/moon", recursive = TRUE, showWarnings = FALSE)
 
 moon_results <- list()
 for (tp in timepoints) {
@@ -249,12 +249,12 @@ for (tp in timepoints) {
     })
     if (!is.null(result)) {
         moon_results[[as.character(tp)]] <- result
-        saveRDS(result, sprintf("result/moon/%sh_moon_result.rds", tp))
+        saveRDS(result, sprintf("WT_vs_ob/result/moon/%sh_moon_result.rds", tp))
     }
 }
 
 cat("\nMOON runs completed:", length(moon_results), "of", length(timepoints), "timepoints\n")
-saveRDS(moon_results, "result/moon/all_timepoints.rds")
+saveRDS(moon_results, "WT_vs_ob/result/moon/all_timepoints.rds")
 cat("Saved result/moon/{<timepoint>h_moon_result,all_timepoints}.rds\n")
 
 ## ---------------------------------------------------------------------
@@ -272,7 +272,7 @@ footprint_activity <- rbind(
     data.frame(node_id = kinase_activity$source, timepoint_h = as.numeric(kinase_activity$condition),
                score = kinase_activity$score, activity_type = "kinase", stringsAsFactors = FALSE)
 )
-saveRDS(footprint_activity, "result/moon/footprint_activity_scores.rds")
+saveRDS(footprint_activity, "WT_vs_ob/result/moon/footprint_activity_scores.rds")
 cat("Saved result/moon/footprint_activity_scores.rds:", nrow(footprint_activity), "rows (",
     length(unique(tf_activity$source)), "TFs x", length(timepoints), "timepoints +",
     length(unique(kinase_activity$source)), "kinases x", length(timepoints), "timepoints )\n")

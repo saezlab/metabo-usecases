@@ -13,7 +13,7 @@ import tables  # required by pandas HDFStore
 import pandas as pd
 from pathlib import Path
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
 
 S1_EXCEL = DATA_DIR / "ads2547_data_file_s1.xlsx"
 S1_H5    = DATA_DIR / "ads2547_data_file_s1.h5"

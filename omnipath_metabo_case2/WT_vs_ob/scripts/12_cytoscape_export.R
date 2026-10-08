@@ -25,9 +25,9 @@ suppressMessages(library(org.Mm.eg.db))
 
 TIMEPOINTS <- c("0", "2", "4", "6", "8", "12", "16", "24")
 
-pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
-moon_results <- readRDS("result/moon/all_timepoints.rds")
-measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
+pkn_edges <- readRDS("WT_vs_ob/result/pk_retrieval/pkn_edges.rds")
+moon_results <- readRDS("WT_vs_ob/result/moon/all_timepoints.rds")
+measured_features <- readRDS("WT_vs_ob/result/pk_retrieval/measured_features.rds")
 
 ## ---------------------------------------------------------------------
 ## Label/role lookups (same as 09_network_viz.R / 07_pathway_control.R)
@@ -76,7 +76,7 @@ chebi_name_map <- chebi_name_map[!duplicated(names(chebi_name_map))]
 # for anything chebi_name_map doesn't cover -- resolves ~22 of 30
 # previously-unresolved ids across all 8 timepoints; a handful of generic
 # ions/isotopes with no 1:1 KEGG compound counterpart stay as raw ChEBI.
-kegg_chebi_cache <- "result/networks/cytoscape/kegg_chebi_name_cache.rds"
+kegg_chebi_cache <- "WT_vs_ob/result/networks/cytoscape/kegg_chebi_name_cache.rds"
 if (file.exists(kegg_chebi_cache)) {
     kegg_chebi_name_map <- readRDS(kegg_chebi_cache)
 } else {
@@ -173,7 +173,7 @@ unique_labels_for <- function(node_ids) {
 ## Per-timepoint export
 ## ---------------------------------------------------------------------
 
-dir.create("result/networks/cytoscape", recursive = TRUE, showWarnings = FALSE)
+dir.create("WT_vs_ob/result/networks/cytoscape", recursive = TRUE, showWarnings = FALSE)
 
 for (tp in TIMEPOINTS) {
 
@@ -235,14 +235,14 @@ for (tp in TIMEPOINTS) {
     # Edge Key -> "edge_key" in the import dialog.
     edges_named$edge_key <- paste0(edges_named$source, " (", edges_named$interaction, ") ", edges_named$target)
 
-    sif_file <- sprintf("result/networks/cytoscape/%sh.sif", tp)
+    sif_file <- sprintf("WT_vs_ob/result/networks/cytoscape/%sh.sif", tp)
     write.table(edges_named[, c("source", "interaction", "target")], sif_file,
                 sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
-    att_file <- sprintf("result/networks/cytoscape/%sh_att.csv", tp)
+    att_file <- sprintf("WT_vs_ob/result/networks/cytoscape/%sh_att.csv", tp)
     write.csv(att, att_file, row.names = FALSE)
 
-    edge_att_file <- sprintf("result/networks/cytoscape/%sh_edge_att.csv", tp)
+    edge_att_file <- sprintf("WT_vs_ob/result/networks/cytoscape/%sh_edge_att.csv", tp)
     write.csv(edges_named[, c("edge_key", "source", "target", "interaction", "category")], edge_att_file, row.names = FALSE)
 
     cat(sprintf("%sh: %d nodes, %d edges -> %s, %s, %s\n",

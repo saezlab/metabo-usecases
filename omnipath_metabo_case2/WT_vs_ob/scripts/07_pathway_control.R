@@ -45,11 +45,11 @@
 
 suppressMessages(pkgload::load_all("../../Spatial-COSMOS-MISTy"))
 suppressMessages(library(org.Mm.eg.db))
-source("scripts/lib/pk_helpers.R")
+source("WT_vs_ob/scripts/lib/pk_helpers.R")
 
-moon_results <- readRDS("result/moon/all_timepoints.rds")
-pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
-measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
+moon_results <- readRDS("WT_vs_ob/result/moon/all_timepoints.rds")
+pkn_edges <- readRDS("WT_vs_ob/result/pk_retrieval/pkn_edges.rds")
+measured_features <- readRDS("WT_vs_ob/result/pk_retrieval/measured_features.rds")
 
 ## ---------------------------------------------------------------------
 ## ID -> label maps, built once over the whole PKN (not per-timepoint) so
@@ -83,7 +83,7 @@ cat("Pathway gene sets:", length(unique(pathways$source)), "pathways (NABA_/KEGG
 ## Per-timepoint PACON, on the already-pruned network
 ## ---------------------------------------------------------------------
 
-dir.create("result/pacon", recursive = TRUE, showWarnings = FALSE)
+dir.create("WT_vs_ob/result/pacon", recursive = TRUE, showWarnings = FALSE)
 
 run_one_timepoint <- function(tp, pruned) {
 
@@ -132,19 +132,19 @@ for (tp in names(moon_results)) {
     r <- run_one_timepoint(tp, moon_results[[tp]])
     if (!is.null(r)) {
         pacon_results[[tp]] <- r
-        write.csv(r$pathway_control, sprintf("result/pacon/%sh_pathway_control.csv", tp), row.names = FALSE)
-        write.csv(r$drivers, sprintf("result/pacon/%sh_drivers.csv", tp), row.names = FALSE)
+        write.csv(r$pathway_control, sprintf("WT_vs_ob/result/pacon/%sh_pathway_control.csv", tp), row.names = FALSE)
+        write.csv(r$drivers, sprintf("WT_vs_ob/result/pacon/%sh_drivers.csv", tp), row.names = FALSE)
         heat <- tryCatch(
             plot_pathway_control_heatmap(r, pval_threshold = 0.01, min_hits = 5,
-                                          path = "result/pacon", plot_name = sprintf("%sh_PACON_heatmap", tp)),
+                                          path = "WT_vs_ob/result/pacon", plot_name = sprintf("%sh_PACON_heatmap", tp)),
             warning = function(w) { cat("  heatmap:", conditionMessage(w), "\n"); NULL }
         )
     }
 }
 
-saveRDS(pacon_results, "result/pacon/all_timepoints.rds")
+saveRDS(pacon_results, "WT_vs_ob/result/pacon/all_timepoints.rds")
 cat("\nPACON (gene-centric) complete:", length(pacon_results), "of", length(moon_results), "timepoints\n")
-cat("Saved result/pacon/{<timepoint>h_pathway_control,<timepoint>h_drivers}.csv, result/pacon/all_timepoints.rds\n")
+cat("Saved WT_vs_ob/result/pacon/{<timepoint>h_pathway_control,<timepoint>h_drivers}.csv, WT_vs_ob/result/pacon/all_timepoints.rds\n")
 
 ## ---------------------------------------------------------------------
 ## GEM-PACON: metabolite-centered pathway control (2026-10-08)
@@ -152,7 +152,7 @@ cat("Saved result/pacon/{<timepoint>h_pathway_control,<timepoint>h_drivers}.csv,
 
 cat("\n\n=== GEM-PACON (metabolite-centered) ===\n")
 
-met_pathways <- build_cosmos_metabolite_pathway_sets(cache_path = "result/pacon/metabolite_pathways_cache.rds")
+met_pathways <- build_cosmos_metabolite_pathway_sets(cache_path = "WT_vs_ob/result/pacon/metabolite_pathways_cache.rds")
 cat("Metabolite pathway sets:", length(unique(met_pathways$source)), "KEGG metabolism pathways,",
     nrow(met_pathways), "pathway-compound rows\n")
 
@@ -212,16 +212,16 @@ for (tp in names(moon_results)) {
     r <- run_one_timepoint_gem(tp, moon_results[[tp]])
     if (!is.null(r)) {
         gem_pacon_results[[tp]] <- r
-        write.csv(r$pathway_control, sprintf("result/pacon/%sh_metabolite_pathway_control.csv", tp), row.names = FALSE)
-        write.csv(r$drivers, sprintf("result/pacon/%sh_metabolite_drivers.csv", tp), row.names = FALSE)
+        write.csv(r$pathway_control, sprintf("WT_vs_ob/result/pacon/%sh_metabolite_pathway_control.csv", tp), row.names = FALSE)
+        write.csv(r$drivers, sprintf("WT_vs_ob/result/pacon/%sh_metabolite_drivers.csv", tp), row.names = FALSE)
         heat <- tryCatch(
             plot_pathway_control_heatmap(r, pval_threshold = 0.001, min_hits = 10,
-                                          path = "result/pacon", plot_name = sprintf("%sh_GEM_PACON_heatmap", tp)),
+                                          path = "WT_vs_ob/result/pacon", plot_name = sprintf("%sh_GEM_PACON_heatmap", tp)),
             warning = function(w) { cat("  heatmap:", conditionMessage(w), "\n"); NULL }
         )
     }
 }
 
-saveRDS(gem_pacon_results, "result/pacon/metabolite_all_timepoints.rds")
+saveRDS(gem_pacon_results, "WT_vs_ob/result/pacon/metabolite_all_timepoints.rds")
 cat("\nGEM-PACON complete:", length(gem_pacon_results), "of", length(moon_results), "timepoints\n")
-cat("Saved result/pacon/{<timepoint>h_metabolite_pathway_control,<timepoint>h_metabolite_drivers}.csv, result/pacon/metabolite_all_timepoints.rds\n")
+cat("Saved WT_vs_ob/result/pacon/{<timepoint>h_metabolite_pathway_control,<timepoint>h_metabolite_drivers}.csv, WT_vs_ob/result/pacon/metabolite_all_timepoints.rds\n")

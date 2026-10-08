@@ -4,12 +4,12 @@
 # Run from omnipath_metabo_case2/, after scripts/04_pk_retrieval.R.
 
 suppressMessages(pkgload::load_all("../../Spatial-COSMOS-MISTy"))
-source("scripts/lib/pk_helpers.R")
+source("WT_vs_ob/scripts/lib/pk_helpers.R")
 suppressMessages(library(igraph))
 
 PKN_DIR <- "../../Spatial-COSMOS-MISTy/data/PKN"
-pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
-measured_features <- readRDS("result/pk_retrieval/measured_features.rds")
+pkn_edges <- readRDS("WT_vs_ob/result/pk_retrieval/pkn_edges.rds")
+measured_features <- readRDS("WT_vs_ob/result/pk_retrieval/measured_features.rds")
 
 ## ---------------------------------------------------------------------
 ## 5.1 Assert FR-006: metabolites appear as both source and target (T015)
@@ -173,10 +173,10 @@ liver_blood_transporter_edges <- data.frame(
 )
 cat("T018: liver<->blood transporter edges added:", nrow(liver_blood_transporter_edges), "\n")
 
-dir.create("result/networks", recursive = TRUE, showWarnings = FALSE)
-saveRDS(compartment_tagged_nodes, "result/networks/compartment_tagged_metabolite_nodes.rds")
-saveRDS(liver_blood_transporter_edges, "result/networks/liver_blood_transporter_edges.rds")
-if (!is.null(full_chain)) saveRDS(full_chain, "result/networks/example_full_chain.rds")
-saveRDS(partial_chain_example, "result/networks/example_partial_chain.rds")
+dir.create("WT_vs_ob/result/networks", recursive = TRUE, showWarnings = FALSE)
+saveRDS(compartment_tagged_nodes, "WT_vs_ob/result/networks/compartment_tagged_metabolite_nodes.rds")
+saveRDS(liver_blood_transporter_edges, "WT_vs_ob/result/networks/liver_blood_transporter_edges.rds")
+if (!is.null(full_chain)) saveRDS(full_chain, "WT_vs_ob/result/networks/example_full_chain.rds")
+saveRDS(partial_chain_example, "WT_vs_ob/result/networks/example_partial_chain.rds")
 
 cat("\nSaved result/networks/{compartment_tagged_metabolite_nodes,liver_blood_transporter_edges}.rds\n")

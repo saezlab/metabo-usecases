@@ -6,7 +6,7 @@
 # checkout (quickstart.md).
 
 suppressMessages(pkgload::load_all("../../Spatial-COSMOS-MISTy"))
-source("scripts/lib/pk_helpers.R")
+source("WT_vs_ob/scripts/lib/pk_helpers.R")
 
 PKN_DIR <- "../../Spatial-COSMOS-MISTy/data/PKN"
 
@@ -60,8 +60,8 @@ if (any(malformed)) {
     bad_ids <- unique(c(pkn_edges$source[malformed], pkn_edges$target[malformed]))
     bad_ids <- bad_ids[!valid_node_id(bad_ids)]
     print(utils::head(bad_ids, 10))
-    dir.create("result/pk_retrieval", recursive = TRUE, showWarnings = FALSE)
-    write.csv(pkn_edges[malformed, ], "result/pk_retrieval/excluded_malformed_id_edges.csv", row.names = FALSE)
+    dir.create("WT_vs_ob/result/pk_retrieval", recursive = TRUE, showWarnings = FALSE)
+    write.csv(pkn_edges[malformed, ], "WT_vs_ob/result/pk_retrieval/excluded_malformed_id_edges.csv", row.names = FALSE)
     pkn_edges <- pkn_edges[!malformed, ]
 }
 
@@ -77,8 +77,8 @@ cat("edges with evidence_refs populated:", sum(nzchar(pkn_edges$evidence_refs)),
 snapshot_provenance <- record_pkn_snapshot_provenance(PKN_DIR, categories = pkn_categories)
 pkn_edges <- merge(pkn_edges, snapshot_provenance, by = "category", all.x = TRUE)
 
-dir.create("result/pk_retrieval", recursive = TRUE, showWarnings = FALSE)
-saveRDS(pkn_edges, "result/pk_retrieval/pkn_edges.rds")
+dir.create("WT_vs_ob/result/pk_retrieval", recursive = TRUE, showWarnings = FALSE)
+saveRDS(pkn_edges, "WT_vs_ob/result/pk_retrieval/pkn_edges.rds")
 cat("\nSaved result/pk_retrieval/pkn_edges.rds:", nrow(pkn_edges), "rows,", ncol(pkn_edges), "cols\n")
 
 ## ---------------------------------------------------------------------
@@ -262,7 +262,7 @@ measured_features$mapping_status <- ifelse(
 cat("\nmapping_status:\n")
 print(table(measured_features$mapping_status))
 
-saveRDS(measured_features, "result/pk_retrieval/measured_features.rds")
+saveRDS(measured_features, "WT_vs_ob/result/pk_retrieval/measured_features.rds")
 cat("\nSaved result/pk_retrieval/measured_features.rds:", nrow(measured_features), "rows\n")
 
 ## ---------------------------------------------------------------------
@@ -303,13 +303,13 @@ build_genotype_network <- function(change_col) {
 
 genotype_networks <- list(WT = build_genotype_network("WT_change"), ob_ob = build_genotype_network("ob_ob_change"))
 
-dir.create("result/networks", recursive = TRUE, showWarnings = FALSE)
+dir.create("WT_vs_ob/result/networks", recursive = TRUE, showWarnings = FALSE)
 for (g in names(genotype_networks)) {
     net <- genotype_networks[[g]]
     cat(sprintf(
         "\n%s network: %d significant mapped features -> %d nodes, %d edges\n",
         g, net$n_significant_features, length(net$nodes), nrow(net$edges)
     ))
-    write.csv(net$edges, sprintf("result/networks/%s_network_edges.csv", g), row.names = FALSE)
-    saveRDS(net, sprintf("result/networks/%s_network.rds", g))
+    write.csv(net$edges, sprintf("WT_vs_ob/result/networks/%s_network_edges.csv", g), row.names = FALSE)
+    saveRDS(net, sprintf("WT_vs_ob/result/networks/%s_network.rds", g))
 }

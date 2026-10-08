@@ -29,8 +29,8 @@ suppressMessages(library(igraph))
 suppressMessages(library(ggraph))
 suppressMessages(library(ggplot2))
 
-pkn_edges <- readRDS("result/pk_retrieval/pkn_edges.rds")
-moon_results <- readRDS("result/moon/all_timepoints.rds")
+pkn_edges <- readRDS("WT_vs_ob/result/pk_retrieval/pkn_edges.rds")
+moon_results <- readRDS("WT_vs_ob/result/moon/all_timepoints.rds")
 
 origin_key <- paste(pkn_edges$source, pkn_edges$target)
 origin_lookup <- stats::setNames(pkn_edges$category, origin_key)
@@ -70,7 +70,7 @@ category_colors <- c(
     allosteric = "#984ea3", transporters = "#377eb8", receptors = "#a65628"
 )
 
-dir.create("result/networks/viz", recursive = TRUE, showWarnings = FALSE)
+dir.create("WT_vs_ob/result/networks/viz", recursive = TRUE, showWarnings = FALSE)
 
 for (tp in names(moon_results)) {
 
@@ -117,9 +117,9 @@ for (tp in names(moon_results)) {
         ) +
         labs(title = sprintf("Case study 2, %sh -- TF -> mRNA -> PPI -> enzyme -> metabolite (Morita et al. Fig. 2B order)", tp))
 
-    out_file <- sprintf("result/networks/viz/case_study_2_%sh_layered.png", tp)
+    out_file <- sprintf("WT_vs_ob/result/networks/viz/case_study_2_%sh_layered.png", tp)
     ggsave(out_file, p, width = 18, height = 14, dpi = 150, limitsize = FALSE)
     cat("  saved:", out_file, "\n")
 }
 
-cat("\nAll layered DAG plots saved to result/networks/viz/\n")
+cat("\nAll layered DAG plots saved to WT_vs_ob/result/networks/viz/\n")
