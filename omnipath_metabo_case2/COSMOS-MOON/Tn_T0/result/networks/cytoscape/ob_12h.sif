@@ -1,0 +1,2135 @@
+ATP_c	1	Acss2
+ATP_m	1	Acss2
+ATP_c	1	Acss1
+ATP_m	1	Acss1
+ATP_c	1	Acss3
+ATP_m	1	Acss3
+ATP_c	1	Pfkl
+ATP_c	1	Pfkm
+ATP_c	1	Pfkp
+Pklr	1	ATP_c
+Pkm	1	ATP_c
+Crisp1	1	ATP_c
+ATP_c	1	Crisp1
+Pgk1	1	ATP_c
+ATP_c	1	Pgk1
+Pgk2	1	ATP_c
+ATP_c	1	Pgk2
+Acyp1	1	Orthophosphate_c
+Acyp2	1	Orthophosphate_c
+Gapdh	1	Orthophosphate_c
+Orthophosphate_c	1	Gapdh
+Gapdhs	1	Orthophosphate_c
+Orthophosphate_c	1	Gapdhs
+Fbp1	1	Orthophosphate_c
+Fbp2	1	Orthophosphate_c
+ATP_c	1	Gck
+ATP_c	1	Hk1
+ATP_c	1	Hk2
+ATP_c	1	Hk3
+ATP_c	1	Hkdc1
+G6pc1	1	Orthophosphate_r
+G6pc2	1	Orthophosphate_r
+G6pc3	1	Orthophosphate_r
+Orthophosphate_c	1	Pygb
+Orthophosphate_c	1	Pygl
+Orthophosphate_c	1	Pygm
+ATP_c	1	Galk1
+ATP_c	1	Galk2
+ATP_c	1	Fam227b
+ATP_c	1	Khk
+ATP_c	1	Gene71__orphanReacMAR00454
+ATP_c	1	Pfkfb1
+ATP_c	1	Pfkfb2
+ATP_c	1	A0A0A6YW89
+ATP_c	1	Pfkfb3 (GEMenz__A0A0A6YY64)
+ATP_c	1	Pfkfb3 (GEMenz__A2AUP1)
+ATP_c	1	Pfkfb3 (GEMenz__A2AUP3)
+ATP_c	1	Pfkfb3 (GEMenz__A2AUP4)
+ATP_c	1	Pfkfb3 (GEMenz__A2AUP5)
+ATP_c	1	Pfkfb3 (GEMenz__A7UAK4)
+ATP_c	1	Pfkfb3 (GEMenz__A7UAK5)
+ATP_c	1	Pfkfb3 (GEMenz__A7UAK8)
+ATP_c	1	Pfkfb3 (GEMenz__Q3U3S6)
+ATP_c	1	Q3UU45
+ATP_c	1	Pfkfb3 (GEMenz__Q7TS91)
+ATP_c	1	Pfkfb3 (GEMenz__Q8BVM1)
+ATP_c	1	Pfkfb3 (GEMenz__Q9ESY2)
+ATP_c	1	Pfkfb4
+ATP_c	1	Fam20b
+ATP_c	1	Fggy
+ATP_c	1	Fn3k
+ATP_c	1	Fn3krp
+ATP_c	1	Nol9
+Gmppb	1	Orthophosphate_c
+Rnf123	1	Orthophosphate_c
+ATP_c	1	Fcsk
+Fcsk	1	ATP_c
+Pfkfb1	1	Orthophosphate_c
+Pfkfb2	1	Orthophosphate_c
+A0A0A6YW89	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A0A0A6YY64)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A2AUP1)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A2AUP3)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A2AUP4)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A2AUP5)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A7UAK4)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A7UAK5)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__A7UAK8)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__Q3U3S6)	1	Orthophosphate_c
+Q3UU45	1	Orthophosphate_c
+Pfkfb3 (GEMenz__Q7TS91)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__Q8BVM1)	1	Orthophosphate_c
+Pfkfb3 (GEMenz__Q9ESY2)	1	Orthophosphate_c
+Pfkfb4	1	Orthophosphate_c
+Tigar	1	Orthophosphate_c
+Xylb	1	ATP_c
+ATP_c	1	Xylb
+ATP_c	1	Rbks
+Gene106__orphanReacMAR08728	1	Orthophosphate_c
+(S)-Malate_m	1	Me2
+(S)-Malate_m	1	Me3
+(S)-Malate_c	1	Me1
+(S)-Malate_c	1	Rwdd2a
+ATP_m	1	A0A286YCC5
+ATP_m	1	A0A494B912
+ATP_m	1	A0A494B951
+ATP_m	1	Pcx (GEMenz__E9QPD7)
+ATP_m	1	Pcx (GEMenz__G5E8R3)
+ATP_m	1	Pcx (GEMenz__Q3T9S7)
+ATP_m	1	Pcx (GEMenz__Q3TCQ3)
+ATP_m	1	Q3UFS6
+ATP_m	1	Q62043
+ATP_m	1	Q8BP54
+A0A286YCC5	1	Orthophosphate_m
+A0A494B912	1	Orthophosphate_m
+A0A494B951	1	Orthophosphate_m
+Pcx (GEMenz__E9QPD7)	1	Orthophosphate_m
+Pcx (GEMenz__G5E8R3)	1	Orthophosphate_m
+Pcx (GEMenz__Q3T9S7)	1	Orthophosphate_m
+Pcx (GEMenz__Q3TCQ3)	1	Orthophosphate_m
+Q3UFS6	1	Orthophosphate_m
+Q62043	1	Orthophosphate_m
+Q8BP54	1	Orthophosphate_m
+Auh	1	Orthophosphate_c
+Gene137__orphanReacMAR08517	1	Orthophosphate_c
+2-Oxoglutarate_c	1	L2hgdh
+2-Oxoglutarate_c	1	Phgdh
+ATP_c	1	Aacs
+ATP_m	1	Aacs
+ATP_c	1	Prps1
+ATP_c	1	Q32M04
+ATP_c	1	Prps1l1
+ATP_c	1	Q9CVZ1
+ATP_c	1	Prps2
+Rbks	1	ATP_c
+Idnk	1	ATP_c
+ATP_c	1	Idnk
+ATP_c	1	Shpk
+Shpk	1	ATP_c
+Khk	1	ATP_c
+Cant1	1	Orthophosphate_c
+Cant1	1	Orthophosphate_e
+Cant1	1	Orthophosphate_r
+Entpd1	1	Orthophosphate_c
+Entpd1	1	Orthophosphate_e
+Entpd1	1	Orthophosphate_r
+Entpd2	1	Orthophosphate_c
+Entpd2	1	Orthophosphate_e
+Entpd2	1	Orthophosphate_r
+Entpd3	1	Orthophosphate_c
+Entpd3	1	Orthophosphate_e
+Entpd3	1	Orthophosphate_r
+Entpd4	1	Orthophosphate_c
+Entpd4	1	Orthophosphate_e
+Entpd4	1	Orthophosphate_r
+Entpd5	1	Orthophosphate_c
+Entpd5	1	Orthophosphate_e
+Entpd5	1	Orthophosphate_r
+Entpd6	1	Orthophosphate_c
+Entpd6	1	Orthophosphate_e
+Entpd6	1	Orthophosphate_r
+Entpd8	1	Orthophosphate_c
+Entpd8	1	Orthophosphate_e
+Entpd8	1	Orthophosphate_r
+ATP_c	1	Adcy1
+ATP_c	1	Adcy10
+ATP_c	1	Adcy2
+ATP_c	1	Adcy3
+ATP_c	1	Adcy4
+ATP_c	1	Adcy5
+ATP_c	1	Q01341
+ATP_c	1	Adcy7
+ATP_c	1	Adcy8
+ATP_c	1	Adcy9
+ATP_c	1	Gucy1a2
+ATP_c	1	Q3TNN8
+ATP_c	1	Q3UH83
+ATP_c	1	Gucy2c
+ATP_c	1	Gucy2e
+ATP_c	1	Gucy2f
+ATP_c	1	Npr1
+ATP_c	1	Npr2
+Ak1	1	ATP_c
+Ak1	1	ATP_m
+ATP_c	1	Ak1
+ATP_m	1	Ak1
+Ak2	1	ATP_c
+Ak2	1	ATP_m
+ATP_c	1	Ak2
+ATP_m	1	Ak2
+Ak3	1	ATP_c
+Ak3	1	ATP_m
+ATP_c	1	Ak3
+ATP_m	1	Ak3
+Ak4	1	ATP_c
+Ak4	1	ATP_m
+ATP_c	1	Ak4
+ATP_m	1	Ak4
+Ak5	1	ATP_c
+Ak5	1	ATP_m
+ATP_c	1	Ak5
+ATP_m	1	Ak5
+Ak6	1	ATP_c
+Ak6	1	ATP_m
+ATP_c	1	Ak6
+ATP_m	1	Ak6
+Ak7	1	ATP_c
+Ak7	1	ATP_m
+ATP_c	1	Ak7
+ATP_m	1	Ak7
+Ak8	1	ATP_c
+Ak8	1	ATP_m
+ATP_c	1	Ak8
+ATP_m	1	Ak8
+Ak9	1	ATP_c
+Ak9	1	ATP_m
+ATP_c	1	Ak9
+ATP_m	1	Ak9
+Taf9	1	ATP_c
+Taf9	1	ATP_m
+ATP_c	1	Taf9
+ATP_m	1	Taf9
+Acp3	1	Orthophosphate_c
+Acp3	1	Orthophosphate_e
+Acp3	1	Orthophosphate_m
+Nt5c	1	Orthophosphate_c
+Nt5c	1	Orthophosphate_e
+Nt5c	1	Orthophosphate_m
+Nt5c1a	1	Orthophosphate_c
+Nt5c1a	1	Orthophosphate_e
+Nt5c1a	1	Orthophosphate_m
+Nt5c1b	1	Orthophosphate_c
+Nt5c1b	1	Orthophosphate_e
+Nt5c1b	1	Orthophosphate_m
+Nt5c2	1	Orthophosphate_c
+Nt5c2	1	Orthophosphate_e
+Nt5c2	1	Orthophosphate_m
+A0A0N4SVS9	1	Orthophosphate_c
+A0A0N4SW80	1	Orthophosphate_c
+S4R2D9	1	Orthophosphate_c
+A0A0N4SVS9	1	Orthophosphate_e
+A0A0N4SW80	1	Orthophosphate_e
+S4R2D9	1	Orthophosphate_e
+A0A0N4SVS9	1	Orthophosphate_m
+A0A0N4SW80	1	Orthophosphate_m
+S4R2D9	1	Orthophosphate_m
+Nt5c3b	1	Orthophosphate_c
+Nt5c3b	1	Orthophosphate_e
+Nt5c3b	1	Orthophosphate_m
+Nt5e	1	Orthophosphate_c
+Nt5e	1	Orthophosphate_e
+Nt5e	1	Orthophosphate_m
+Nt5m	1	Orthophosphate_c
+Nt5m	1	Orthophosphate_e
+Nt5m	1	Orthophosphate_m
+Rbak	1	Orthophosphate_c
+Rbak	1	Orthophosphate_e
+Rbak	1	Orthophosphate_m
+ATP_c	1	Adk
+ATP_m	1	Adk
+ATP_c	1	Dck
+ATP_m	1	Dck
+ATP_n	1	Dck
+Guk1	1	ATP_c
+Guk1	1	ATP_m
+ATP_c	1	Guk1
+ATP_m	1	Guk1
+Adss1	1	Orthophosphate_c
+Adss2	1	Orthophosphate_c
+ATP_c	1	Gmps
+Fumarate_c	1	Adsl
+Adsl	1	Fumarate_c
+Fumarate_c	1	Tnrc6b
+Tnrc6b	1	Fumarate_c
+Gene205__orphanReacMAR04451	1	ATP_m
+Acad8	1	ATP_c
+ATP_c	1	Acad8
+Acad9	1	ATP_c
+ATP_c	1	Acad9
+Acadm	1	ATP_c
+ATP_c	1	Acadm
+Acadvl	1	ATP_c
+ATP_c	1	Acadvl
+Acox3	1	ATP_c
+ATP_c	1	Acox3
+ATP_m	1	Acox3
+Orthophosphate_c	1	Pnp
+Pnp	1	Orthophosphate_c
+Orthophosphate_c	1	Pnp2
+Pnp2	1	Orthophosphate_c
+ATP_c	1	Dguok
+ATP_m	1	Dguok
+ATP_c	1	Gart
+Gart	1	Orthophosphate_c
+ATP_c	1	Pfas
+Pfas	1	Orthophosphate_c
+ATP_c	1	Paics
+Paics	1	Orthophosphate_c
+Nme1	1	ATP_c
+Nme1	1	ATP_m
+Nme1	1	ATP_n
+ATP_c	1	Nme1
+ATP_m	1	Nme1
+ATP_n	1	Nme1
+Nme2 (GEMenz__Q01768)	1	ATP_c
+Nme2 (GEMenz__Q01768)	1	ATP_m
+Nme2 (GEMenz__Q01768)	1	ATP_n
+ATP_c	1	Nme2 (GEMenz__Q01768)
+ATP_m	1	Nme2 (GEMenz__Q01768)
+ATP_n	1	Nme2 (GEMenz__Q01768)
+Nme3	1	ATP_c
+Nme3	1	ATP_m
+ATP_c	1	Nme3
+ATP_m	1	Nme3
+Nme4	1	ATP_c
+Nme4	1	ATP_m
+ATP_c	1	Nme4
+ATP_m	1	Nme4
+Nme6	1	ATP_c
+Nme6	1	ATP_m
+ATP_c	1	Nme6
+ATP_m	1	Nme6
+Nme7	1	ATP_c
+Nme7	1	ATP_m
+ATP_c	1	Nme7
+ATP_m	1	Nme7
+Cmpk1	1	ATP_c
+Cmpk1	1	ATP_n
+ATP_c	1	Cmpk1
+ATP_n	1	Cmpk1
+ATP_c	1	Ctps1
+Ctps1	1	Orthophosphate_c
+ATP_c	1	Ctps2
+Ctps2	1	Orthophosphate_c
+ATP_c	1	Cad
+Cad	1	Orthophosphate_c
+Orthophosphate_c	1	Cad
+Tymp	1	Orthophosphate_c
+Orthophosphate_c	1	Tymp
+Orthophosphate_c	1	Upp1
+Upp1	1	Orthophosphate_c
+Orthophosphate_c	1	Upp2
+Upp2	1	Orthophosphate_c
+Dtymk	1	ATP_c
+ATP_c	1	Dtymk
+ATP_m	1	Dtymk
+ATP_c	1	Uck1
+ATP_m	1	Uck1
+ATP_c	1	Uck2
+ATP_m	1	Uck2
+ATP_c	1	Uckl1
+ATP_m	1	Uckl1
+Gene307__orphanReacMAR08072	1	Orthophosphate_c
+Dut	1	Orthophosphate_c
+ATP_m	1	Itpa
+Cmpk2	1	ATP_m
+ATP_m	1	Cmpk2
+ATP_c	1	Tk1
+Dnm1	1	Orthophosphate_e
+Dnm1l	1	Orthophosphate_e
+Dnm2	1	Orthophosphate_e
+Dnm3	1	Orthophosphate_e
+Eef1a1	1	Orthophosphate_e
+Eef1a2	1	Orthophosphate_e
+Eef2	1	Orthophosphate_e
+Efl1	1	Orthophosphate_e
+Gfm1	1	Orthophosphate_e
+Gfm2	1	Orthophosphate_e
+Tufm	1	Orthophosphate_e
+ATP_c	1	Papss1
+ATP_c	1	Papss2
+ATP_m	1	Q9R088
+Dctpp1	1	Orthophosphate_c
+ATP_c	1	Ada
+ATP_n	1	Polr3g
+ATP_n	1	Papolb
+ATP_n	1	Papolg
+ATP_n	1	Tut4
+Orthophosphate_c	1	Polr3g
+Orthophosphate_c	1	Papolb
+Orthophosphate_c	1	Papolg
+Orthophosphate_c	1	Tut4
+ATP_e	1	Cant1
+ATP_e	1	Entpd1
+ATP_e	1	Entpd2
+ATP_e	1	Entpd3
+ATP_e	1	Entpd4
+ATP_e	1	Entpd5
+ATP_e	1	Entpd6
+ATP_e	1	Entpd8
+Dck	1	ATP_m
+Dck	1	ATP_n
+ATP_m	1	Gene357__orphanReacMAR08484
+Acp2	1	Orthophosphate_e
+2-Oxoglutarate_m	1	Glud1
+Glud1	1	2-Oxoglutarate_m
+ATP_c	1	Ass1
+Fumarate_c	1	Asl
+Asl	1	Fumarate_c
+2-Oxoglutarate_c	1	Got2
+2-Oxoglutarate_m	1	Got2
+Got2	1	2-Oxoglutarate_c
+Got2	1	2-Oxoglutarate_m
+2-Oxoglutarate_c	1	Got1
+2-Oxoglutarate_m	1	Got1
+Got1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Got1l1
+Got1l1	1	2-Oxoglutarate_c
+ATP_m	1	Cps1
+Cps1	1	Orthophosphate_m
+ATP_c	1	Glul
+Glul	1	Orthophosphate_c
+2-Oxoglutarate_c	1	Gpt
+Gpt	1	2-Oxoglutarate_c
+ATP_c	1	Asns
+2-Oxoglutarate_c	1	Gpt2
+2-Oxoglutarate_m	1	Gpt2
+Gpt2	1	2-Oxoglutarate_c
+Gpt2	1	2-Oxoglutarate_m
+Nit2	1	2-Oxoglutarate_c
+Nit2	1	2-Oxoglutarate_m
+Ldha	1	Succinate_m
+2-Oxoglutarate_m	1	Abat
+Abat	1	2-Oxoglutarate_m
+2-Oxoglutarate_c	1	Tat
+2-Oxoglutarate_m	1	Tat
+2-Oxoglutarate_m	1	Oat
+Oat	1	2-Oxoglutarate_m
+Orthophosphate_m	1	Otc
+Otc	1	Orthophosphate_m
+ATP_m	1	Aldh18a1
+Aldh18a1	1	Orthophosphate_m
+Creatine_c	1	Gamt
+Gamt	1	Creatine_c
+ATP_c	1	Carns1
+2-Oxoglutarate_c	1	P4ha1
+2-Oxoglutarate_m	1	P4ha1
+P4ha1	1	Succinate_c
+P4ha1	1	Succinate_m
+2-Oxoglutarate_c	1	P4ha2
+2-Oxoglutarate_m	1	P4ha2
+P4ha2	1	Succinate_c
+P4ha2	1	Succinate_m
+2-Oxoglutarate_c	1	P4ha3
+2-Oxoglutarate_m	1	P4ha3
+P4ha3	1	Succinate_c
+P4ha3	1	Succinate_m
+Orthophosphate_c	1	Mtap
+Ckb	1	ATP_c
+Ckb	1	ATP_m
+Ckb	1	Creatine_c
+ATP_c	1	Ckb
+ATP_m	1	Ckb
+Creatine_c	1	Ckb
+Ckm	1	ATP_c
+Ckm	1	ATP_m
+Ckm	1	Creatine_c
+ATP_c	1	Ckm
+ATP_m	1	Ckm
+Creatine_c	1	Ckm
+Ckmt1	1	ATP_c
+Ckmt1	1	ATP_m
+Ckmt1	1	Creatine_c
+ATP_c	1	Ckmt1
+ATP_m	1	Ckmt1
+Creatine_c	1	Ckmt1
+Ckmt2	1	ATP_c
+Ckmt2	1	ATP_m
+Ckmt2	1	Creatine_c
+ATP_c	1	Ckmt2
+ATP_m	1	Ckmt2
+Creatine_c	1	Ckmt2
+Gene461__orphanReacMAR08431	1	Orthophosphate_c
+Aldh5a1	1	Succinate_m
+ATP_c	1	Glyctk
+ATP_m	1	Glyctk
+Psat1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Psat1
+Psph	1	Orthophosphate_c
+Psph	1	Ser_c
+Vps29	1	Orthophosphate_c
+Vps29	1	Ser_c
+Ser_c	1	Shmt1
+Shmt1	1	Ser_c
+Ser_c	1	Sds
+Ser_c	1	Sdsl
+Ser_c	1	Srr
+Ser_c	1	Agxt
+Ser_x	1	Agxt
+ATP_c	1	Fpgs
+ATP_m	1	Fpgs
+Fpgs	1	Orthophosphate_c
+Fpgs	1	Orthophosphate_m
+ATP_c	1	Gene518__orphanReacMAR09718
+Thnsl1	1	Orthophosphate_c
+2-Oxoglutarate_m	1	Aass
+Aadat	1	2-Oxoglutarate_c
+Aadat	1	2-Oxoglutarate_m
+Aadat	1	CHEBI:37024_c
+Aadat	1	CHEBI:37024_m
+2-Oxoglutarate_c	1	Aadat
+2-Oxoglutarate_m	1	Aadat
+CHEBI:37024_c	1	Aadat
+CHEBI:37024_m	1	Aadat
+Aldh7a1	1	CHEBI:37024_c
+Aldh7a1	1	CHEBI:37024_m
+2-Oxoglutarate_c	1	Tmlhe
+Tmlhe	1	Succinate_c
+2-Oxoglutarate_c	1	Bbox1
+Bbox1	1	Succinate_c
+2-Oxoglutarate_c	1	Plod1
+Plod1	1	Succinate_c
+2-Oxoglutarate_c	1	Plod2
+Plod2	1	Succinate_c
+2-Oxoglutarate_c	1	Plod3
+Plod3	1	Succinate_c
+Phe_c	1	Ddc
+2-Oxoglutarate_c	1	Bcat1
+2-Oxoglutarate_m	1	Bcat2
+2-Oxoglutarate_c	1	Kyat1
+2-Oxoglutarate_c	1	Kyat3
+2-Oxoglutarate_m	1	Kyat3
+Kyat1	1	2-Oxoglutarate_c
+Kyat3	1	2-Oxoglutarate_c
+Phe_c	1	Got1
+Got1	1	Phe_c
+Phe_c	1	Got2
+Got2	1	Phe_c
+Phe_c	1	Tat
+Tat	1	2-Oxoglutarate_c
+Tat	1	2-Oxoglutarate_m
+Tat	1	Phe_c
+Fah	1	Fumarate_c
+ATP_c	1	Gene688__orphanReacMAR06784
+Phe_c	1	Epx
+Phe_c	1	Lpo
+Phe_c	1	Prdx6
+Phe_c	1	Pxdn
+Phe_c	1	Pah
+ATP_c	1	Gene738__orphanReacMAR08794
+ATP_c	1	Mat1a
+Mat1a	1	Orthophosphate_c
+ATP_c	1	Mat2a
+Mat2a	1	Orthophosphate_c
+ATP_c	1	Mat2b
+Mat2b	1	Orthophosphate_c
+Ser_c	1	Cbs
+Enoph1	1	Orthophosphate_c
+ATP_c	1	Oplah
+Oplah	1	Orthophosphate_c
+ATP_c	1	Gss
+Gss	1	Orthophosphate_c
+ATP_c	1	Sephs1
+Sephs1	1	Orthophosphate_c
+ATP_c	1	Sephs2
+Sephs2	1	Orthophosphate_c
+Cbs	1	Ser_c
+Orthophosphate_c	1	Mat1a
+Mat1a	1	ATP_c
+Orthophosphate_c	1	Mat2a
+Mat2a	1	ATP_c
+Orthophosphate_c	1	Mat2b
+Mat2b	1	ATP_c
+ATP_c	1	Mars1
+ATP_c	1	Mars2
+Agxt2	1	2-Oxoglutarate_m
+2-Oxoglutarate_m	1	Agxt2
+ATP_c	1	Nagk
+ATP_c	1	Gne
+Nans	1	Orthophosphate_c
+Nanp	1	Orthophosphate_c
+ATP_c	1	Gene849__orphanReacMAR08366
+Gene853__orphanReacMAR08372	1	Orthophosphate_c
+ATP_c	1	Yars1
+ATP_c	1	Aars1
+ATP_c	1	Rars1
+ATP_c	1	Nars1
+ATP_c	1	Dars1
+ATP_c	1	Cars1
+ATP_c	1	Qars1
+ATP_c	1	Eprs1
+ATP_c	1	Gars1
+ATP_c	1	Hars1
+ATP_c	1	Iars1
+ATP_c	1	Lars1
+ATP_c	1	Kars1
+ATP_c	1	Sars1
+Ser_c	1	Sars1
+ATP_c	1	Tars1
+ATP_c	1	Wars1
+ATP_c	1	Vars1
+Ser_c	1	Gene884__orphanReacMAR07197
+Dolpp1	1	Orthophosphate_c
+Dolpp1	1	Orthophosphate_r
+Gene897__orphanReacMAR07258	1	Orthophosphate_c
+Gene898__orphanReacMAR07259	1	Orthophosphate_c
+Alg10	1	Orthophosphate_r
+ATP_c	1	Alb
+Alb	1	Orthophosphate_c
+ATP_c	1	Serpina3c
+Serpina3c	1	Orthophosphate_c
+ATP_c	1	Serpina3f
+Serpina3f	1	Orthophosphate_c
+ATP_c	1	Serpina3g
+Serpina3g	1	Orthophosphate_c
+ATP_c	1	Serpina3i
+Serpina3i	1	Orthophosphate_c
+ATP_c	1	Serpina3k
+Serpina3k	1	Orthophosphate_c
+ATP_c	1	Serpina3m
+Serpina3m	1	Orthophosphate_c
+ATP_c	1	Serpina3n
+Serpina3n	1	Orthophosphate_c
+ATP_c	1	Serpina1a
+Serpina1a	1	Orthophosphate_c
+ATP_c	1	Serpina1b
+Serpina1b	1	Orthophosphate_c
+ATP_c	1	Serpina1d
+Serpina1d	1	Orthophosphate_c
+ATP_c	1	Serpina1e
+Serpina1e	1	Orthophosphate_c
+ATP_c	1	Apob
+Apob	1	Orthophosphate_c
+ATP_c	1	Gene951__orphanReacMAR05155
+Gene951__orphanReacMAR05155	1	Orthophosphate_c
+ATP_c	1	Gene952__orphanReacMAR05156
+Gene952__orphanReacMAR05156	1	Orthophosphate_c
+ATP_c	1	Apoc1
+Apoc1	1	Orthophosphate_c
+ATP_c	1	Apoc2
+Apoc2	1	Orthophosphate_c
+ATP_c	1	Apoc3
+Apoc3	1	Orthophosphate_c
+ATP_c	1	Fga (GEMenz__E9PV24)
+Fga (GEMenz__E9PV24)	1	Orthophosphate_c
+ATP_c	1	Gene957__orphanReacMAR05161
+Gene957__orphanReacMAR05161	1	Orthophosphate_c
+ATP_c	1	Plg (GEMenz__P20918)
+Plg (GEMenz__P20918)	1	Orthophosphate_c
+ATP_c	1	F2
+F2	1	Orthophosphate_c
+ATP_c	1	Tfrc
+Tfrc	1	Orthophosphate_c
+ATP_c	1	Apoe
+Apoe	1	Orthophosphate_c
+ATP_c	1	Bmp1 (GEMenz__P98063)
+Bmp1 (GEMenz__P98063)	1	Orthophosphate_c
+ATP_c	1	Gene963__orphanReacMAR05167
+Gene963__orphanReacMAR05167	1	Orthophosphate_c
+ATP_c	1	Gene964__orphanReacMAR05168
+Gene964__orphanReacMAR05168	1	Orthophosphate_c
+ATP_c	1	Gene965__orphanReacMAR05169
+Gene965__orphanReacMAR05169	1	Orthophosphate_c
+ATP_c	1	Gene966__orphanReacMAR05170
+Gene966__orphanReacMAR05170	1	Orthophosphate_c
+ATP_c	1	Gene967__orphanReacMAR05171
+Gene967__orphanReacMAR05171	1	Orthophosphate_c
+ATP_c	1	Gene968__orphanReacMAR05172
+Gene968__orphanReacMAR05172	1	Orthophosphate_c
+ATP_c	1	Gene969__orphanReacMAR05174
+Gene969__orphanReacMAR05174	1	Orthophosphate_c
+Alb	1	Phe_c
+Alb	1	Ser_c
+ATP_c	1	Gene980__orphanReacMAR05260
+Gene980__orphanReacMAR05260	1	Phe_c
+Gene980__orphanReacMAR05260	1	Orthophosphate_c
+Gene980__orphanReacMAR05260	1	Ser_c
+ATP_c	1	Gene981__orphanReacMAR05262
+Gene981__orphanReacMAR05262	1	Phe_c
+Gene981__orphanReacMAR05262	1	Orthophosphate_c
+Gene981__orphanReacMAR05262	1	Ser_c
+ATP_c	1	Gene982__orphanReacMAR05264
+Gene982__orphanReacMAR05264	1	Phe_c
+Gene982__orphanReacMAR05264	1	Orthophosphate_c
+Gene982__orphanReacMAR05264	1	Ser_c
+ATP_c	1	Gene983__orphanReacMAR05266
+Gene983__orphanReacMAR05266	1	Phe_c
+Gene983__orphanReacMAR05266	1	Orthophosphate_c
+Gene983__orphanReacMAR05266	1	Ser_c
+ATP_m	1	Gene984__orphanReacMAR05267
+Gene984__orphanReacMAR05267	1	Orthophosphate_m
+ATP_c	1	Gene985__orphanReacMAR05268
+Gene985__orphanReacMAR05268	1	Phe_c
+Gene985__orphanReacMAR05268	1	Orthophosphate_c
+Gene985__orphanReacMAR05268	1	Ser_c
+ATP_c	1	Gene986__orphanReacMAR05269
+Gene986__orphanReacMAR05269	1	Phe_c
+Gene986__orphanReacMAR05269	1	Orthophosphate_c
+Gene986__orphanReacMAR05269	1	Ser_c
+ATP_c	1	Gene987__orphanReacMAR05270
+Gene987__orphanReacMAR05270	1	Phe_c
+Gene987__orphanReacMAR05270	1	Orthophosphate_c
+Gene987__orphanReacMAR05270	1	Ser_c
+ATP_c	1	Gene988__orphanReacMAR05271
+Gene988__orphanReacMAR05271	1	Phe_c
+Gene988__orphanReacMAR05271	1	Orthophosphate_c
+Gene988__orphanReacMAR05271	1	Ser_c
+ATP_c	1	Gene989__orphanReacMAR05273
+Gene989__orphanReacMAR05273	1	Phe_c
+Gene989__orphanReacMAR05273	1	Orthophosphate_c
+Gene989__orphanReacMAR05273	1	Ser_c
+ATP_c	1	Gene990__orphanReacMAR05275
+Gene990__orphanReacMAR05275	1	Phe_c
+Gene990__orphanReacMAR05275	1	Orthophosphate_c
+Gene990__orphanReacMAR05275	1	Ser_c
+ATP_c	1	Gene991__orphanReacMAR05277
+Gene991__orphanReacMAR05277	1	Phe_c
+Gene991__orphanReacMAR05277	1	Orthophosphate_c
+Gene991__orphanReacMAR05277	1	Ser_c
+ATP_c	1	Gene992__orphanReacMAR05279
+Gene992__orphanReacMAR05279	1	Phe_c
+Gene992__orphanReacMAR05279	1	Orthophosphate_c
+Gene992__orphanReacMAR05279	1	Ser_c
+ATP_c	1	Gene994__orphanReacMAR05281
+Gene994__orphanReacMAR05281	1	Phe_c
+Gene994__orphanReacMAR05281	1	Orthophosphate_c
+Gene994__orphanReacMAR05281	1	Ser_c
+ATP_c	1	Gene995__orphanReacMAR05283
+Gene995__orphanReacMAR05283	1	Phe_c
+Gene995__orphanReacMAR05283	1	Orthophosphate_c
+Gene995__orphanReacMAR05283	1	Ser_c
+ATP_c	1	Hacd1
+Hacd1	1	Phe_c
+Hacd1	1	Orthophosphate_c
+Hacd1	1	Ser_c
+ATP_c	1	Hacd2
+Hacd2	1	Phe_c
+Hacd2	1	Orthophosphate_c
+Hacd2	1	Ser_c
+ATP_c	1	Gene999__orphanReacMAR09817
+Gene999__orphanReacMAR09817	1	Phe_c
+Gene999__orphanReacMAR09817	1	Orthophosphate_c
+Gene999__orphanReacMAR09817	1	Ser_c
+ATP_c	1	Gene1000__orphanReacMAR09818
+Gene1000__orphanReacMAR09818	1	Phe_c
+Gene1000__orphanReacMAR09818	1	Orthophosphate_c
+Gene1000__orphanReacMAR09818	1	Ser_c
+Bpnt1	1	Orthophosphate_c
+Bpnt2	1	Orthophosphate_c
+Idh1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Idh1
+Oxct1	1	Succinate_m
+Oxct2a (GEMenz__Q9JJN4)	1	Succinate_m
+Oxct2a (GEMenz__Q9ESL0)	1	Succinate_m
+Idh2	1	2-Oxoglutarate_m
+2-Oxoglutarate_m	1	Idh2
+Mdh1	1	(S)-Malate_c
+(S)-Malate_c	1	Mdh1
+Mdh1b	1	(S)-Malate_c
+(S)-Malate_c	1	Mdh1b
+Mdh2	1	(S)-Malate_m
+(S)-Malate_m	1	Mdh2
+ATP_c	1	Acly
+Acly	1	Orthophosphate_c
+2-Oxoglutarate_m	1	Dhtkd1
+2-Oxoglutarate_m	1	Ogdh
+Fumarate_c	1	H3BJV5
+Fumarate_c	1	H3BKG7
+Fumarate_m	1	H3BJV5
+Fumarate_m	1	H3BKG7
+H3BJV5	1	(S)-Malate_c
+H3BKG7	1	(S)-Malate_c
+H3BJV5	1	(S)-Malate_m
+H3BKG7	1	(S)-Malate_m
+(S)-Malate_c	1	H3BJV5
+(S)-Malate_c	1	H3BKG7
+(S)-Malate_m	1	H3BJV5
+(S)-Malate_m	1	H3BKG7
+H3BJV5	1	Fumarate_c
+H3BKG7	1	Fumarate_c
+H3BJV5	1	Fumarate_m
+H3BKG7	1	Fumarate_m
+ATP_c	1	Gene1039__orphanReacMAR08781
+Lhpp	1	Orthophosphate_c
+Lhpp	1	Orthophosphate_m
+Lhpp	1	Orthophosphate_n
+Lhpp	1	Orthophosphate_r
+Ppa1	1	Orthophosphate_c
+Ppa1	1	Orthophosphate_m
+Ppa1	1	Orthophosphate_n
+Ppa1	1	Orthophosphate_r
+Ppa2	1	Orthophosphate_c
+Ppa2	1	Orthophosphate_m
+Ppa2	1	Orthophosphate_n
+Ppa2	1	Orthophosphate_r
+Prune1	1	Orthophosphate_c
+Prune1	1	Orthophosphate_m
+Prune1	1	Orthophosphate_n
+Prune1	1	Orthophosphate_r
+ATP_c	1	Acsm1
+ATP_m	1	Acsm1
+ATP_c	1	Acsm2
+ATP_c	1	Acsm3
+ATP_c	1	Acsm4
+ATP_c	1	Acsm5
+ATP_c	1	Acsbg1
+ATP_m	1	Acsbg1
+ATP_c	1	Acsbg2
+ATP_m	1	Acsbg2
+ATP_c	1	Acsl1
+ATP_m	1	Acsl1
+ATP_c	1	Acsl3
+ATP_m	1	Acsl3
+ATP_c	1	Acsl4
+ATP_m	1	Acsl4
+ATP_c	1	Acsl5
+ATP_m	1	Acsl5
+ATP_c	1	Acsl6
+ATP_m	1	Acsl6
+ATP_c	1	Slc27a2
+ATP_m	1	Slc27a2
+ATP_c	1	Acot2
+ATP_m	1	Acot2
+ATP_c	1	Acot4
+ATP_m	1	Acot4
+ATP_c	1	Aasdh
+ATP_m	1	Aasdh
+ATP_c	1	Acaa1a
+ATP_m	1	Acaa1a
+ATP_c	1	Acaa1b
+ATP_m	1	Acaa1b
+ATP_c	1	Acaa2
+ATP_m	1	Acaa2
+ATP_c	1	Acot1
+ATP_m	1	Acot1
+ATP_c	1	Acot7
+ATP_m	1	Acot7
+ATP_c	1	Acot8
+ATP_m	1	Acot8
+ATP_c	1	Acox1
+ATP_m	1	Acox1
+ATP_c	1	Acsf2
+ATP_m	1	Acsf2
+ATP_c	1	Acsf3
+ATP_m	1	Acsf3
+ATP_c	1	Amacr
+ATP_m	1	Amacr
+ATP_c	1	Baat
+ATP_m	1	Baat
+ATP_c	1	Echs1
+ATP_m	1	Echs1
+ATP_c	1	Hadh
+ATP_m	1	Hadh
+ATP_c	1	Hadha
+ATP_m	1	Hadha
+ATP_c	1	Hadhb
+ATP_m	1	Hadhb
+ATP_c	1	O08756
+ATP_m	1	O08756
+ATP_c	1	Hsd17b4
+ATP_m	1	Hsd17b4
+ATP_c	1	Slc27a1
+ATP_m	1	Slc27a1
+ATP_c	1	Slc27a3
+ATP_m	1	Slc27a3
+ATP_c	1	Slc27a4
+ATP_m	1	Slc27a4
+Glycerophosphate_m	1	Gpd2
+ATP_c	1	Dgka
+ATP_c	1	Dgkb
+ATP_c	1	Dgkd
+ATP_c	1	Dgke
+ATP_c	1	Dgkg
+ATP_c	1	Dgkh
+ATP_c	1	Dgki
+ATP_n	1	Dgki
+ATP_c	1	F6UUZ3
+ATP_c	1	Dgkk
+ATP_c	1	Q8C4S1
+ATP_c	1	Dgkq
+ATP_c	1	Dgkz
+ATP_n	1	Dgkz
+Phyh	1	Succinate_x
+ATP_c	1	Mvk
+Pmvk	1	ATP_c
+ATP_c	1	Pmvk
+ATP_c	1	Mvd
+Mvd	1	Orthophosphate_c
+ATP_c	1	Dbp (GEMenz__Q60925)
+ATP_c	1	Sphk1
+ATP_c	1	Sphk2
+ATP_n	1	Sphk2
+Lpin1	1	Orthophosphate_c
+Lpin2	1	Orthophosphate_c
+Lpin3	1	Orthophosphate_c
+Plpp1	1	Orthophosphate_c
+Plpp1	1	Orthophosphate_e
+Plpp2	1	Orthophosphate_c
+Plpp2	1	Orthophosphate_e
+Plpp3	1	Orthophosphate_c
+Plpp3	1	Orthophosphate_e
+Plpp3	1	Orthophosphate_r
+ATP_c	1	Cerk
+Plpp4	1	Orthophosphate_c
+Plpp5	1	Orthophosphate_c
+Plppr2	1	Orthophosphate_c
+Plppr3	1	Orthophosphate_c
+Plppr4	1	Orthophosphate_c
+Sgpp1	1	Orthophosphate_c
+Sgpp1	1	Orthophosphate_r
+Glycerophosphate_m	1	Gpam
+Glycerophosphate_m	1	Gpat2
+Glycerophosphate_m	1	Gpat3
+Glycerophosphate_m	1	Gpat4
+ATP_c	1	Agk
+Etnppl	1	Orthophosphate_c
+Akp3 (GEMenz__F8VQM0)	1	Orthophosphate_c
+Akp3 (GEMenz__Q1LZM2)	1	Orthophosphate_c
+Akp3 (GEMenz__F8VQM0)	1	Orthophosphate_e
+Akp3 (GEMenz__Q1LZM2)	1	Orthophosphate_e
+Orthophosphate_e	1	Akp3 (GEMenz__F8VQM0)
+Orthophosphate_e	1	Akp3 (GEMenz__Q1LZM2)
+Alpi (GEMenz__F8VPQ6)	1	Orthophosphate_c
+Alpi (GEMenz__Q0VD75)	1	Orthophosphate_c
+Alpi (GEMenz__F8VPQ6)	1	Orthophosphate_e
+Alpi (GEMenz__Q0VD75)	1	Orthophosphate_e
+Orthophosphate_e	1	Alpi (GEMenz__F8VPQ6)
+Orthophosphate_e	1	Alpi (GEMenz__Q0VD75)
+Alpl	1	Orthophosphate_c
+Alpl	1	Orthophosphate_e
+Orthophosphate_e	1	Alpl
+ATP_c	1	Gk
+ATP_m	1	Gk
+Gk	1	Glycerophosphate_m
+ATP_c	1	Gk2
+ATP_m	1	Gk2
+Gk2	1	Glycerophosphate_m
+ATP_c	1	Gk5
+ATP_m	1	Gk5
+Gk5	1	Glycerophosphate_m
+Glycerophosphate_m	1	Pgs1
+Gene2154__orphanReacMAR00584	1	Orthophosphate_m
+Ser_c	1	Ptdss2
+Ser_c	1	Ptdss1
+ATP_c	1	Chka (GEMenz__O54804)
+ATP_c	1	Chkb
+ATP_c	1	Etnk1
+ATP_c	1	Etnk2
+Phospho1	1	Orthophosphate_c
+Pld1	1	Ser_c
+Pld2	1	Ser_c
+ATP_e	1	Tkfc
+Orthophosphate_c	1	Lpin1
+Orthophosphate_c	1	Lpin2
+Orthophosphate_c	1	Lpin3
+Orthophosphate_c	1	Plpp1
+Orthophosphate_c	1	Plpp2
+Orthophosphate_c	1	Plpp3
+Orthophosphate_r	1	Plpp3
+Orthophosphate_c	1	Plpp4
+Orthophosphate_c	1	Plpp5
+Orthophosphate_c	1	Plppr2
+Orthophosphate_c	1	Plppr3
+Orthophosphate_c	1	Plppr4
+ATP_c	1	Slc27a5
+ATP_c	1	Abcd1
+Abcd1	1	Orthophosphate_c
+ATP_c	1	Bcap31
+Bcap31	1	Orthophosphate_c
+ATP_c	1	Idh3g
+Idh3g	1	Orthophosphate_c
+ATP_c	1	Pdzd4
+Pdzd4	1	Orthophosphate_c
+ATP_c	1	Pnck
+Pnck	1	Orthophosphate_c
+ATP_c	1	Slc6a8 (GEMenz__Q8VBW1)
+Slc6a8 (GEMenz__Q8VBW1)	1	Orthophosphate_c
+ATP_c	1	Srpk3
+Srpk3	1	Orthophosphate_c
+ATP_c	1	Abcc1
+Abcc1	1	Orthophosphate_c
+ATP_c	1	Abcc2
+Abcc2	1	Orthophosphate_c
+ATP_c	1	Abcb11
+Abcb11	1	Orthophosphate_c
+ATP_c	1	Abcc3
+Abcc3	1	Orthophosphate_c
+ATP_c	1	Abcc4
+Abcc4	1	Orthophosphate_c
+ATP_c	1	Slc51a
+Slc51a	1	Orthophosphate_c
+ATP_c	1	Slc51b
+Slc51b	1	Orthophosphate_c
+ATP_c	1	Nmrk1
+ATP_c	1	Nmrk2
+ATP_c	1	Nmnat1
+ATP_m	1	Nmnat1
+ATP_n	1	Nmnat1
+ATP_c	1	Nmnat2
+ATP_m	1	Nmnat2
+ATP_c	1	Nmnat3
+ATP_m	1	Nmnat3
+ATP_c	1	Nadsyn1
+ATP_n	1	Nadsyn1
+ATP_m	1	Nadk2
+ATP_c	1	Nadk
+Acp4	1	Orthophosphate_c
+Acp4	1	Orthophosphate_e
+Acp5	1	Orthophosphate_c
+Acp5	1	Orthophosphate_e
+Acp6	1	Orthophosphate_c
+Acp6	1	Orthophosphate_e
+Acp7	1	Orthophosphate_c
+Pxylp1	1	Orthophosphate_c
+Pxylp1	1	Orthophosphate_e
+ATP_c	1	Coasy
+ATP_m	1	Coasy
+ATP_c	1	Pank1
+ATP_m	1	Pank1
+ATP_c	1	Pank2
+ATP_m	1	Pank2
+ATP_c	1	Pank3
+ATP_m	1	Pank3
+Pank1	1	ATP_c
+Pank1	1	ATP_m
+Pank2	1	ATP_c
+Pank2	1	ATP_m
+Pank3	1	ATP_c
+Pank3	1	ATP_m
+Pank4	1	Orthophosphate_c
+O55023	1	Orthophosphate_c
+Impa2	1	Orthophosphate_c
+ATP_c	1	Pik3c3
+ATP_g	1	Pik3c3
+ATP_n	1	Pik3c3
+Mtm1	1	Orthophosphate_c
+Mtm1	1	Orthophosphate_n
+Mtmr12	1	Orthophosphate_c
+ATP_c	1	Pikfyve
+Asb12	1	Orthophosphate_c
+Ctdspl2	1	Orthophosphate_c
+Dusp11	1	Orthophosphate_c
+Fig4	1	Orthophosphate_c
+Inpp5f	1	Orthophosphate_c
+Inppl1	1	Orthophosphate_c
+Inppl1	1	Orthophosphate_n
+Mdp1	1	Orthophosphate_c
+Mtmr1	1	Orthophosphate_c
+Mtmr14	1	Orthophosphate_c
+Mtmr2	1	Orthophosphate_c
+Mtmr6	1	Orthophosphate_c
+Mtmr7	1	Orthophosphate_c
+Nt5dc3	1	Orthophosphate_c
+Phpt1	1	Orthophosphate_c
+Plpp6	1	Orthophosphate_c
+Pmpca	1	Orthophosphate_c
+Ptprq	1	Orthophosphate_c
+Sacm1l	1	Orthophosphate_c
+Sgpp2	1	Orthophosphate_c
+Tns2	1	Orthophosphate_c
+ATP_c	1	Pi4k2a
+ATP_n	1	Pi4k2a
+ATP_c	1	Pi4k2b
+ATP_n	1	Pi4k2b
+ATP_c	1	Pi4ka
+ATP_g	1	Pi4ka
+ATP_m	1	Pi4ka
+ATP_n	1	Pi4ka
+ATP_c	1	Pi4kb
+ATP_g	1	Pi4kb
+ATP_m	1	Pi4kb
+ATP_n	1	Pi4kb
+ATP_c	1	Pik3c2g
+ATP_n	1	Pik3c2g
+ATP_c	1	Pik3r5
+Inpp4a	1	Orthophosphate_c
+Inpp4a	1	Orthophosphate_n
+Inpp4b	1	Orthophosphate_c
+Inpp4b	1	Orthophosphate_n
+Pten	1	Orthophosphate_c
+Pten	1	Orthophosphate_n
+Pten	1	Orthophosphate_r
+A0A1B0GS38	1	Orthophosphate_c
+A0A1B0GSB8	1	Orthophosphate_c
+Tpte (GEMenz__G5E8H5)	1	Orthophosphate_c
+Tpte (GEMenz__Q3KNE1)	1	Orthophosphate_c
+Q91X01	1	Orthophosphate_c
+Q91X02	1	Orthophosphate_c
+Q91X03	1	Orthophosphate_c
+A0A1B0GS38	1	Orthophosphate_r
+A0A1B0GSB8	1	Orthophosphate_r
+Tpte (GEMenz__G5E8H5)	1	Orthophosphate_r
+Tpte (GEMenz__Q3KNE1)	1	Orthophosphate_r
+Q91X01	1	Orthophosphate_r
+Q91X02	1	Orthophosphate_r
+Q91X03	1	Orthophosphate_r
+ATP_c	1	Pip5k1a
+ATP_g	1	Pip5k1a
+ATP_n	1	Pip5k1a
+ATP_c	1	Pip5k1b
+ATP_g	1	Pip5k1b
+ATP_n	1	Pip5k1b
+ATP_c	1	Pip5k1c
+ATP_g	1	Pip5k1c
+ATP_n	1	Pip5k1c
+ATP_c	1	Pip5kl1
+ATP_g	1	Pip5kl1
+ATP_n	1	Pip5kl1
+Inpp5b	1	Orthophosphate_c
+Inpp5b	1	Orthophosphate_n
+Inpp5e	1	Orthophosphate_c
+Inpp5e	1	Orthophosphate_n
+Ocrl	1	Orthophosphate_c
+Ocrl	1	Orthophosphate_n
+Synj1	1	Orthophosphate_c
+Synj1	1	Orthophosphate_n
+Synj2	1	Orthophosphate_c
+Synj2	1	Orthophosphate_n
+Pip4p1	1	Orthophosphate_c
+Pip4p2	1	Orthophosphate_c
+ATP_c	1	Pip4k2a
+ATP_n	1	Pip4k2a
+ATP_c	1	Pip4k2b
+ATP_n	1	Pip4k2b
+ATP_c	1	Pip4k2c
+ATP_n	1	Pip4k2c
+ATP_c	1	Pik3cb
+ATP_n	1	Pik3cb
+ATP_c	1	Pik3cd
+ATP_n	1	Pik3cd
+ATP_c	1	Pik3cg (GEMenz__Q9JHG7)
+ATP_n	1	Pik3cg (GEMenz__Q9JHG7)
+ATP_c	1	Pik3r2
+ATP_c	1	Pik3r3
+Inpp5a	1	Orthophosphate_c
+Inpp5j	1	Orthophosphate_c
+Inpp5k	1	Orthophosphate_c
+Inpp1	1	Orthophosphate_c
+ATP_c	1	Itpka
+ATP_c	1	Itpkb (GEMenz__B2RXC2)
+ATP_c	1	Itpkb (GEMenz__Q8BKB2)
+ATP_c	1	Itpkc
+Minpp1	1	Orthophosphate_c
+Inpp5d (GEMenz__Q9ES52)	1	Orthophosphate_c
+Inpp5d (GEMenz__Q9ES52)	1	Orthophosphate_n
+ATP_c	1	Itpk1
+ATP_c	1	Ipmk
+ATP_n	1	Ipmk
+Itpk1	1	ATP_c
+ATP_c	1	Ippk
+ATP_c	1	Ip6k1
+ATP_c	1	Ip6k2
+ATP_c	1	Ip6k3
+ATP_c	1	Ppip5k1
+ATP_c	1	Ppip5k2
+Ip6k1	1	Orthophosphate_c
+Ip6k1	1	Orthophosphate_n
+Ip6k2	1	Orthophosphate_c
+Ip6k2	1	Orthophosphate_n
+Ip6k3	1	Orthophosphate_c
+Ip6k3	1	Orthophosphate_n
+Ppip5k1	1	Orthophosphate_c
+Ppip5k1	1	Orthophosphate_n
+Ppip5k2	1	Orthophosphate_c
+Ppip5k2	1	Orthophosphate_n
+Nudt11 (GEMenz__P0C027)	1	Orthophosphate_c
+Nudt11 (GEMenz__P0C028)	1	Orthophosphate_c
+Nudt3	1	Orthophosphate_c
+Nudt4	1	Orthophosphate_c
+Gene2652__orphanReacMAR08801	1	Orthophosphate_c
+Gene2655__orphanReacMAR08806	1	Orthophosphate_c
+ATP_n	1	Pik3ca
+Gene2661__orphanReacMAR08820	1	Orthophosphate_n
+ATP_c	1	Mthfd1
+Mthfd1	1	Orthophosphate_c
+ATP_m	1	Mthfd1l
+Mthfd1l	1	Orthophosphate_m
+ATP_m	1	Mthfd2
+Mthfd2	1	Orthophosphate_m
+ATP_m	1	Mthfd2l
+Mthfd2l	1	Orthophosphate_m
+ATP_c	1	Mthfs
+ATP_m	1	Mthfs
+Mthfs	1	Orthophosphate_c
+Mthfs	1	Orthophosphate_m
+ATP_c	1	Mthfsl (GEMenz__L7N466)
+ATP_c	1	Mthfsl (GEMenz__Q8R1G5)
+ATP_m	1	Mthfsl (GEMenz__L7N466)
+ATP_m	1	Mthfsl (GEMenz__Q8R1G5)
+Mthfsl (GEMenz__L7N466)	1	Orthophosphate_c
+Mthfsl (GEMenz__Q8R1G5)	1	Orthophosphate_c
+Mthfsl (GEMenz__L7N466)	1	Orthophosphate_m
+Mthfsl (GEMenz__Q8R1G5)	1	Orthophosphate_m
+ATP_c	1	Gphn
+Btd	1	Lys_e
+ATP_c	1	Hlcs
+ATP_m	1	Hlcs
+ATP_c	1	Acaca
+Acaca	1	Orthophosphate_c
+ATP_c	1	Gene2803__orphanReacMAR08712
+ATP_c	1	Rfk
+ATP_c	1	Flad1
+ATP_c	1	Lenep
+ATP_c	1	Tpk1
+Thtpa	1	Orthophosphate_c
+Ntpcr	1	Orthophosphate_c
+Ntpcr	1	Orthophosphate_m
+Gene2835__orphanReacMAR08748	1	Orthophosphate_c
+ATP_m	1	Mmaa
+Mmaa	1	ATP_m
+ATP_m	1	Mmab
+Mmab	1	ATP_m
+Klhl23	1	Orthophosphate_c
+Pdxp	1	Orthophosphate_c
+Phospho2	1	Orthophosphate_c
+Sh3bp1	1	Orthophosphate_c
+ATP_c	1	Pdxk
+ATP_m	1	Decr1
+ATP_m	1	Decr2
+ATP_m	1	Eci1
+ATP_m	1	Eci2
+ATP_m	1	Gene2875__orphanReacMAR06434
+ATP_m	1	Gene2879__orphanReacMAR06447
+ATP_m	1	Gene2888__orphanReacMAR06470
+ATP_m	1	Gene2892__orphanReacMAR06482
+ATP_m	1	Gene2893__orphanReacMAR06488
+Aldh1a3	1	Orthophosphate_e
+Aldh3b1	1	Orthophosphate_e
+Gene3031__orphanReacMAR05363	1	Orthophosphate_c
+Gene3032__orphanReacMAR08617	1	Orthophosphate_m
+Fam20b	1	ATP_c
+Fggy	1	ATP_c
+Fn3k	1	ATP_c
+Fn3krp	1	ATP_c
+Nol9	1	ATP_c
+Ace2	1	Phe_c
+Ace2	1	Phe_e
+Cma1	1	Phe_c
+Cma1	1	Phe_e
+ATP_c	1	Calm1 (GEMenz__P0DP26)
+ATP_c	1	Calm1 (GEMenz__P0DP27)
+ATP_c	1	Calm1 (GEMenz__P0DP28)
+ATP_c	1	Phka2
+ATP_c	1	Phkg2
+Gene3058__orphanReacMAR09489	1	Orthophosphate_c
+ATP_c	1	Amfr
+ATP_c	1	Bard1
+ATP_c	1	Birc6 (GEMenz__O88738)
+ATP_c	1	Brap
+ATP_c	1	Cbl
+ATP_c	1	Cblb
+ATP_c	1	Cblc
+ATP_c	1	Cbll1
+ATP_c	1	Ccnb1ip1
+ATP_c	1	Cdc34
+ATP_c	1	Chfr (GEMenz__Q810L3)
+ATP_c	1	Cnot4
+ATP_c	1	Cop1
+ATP_c	1	Dzip3
+ATP_c	1	Fancl
+ATP_c	1	Hace1
+ATP_c	1	Hectd1
+ATP_c	1	Hectd2
+ATP_c	1	Hectd3
+ATP_c	1	Hecw1
+ATP_c	1	Hecw2
+ATP_c	1	Herc1
+ATP_c	1	F6RXM1
+ATP_c	1	Q3UF38
+ATP_c	1	Q4VBD0
+ATP_c	1	Q8BNF7
+ATP_c	1	Q8BNK4
+ATP_c	1	Q8BR49
+ATP_c	1	Q9CS23
+ATP_c	1	Herc2
+ATP_c	1	A0A0N4SVW7
+ATP_c	1	A0A0N4SW02
+ATP_c	1	Herc3 (GEMenz__A6H6S0)
+ATP_c	1	D3Z2S3
+ATP_c	1	D3Z3U0
+ATP_c	1	D3Z6D4
+ATP_c	1	Herc3 (GEMenz__G5E876)
+ATP_c	1	Herc3 (GEMenz__Q8CFQ0)
+ATP_c	1	Herc3 (GEMenz__Q9CYM1)
+ATP_c	1	Herc4
+ATP_c	1	Hltf
+ATP_c	1	Huwe1
+ATP_c	1	Itch (GEMenz__Q8C863)
+ATP_c	1	Lrsam1
+ATP_c	1	Marchf1
+ATP_c	1	Marchf10 (GEMenz__E9PX79)
+ATP_c	1	F6WKB0
+ATP_c	1	Q0D2G2
+ATP_c	1	Marchf10 (GEMenz__Q497L7)
+ATP_c	1	Q8C5S6
+ATP_c	1	Marchf11
+ATP_c	1	Marchf2
+ATP_c	1	Marchf3
+ATP_c	1	Marchf4
+ATP_c	1	Marchf5
+ATP_c	1	Marchf6
+ATP_c	1	Marchf7
+ATP_c	1	Marchf8
+ATP_c	1	Marchf9
+ATP_c	1	Mdm2 (GEMenz__P23804)
+ATP_c	1	Mgrn1
+ATP_c	1	Mib1
+ATP_c	1	Mib2
+ATP_c	1	Mid1
+ATP_c	1	Mkrn1
+ATP_c	1	Mkrn2
+ATP_c	1	Mkrn3
+ATP_c	1	Mul1
+ATP_c	1	Mycbp2 (GEMenz__Q7TPH6)
+ATP_c	1	Mylip
+ATP_c	1	Nedd4
+ATP_c	1	Q8CFI0
+ATP_c	1	A0A494BAB0
+ATP_c	1	Neurl1a
+ATP_c	1	Neurl1b
+ATP_c	1	Nhlrc1
+ATP_c	1	Nrf1
+ATP_c	1	Pja1
+ATP_c	1	Pja2 (GEMenz__Q80U04)
+ATP_c	1	Prkn
+ATP_c	1	Rad18
+ATP_c	1	Rag1
+ATP_c	1	Rbbp6
+ATP_c	1	Rchy1
+ATP_c	1	Rfwd3
+ATP_c	1	Rnf103
+ATP_c	1	Rnf115
+ATP_c	1	Rnf123
+ATP_c	1	Rnf125
+ATP_c	1	Rnf126
+ATP_c	1	Rnf128
+ATP_c	1	Rnf13
+ATP_c	1	Rnf130
+ATP_c	1	Rnf133
+ATP_c	1	Rnf138
+ATP_c	1	Rnf139
+ATP_c	1	Rnf14
+ATP_c	1	Rnf144a
+ATP_c	1	Rnf144b
+ATP_c	1	Rnf146
+ATP_c	1	Rnf149
+ATP_c	1	Rnf152
+ATP_c	1	Rnf167
+ATP_c	1	Rnf180
+ATP_c	1	Rnf182
+ATP_c	1	Rnf185
+ATP_c	1	Rnf187
+ATP_c	1	Rnf19a
+ATP_c	1	Rnf19b
+ATP_c	1	Rnf216
+ATP_c	1	Rnf217
+ATP_c	1	Rnf25
+ATP_c	1	Rnf31 (GEMenz__Q924T7)
+ATP_c	1	Rnf41
+ATP_c	1	Rnf5
+ATP_c	1	Rnf8
+ATP_c	1	Sh3rf1
+ATP_c	1	Sh3rf2
+ATP_c	1	Sh3rf3
+ATP_c	1	Shprh
+ATP_c	1	Siah1a
+ATP_c	1	Siah2 (GEMenz__Q06986)
+ATP_c	1	Smurf1
+ATP_c	1	Smurf2
+ATP_c	1	Stub1
+ATP_c	1	Syvn1
+ATP_c	1	Topors
+ATP_c	1	Traf7
+ATP_c	1	Trim11
+ATP_c	1	Trim12c (GEMenz__D3Z3L3)
+ATP_c	1	Q6P6F6
+ATP_c	1	Trim12c (GEMenz__Q8CC73)
+ATP_c	1	Trim12c (GEMenz__Q8CHU6)
+ATP_c	1	Trim32
+ATP_c	1	Trim33
+ATP_c	1	Trim5
+ATP_c	1	Q3UUU9
+ATP_c	1	Q38HM4
+ATP_c	1	Trip12
+ATP_c	1	Ttc3
+ATP_c	1	Uba1
+ATP_c	1	Uba3
+ATP_c	1	Uba6
+ATP_c	1	Uba7
+ATP_c	1	Ube2a
+ATP_c	1	Ube2b
+ATP_c	1	Ube2c
+ATP_c	1	Ube2d1
+ATP_c	1	Ube2d3 (GEMenz__A0A494BA56)
+ATP_c	1	A0A494BAN1
+ATP_c	1	A0A494BBD7
+ATP_c	1	Ube2d2a
+ATP_c	1	Ube2d2b
+ATP_c	1	Ube2d3 (GEMenz__P61079)
+ATP_c	1	Ube2e1
+ATP_c	1	Ube2e2
+ATP_c	1	Ube2e3
+ATP_c	1	Ube2f
+ATP_c	1	Ube2g1
+ATP_c	1	Ube2g2
+ATP_c	1	Ube2h
+ATP_c	1	Ube2i
+ATP_c	1	Ube2j1
+ATP_c	1	Ube2j2
+ATP_c	1	Ube2k
+ATP_c	1	Ube2l3
+ATP_c	1	Ube2l6
+ATP_c	1	Ube2m
+ATP_c	1	Ube2n
+ATP_c	1	Ube2o
+ATP_c	1	Ube2q1
+ATP_c	1	Ube2q2
+ATP_c	1	A0PJN4
+ATP_c	1	Ube2r2
+ATP_c	1	Ube2s
+ATP_c	1	Ube2t
+ATP_c	1	Ube2u (GEMenz__B1AUC4)
+ATP_c	1	Ube2u (GEMenz__B7ZWG1)
+ATP_c	1	Q3V081
+ATP_c	1	Ube2w
+ATP_c	1	Ube2z
+ATP_c	1	Ube3a
+ATP_c	1	Ube3b
+ATP_c	1	Ube3c
+ATP_c	1	Ube4a
+ATP_c	1	Ube4b
+ATP_c	1	Ubr1
+ATP_c	1	Ubr2
+ATP_c	1	Ubr3
+ATP_c	1	Ubr4
+ATP_c	1	Ubr5
+ATP_c	1	Ubr7
+ATP_c	1	Uhrf1
+ATP_c	1	Uhrf2
+ATP_c	1	Wwp1
+ATP_c	1	Wwp2
+ATP_c	1	Znrf1
+ATP_c	1	Znrf2
+ATP_c	1	Zswim2
+ATP_c	1	Mylk
+ATP_c	1	Mylk2
+ATP_c	1	Mylk3
+ATP_c	1	Q5SUV5
+Gene3063__orphanReacMAR09494	1	Orthophosphate_c
+ATP_c	1	Grk1
+Orthophosphate_c	1	Brpf1
+Brpf1	1	ATP_c
+ATP_c	1	Brpf1
+Brpf1	1	Orthophosphate_c
+Orthophosphate_c	1	Ttl
+Ttl	1	ATP_c
+ATP_c	1	Ttl
+Ttl	1	Orthophosphate_c
+Pnkp	1	Orthophosphate_c
+Rngtt	1	Orthophosphate_c
+Pdp1	1	Orthophosphate_c
+Pdp2	1	Orthophosphate_c
+ATP_c	1	Pdk1
+ATP_c	1	Pdk2
+ATP_c	1	Pdk3
+ATP_c	1	Pdk4
+ATP_c	1	Grk2
+ATP_c	1	Grk3
+2-Oxoglutarate_c	1	Asph
+Asph	1	Succinate_c
+2-Oxoglutarate_c	1	Hif1an
+Hif1an	1	Succinate_c
+Bckdk	1	ATP_c
+ATP_c	1	Bckdk
+ATP_c	1	A0A1S6GWI5
+ATP_c	1	D3Z263
+ATP_c	1	D6RD00
+ATP_c	1	D6REI7
+ATP_c	1	Rtca (GEMenz__Q3TIJ4)
+ATP_c	1	Rtca (GEMenz__Q3UAE6)
+ATP_c	1	Rtca (GEMenz__Q5BLJ4)
+ATP_c	1	Q91YL8
+Phykpl	1	Orthophosphate_c
+Pgp	1	Orthophosphate_c
+Nudt2	1	ATP_c
+ATP_c	1	Gene3137__orphanReacMAR09798
+Gene3137__orphanReacMAR09798	1	Orthophosphate_c
+Lys_e	1	Gene3205__orphanReacMAR09041
+Gene3205__orphanReacMAR09041_rev	1	Lys_e
+Phe_e	1	Gene3207__orphanReacMAR09043
+Gene3207__orphanReacMAR09043_rev	1	Phe_e
+Ser_e	1	Gene3222__orphanReacMAR09069
+Gene3222__orphanReacMAR09069_rev	1	Ser_e
+Orthophosphate_e	1	Gene3225__orphanReacMAR09072
+Gene3225__orphanReacMAR09072_rev	1	Orthophosphate_e
+2-Oxoglutarate_e	1	Gene3345__orphanReacMAR09259
+Gene3345__orphanReacMAR09259_rev	1	2-Oxoglutarate_e
+Creatine_e	1	Gene3374__orphanReacMAR09290
+Gene3374__orphanReacMAR09290_rev	1	Creatine_e
+Phe_c	1	Gene3532__orphanReacMAR00021
+Ser_c	1	Gene3532__orphanReacMAR00021
+ATP_m	1	Gene3559__orphanReacMAR00135
+Dgki	1	ATP_n
+Dgkz	1	ATP_n
+Gene3567__orphanReacMAR00251	1	Orthophosphate_c
+ATP_e	1	Gene3583__orphanReacMAR00569
+Gene3583__orphanReacMAR00569_rev	1	ATP_e
+Q66GT5	1	Orthophosphate_c
+Orthophosphate_e	1	Entpd1
+Orthophosphate_e	1	Entpd3
+Orthophosphate_e	1	Entpd8
+Phe_e	1	Ace2
+Oxsm	1	Orthophosphate_m
+Orthophosphate_m	1	Oxsm
+Gene3819__orphanReacMAR02782	1	Orthophosphate_n
+Orthophosphate_n	1	Gene3819__orphanReacMAR02782_rev
+Gene3820__orphanReacMAR02784	1	Orthophosphate_n
+Phe_e	1	Cma1
+ATP_n	1	Gene3891__orphanReacMAR03324
+Gene3896__orphanReacMAR03383	1	Orthophosphate_c
+Orthophosphate_c	1	Gene3896__orphanReacMAR03383_rev
+ATP_c	1	Gene3900__orphanReacMAR03388
+ATP_c	1	Gene3901__orphanReacMAR03390
+Orthophosphate_r	1	A0A1B0GS38
+Orthophosphate_r	1	A0A1B0GSB8
+Orthophosphate_r	1	Tpte (GEMenz__G5E8H5)
+Orthophosphate_r	1	Tpte (GEMenz__Q3KNE1)
+Orthophosphate_r	1	Q91X01
+Orthophosphate_r	1	Q91X02
+Orthophosphate_r	1	Q91X03
+ATP_c	1	Gene4036__orphanReacMAR04413
+Phe_c	1	Gene4036__orphanReacMAR04413
+Ser_c	1	Gene4036__orphanReacMAR04413
+Gene4036__orphanReacMAR04413	1	Orthophosphate_c
+ATP_c	1	Gene4039__orphanReacMAR04441
+ATP_c	1	Gene4050__orphanReacMAR04511
+ATP_c	1	Slc27a6
+ATP_c	1	Gene4131__orphanReacMAR06804
+ATP_c	1	Gene4137__orphanReacMAR06833
+ATP_c	1	Gene4138__orphanReacMAR06846
+Succinate_c	1	Gene4138__orphanReacMAR06846
+Acot4	1	Succinate_x
+Acot8	1	Succinate_x
+ATP_c	1	Gene4178__orphanReacMAR08975
+Gene4179__orphanReacMAR08978	1	Orthophosphate_e
+Gene4181__orphanReacMAR08984	1	Orthophosphate_e
+ATP_c	1	Gene4227__orphanReacMAR09931
+Phe_c	1	Gene4227__orphanReacMAR09931
+Ser_c	1	Gene4227__orphanReacMAR09931
+Gene4227__orphanReacMAR09931	1	Orthophosphate_c
+ATP_c	1	Gene4228__orphanReacMAR09932
+Gene4228__orphanReacMAR09932	1	Orthophosphate_c
+Gene4235__orphanReacMAR09940	1	Orthophosphate_c
+Orthophosphate_c	1	Gene4235__orphanReacMAR09940_rev
+ATP_c	1	Gene4364__orphanReacMAR10450
+ATP_m	1	Gene4366__orphanReacMAR10457
+Gene4388__orphanReacMAR10988	1	Phe_c
+Phe_c	1	Gene4388__orphanReacMAR10988_rev
+Gene4394__orphanReacMAR10994	1	Ser_c
+Ser_c	1	Gene4394__orphanReacMAR10994_rev
+Gene4399__orphanReacMAR10999	1	Phe_c
+Phe_c	1	Gene4399__orphanReacMAR10999_rev
+Gene4401__orphanReacMAR11001	1	Phe_c
+Phe_c	1	Gene4401__orphanReacMAR11001_rev
+Gene4404__orphanReacMAR11004	1	Ser_c
+Ser_c	1	Gene4404__orphanReacMAR11004_rev
+Gene4411__orphanReacMAR11011	1	Phe_c
+Phe_c	1	Gene4411__orphanReacMAR11011_rev
+Gene4412__orphanReacMAR11012	1	Phe_c
+Phe_c	1	Gene4412__orphanReacMAR11012_rev
+Gene4414__orphanReacMAR11014	1	Phe_c
+Phe_c	1	Gene4414__orphanReacMAR11014_rev
+Gene4429__orphanReacMAR11029	1	Phe_c
+Phe_c	1	Gene4429__orphanReacMAR11029_rev
+Gene4435__orphanReacMAR11035	1	Ser_c
+Ser_c	1	Gene4435__orphanReacMAR11035_rev
+Gene4458__orphanReacMAR11058	1	Phe_c
+Phe_c	1	Gene4458__orphanReacMAR11058_rev
+Gene4462__orphanReacMAR11062	1	Ser_c
+Ser_c	1	Gene4462__orphanReacMAR11062_rev
+Gene4477__orphanReacMAR11077	1	Phe_c
+Phe_c	1	Gene4477__orphanReacMAR11077_rev
+Gene4486__orphanReacMAR11086	1	Ser_c
+Ser_c	1	Gene4486__orphanReacMAR11086_rev
+Gene4494__orphanReacMAR11094	1	Ser_c
+Ser_c	1	Gene4494__orphanReacMAR11094_rev
+Gene4501__orphanReacMAR11101	1	Phe_c
+Phe_c	1	Gene4501__orphanReacMAR11101_rev
+Gene4504__orphanReacMAR11104	1	Phe_c
+Phe_c	1	Gene4504__orphanReacMAR11104_rev
+Gene4507__orphanReacMAR11107	1	Phe_c
+Phe_c	1	Gene4507__orphanReacMAR11107_rev
+Gene4515__orphanReacMAR11115	1	Phe_c
+Phe_c	1	Gene4515__orphanReacMAR11115_rev
+Gene4516__orphanReacMAR11116	1	Phe_c
+Phe_c	1	Gene4516__orphanReacMAR11116_rev
+Gene4517__orphanReacMAR11117	1	Phe_c
+Phe_c	1	Gene4517__orphanReacMAR11117_rev
+Gene4518__orphanReacMAR11118	1	Phe_c
+Phe_c	1	Gene4518__orphanReacMAR11118_rev
+Gene4519__orphanReacMAR11119	1	Phe_c
+Phe_c	1	Gene4519__orphanReacMAR11119_rev
+Gene4520__orphanReacMAR11120	1	Phe_c
+Phe_c	1	Gene4520__orphanReacMAR11120_rev
+Gene4521__orphanReacMAR11121	1	Phe_c
+Phe_c	1	Gene4521__orphanReacMAR11121_rev
+Gene4522__orphanReacMAR11122	1	Phe_c
+Phe_c	1	Gene4522__orphanReacMAR11122_rev
+Gene4523__orphanReacMAR11123	1	Phe_c
+Phe_c	1	Gene4523__orphanReacMAR11123_rev
+Gene4524__orphanReacMAR11124	1	Phe_c
+Phe_c	1	Gene4524__orphanReacMAR11124_rev
+Gene4525__orphanReacMAR11125	1	Phe_c
+Phe_c	1	Gene4525__orphanReacMAR11125_rev
+Gene4526__orphanReacMAR11126	1	Phe_c
+Phe_c	1	Gene4526__orphanReacMAR11126_rev
+Gene4527__orphanReacMAR11127	1	Phe_c
+Phe_c	1	Gene4527__orphanReacMAR11127_rev
+Gene4528__orphanReacMAR11128	1	Phe_c
+Phe_c	1	Gene4528__orphanReacMAR11128_rev
+Gene4529__orphanReacMAR11129	1	Phe_c
+Gene4529__orphanReacMAR11129	1	Ser_c
+Phe_c	1	Gene4529__orphanReacMAR11129_rev
+Ser_c	1	Gene4529__orphanReacMAR11129_rev
+Gene4530__orphanReacMAR11130	1	Phe_c
+Phe_c	1	Gene4530__orphanReacMAR11130_rev
+Gene4531__orphanReacMAR11131	1	Phe_c
+Phe_c	1	Gene4531__orphanReacMAR11131_rev
+Gene4532__orphanReacMAR11132	1	Phe_c
+Phe_c	1	Gene4532__orphanReacMAR11132_rev
+Gene4533__orphanReacMAR11133	1	Phe_c
+Phe_c	1	Gene4533__orphanReacMAR11133_rev
+Gene4534__orphanReacMAR11134	1	Phe_c
+Phe_c	1	Gene4534__orphanReacMAR11134_rev
+Gene4545__orphanReacMAR11145	1	Phe_c
+Phe_c	1	Gene4545__orphanReacMAR11145_rev
+Gene4551__orphanReacMAR11151	1	Ser_c
+Ser_c	1	Gene4551__orphanReacMAR11151_rev
+Gene4552__orphanReacMAR11152	1	Ser_c
+Ser_c	1	Gene4552__orphanReacMAR11152_rev
+Gene4553__orphanReacMAR11153	1	Ser_c
+Ser_c	1	Gene4553__orphanReacMAR11153_rev
+Gene4554__orphanReacMAR11154	1	Ser_c
+Ser_c	1	Gene4554__orphanReacMAR11154_rev
+Gene4555__orphanReacMAR11155	1	Ser_c
+Ser_c	1	Gene4555__orphanReacMAR11155_rev
+Gene4556__orphanReacMAR11156	1	Phe_c
+Gene4556__orphanReacMAR11156	1	Ser_c
+Phe_c	1	Gene4556__orphanReacMAR11156_rev
+Ser_c	1	Gene4556__orphanReacMAR11156_rev
+Gene4557__orphanReacMAR11157	1	Ser_c
+Ser_c	1	Gene4557__orphanReacMAR11157_rev
+Gene4565__orphanReacMAR11165	1	Phe_c
+Phe_c	1	Gene4565__orphanReacMAR11165_rev
+Gene4566__orphanReacMAR11166	1	Ser_c
+Ser_c	1	Gene4566__orphanReacMAR11166_rev
+Gene4587__orphanReacMAR11187	1	Phe_c
+Phe_c	1	Gene4587__orphanReacMAR11187_rev
+Gene4591__orphanReacMAR11191	1	Ser_c
+Ser_c	1	Gene4591__orphanReacMAR11191_rev
+Gene4599__orphanReacMAR11199	1	Phe_c
+Phe_c	1	Gene4599__orphanReacMAR11199_rev
+Gene4601__orphanReacMAR11201	1	Ser_c
+Ser_c	1	Gene4601__orphanReacMAR11201_rev
+Gene4607__orphanReacMAR11207	1	Phe_c
+Phe_c	1	Gene4607__orphanReacMAR11207_rev
+Gene4609__orphanReacMAR11209	1	Phe_c
+Phe_c	1	Gene4609__orphanReacMAR11209_rev
+Gene4614__orphanReacMAR11214	1	Phe_c
+Phe_c	1	Gene4614__orphanReacMAR11214_rev
+Gene4616__orphanReacMAR11216	1	Phe_c
+Phe_c	1	Gene4616__orphanReacMAR11216_rev
+Gene4618__orphanReacMAR11218	1	Ser_c
+Ser_c	1	Gene4618__orphanReacMAR11218_rev
+Gene4619__orphanReacMAR11219	1	Phe_c
+Phe_c	1	Gene4619__orphanReacMAR11219_rev
+ATP_m	1	Gene4626__orphanReacMAR11295
+Glutarate_e	1	Gene4652__orphanReacMAR11392
+Gene4652__orphanReacMAR11392_rev	1	Glutarate_e
+Acss2	1	Orthophosphate_c
+Fumarate_e	1	Gene4656__orphanReacMAR11400
+Gene4656__orphanReacMAR11400_rev	1	Fumarate_e
+Gene4666__orphanReacMAR11413	1	Phe_c
+Phe_c	1	Gene4666__orphanReacMAR11413_rev
+ATP_c	1	Ppcs
+17alpha-Hydroxyprogesterone_e	1	Gene4754__orphanReacMAR11869
+Gene4754__orphanReacMAR11869_rev	1	17alpha-Hydroxyprogesterone_e
+Phe_c	1	Gene4858__orphanReacMAR12140
+Ser_c	1	Gene4858__orphanReacMAR12140
+ATP_c	1	Gene4888__orphanReacMAR12309
+Gene4888__orphanReacMAR12309	1	Orthophosphate_c
+ATP_c	1	Gene4891__orphanReacMAR12313
+Gene4891__orphanReacMAR12313	1	Orthophosphate_c
+ATP_c	1	Gene4893__orphanReacMAR12316
+Gene4893__orphanReacMAR12316	1	Orthophosphate_c
+ATP_c	1	Gene4896__orphanReacMAR12323
+Gene4896__orphanReacMAR12323	1	Orthophosphate_c
+ATP_c	1	Gene4898__orphanReacMAR12326
+Gene4898__orphanReacMAR12326	1	Orthophosphate_c
+ATP_c	1	Gene4901__orphanReacMAR12330
+Gene4901__orphanReacMAR12330	1	Orthophosphate_c
+ATP_c	1	Gene4902__orphanReacMAR12339
+ATP_c	1	Abcb1a (GEMenz__P21447)
+Abcb1a (GEMenz__P21447)	1	Orthophosphate_c
+ATP_c	1	Gene4906__orphanReacMAR12358
+Gene4906__orphanReacMAR12358	1	Orthophosphate_c
+ATP_c	1	Gene4907__orphanReacMAR12364
+Gene4907__orphanReacMAR12364	1	Orthophosphate_c
+ATP_c	1	Gene4908__orphanReacMAR12370
+Gene4908__orphanReacMAR12370	1	Orthophosphate_c
+ATP_c	1	Abcg2
+Abcg2	1	Orthophosphate_c
+ATP_c	1	Gene4912__orphanReacMAR12380
+Gene4912__orphanReacMAR12380	1	Orthophosphate_c
+ATP_c	1	Gene4915__orphanReacMAR12388
+Gene4915__orphanReacMAR12388	1	Orthophosphate_c
+ATP_c	1	Gene4916__orphanReacMAR12389
+Gene4916__orphanReacMAR12389	1	Orthophosphate_c
+ATP_c	1	Gene4918__orphanReacMAR12398
+ATP_c	1	Gene4920__orphanReacMAR12415
+Gene4920__orphanReacMAR12415	1	Orthophosphate_c
+ATP_c	1	Gene4921__orphanReacMAR12416
+Gene4921__orphanReacMAR12416	1	Orthophosphate_c
+ATP_c	1	Gene4923__orphanReacMAR12419
+Gene4923__orphanReacMAR12419	1	Orthophosphate_c
+ATP_c	1	Gene4924__orphanReacMAR12420
+Gene4924__orphanReacMAR12420	1	Orthophosphate_c
+ATP_c	1	Gene4926__orphanReacMAR12426
+Gene4926__orphanReacMAR12426	1	Orthophosphate_c
+ATP_c	1	Gene4928__orphanReacMAR12435
+Gene4928__orphanReacMAR12435	1	Orthophosphate_c
+ATP_c	1	Gene4929__orphanReacMAR12438
+Gene4929__orphanReacMAR12438	1	Orthophosphate_c
+ATP_c	1	Gene4931__orphanReacMAR12447
+Gene4931__orphanReacMAR12447	1	Orthophosphate_c
+ATP_c	1	Gene4932__orphanReacMAR12448
+Gene4932__orphanReacMAR12448	1	Orthophosphate_c
+ATP_c	1	Gene4934__orphanReacMAR12451
+Gene4934__orphanReacMAR12451	1	Orthophosphate_c
+ATP_c	1	Gene4935__orphanReacMAR12452
+Gene4935__orphanReacMAR12452	1	Orthophosphate_c
+ATP_c	1	Gene4948__orphanReacMAR12476
+Gene4948__orphanReacMAR12476	1	Orthophosphate_c
+ATP_c	1	Gene4950__orphanReacMAR12478
+Gene4950__orphanReacMAR12478	1	Orthophosphate_c
+ATP_c	1	Gene4953__orphanReacMAR12482
+Gene4953__orphanReacMAR12482	1	Orthophosphate_c
+ATP_c	1	Gene4955__orphanReacMAR12485
+Gene4955__orphanReacMAR12485	1	Orthophosphate_c
+ATP_c	1	Gene4957__orphanReacMAR12488
+Gene4957__orphanReacMAR12488	1	Orthophosphate_c
+ATP_c	1	Gene4959__orphanReacMAR12490
+Gene4959__orphanReacMAR12490	1	Orthophosphate_c
+ATP_c	1	Gene4961__orphanReacMAR12493
+Gene4961__orphanReacMAR12493	1	Orthophosphate_c
+ATP_c	1	Gene4963__orphanReacMAR12496
+Gene4963__orphanReacMAR12496	1	Orthophosphate_c
+ATP_c	1	Gene4966__orphanReacMAR12502
+Gene4966__orphanReacMAR12502	1	Orthophosphate_c
+ATP_c	1	Gene4968__orphanReacMAR12504
+Gene4968__orphanReacMAR12504	1	Orthophosphate_c
+ATP_c	1	Gene4969__orphanReacMAR12507
+Gene4969__orphanReacMAR12507	1	Orthophosphate_c
+ATP_c	1	Gene4973__orphanReacMAR12520
+ATP_c	1	Gene4975__orphanReacMAR12525
+Gene4975__orphanReacMAR12525	1	Orthophosphate_c
+ATP_c	1	Gene4976__orphanReacMAR12530
+Gene4976__orphanReacMAR12530	1	Orthophosphate_c
+ATP_c	1	Gene4979__orphanReacMAR12536
+Gene4979__orphanReacMAR12536	1	Orthophosphate_c
+ATP_c	1	Gene4984__orphanReacMAR12553
+Gene4984__orphanReacMAR12553	1	Orthophosphate_c
+ATP_c	1	Gene4986__orphanReacMAR12560
+Gene4986__orphanReacMAR12560	1	Orthophosphate_c
+ATP_c	1	Gene4990__orphanReacMAR12565
+Gene4990__orphanReacMAR12565	1	Orthophosphate_c
+ATP_c	1	Gene4991__orphanReacMAR12566
+Gene4991__orphanReacMAR12566	1	Orthophosphate_c
+ATP_c	1	Gene4994__orphanReacMAR12573
+Gene4994__orphanReacMAR12573	1	Orthophosphate_c
+ATP_c	1	Gene5001__orphanReacMAR12725
+Gene5001__orphanReacMAR12725	1	Orthophosphate_c
+ATP_c	1	Gene5003__orphanReacMAR12729
+Gene5003__orphanReacMAR12729	1	Orthophosphate_c
+ATP_c	1	Gene5004__orphanReacMAR12730
+Gene5004__orphanReacMAR12730	1	Orthophosphate_c
+ATP_c	1	Gene5006__orphanReacMAR12733
+Gene5006__orphanReacMAR12733	1	Orthophosphate_c
+ATP_c	1	Gene5007__orphanReacMAR12735
+Gene5007__orphanReacMAR12735	1	Orthophosphate_c
+ATP_c	1	Gene5010__orphanReacMAR12750
+Gene5010__orphanReacMAR12750	1	Orthophosphate_c
+ATP_c	1	Gene5016__orphanReacMAR12774
+ATP_c	1	Gene5017__orphanReacMAR12789
+Gene5017__orphanReacMAR12789	1	Orthophosphate_c
+ATP_c	1	Gene5033__orphanReacMAR12837
+Gene5033__orphanReacMAR12837	1	Orthophosphate_c
+ATP_c	1	Gene5035__orphanReacMAR12845
+ATP_c	1	Gene5037__orphanReacMAR12849
+Gene5037__orphanReacMAR12849	1	Orthophosphate_c
+2-Oxoglutarate_c	1	Slc22a6
+2-Oxoglutarate_e	1	Slc22a6
+Slc22a6	1	2-Oxoglutarate_c
+Slc22a6	1	2-Oxoglutarate_e
+ATP_c	1	Gene5047__orphanReacMAR12872
+Gene5047__orphanReacMAR12872	1	Orthophosphate_c
+ATP_c	1	Gene5050__orphanReacMAR12875
+Gene5050__orphanReacMAR12875	1	Orthophosphate_c
+ATP_c	1	Gene5053__orphanReacMAR12991
+ATP_c	1	Gene5056__orphanReacMAR12994
+Phe_c	1	Gene5104__orphanReacMAR13078
+Ser_c	1	Gene5104__orphanReacMAR13078
+2-Oxoglutarate_c	1	Gene5119__orphanReacMAR10064
+ATP_c	1	Gene5119__orphanReacMAR10064
+Fumarate_c	1	Gene5119__orphanReacMAR10064
+(S)-Malate_c	1	Gene5119__orphanReacMAR10064
+Phe_c	1	Gene5119__orphanReacMAR10064
+Ser_c	1	Gene5119__orphanReacMAR10064
+ATP_c	1	Gene5121__orphanReacMAR13082
+Gene5121__orphanReacMAR13082	1	Orthophosphate_c
+Ipmk	1	Orthophosphate_c
+Gene5124__orphanReacMAR10068	1	Orthophosphate_c
+ATP_c	1	Gene5133__orphanReacMAR10080
+ATP_c	1	Gene5146__orphanReacMAR10094
+ATP_c	1	Gene5149__orphanReacMAR10097
+ATP_c	1	Gene5152__orphanReacMAR10105
+ATP_c	1	Gene5156__orphanReacMAR10111
+ATP_c	1	Gene5161__orphanReacMAR10121
+ATP_c	1	Gene5165__orphanReacMAR10128
+2-Oxoglutarate_m	1	Adhfe1
+Clybl	1	(S)-Malate_m
+ATP_m	1	Acacb
+Acacb	1	Orthophosphate_m
+Fga (E9PV24)	1	Fga (GEMenz__E9PV24)
+Chka (O54804)	1	Chka (GEMenz__O54804)
+Birc6 (O88738)	1	Birc6 (GEMenz__O88738)
+Plg (P20918)	1	Plg (GEMenz__P20918)
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Tgm2 (P21981)	1	Tgm2 (GEMenz__P21981)
+Mdm2 (P23804)	1	Mdm2 (GEMenz__P23804)
+Fkbp1a (P26883)	1	Fkbp1a (GEMenz__P26883)
+Abca1 (P41233)	1	Abca1 (GEMenz__P41233)
+Sirt6 (P59941)	1	Sirt6 (GEMenz__P59941)
+Ctse (P70269)	1	Ctse (GEMenz__P70269)
+Ncoa1 (P70365)	1	Ncoa1 (GEMenz__P70365)
+Bmp1 (P98063)	1	Bmp1 (GEMenz__P98063)
+Nme2 (Q01768)	1	Nme2 (GEMenz__Q01768)
+Siah2 (Q06986)	1	Siah2 (GEMenz__Q06986)
+Usp13 (Q5BKP2)	1	Usp13 (GEMenz__Q5BKP2)
+Dbp (Q60925)	1	Dbp (GEMenz__Q60925)
+Slc13a5 (Q67BT3)	1	Slc13a5 (GEMenz__Q67BT3)
+Mycbp2 (Q7TPH6)	1	Mycbp2 (GEMenz__Q7TPH6)
+Cyld (Q80TQ2)	1	Cyld (GEMenz__Q80TQ2)
+Pja2 (Q80U04)	1	Pja2 (GEMenz__Q80U04)
+Chfr (Q810L3)	1	Chfr (GEMenz__Q810L3)
+Slc43a1 (Q8BSM7)	1	Slc43a1 (GEMenz__Q8BSM7)
+Itch (Q8C863)	1	Itch (GEMenz__Q8C863)
+Kat5 (Q8CHK4)	1	Kat5 (GEMenz__Q8CHK4)
+Slc25a1 (Q8JZU2)	1	Slc25a1 (GEMenz__Q8JZU2)
+Slc6a8 (Q8VBW1)	1	Slc6a8 (GEMenz__Q8VBW1)
+Rnf31 (Q924T7)	1	Rnf31 (GEMenz__Q924T7)
+Inpp5d (Q9ES52)	1	Inpp5d (GEMenz__Q9ES52)
+Pik3cg (Q9JHG7)	1	Pik3cg (GEMenz__Q9JHG7)
+ATP_c	-1	Ptpn11
+ATP_e	1	Mmp2
+ATP_n	1	Mmp2
+ATP_c	1	Casp1
+ATP_e	1	Casp1
+ATP_c	1	Nfat5
+ATP_n	1	Nfat5
+ATP_c	1	Chka (O54804)
+ATP_c	-1	Jak2
+ATP_n	-1	Jak2
+Nfkbib	1	Plg (P20918)
+Kat5 (Q8CHK4)	1	Prkaca
+Arnt	1	Abcb1a (P21447)
+Nr0b1	1	Plg (P20918)
+Myc	1	Chka (O54804)
+Nr1i2	1	Abcb1a (P21447)
+Ar	1	Kat5 (Q8CHK4)
+Kat5 (Q8CHK4)	1	Ar
+Rxra	1	Abcb1a (P21447)
+Nr1h4	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Abca1 (P41233)
+Thra	-1	Abca1 (P41233)
+Hes1	1	Mdm2 (P23804)
+Nr1h2	1	Abca1 (P41233)
+Srebf2	-1	Abca1 (P41233)
+Ar	1	Abca1 (P41233)
+Myc	1	Nme2 (Q01768)
+Nme2 (Q01768)	1	Myc
+Ncoa1 (P70365)	1	Smarcc1
+Kat5 (Q8CHK4)	1	Lepr
+Rela	-1	Abca1 (P41233)
+Jun	1	Chka (O54804)
+Kat5 (Q8CHK4)	1	Col2a1
+Ar	1	Tgm2 (P21981)
+Ncoa1 (P70365)	1	Twist1
+Ncoa1 (P70365)	1	Errfi1
+Rela	1	Chfr (Q810L3)
+Nr1i3	1	Slc13a5 (Q67BT3)
+Myc	1	Mdm2 (P23804)
+Nfatc2	1	Abca1 (P41233)
+Arnt	1	Abca1 (P41233)
+Q08775	1	Abcb1a (P21447)
+Preb	1	Abca1 (P41233)
+Cebpe	1	Pik3cg (Q9JHG7)
+Ncoa1 (P70365)	1	Itga5
+Gli1	-1	Cyld (Q80TQ2)
+Max	1	Slc25a1 (Q8JZU2)
+Myc	1	Slc25a1 (Q8JZU2)
+Ncoa1 (P70365)	1	Ar
+Elf4	1	Mdm2 (P23804)
+Dbp (Q60925)	1	Arnt
+Eomes	1	Kat5 (Q8CHK4)
+Myc	1	Rnf31 (Q924T7)
+Dbp (Q60925)	1	Hp
+Dbp (Q60925)	1	Cdkn2b
+Nr1i2	1	Dbp (Q60925)
+Nr1i2	1	Slc43a1 (Q8BSM7)
+Foxa1	-1	Abca1 (P41233)
+Fus	-1	Mdm2 (P23804)
+Rxra	1	Abca1 (P41233)
+Gli1	-1	Fkbp1a (P26883)
+Gli2	-1	Abca1 (P41233)
+Gli2	-1	Bmp1 (P98063)
+Srebf1	1	Slc25a1 (Q8JZU2)
+Jun	1	Mdm2 (P23804)
+Nkx3-1	-1	Ctse (P70269)
+Smarca4	1	Abca1 (P41233)
+Myc	-1	Mycbp2 (Q7TPH6)
+Srsf2	1	Mdm2 (P23804)
+E2f2	-1	Mdm2 (P23804)
+Nr1h4	1	Abca1 (P41233)
+Nr1i2	1	Abca1 (P41233)
+Nr1i3	1	Ctse (P70269)
+Birc6 (O88738)	-1	Casp3
+Casp3	-1	Birc6 (O88738)
+Sirt6 (P59941)	-1	Rela
+Mdm2 (P23804)	-1	Kat5 (Q8CHK4)
+Cyld (Q80TQ2)	1	Traf6
+Cyld (Q80TQ2)	-1	Traf2
+Cyld (Q80TQ2)	-1	Ikbkg
+Mdm2 (P23804)	-1	Ar
+Ep400	-1	Kat5 (Q8CHK4)
+Itch (Q8C863)	-1	Mavs
+Cdkn2b	1	Kat5 (Q8CHK4)
+Itch (Q8C863)	-1	Gli1
+Rps6kb1	1	Mdm2 (P23804)
+Cdkn2b	-1	Mdm2 (P23804)
+Numb	1	Itch (Q8C863)
+Jak2	1	Dbp (Q60925)
+Fkbp1a (P26883)	1	Tgfbr1
+Siah2 (Q06986)	-1	Vav2
+Fkbp1a (P26883)	1	Ppp3r1
+Fga (E9PV24)	1	Itgb1
+Abca1 (P41233)	1	Megf10
+Megf10	1	Abca1 (P41233)
+Mycbp2 (Q7TPH6)	-1	Myc
+Prkaca	1	Pja2 (Q80U04)
+Itch (Q8C863)	1	Spart
+Spart	1	Itch (Q8C863)
+Bmp1 (P98063)	1	Col5a1
+Inpp5d (Q9ES52)	-1	Traf6
+Mdm2 (P23804)	-1	Numb
+Numb	-1	Mdm2 (P23804)
+Dyrk2	1	Siah2 (Q06986)
+Clk3	1	Usp13 (Q5BKP2)
+Lyn	1	Inpp5d (Q9ES52)
+Mdm2 (P23804)	-1	Hdac1
+Rnf31 (Q924T7)	1	Casp1
+Prkce	1	Kat5 (Q8CHK4)
+Bmp1 (P98063)	1	Col1a1
+Mmp14	-1	Fga (E9PV24)
+Bmp1 (P98063)	1	Col5a2
+Becn1	1	Usp13 (Q5BKP2)
+Usp13 (Q5BKP2)	1	Becn1
+Itch (Q8C863)	-1	Egfr
+Chka (O54804)	1	Egfr
+Mmp13	-1	Fga (E9PV24)
+Egfr	-1	Abca1 (P41233)
+Chfr (Q810L3)	-1	Hdac1
+Jak2	-1	Slc6a8 (Q8VBW1)
+Pik3cg (Q9JHG7)	1	Set
+Itch (Q8C863)	-1	Lats1
+Ikbke	-1	Cyld (Q80TQ2)
+Mdm2 (P23804)	-1	Nfatc2
+Arrb2	1	Mdm2 (P23804)
+Mdm2 (P23804)	-1	Sirt6 (P59941)
+Pim1	1	Mdm2 (P23804)
+Mdm2 (P23804)	-1	Rb1
+Pik3cg (Q9JHG7)	1	Pdpk1
+Abca1 (P41233)	1	Apoa1
+Apoa1	1	Abca1 (P41233)
+Mmp12	-1	Fga (E9PV24)
+Arrb2	1	Inpp5d (Q9ES52)
+Mdm2 (P23804)	-1	Dyrk2
+Prkaca	1	Abca1 (P41233)
+Usp13 (Q5BKP2)	1	Myc
+Pja2 (Q80U04)	-1	Prkar2b
+Chfr (Q810L3)	-1	Smarca4
+Ctse (P70269)	-1	A2m
+Ppp2ca	1	Mdm2 (P23804)
+Rnf31 (Q924T7)	1	Ikbkg
+Kat5 (Q8CHK4)	-1	Srsf2
+Tgm2 (P21981)	1	Adgrg1
+Plg (P20918)	1	Itgb1
+ATP_e	1	Egfr
+ATP_g	1	Egfr
+ATP_n	1	Egfr
+17alpha-Hydroxyprogesterone_e	-1	Gper1
+ATP_c	-1	Kit
+ATP_e	-1	Kit
+Orthophosphate_n	-1	Nr1i2
+Gene1014__orphanReacMAR05303	1	ATP_c
+Gene1014__orphanReacMAR05303	1	ATP_e
+Abca1 (GEMenz__P41233)	1	Phe_c
+Abca1 (GEMenz__P41233)	1	Phe_e
+Slc3a1	1	Ser_c
+Slc3a1	1	Lys_e
+Slc7a7	1	Lys_e
+Slc25a21	1	2-Oxoglutarate_c
+Slc25a21	1	2-Oxoglutarate_m
+Slc25a21	1	CHEBI:37024_c
+Slc25a21	1	CHEBI:37024_m
+Slc25a10	1	Fumarate_c
+Slc25a10	1	Fumarate_m
+Slc25a10	1	Orthophosphate_c
+Gene1554__orphanReacMAR04738	1	CHEBI:37024_c
+Gene1554__orphanReacMAR04738	1	CHEBI:37024_m
+Slc25a10	1	Succinate_c
+Slc25a10	1	Succinate_m
+Slc25a10	1	2-Oxoglutarate_c
+Slc25a10	1	2-Oxoglutarate_m
+Slc25a11	1	(S)-Malate_c
+Slc25a11	1	(S)-Malate_m
+Slc25a11	1	2-Oxoglutarate_c
+Slc25a11	1	2-Oxoglutarate_m
+Slc25a11	1	Fumarate_c
+Slc25a11	1	Fumarate_m
+Slc25a10	1	(S)-Malate_c
+Slc25a10	1	(S)-Malate_m
+Gene1569__orphanReacMAR04905	1	ATP_m
+Gene1569__orphanReacMAR04905	1	Orthophosphate_c
+Slc25a1 (GEMenz__Q8JZU2)	1	(S)-Malate_c
+Slc25a1 (GEMenz__Q8JZU2)	1	(S)-Malate_m
+Slc25a3	1	Orthophosphate_m
+Slc25a1 (GEMenz__Q8JZU2)	1	Succinate_c
+Slc25a1 (GEMenz__Q8JZU2)	1	Succinate_m
+Slc25a19	1	ATP_c
+Slc37a1	1	Glycerophosphate_m
+Slc37a1	1	Orthophosphate_c
+Gene1730__orphanReacMAR04468	1	Ser_c
+Gene1730__orphanReacMAR04468	1	Ser_x
+Gene1747__orphanReacMAR06987	1	Succinate_c
+Gene1747__orphanReacMAR06987	1	Succinate_x
+Gene1755__orphanReacMAR07797	1	2-Oxoglutarate_c
+Gene1794__orphanReacMAR07764	1	Orthophosphate_c
+Gene1794__orphanReacMAR07764	1	Orthophosphate_n
+Gene1798__orphanReacMAR07786	1	ATP_c
+Gene1798__orphanReacMAR07786	1	ATP_n
+Gene2074__orphanReacMAR06388	1	Orthophosphate_c
+Gene2074__orphanReacMAR06388	1	Orthophosphate_r
+Gene2126__orphanReacMAR08651	1	Orthophosphate_c
+Gene2126__orphanReacMAR08651	1	Orthophosphate_r
+Slc7a8	1	Phe_c
+Slc7a8	1	Phe_e
+Gene2409__orphanReacMAR09828	1	Fumarate_c
+Gene2409__orphanReacMAR09828	1	Fumarate_e
+Gene2462__orphanReacMAR09967	1	2-Oxoglutarate_c
+Gene2462__orphanReacMAR09967	1	2-Oxoglutarate_e
+Gene2468__orphanReacMAR09975	1	Phe_c
+Gene2468__orphanReacMAR09975	1	Phe_e
+Gene2557__orphanReacMAR10366	1	Orthophosphate_c
+Gene2557__orphanReacMAR10366	1	Orthophosphate_e
+Slc22a8	1	Glutarate_e
+Gene2730__orphanReacMAR11735	1	Glutarate_e
+Abcb1a (GEMenz__P21447)	1	17alpha-Hydroxyprogesterone_e
+Gene2898__orphanReacMAR12120	1	ATP_g
+Slc13a5 (GEMenz__Q67BT3)	1	Fumarate_c
+Slc13a5 (GEMenz__Q67BT3)	1	Fumarate_e
+Slc43a1 (GEMenz__Q8BSM7)	1	Ser_e
+Slc22a7	1	2-Oxoglutarate_e
+Slc6a8 (GEMenz__Q8VBW1)	1	Creatine_c
+Slc6a8 (GEMenz__Q8VBW1)	1	Creatine_e
+ATP_c	1	Gene1014__orphanReacMAR05303
+ATP_c	1	Gene1569__orphanReacMAR04905
+ATP_c	1	Gene1798__orphanReacMAR07786
+ATP_c	1	Gene2898__orphanReacMAR12120
+ATP_e	1	Gene1014__orphanReacMAR05303
+ATP_m	1	Slc25a19
+ATP_n	1	Gene1798__orphanReacMAR07786
+Succinate_c	1	Slc25a10
+Succinate_c	1	Slc25a1 (GEMenz__Q8JZU2)
+Succinate_c	1	Gene1747__orphanReacMAR06987
+Succinate_m	1	Slc25a10
+Succinate_m	1	Slc25a1 (GEMenz__Q8JZU2)
+Succinate_x	1	Gene1747__orphanReacMAR06987
+Creatine_c	1	Slc6a8 (GEMenz__Q8VBW1)
+Creatine_e	1	Slc6a8 (GEMenz__Q8VBW1)
+Ser_c	1	Gene1730__orphanReacMAR04468
+Ser_c	1	Slc43a1 (GEMenz__Q8BSM7)
+Ser_e	1	Slc3a1
+Ser_x	1	Gene1730__orphanReacMAR04468
+Phe_c	1	Abca1 (GEMenz__P41233)
+Phe_c	1	Slc7a8
+Phe_c	1	Gene2468__orphanReacMAR09975
+Phe_e	1	Abca1 (GEMenz__P41233)
+Phe_e	1	Slc7a8
+Phe_e	1	Gene2468__orphanReacMAR09975
+Glutarate_e	1	Slc22a8
+Fumarate_c	1	Slc25a10
+Fumarate_c	1	Slc25a11
+Fumarate_c	1	Gene2409__orphanReacMAR09828
+Fumarate_c	1	Slc13a5 (GEMenz__Q67BT3)
+Fumarate_e	1	Gene2409__orphanReacMAR09828
+Fumarate_e	1	Slc13a5 (GEMenz__Q67BT3)
+Fumarate_m	1	Slc25a10
+Fumarate_m	1	Slc25a11
+Orthophosphate_c	1	Slc25a3
+Orthophosphate_c	1	Gene1794__orphanReacMAR07764
+Orthophosphate_c	1	Gene2074__orphanReacMAR06388
+Orthophosphate_c	1	Gene2126__orphanReacMAR08651
+Orthophosphate_c	1	Gene2557__orphanReacMAR10366
+Orthophosphate_e	1	Gene2557__orphanReacMAR10366
+Orthophosphate_m	1	Slc25a10
+Orthophosphate_m	1	Gene1569__orphanReacMAR04905
+Orthophosphate_m	1	Slc37a1
+Orthophosphate_n	1	Gene1794__orphanReacMAR07764
+Orthophosphate_r	1	Gene2074__orphanReacMAR06388
+Orthophosphate_r	1	Gene2126__orphanReacMAR08651
+(S)-Malate_c	1	Slc25a11
+(S)-Malate_c	1	Slc25a10
+(S)-Malate_c	1	Slc25a1 (GEMenz__Q8JZU2)
+(S)-Malate_m	1	Slc25a11
+(S)-Malate_m	1	Slc25a10
+(S)-Malate_m	1	Slc25a1 (GEMenz__Q8JZU2)
+2-Oxoglutarate_c	1	Slc25a21
+2-Oxoglutarate_c	1	Slc25a10
+2-Oxoglutarate_c	1	Gene1755__orphanReacMAR07797
+2-Oxoglutarate_c	1	Gene2462__orphanReacMAR09967
+2-Oxoglutarate_c	1	Slc22a7
+2-Oxoglutarate_e	1	Gene2462__orphanReacMAR09967
+2-Oxoglutarate_m	1	Slc25a21
+2-Oxoglutarate_m	1	Slc25a10
+CHEBI:37024_c	1	Slc25a21
+CHEBI:37024_c	1	Gene1554__orphanReacMAR04738
+CHEBI:37024_m	1	Slc25a21
+CHEBI:37024_m	1	Gene1554__orphanReacMAR04738
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Abca1 (P41233)	1	Abca1 (GEMenz__P41233)
+Slc13a5 (Q67BT3)	1	Slc13a5 (GEMenz__Q67BT3)
+Slc43a1 (Q8BSM7)	1	Slc43a1 (GEMenz__Q8BSM7)
+Slc25a1 (Q8JZU2)	1	Slc25a1 (GEMenz__Q8JZU2)
+Slc6a8 (Q8VBW1)	1	Slc6a8 (GEMenz__Q8VBW1)

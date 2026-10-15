@@ -1,0 +1,566 @@
+Glutathione(red)_c	1	Glo1
+Glutathione(red)_c	1	Glod4
+Hagh	1	Glutathione(red)_c
+Haghl	1	Glutathione(red)_c
+Adh1	1	Glutathione(red)_c
+Glutathione(red)_c	1	Adh1
+Adh4	1	Glutathione(red)_c
+Glutathione(red)_c	1	Adh4
+Adh5	1	Glutathione(red)_c
+Glutathione(red)_c	1	Adh5
+Adh6b	1	Glutathione(red)_c
+Q3UQ40	1	Glutathione(red)_c
+Glutathione(red)_c	1	Adh6b
+Glutathione(red)_c	1	Q3UQ40
+Adh7	1	Glutathione(red)_c
+Glutathione(red)_c	1	Adh7
+Adhfe1	1	Glutathione(red)_c
+Glutathione(red)_c	1	Adhfe1
+Gsr	1	Glutathione(red)_c
+Glutathione(red)_c	1	Ggct
+Ggct	1	Glutathione(red)_c
+Glutathione(red)_c	1	Ggt1
+Glutathione(red)_e	1	Ggt1
+Ggt1	1	Glutathione(red)_c
+Glutathione(red)_c	1	Ggt5
+Glutathione(red)_e	1	Ggt5
+Ggt5	1	Glutathione(red)_c
+Glutathione(red)_c	1	Ggt6
+Glutathione(red)_e	1	Ggt6
+Ggt6	1	Glutathione(red)_c
+Glutathione(red)_c	1	Ggt7
+Glutathione(red)_e	1	Ggt7
+Ggt7	1	Glutathione(red)_c
+Glutathione(red)_c	1	Arid4b
+Arid4b	1	Glutathione(red)_c
+Glutathione(red)_c	1	Cox10
+Cox10	1	Glutathione(red)_c
+Glutathione(red)_c	1	Dhdds
+Dhdds	1	Glutathione(red)_c
+Glutathione(red)_c	1	Trmt12
+Trmt12	1	Glutathione(red)_c
+Glutathione(red)_c	1	Ubiad1
+Ubiad1	1	Glutathione(red)_c
+Glutathione(red)_c	1	Hmgcl
+Hmgcl	1	Glutathione(red)_c
+Glutathione(red)_c	1	Gsta1 (GEMenz__P13745)
+Glutathione(red)_r	1	Gsta1 (GEMenz__P13745)
+Glutathione(red)_x	1	Gsta1 (GEMenz__P13745)
+Gsta1 (GEMenz__P13745)	1	Glutathione(red)_c
+Gsta1 (GEMenz__P13745)	1	Glutathione(red)_r
+Gsta1 (GEMenz__P13745)	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gsta2
+Glutathione(red)_r	1	Gsta2
+Glutathione(red)_x	1	Gsta2
+Gsta2	1	Glutathione(red)_c
+Gsta2	1	Glutathione(red)_r
+Gsta2	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gsta5
+Glutathione(red)_c	1	Gsta1 (GEMenz__Q8K0V9)
+Glutathione(red)_r	1	Gsta5
+Glutathione(red)_r	1	Gsta1 (GEMenz__Q8K0V9)
+Glutathione(red)_x	1	Gsta5
+Glutathione(red)_x	1	Gsta1 (GEMenz__Q8K0V9)
+Gsta5	1	Glutathione(red)_c
+Gsta1 (GEMenz__Q8K0V9)	1	Glutathione(red)_c
+Gsta5	1	Glutathione(red)_r
+Gsta1 (GEMenz__Q8K0V9)	1	Glutathione(red)_r
+Gsta5	1	Glutathione(red)_x
+Gsta1 (GEMenz__Q8K0V9)	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstk1
+Glutathione(red)_r	1	Gstk1
+Glutathione(red)_x	1	Gstk1
+Gstk1	1	Glutathione(red)_c
+Gstk1	1	Glutathione(red)_r
+Gstk1	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstm2
+Glutathione(red)_r	1	Gstm2
+Glutathione(red)_x	1	Gstm2
+Gstm2	1	Glutathione(red)_c
+Gstm2	1	Glutathione(red)_r
+Gstm2	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstm4
+Glutathione(red)_r	1	Gstm4
+Glutathione(red)_x	1	Gstm4
+Gstm4	1	Glutathione(red)_c
+Gstm4	1	Glutathione(red)_r
+Gstm4	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstm5
+Glutathione(red)_r	1	Gstm5
+Glutathione(red)_x	1	Gstm5
+Gstm5	1	Glutathione(red)_c
+Gstm5	1	Glutathione(red)_r
+Gstm5	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstm7
+Glutathione(red)_r	1	Gstm7
+Glutathione(red)_x	1	Gstm7
+Gstm7	1	Glutathione(red)_c
+Gstm7	1	Glutathione(red)_r
+Gstm7	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gsto1
+Glutathione(red)_r	1	Gsto1
+Glutathione(red)_x	1	Gsto1
+Gsto1	1	Glutathione(red)_c
+Gsto1	1	Glutathione(red)_r
+Gsto1	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gsto2
+Glutathione(red)_r	1	Gsto2
+Glutathione(red)_x	1	Gsto2
+Gsto2	1	Glutathione(red)_c
+Gsto2	1	Glutathione(red)_r
+Gsto2	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstp1
+Glutathione(red)_r	1	Gstp1
+Glutathione(red)_x	1	Gstp1
+Gstp1	1	Glutathione(red)_c
+Gstp1	1	Glutathione(red)_r
+Gstp1	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstp2
+Glutathione(red)_r	1	Gstp2
+Glutathione(red)_x	1	Gstp2
+Gstp2	1	Glutathione(red)_c
+Gstp2	1	Glutathione(red)_r
+Gstp2	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstt2
+Glutathione(red)_r	1	Gstt2
+Glutathione(red)_x	1	Gstt2
+Gstt2	1	Glutathione(red)_c
+Gstt2	1	Glutathione(red)_r
+Gstt2	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gstz1
+Glutathione(red)_r	1	Gstz1
+Glutathione(red)_x	1	Gstz1
+Gstz1	1	Glutathione(red)_c
+Gstz1	1	Glutathione(red)_r
+Gstz1	1	Glutathione(red)_x
+Glutathione(red)_c	1	Hpgds
+Glutathione(red)_r	1	Hpgds
+Glutathione(red)_x	1	Hpgds
+Hpgds	1	Glutathione(red)_c
+Hpgds	1	Glutathione(red)_r
+Hpgds	1	Glutathione(red)_x
+Glutathione(red)_c	1	Mgst1
+Glutathione(red)_r	1	Mgst1
+Glutathione(red)_x	1	Mgst1
+Mgst1	1	Glutathione(red)_c
+Mgst1	1	Glutathione(red)_r
+Mgst1	1	Glutathione(red)_x
+Glutathione(red)_c	1	Mgst2
+Glutathione(red)_r	1	Mgst2
+Glutathione(red)_x	1	Mgst2
+Mgst2	1	Glutathione(red)_c
+Mgst2	1	Glutathione(red)_r
+Mgst2	1	Glutathione(red)_x
+Glutathione(red)_c	1	Mgst3
+Glutathione(red)_r	1	Mgst3
+Glutathione(red)_x	1	Mgst3
+Mgst3	1	Glutathione(red)_c
+Mgst3	1	Glutathione(red)_r
+Mgst3	1	Glutathione(red)_x
+Glutathione(red)_c	1	Gene776__orphanReacMAR08682
+Gene776__orphanReacMAR08682_rev	1	Glutathione(red)_c
+Esd	1	Glutathione(red)_c
+Glutathione(red)_c	1	Gpx1
+Glutathione(red)_e	1	Gpx1
+Glutathione(red)_c	1	Gpx2
+Glutathione(red)_e	1	Gpx2
+Glutathione(red)_c	1	Gpx3
+Glutathione(red)_e	1	Gpx3
+Glutathione(red)_c	1	Gpx4
+Glutathione(red)_e	1	Gpx4
+Glutathione(red)_c	1	Gpx5
+Glutathione(red)_e	1	Gpx5
+Glutathione(red)_c	1	Gpx6
+Glutathione(red)_e	1	Gpx6
+Glutathione(red)_c	1	Gpx7
+Glutathione(red)_e	1	Gpx7
+Glutathione(red)_c	1	Gpx8
+Glutathione(red)_e	1	Gpx8
+Glutathione(red)_c	1	Prdx1 (GEMenz__P35700)
+Glutathione(red)_e	1	Prdx1 (GEMenz__P35700)
+Glutathione(red)_c	1	Prdx2
+Glutathione(red)_e	1	Prdx2
+Glutathione(red)_c	1	Prdx3
+Glutathione(red)_e	1	Prdx3
+Glutathione(red)_c	1	Prdx5
+Glutathione(red)_e	1	Prdx5
+Glutathione(red)_c	1	Prdx6
+Glutathione(red)_e	1	Prdx6
+Gss	1	Glutathione(red)_c
+Arachidonate_c	1	Acsbg1
+Arachidonate_c	1	Acsbg2
+Arachidonate_c	1	Acsl1
+Arachidonate_c	1	Acsl3
+Arachidonate_c	1	Acsl4
+Arachidonate_c	1	Acsl5
+Arachidonate_c	1	Acsl6
+Arachidonate_c	1	Slc27a2
+Glutathione(red)_c	1	Ltc4s
+Glutathione(red)_r	1	Ltc4s
+Ltc4s	1	Glutathione(red)_c
+Arachidonate_c	1	Cyp19a1
+Arachidonate_c	1	Cyp1a1
+Arachidonate_c	1	Cyp1a2
+Arachidonate_c	1	Cyp1b1
+Arachidonate_c	1	Cyp2a4 (GEMenz__P15392)
+Arachidonate_c	1	Cyp2a4 (GEMenz__P20852)
+Arachidonate_c	1	P12791
+Arachidonate_c	1	Cyp2c29
+Arachidonate_c	1	Cyp2c38
+Arachidonate_c	1	Cyp2c39
+Arachidonate_c	1	Cyp2c55
+Arachidonate_c	1	Cyp2c65
+Arachidonate_c	1	Cyp2c66 (GEMenz__Q5GLZ1)
+Arachidonate_c	1	Q8QZU0
+Arachidonate_c	1	Q9CVC8
+Arachidonate_c	1	D6RJ25
+Arachidonate_c	1	Cyp2c66 (GEMenz__Q5GLZ0)
+Arachidonate_c	1	A0A2R8VKC7
+Arachidonate_c	1	Cyp2d22 (GEMenz__Q91W87)
+Arachidonate_c	1	Cyp2d22 (GEMenz__Q9JKY7)
+Arachidonate_c	1	Cyp2e1
+Arachidonate_c	1	Cyp2f2
+Arachidonate_c	1	Cyp2j6
+Arachidonate_c	1	Cyp2j9 (GEMenz__Q924D1)
+Arachidonate_c	1	Cyp2j9 (GEMenz__Q9CRQ9)
+Arachidonate_c	1	Cyp2s1
+Arachidonate_c	1	Cyp2u1
+Arachidonate_c	1	Cyp3a13
+Arachidonate_c	1	Cyp3a16
+Arachidonate_c	1	Cyp3a41a
+Arachidonate_c	1	Cyp3a44
+Arachidonate_c	1	Cyp3a57
+Arachidonate_c	1	G3UX95
+Arachidonate_c	1	Cyp4b1
+Arachidonate_c	1	Cyp4f14
+Arachidonate_c	1	Cyp4f40 (GEMenz__B2RY43)
+Arachidonate_c	1	Cyp4f40 (GEMenz__G3UW81)
+Arachidonate_c	1	Cyp4x1
+Arachidonate_c	1	Cyp4a10
+Arachidonate_c	1	Cyp4a12a
+Arachidonate_c	1	Cyp4a12b
+Arachidonate_c	1	A2A8S8
+Arachidonate_c	1	A2A8S9
+Arachidonate_c	1	Cyp4a31 (GEMenz__F8WGU9)
+Arachidonate_c	1	Cyp4a31 (GEMenz__Q91WU1)
+Arachidonate_c	1	Cyp4a32
+Arachidonate_c	1	Alox5
+Arachidonate_c	1	Alox15
+Arachidonate_c	1	Alox8
+Gpx1	1	Glutathione(red)_c
+Gpx2	1	Glutathione(red)_c
+Gpx3	1	Glutathione(red)_c
+Gpx4	1	Glutathione(red)_c
+Gpx5	1	Glutathione(red)_c
+Gpx6	1	Glutathione(red)_c
+Gpx7	1	Glutathione(red)_c
+Gpx8	1	Glutathione(red)_c
+Prdx6	1	Glutathione(red)_c
+Arachidonate_c	1	Ptgs1
+Arachidonate_c	1	Ptgs2
+Arachidonate_c	1	Alox12
+Arachidonate_e	1	Alox12
+Glutathione(red)_c	1	Alox12
+Glutathione(red)_r	1	Alox12
+Glutathione(red)_c	1	Ptges
+Glutathione(red)_r	1	Ptges
+Glutathione(red)_x	1	Ptges
+Ptges	1	Glutathione(red)_c
+Ptges	1	Glutathione(red)_r
+Ptges	1	Glutathione(red)_x
+Arachidonate_c	1	Faah
+Acot1	1	Arachidonate_c
+Acot7	1	Arachidonate_c
+Baat	1	Arachidonate_c
+Ltc4s	1	Leukotriene C4_c
+Leukotriene C4_c	1	Ggt1
+Leukotriene C4_e	1	Ggt1
+Leukotriene C4_c	1	Ggt5
+Leukotriene C4_e	1	Ggt5
+Leukotriene C4_c	1	Ggt6
+Leukotriene C4_e	1	Ggt6
+Leukotriene C4_c	1	Ggt7
+Leukotriene C4_e	1	Ggt7
+Arachidonate_c	1	Alox12b
+Leukotriene C4_c	1	Gene1413__orphanReacMAR08547
+Gene1413__orphanReacMAR08547_rev	1	Leukotriene C4_c
+Acot13	1	Arachidonate_c
+Them4	1	Arachidonate_c
+Faah	1	Arachidonate_c
+Arachidonate_c	1	Gene2305__orphanReacMAR01355
+Arachidonate_c	1	Gene2308__orphanReacMAR01358
+Arachidonate_c	1	Gene2311__orphanReacMAR01361
+Arachidonate_c	1	Gene2314__orphanReacMAR01364
+Glutathione(red)_c	1	Akr1c20 (GEMenz__A0A1Y7VMC8)
+Glutathione(red)_c	1	Akr1c20 (GEMenz__Q8VC77)
+Glutathione(red)_c	1	Q9CZU0
+Akr1c20 (GEMenz__A0A1Y7VMC8)	1	Glutathione(red)_c
+Akr1c20 (GEMenz__Q8VC77)	1	Glutathione(red)_c
+Q9CZU0	1	Glutathione(red)_c
+Glutathione(red)_c	1	Slc7a9
+Glutathione(red)_e	1	Slc7a9
+Slc7a9	1	Glutathione(red)_c
+Slc7a9	1	Glutathione(red)_e
+Glutathione(red)_c	1	Slco1a1
+Glutathione(red)_e	1	Slco1a1
+Slco1a1	1	Glutathione(red)_c
+Slco1a1	1	Glutathione(red)_e
+Glutathione(red)_c	1	Slco1a4
+Glutathione(red)_e	1	Slco1a4
+Slco1a4	1	Glutathione(red)_c
+Slco1a4	1	Glutathione(red)_e
+Glutathione(red)_c	1	Slco1a5
+Glutathione(red)_e	1	Slco1a5
+Slco1a5	1	Glutathione(red)_c
+Slco1a5	1	Glutathione(red)_e
+Glutathione(red)_c	1	Slco1b2 (GEMenz__Q9JJL3)
+Glutathione(red)_e	1	Slco1b2 (GEMenz__Q9JJL3)
+Slco1b2 (GEMenz__Q9JJL3)	1	Glutathione(red)_c
+Slco1b2 (GEMenz__Q9JJL3)	1	Glutathione(red)_e
+Glutathione(red)_c	1	Gene2726__orphanReacMAR08620
+Gene2997__orphanReacMAR07095	1	Glutathione(red)_c
+Glutathione(red)_c	1	P4hb
+Glutathione(red)_c	1	Pdia3
+Glutathione(red)_c	1	Pdia4
+Glutathione(red)_c	1	Pdia5
+Glutathione(red)_c	1	Pdia6
+Glutathione(red)_c	1	Tmx3
+Gene3140__orphanReacMAR00012	1	Arachidonate_e
+Gene3159__orphanReacMAR00685	1	Arachidonate_c
+Gene3160__orphanReacMAR00686	1	Arachidonate_c
+Gene3161__orphanReacMAR00687	1	Arachidonate_c
+Gene3162__orphanReacMAR00688	1	Arachidonate_c
+Arachidonate_c	1	Gene3162__orphanReacMAR00688_rev
+Gene3163__orphanReacMAR00689	1	Arachidonate_c
+Gene3164__orphanReacMAR00690	1	Arachidonate_c
+Gene3165__orphanReacMAR00691	1	Arachidonate_c
+Gene3166__orphanReacMAR00692	1	Arachidonate_c
+Arachidonate_c	1	Gene3166__orphanReacMAR00692_rev
+Hydrogen sulfide_e	1	Gene3256__orphanReacMAR09103
+Gene3256__orphanReacMAR09103_rev	1	Hydrogen sulfide_e
+Glutathione(red)_e	1	Gene3412__orphanReacMAR09351
+Gene3412__orphanReacMAR09351_rev	1	Glutathione(red)_e
+Leukotriene C4_e	1	Gene3427__orphanReacMAR09366
+Gene3427__orphanReacMAR09366_rev	1	Leukotriene C4_e
+Arachidonate_e	1	Gene3582__orphanReacMAR00568
+Gene3582__orphanReacMAR00568_rev	1	Arachidonate_e
+Arachidonate_c	1	Gene3948__orphanReacMAR03878
+Arachidonate_c	1	Gene3949__orphanReacMAR03880
+Arachidonate_c	1	Gene3950__orphanReacMAR03882
+Arachidonate_c	1	Gene3951__orphanReacMAR03884
+Glutathione(red)_c	1	Gene4627__orphanReacMAR11299
+Gene4627__orphanReacMAR11299_rev	1	Glutathione(red)_c
+17alpha-Hydroxyprogesterone_e	1	Gene4754__orphanReacMAR11869
+Gene4754__orphanReacMAR11869_rev	1	17alpha-Hydroxyprogesterone_e
+Gene5108__orphanReacMAR10033	1	Arachidonate_c
+Arachidonate_c	1	Gene5108__orphanReacMAR10033_rev
+Glutathione(red)_c	1	Gene5119__orphanReacMAR10064
+Fga (E9PV24)	1	Fga (GEMenz__E9PV24)
+Kl (O35082)	1	Kl (GEMenz__O35082)
+Chka (O54804)	1	Chka (GEMenz__O54804)
+Dnmt3a (O88508)	1	Dnmt3a (GEMenz__O88508)
+Birc6 (O88738)	1	Birc6 (GEMenz__O88738)
+Pgk1 (P09411)	1	Pgk1 (GEMenz__P09411)
+Plg (P20918)	1	Plg (GEMenz__P20918)
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Tgm2 (P21981)	1	Tgm2 (GEMenz__P21981)
+Cbl (P22682)	1	Cbl (GEMenz__P22682)
+Mdm2 (P23804)	1	Mdm2 (GEMenz__P23804)
+Prdx1 (P35700)	1	Prdx1 (GEMenz__P35700)
+Kmt2a (P55200)	1	Kmt2a (GEMenz__P55200)
+Ctse (P70269)	1	Ctse (GEMenz__P70269)
+Bmp1 (P98063)	1	Bmp1 (GEMenz__P98063)
+Nme2 (Q01768)	1	Nme2 (GEMenz__Q01768)
+Siah2 (Q06986)	1	Siah2 (GEMenz__Q06986)
+Kat7 (Q5SVQ0)	1	Kat7 (GEMenz__Q5SVQ0)
+Dbp (Q60925)	1	Dbp (GEMenz__Q60925)
+Ezh2 (Q61188)	1	Ezh2 (GEMenz__Q61188)
+Cyld (Q80TQ2)	1	Cyld (GEMenz__Q80TQ2)
+Cblc (Q80XL1)	1	Cblc (GEMenz__Q80XL1)
+Chfr (Q810L3)	1	Chfr (GEMenz__Q810L3)
+Pdk1 (Q8BFP9)	1	Pdk1 (GEMenz__Q8BFP9)
+Itch (Q8C863)	1	Itch (GEMenz__Q8C863)
+Wwox (Q91WL8)	1	Wwox (GEMenz__Q91WL8)
+Dnmt3l (Q9CWR8)	1	Dnmt3l (GEMenz__Q9CWR8)
+Inpp5d (Q9ES52)	1	Inpp5d (GEMenz__Q9ES52)
+Pik3cg (Q9JHG7)	1	Pik3cg (GEMenz__Q9JHG7)
+Slco1b2 (Q9JJL3)	1	Slco1b2 (GEMenz__Q9JJL3)
+Hydrogen sulfide_e	1	Mmp2
+Hydrogen sulfide_e	1	Icam1
+Jun	-1	Abcb1a (P21447)
+Nr0b1	1	Plg (P20918)
+Myc	1	Chka (O54804)
+Kat7 (Q5SVQ0)	1	Rela
+Ets1	1	Abcb1a (P21447)
+Kat7 (Q5SVQ0)	1	Mmp1a
+Kat7 (Q5SVQ0)	1	Nfya
+Esr2	1	Abcb1a (P21447)
+Esr1	1	Mdm2 (P23804)
+Rxra	1	Abcb1a (P21447)
+Hmga1	1	Kl (O35082)
+Myc	1	Nme2 (Q01768)
+Nme2 (Q01768)	1	Myc
+Tfap2c	1	Wwox (Q91WL8)
+Hif1a	1	Pgk1 (P09411)
+Stat5a	1	Slco1b2 (Q9JJL3)
+Dnmt3a (O88508)	1	Smarca4
+Hif1a	1	Abcb1a (P21447)
+Kmt2a (P55200)	1	Jun
+Jun	1	Chka (O54804)
+Dnmt3a (O88508)	1	Dnmt3l (Q9CWR8)
+Dnmt3l (Q9CWR8)	1	Dnmt3a (O88508)
+Dnmt3a (O88508)	1	Gh
+Foxo1	1	Abcb1a (P21447)
+Spdef	1	Plg (P20918)
+Kmt2a (P55200)	1	Mmp9
+Rela	1	Chfr (Q810L3)
+Hif1a	1	Plg (P20918)
+Myc	1	Mdm2 (P23804)
+Kat7 (Q5SVQ0)	1	Btk
+Ezh2 (Q61188)	1	Neurog1
+Q08775	1	Abcb1a (P21447)
+Ezh2 (Q61188)	1	Wnt2
+Ezh2 (Q61188)	1	Tnfsf10
+Kat7 (Q5SVQ0)	1	Mmp13
+Kat7 (Q5SVQ0)	1	Jun
+Klf5	1	Plg (P20918)
+Irf4	1	Inpp5d (Q9ES52)
+Ezh2 (Q61188)	1	Vim
+Kat7 (Q5SVQ0)	1	Gcm1
+Dnmt3a (O88508)	1	Brca1
+Ezh2 (Q61188)	1	Vcl
+Vdr	1	Mdm2 (P23804)
+Trp53	1	Pdk1 (Q8BFP9)
+Dnmt3a (O88508)	1	Wif1
+Kmt2a (P55200)	1	Rela
+Rela	1	Kmt2a (P55200)
+Dbp (Q60925)	1	Cish
+Esr2	1	Tgm2 (P21981)
+Dnmt3l (Q9CWR8)	-1	Tdg
+Ets1	-1	Mdm2 (P23804)
+Ezh2 (Q61188)	1	Axl
+Ezh2 (Q61188)	1	Mmp2
+Ezh2 (Q61188)	-1	Snai2
+Ezh2 (Q61188)	-1	Twist1
+Fus	-1	Mdm2 (P23804)
+Jun	1	Ezh2 (Q61188)
+Nfkb1	-1	Abcb1a (P21447)
+Gli2	-1	Bmp1 (P98063)
+Jun	1	Mdm2 (P23804)
+Ezh2 (Q61188)	1	Evx2
+Hif1a	1	Pdk1 (Q8BFP9)
+Srsf2	1	Mdm2 (P23804)
+E2f2	-1	Mdm2 (P23804)
+Nfkb1	1	Mdm2 (P23804)
+Nr1i3	1	Ctse (P70269)
+Trp53	1	Abcb1a (P21447)
+Birc6 (O88738)	-1	Casp3
+Casp3	-1	Birc6 (O88738)
+Kl (O35082)	1	Insr
+Cyld (Q80TQ2)	1	Traf6
+Cyld (Q80TQ2)	-1	Traf2
+Cyld (Q80TQ2)	-1	Ikbkg
+Ppm1d	1	Mdm2 (P23804)
+Cbl (P22682)	1	Lyn
+Lyn	1	Cbl (P22682)
+Egfr	1	Cbl (P22682)
+Cbl (P22682)	1	Egfr
+Mdm2 (P23804)	-1	Trp53
+Ezh2 (Q61188)	-1	Brca1
+Rpl11	-1	Mdm2 (P23804)
+Erbb4	1	Mdm2 (P23804)
+Kmt2a (P55200)	1	Hoxa11
+Rps6kb1	1	Mdm2 (P23804)
+Tdg	-1	Dnmt3a (O88508)
+Akt1	1	Pdk1 (Q8BFP9)
+Pdk1 (Q8BFP9)	1	Akt1
+Cdkn2b	-1	Mdm2 (P23804)
+Wwox (Q91WL8)	-1	Dvl2
+Cbl (P22682)	-1	Lck
+Cbl (P22682)	-1	Kit
+Cblc (Q80XL1)	-1	Egfr
+Numb	1	Itch (Q8C863)
+Cbl (P22682)	-1	Fyn
+Cbl (P22682)	-1	Lrig1
+Prdx1 (P35700)	1	Dusp1
+Siah2 (Q06986)	-1	Vav2
+Fga (E9PV24)	1	Itgb1
+Erbb4	1	Cbl (P22682)
+Itch (Q8C863)	1	Spart
+Spart	1	Itch (Q8C863)
+Fgfr1	1	Pdk1 (Q8BFP9)
+Cdk4	1	Prdx1 (P35700)
+Inpp5d (Q9ES52)	-1	Traf6
+Dapk3	1	Mdm2 (P23804)
+Akt1	1	Itch (Q8C863)
+Mdm2 (P23804)	-1	Numb
+Numb	-1	Mdm2 (P23804)
+Dyrk2	1	Siah2 (Q06986)
+Lrig1	1	Cblc (Q80XL1)
+Lyn	1	Inpp5d (Q9ES52)
+Mdm2 (P23804)	-1	Hdac1
+Bmp1 (P98063)	1	Col1a1
+Mmp14	-1	Fga (E9PV24)
+Ppp1cb	1	Mdm2 (P23804)
+Pdpk1	1	Pgk1 (P09411)
+Bmp1 (P98063)	1	Col5a2
+Kras	1	Pik3cg (Q9JHG7)
+Itch (Q8C863)	-1	Egfr
+Itch (Q8C863)	-1	Erbb4
+Chka (O54804)	1	Egfr
+Mmp13	-1	Fga (E9PV24)
+Btk	1	Mdm2 (P23804)
+Chfr (Q810L3)	-1	Hdac1
+Pik3cg (Q9JHG7)	1	Set
+Pgk1 (P09411)	1	Pdk1 (Q8BFP9)
+Ikbke	-1	Cyld (Q80TQ2)
+Mdm2 (P23804)	-1	Nfatc2
+Pim1	1	Mdm2 (P23804)
+Ppp1ca	1	Mdm2 (P23804)
+Mdm2 (P23804)	-1	Hif1a
+Pik3cg (Q9JHG7)	1	Pdpk1
+Mmp12	-1	Fga (E9PV24)
+Mdm2 (P23804)	-1	Dyrk2
+Chfr (Q810L3)	-1	Smarca4
+Ppp1cc	1	Mdm2 (P23804)
+Ctse (P70269)	-1	A2m
+Ppp2ca	1	Mdm2 (P23804)
+Capn1	-1	Cbl (P22682)
+Cbl (P22682)	-1	Capn1
+Itga5	-1	Cbl (P22682)
+Cbl (P22682)	-1	Itga5
+Tgm2 (P21981)	1	Adgrg1
+Plg (P20918)	1	Itgb1
+Kl (O35082)	1	Fgfr1
+Pdk1 (Q8BFP9)	1	Akt3
+Pdk1 (Q8BFP9)	1	Prkcz
+17alpha-Hydroxyprogesterone_e	-1	Gper1
+Hydrogen sulfide_e	1	Egfr
+Slco1b2 (GEMenz__Q9JJL3)	1	Glutathione(red)_c
+Slco1b2 (GEMenz__Q9JJL3)	1	Glutathione(red)_e
+Slco1b2 (GEMenz__Q9JJL3)	1	Leukotriene C4_c
+Slco1b2 (GEMenz__Q9JJL3)	1	Leukotriene C4_e
+Slco2a1	1	Glutathione(red)_c
+Slco2a1	1	Glutathione(red)_e
+Slco2a1	1	Arachidonate_c
+Slco2a1	1	Arachidonate_e
+Gene1698__orphanReacMAR09014	1	Glutathione(red)_x
+Gene2033__orphanReacMAR01035	1	Glutathione(red)_c
+Gene2033__orphanReacMAR01035	1	Glutathione(red)_r
+Abcb1a (GEMenz__P21447)	1	17alpha-Hydroxyprogesterone_e
+Cd36	1	Hydrogen sulfide_e
+Gene961__orphanReacMAR04990	1	Hydrogen sulfide_e
+Hydrogen sulfide_e	1	Gene961__orphanReacMAR04990
+Glutathione(red)_c	1	Slco1b2 (GEMenz__Q9JJL3)
+Glutathione(red)_c	1	Slco2a1
+Glutathione(red)_c	1	Gene1698__orphanReacMAR09014
+Glutathione(red)_c	1	Gene2033__orphanReacMAR01035
+Glutathione(red)_e	1	Slco1b2 (GEMenz__Q9JJL3)
+Glutathione(red)_e	1	Slco2a1
+Glutathione(red)_r	1	Gene2033__orphanReacMAR01035
+Leukotriene C4_c	1	Slco1b2 (GEMenz__Q9JJL3)
+Leukotriene C4_e	1	Slco1b2 (GEMenz__Q9JJL3)
+Arachidonate_c	1	Slco2a1
+Arachidonate_e	1	Slco2a1
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Slco1b2 (Q9JJL3)	1	Slco1b2 (GEMenz__Q9JJL3)

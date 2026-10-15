@@ -1,0 +1,322 @@
+Acp3	1	Adenosine_c
+Acp3	1	Adenosine_e
+Acp3	1	Adenosine_l
+Nt5c	1	Adenosine_c
+Nt5c	1	Adenosine_e
+Nt5c	1	Adenosine_l
+Nt5c1a	1	Adenosine_c
+Nt5c1a	1	Adenosine_e
+Nt5c1a	1	Adenosine_l
+Nt5c1b	1	Adenosine_c
+Nt5c1b	1	Adenosine_e
+Nt5c1b	1	Adenosine_l
+Nt5c2	1	Adenosine_c
+Nt5c2	1	Adenosine_e
+Nt5c2	1	Adenosine_l
+A0A0N4SVS9	1	Adenosine_c
+A0A0N4SW80	1	Adenosine_c
+S4R2D9	1	Adenosine_c
+A0A0N4SVS9	1	Adenosine_e
+A0A0N4SW80	1	Adenosine_e
+S4R2D9	1	Adenosine_e
+A0A0N4SVS9	1	Adenosine_l
+A0A0N4SW80	1	Adenosine_l
+S4R2D9	1	Adenosine_l
+Nt5c3b	1	Adenosine_c
+Nt5c3b	1	Adenosine_e
+Nt5c3b	1	Adenosine_l
+Nt5e	1	Adenosine_c
+Nt5e	1	Adenosine_e
+Nt5e	1	Adenosine_l
+Nt5m	1	Adenosine_c
+Nt5m	1	Adenosine_e
+Nt5m	1	Adenosine_l
+Rbak	1	Adenosine_c
+Rbak	1	Adenosine_e
+Adenosine_c	1	Adk
+Adenosine_c	1	Dck
+Acp3	1	Inosine_c
+Nt5c	1	Inosine_c
+Nt5c1a	1	Inosine_c
+Nt5c1b	1	Inosine_c
+Nt5c2	1	Inosine_c
+A0A0N4SVS9	1	Inosine_c
+A0A0N4SW80	1	Inosine_c
+S4R2D9	1	Inosine_c
+Nt5c3b	1	Inosine_c
+Nt5e	1	Inosine_c
+Nt5m	1	Inosine_c
+Rbak	1	Inosine_c
+Hypoxanthine_c	1	Hprt1
+Adenosine_c	1	Ada
+Adenosine_e	1	Ada
+Ada	1	Inosine_c
+Ada	1	Inosine_e
+Hypoxanthine_c	1	Xdh
+Hypoxanthine_x	1	Xdh
+Inosine_c	1	Pnp
+Pnp	1	Hypoxanthine_c
+Hypoxanthine_c	1	Pnp
+Pnp	1	Inosine_c
+Inosine_c	1	Pnp2
+Pnp2	1	Hypoxanthine_c
+Hypoxanthine_c	1	Pnp2
+Pnp2	1	Inosine_c
+Allc	1	Urea_c
+Epx	1	Urea_c
+Epx	1	Urea_e
+Urea_c	1	Epx
+Urea_e	1	Epx
+Lpo	1	Urea_c
+Lpo	1	Urea_e
+Urea_c	1	Lpo
+Urea_e	1	Lpo
+Prdx6	1	Urea_c
+Prdx6	1	Urea_e
+Urea_c	1	Prdx6
+Urea_e	1	Prdx6
+Pxdn	1	Urea_c
+Pxdn	1	Urea_e
+Urea_c	1	Pxdn
+Urea_e	1	Pxdn
+Gene249__orphanReacMAR09797	1	Hypoxanthine_c
+Inosine_m	1	Gene357__orphanReacMAR08484
+Adenosine_c	1	Pnp
+Pnp	1	Adenosine_c
+Adenosine_c	1	Pnp2
+Pnp2	1	Adenosine_c
+Arg1	1	Urea_c
+Agmat	1	Urea_m
+Creatine_c	1	Gamt
+Gamt	1	Creatine_c
+Arg2	1	Urea_m
+Ckb	1	Creatine_c
+Ckb	1	Creatine_m
+Creatine_c	1	Ckb
+Creatine_m	1	Ckb
+Ckm	1	Creatine_c
+Ckm	1	Creatine_m
+Creatine_c	1	Ckm
+Creatine_m	1	Ckm
+Ckmt1	1	Creatine_c
+Ckmt1	1	Creatine_m
+Creatine_c	1	Ckmt1
+Creatine_m	1	Ckmt1
+Ckmt2	1	Creatine_c
+Ckmt2	1	Creatine_m
+Creatine_c	1	Ckmt2
+Creatine_m	1	Ckmt2
+Ahcyl	1	Adenosine_c
+Ahcyl2	1	Adenosine_c
+Adenosine_c	1	Ahcyl
+Adenosine_c	1	Ahcyl2
+Adenosine_e	1	Gene3340__orphanReacMAR09254
+Gene3340__orphanReacMAR09254_rev	1	Adenosine_e
+Creatine_e	1	Gene3374__orphanReacMAR09290
+Gene3374__orphanReacMAR09290_rev	1	Creatine_e
+Inosine_e	1	Gene3423__orphanReacMAR09362
+Gene3423__orphanReacMAR09362_rev	1	Inosine_e
+Urea_e	1	Gene3490__orphanReacMAR09438
+Gene3490__orphanReacMAR09438_rev	1	Urea_e
+Acp2	1	Adenosine_l
+Acp5	1	Adenosine_l
+Acp6	1	Adenosine_l
+Adenosine_c	1	Gene4154__orphanReacMAR07754
+Adenosine_c	1	Gene4155__orphanReacMAR07803
+Inosine_c	1	Gene4178__orphanReacMAR08975
+17alpha-Hydroxyprogesterone_e	1	Gene4754__orphanReacMAR11869
+Gene4754__orphanReacMAR11869_rev	1	17alpha-Hydroxyprogesterone_e
+Chka (O54804)	1	Chka (GEMenz__O54804)
+Bard1 (O70445)	1	Bard1 (GEMenz__O70445)
+Calm1 (P0DP26)	1	Calm1 (GEMenz__P0DP26)
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Cbl (P22682)	1	Cbl (GEMenz__P22682)
+Ncoa1 (P70365)	1	Ncoa1 (GEMenz__P70365)
+Nme2 (Q01768)	1	Nme2 (GEMenz__Q01768)
+Usp13 (Q5BKP2)	1	Usp13 (GEMenz__Q5BKP2)
+Slc29a2 (Q61672)	1	Slc29a2 (GEMenz__Q61672)
+Pja2 (Q80U04)	1	Pja2 (GEMenz__Q80U04)
+Cblc (Q80XL1)	1	Cblc (GEMenz__Q80XL1)
+Chfr (Q810L3)	1	Chfr (GEMenz__Q810L3)
+Itch (Q8C863)	1	Itch (GEMenz__Q8C863)
+Slc6a8 (Q8VBW1)	1	Slc6a8 (GEMenz__Q8VBW1)
+Znrf1 (Q91V17)	1	Znrf1 (GEMenz__Q91V17)
+Sirt1 (Q923E4)	1	Sirt1 (GEMenz__Q923E4)
+Grk2 (Q99MK8)	1	Grk2 (GEMenz__Q99MK8)
+Pik3cg (Q9JHG7)	1	Pik3cg (GEMenz__Q9JHG7)
+Aqp9 (Q9JJJ3)	1	Aqp9 (GEMenz__Q9JJJ3)
+Nrf1 (Q9WU00)	1	Nrf1 (GEMenz__Q9WU00)
+Adenosine_c	1	Casp3
+Adenosine_c	1	Fyn
+Adenosine_e	1	Fyn
+Id1	1	Fasn (P19096)
+Ncoa1 (P70365)	1	Erbb2
+Arnt	1	Abcb1a (P21447)
+Nr1h3	1	Fasn (P19096)
+Myc	1	Chka (O54804)
+Nr1i2	1	Abcb1a (P21447)
+Ets1	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Tnf
+Rxra	1	Abcb1a (P21447)
+Ssrp1	1	Abcb1a (P21447)
+Nrf1 (Q9WU00)	1	E2f6
+Myc	1	Nme2 (Q01768)
+Nme2 (Q01768)	1	Myc
+Trp73	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Smarcc1
+Ncoa1 (P70365)	1	Lep
+Hif1a	1	Abcb1a (P21447)
+Foxo1	1	Abcb1a (P21447)
+Trp73	1	Itch (Q8C863)
+Nfil3	1	Abcb1a (P21447)
+Klf5	1	Fasn (P19096)
+Hif1a	1	Slc29a2 (Q61672)
+Nr1h3	1	Bard1 (O70445)
+Ncoa1 (P70365)	1	Twist1
+Ncoa1 (P70365)	1	Errfi1
+Rela	1	Chfr (Q810L3)
+Ncoa1 (P70365)	1	Sirt1 (Q923E4)
+Q08775	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Epo
+Rela	1	Nrf1 (Q9WU00)
+Foxo1	1	Sirt1 (Q923E4)
+Ncoa1 (P70365)	1	Ccnd1
+Ncoa1 (P70365)	1	Itga5
+Gtf2i	1	Sirt1 (Q923E4)
+Batf	1	Sirt1 (Q923E4)
+Smad3	1	Sirt1 (Q923E4)
+Tal1	1	Sirt1 (Q923E4)
+Nr1h3	1	Sirt1 (Q923E4)
+Rfx5	1	Sirt1 (Q923E4)
+Ppara	1	Abcb1a (P21447)
+Foxo1	1	Fasn (P19096)
+Sirt1 (Q923E4)	-1	Myc
+Brca1	1	Sirt1 (Q923E4)
+Sirt1 (Q923E4)	1	Abcb1a (P21447)
+Sirt1 (Q923E4)	-1	Ccar2
+Sirt1 (Q923E4)	1	Hif1a
+Sirt1 (Q923E4)	-1	Icam1
+Sirt1 (Q923E4)	1	Tnf
+Sirt1 (Q923E4)	1	Trp73
+Ctnnb1	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Klf10
+Elavl1	1	Sirt1 (Q923E4)
+Sirt1 (Q923E4)	1	Foxo1
+Sirt1 (Q923E4)	-1	Rela
+Cbl (P22682)	1	Lyn
+Lyn	1	Cbl (P22682)
+Cbl (P22682)	1	Syk
+Syk	1	Cbl (P22682)
+Pcbp2	1	Itch (Q8C863)
+Egfr	1	Cbl (P22682)
+Cbl (P22682)	1	Egfr
+Itch (Q8C863)	1	Trp73
+Abl1	-1	Cbl (P22682)
+Cbl (P22682)	-1	Abl1
+Bard1 (O70445)	1	Brca1
+Cbl (P22682)	-1	Lck
+Cbl (P22682)	-1	Kit
+Cblc (Q80XL1)	-1	Egfr
+Cbl (P22682)	-1	Fyn
+Egfr	1	Grk2 (Q99MK8)
+Cbl (P22682)	-1	Lrig1
+Itch (Q8C863)	1	Smad2
+Ror2	1	Grk2 (Q99MK8)
+Calm1 (P0DP26)	1	Ppp3r1
+Gnb2	1	Grk2 (Q99MK8)
+Calm1 (P0DP26)	-1	Grk2 (Q99MK8)
+Prkaca	1	Pja2 (Q80U04)
+Calm1 (P0DP26)	1	Ppp3cb
+Prkcq	1	Cbl (P22682)
+Erbb4	1	Cbl (P22682)
+Itch (Q8C863)	1	Spart
+Spart	1	Itch (Q8C863)
+Lrig1	1	Cblc (Q80XL1)
+Cbl (P22682)	-1	Erbb2
+Chka (O54804)	-1	Ctnnb1
+Erbb2	1	Fasn (P19096)
+Egfr	1	Znrf1 (Q91V17)
+Egfr	-1	Calm1 (P0DP26)
+Stk11	1	Sirt1 (Q923E4)
+Cbl (P22682)	-1	Nck1
+Becn1	1	Usp13 (Q5BKP2)
+Usp13 (Q5BKP2)	1	Becn1
+Itch (Q8C863)	-1	Egfr
+Mapk3	1	Ncoa1 (P70365)
+Itch (Q8C863)	-1	Erbb4
+Prkcz	1	Aqp9 (Q9JJJ3)
+Chka (O54804)	1	Egfr
+Chfr (Q810L3)	-1	Hdac1
+Jak2	-1	Slc6a8 (Q8VBW1)
+Pik3cg (Q9JHG7)	1	Set
+Cbl (P22682)	-1	Insr
+Sirt1 (Q923E4)	1	Ctnnb1
+Ccar2	-1	Sirt1 (Q923E4)
+Asxl1	1	Ncoa1 (P70365)
+Ncoa1 (P70365)	1	Asxl1
+Sirt1 (Q923E4)	1	Nhlh2
+Prkcg	1	Grk2 (Q99MK8)
+Cbl (P22682)	-1	Jak2
+Chfr (Q810L3)	-1	Sirt1 (Q923E4)
+Znrf1 (Q91V17)	-1	Cav1
+Grk2 (Q99MK8)	1	Ezr
+Usp13 (Q5BKP2)	1	Myc
+Pja2 (Q80U04)	-1	Prkar2b
+Chfr (Q810L3)	-1	Smarca4
+Tnf	1	Pik3cg (Q9JHG7)
+Capn1	-1	Cbl (P22682)
+Cbl (P22682)	-1	Capn1
+Itga5	-1	Cbl (P22682)
+Cbl (P22682)	-1	Itga5
+Cbl (P22682)	-1	Ptpn6
+Ptpn6	-1	Cbl (P22682)
+17alpha-Hydroxyprogesterone_e	-1	Gper1
+Gene1497__orphanReacMAR08428	1	Creatine_m
+Gene1760__orphanReacMAR08754	1	Hypoxanthine_x
+Slc29a3	1	Adenosine_c
+Slc29a3	1	Adenosine_l
+Slc29a3	1	Hypoxanthine_c
+Slc29a3	1	Inosine_c
+Abcb1a (GEMenz__P21447)	1	17alpha-Hydroxyprogesterone_e
+Slc16a12	1	Creatine_c
+Slc16a12	1	Creatine_e
+Slc29a2 (GEMenz__Q61672)	1	Hypoxanthine_c
+Fasn (GEMenz__P19096)	1	Adenosine_c
+Fasn (GEMenz__P19096)	1	Adenosine_e
+Fasn (GEMenz__P19096)	1	Inosine_c
+Fasn (GEMenz__P19096)	1	Inosine_e
+Aqp9 (GEMenz__Q9JJJ3)	1	Urea_c
+Aqp9 (GEMenz__Q9JJJ3)	1	Urea_e
+Aqp9 (GEMenz__Q9JJJ3)	1	Urea_m
+Slc6a8 (GEMenz__Q8VBW1)	1	Creatine_c
+Slc6a8 (GEMenz__Q8VBW1)	1	Creatine_e
+Slc29a1	1	Inosine_c
+Slc29a1	1	Inosine_e
+Slc29a1	1	Inosine_m
+Urea_c	1	Aqp9 (GEMenz__Q9JJJ3)
+Urea_e	1	Aqp9 (GEMenz__Q9JJJ3)
+Urea_m	1	Aqp9 (GEMenz__Q9JJJ3)
+Adenosine_c	1	Slc29a3
+Adenosine_c	1	Fasn (GEMenz__P19096)
+Adenosine_e	1	Fasn (GEMenz__P19096)
+Adenosine_l	1	Slc29a3
+Creatine_c	1	Gene1497__orphanReacMAR08428
+Creatine_c	1	Slc16a12
+Creatine_c	1	Slc6a8 (GEMenz__Q8VBW1)
+Creatine_e	1	Slc16a12
+Creatine_e	1	Slc6a8 (GEMenz__Q8VBW1)
+Hypoxanthine_c	1	Gene1760__orphanReacMAR08754
+Hypoxanthine_c	1	Slc29a3
+Hypoxanthine_c	1	Slc29a2 (GEMenz__Q61672)
+Inosine_c	1	Slc29a3
+Inosine_c	1	Fasn (GEMenz__P19096)
+Inosine_c	1	Slc29a1
+Inosine_e	1	Fasn (GEMenz__P19096)
+Inosine_e	1	Slc29a1
+Inosine_m	1	Slc29a1
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Slc29a2 (Q61672)	1	Slc29a2 (GEMenz__Q61672)
+Slc6a8 (Q8VBW1)	1	Slc6a8 (GEMenz__Q8VBW1)
+Aqp9 (Q9JJJ3)	1	Aqp9 (GEMenz__Q9JJJ3)

@@ -1,0 +1,194 @@
+"node","raw_id","node_type","layer","is_orphan","score","level","moon_type"
+"Acp3","GEMenz__Q8CE08","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5c","GEMenz__Q9JM14","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5c1a","GEMenz__A3KFX0","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5c1b","GEMenz__Q91YE9","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5c2","GEMenz__Q3V1L4","gene_protein","enzyme",FALSE,NA,NA,NA
+"A0A0N4SVS9","GEMenz__A0A0N4SVS9","gene_protein","enzyme",FALSE,NA,NA,NA
+"A0A0N4SW80","GEMenz__A0A0N4SW80","gene_protein","enzyme",FALSE,NA,NA,NA
+"S4R2D9","GEMenz__S4R2D9","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5c3b","GEMenz__Q3UFY7","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5e","GEMenz__Q61503","gene_protein","enzyme",FALSE,NA,NA,NA
+"Nt5m","GEMenz__Q8VCE6","gene_protein","enzyme",FALSE,NA,NA,NA
+"Rbak","GEMenz__Q8BQC8","gene_protein","enzyme",FALSE,NA,NA,NA
+"Hypoxanthine_c","Metab__CHEBI:17368_c","metabolite","metabolite",FALSE,2.23017448067468,0,"level0"
+"Ada","GEMenz__P03958","gene_protein","enzyme",FALSE,NA,NA,NA
+"Hypoxanthine_x","Metab__CHEBI:17368_x","metabolite","metabolite",FALSE,2.23017448067468,0,"level0"
+"Inosine_c","Metab__CHEBI:17596_c","metabolite","metabolite",FALSE,1.35551563664401,0,"level0"
+"Pnp","GEMenz__P23492","gene_protein","enzyme",FALSE,NA,NA,NA
+"Pnp2","GEMenz__Q9D8C9","gene_protein","enzyme",FALSE,NA,NA,NA
+"Allc","GEMenz__Q9JHX6","gene_protein","enzyme",FALSE,NA,NA,NA
+"Epx","GEMenz__P49290","gene_protein","enzyme",FALSE,NA,NA,NA
+"Urea_c","Metab__CHEBI:16199_c","metabolite","metabolite",FALSE,-3.9547122861964,0,"level0"
+"Urea_e","Metab__CHEBI:16199_e","metabolite","metabolite",FALSE,-3.9547122861964,0,"level0"
+"Lpo","GEMenz__Q5SW46","gene_protein","enzyme",FALSE,NA,NA,NA
+"Prdx6","GEMenz__O08709","gene_protein","enzyme",FALSE,NA,NA,NA
+"Pxdn","GEMenz__Q3UQ28","gene_protein","enzyme",FALSE,NA,NA,NA
+"Gene249__orphanReacMAR09797","Gene249__orphanReacMAR09797","gene_protein","enzyme",TRUE,NA,NA,NA
+"Inosine_m","Metab__CHEBI:17596_m","metabolite","metabolite",FALSE,1.35551563664401,0,"level0"
+"Arg1","GEMenz__Q61176","gene_protein","enzyme",FALSE,NA,NA,NA
+"Agmat","GEMenz__A2AS89","gene_protein","enzyme",FALSE,NA,NA,NA
+"Creatine_c","Metab__CHEBI:16919_c","metabolite","metabolite",FALSE,-3.0216540179057,0,"level0"
+"Gamt","GEMenz__O35969","gene_protein","enzyme",FALSE,NA,NA,NA
+"Arg2","GEMenz__O08691","gene_protein","enzyme",FALSE,NA,NA,NA
+"Ckb","GEMenz__Q04447","gene_protein","enzyme",FALSE,NA,NA,NA
+"Creatine_m","Metab__CHEBI:16919_m","metabolite","metabolite",FALSE,-3.0216540179057,0,"level0"
+"Ckm","GEMenz__P07310","gene_protein","enzyme",FALSE,NA,NA,NA
+"Ckmt1","GEMenz__P30275","gene_protein","enzyme",FALSE,NA,NA,NA
+"Ckmt2","GEMenz__Q6P8J7","gene_protein","enzyme",FALSE,NA,NA,NA
+"Creatine_e","Metab__CHEBI:16919_e","metabolite","metabolite",FALSE,-3.0216540179057,0,"level0"
+"Gene3374__orphanReacMAR09290_rev","Gene3374__orphanReacMAR09290_rev","gene_protein","enzyme",TRUE,NA,NA,NA
+"Inosine_e","Metab__CHEBI:17596_e","metabolite","metabolite",FALSE,1.35551563664401,0,"level0"
+"Gene3423__orphanReacMAR09362_rev","Gene3423__orphanReacMAR09362_rev","gene_protein","enzyme",TRUE,NA,NA,NA
+"Gene3490__orphanReacMAR09438_rev","Gene3490__orphanReacMAR09438_rev","gene_protein","enzyme",TRUE,NA,NA,NA
+"17alpha-Hydroxyprogesterone_e","Metab__CHEBI:17252_e","metabolite","metabolite",FALSE,2.63166020916807,5,"other"
+"Gene4754__orphanReacMAR11869_rev","Gene4754__orphanReacMAR11869_rev","gene_protein","enzyme",TRUE,NA,NA,NA
+"Bard1 (O70445)","O70445","gene_protein","mRNA",FALSE,0.66464677417399,4,"other"
+"Calm1 (P0DP26)","P0DP26","gene_protein","mRNA",FALSE,0.803005077831859,4,"other"
+"Dnmt1 (P13864)","P13864","gene_protein","TF",FALSE,1.68913758057281,3,"upstream_input"
+"Fasn (P19096)","P19096","gene_protein","mRNA",FALSE,1.06512974623448,2,"other"
+"Abcb1a (P21447)","P21447","gene_protein","mRNA",FALSE,1.09313028399195,5,"other"
+"Tgm2 (P21981)","P21981","gene_protein","mRNA",FALSE,1.37183205418057,6,"other"
+"Cbl (P22682)","P22682","gene_protein","mRNA",FALSE,-1.58350228448229,4,"other"
+"Mdm2 (P23804)","P23804","gene_protein","mRNA",FALSE,-1.02153228492434,4,"other"
+"Fkbp1a (P26883)","P26883","gene_protein","mRNA",FALSE,1.318068661419,5,"other"
+"Fkbp4 (P30416)","P30416","gene_protein","mRNA",FALSE,0.818758167510834,4,"other"
+"Sirt6 (P59941)","P59941","gene_protein","TF",FALSE,1.32578546826347,4,"other"
+"Dbp (Q60925)","Q60925","gene_protein","TF",FALSE,0.881617444079675,4,"upstream_input"
+"Slc29a2 (Q61672)","Q61672","gene_protein","mRNA",FALSE,2.14635465338354,2,"other"
+"Cyld (Q80TQ2)","Q80TQ2","gene_protein","mRNA",FALSE,1.1004944108411,5,"other"
+"Pja2 (Q80U04)","Q80U04","gene_protein","mRNA",FALSE,2.3989802965951,5,"other"
+"Cblc (Q80XL1)","Q80XL1","gene_protein","PPI/kinase",FALSE,2.86231443436029,4,"other"
+"Chfr (Q810L3)","Q810L3","gene_protein","mRNA",FALSE,-2.05116712931756,4,"other"
+"Itch (Q8C863)","Q8C863","gene_protein","mRNA",FALSE,1.70609947285874,4,"other"
+"Kat5 (Q8CHK4)","Q8CHK4","gene_protein","TF",FALSE,0.705641040475454,3,"upstream_input"
+"Slc6a8 (Q8VBW1)","Q8VBW1","gene_protein","PPI/kinase",FALSE,-2.76303705967065,2,"other"
+"Uhrf1 (Q8VDF2)","Q8VDF2","gene_protein","mRNA",FALSE,1.23927625930705,4,"other"
+"Sirt1 (Q923E4)","Q923E4","gene_protein","TF",FALSE,0.78990133089647,4,"upstream_input"
+"Grk2 (Q99MK8)","Q99MK8","gene_protein","PPI/kinase",FALSE,-0.79583715604265,3,"other"
+"Inpp5d (Q9ES52)","Q9ES52","gene_protein","mRNA",FALSE,-0.636043082852976,5,"other"
+"Sphk2 (Q9JIA7)","Q9JIA7","gene_protein","mRNA",FALSE,-1.36191241321842,5,"other"
+"Aqp9 (Q9JJJ3)","Q9JJJ3","gene_protein","mRNA",FALSE,-1.75371274927023,2,"other"
+"Prkn (Q9WVS6)","Q9WVS6","gene_protein","mRNA",FALSE,0.640541229476975,4,"other"
+"Htatip2 (Q9Z2G9)","Q9Z2G9","gene_protein","TF",FALSE,-0.751088772509733,4,"upstream_input"
+"Id1","P20067","gene_protein","TF",FALSE,1.26252775175455,3,"upstream_input"
+"Arnt","P53762","gene_protein","TF",FALSE,3.24763067525906,3,"upstream_input"
+"Nr1h3","Q9Z0Y9","gene_protein","TF",FALSE,2.56710101666065,3,"upstream_input"
+"Nr1i2","O54915","gene_protein","TF",FALSE,1.1927018225032,3,"upstream_input"
+"Ar","P19091","gene_protein","TF",FALSE,1.17976970359469,3,"upstream_input"
+"Q08775","Q08775","gene_protein","TF",FALSE,1.12366002869198,4,"upstream_input"
+"Rxra","P28700","gene_protein","TF",FALSE,2.52536642852727,3,"upstream_input"
+"Foxo1","Q9R1E0","gene_protein","TF",FALSE,1.66634256325184,3,"upstream_input"
+"Trp73","Q9JJP2","gene_protein","TF",FALSE,0.862808095269577,3,"upstream_input"
+"Klf5","Q9Z0Z7","gene_protein","TF",FALSE,1.26252775175455,3,"upstream_input"
+"Hif1a","Q61221","gene_protein","TF",FALSE,0.627930529434315,3,"upstream_input"
+"Rela","Q04207","gene_protein","TF",FALSE,-2.33996286223121,3,"upstream_input"
+"Rara","P11416","gene_protein","TF",FALSE,2.16713834802721,3,"upstream_input"
+"Gtf2i","Q9ESZ8","gene_protein","TF",FALSE,1.80072710742482,4,"upstream_input"
+"Esrrg","P62509","gene_protein","TF",FALSE,0.689481752256976,4,"upstream_input"
+"Nr0b2","Q62227","gene_protein","TF",FALSE,-1.46662815810977,3,"upstream_input"
+"Gli1","P47806","gene_protein","TF",FALSE,-0.899800499429911,3,"upstream_input"
+"Batf","O35284","gene_protein","TF",FALSE,1.63653787901106,4,"upstream_input"
+"Nr0b1","Q61066","gene_protein","TF",FALSE,2.02299076039576,4,"upstream_input"
+"Gata4","Q08369","gene_protein","TF",FALSE,1.13440789660281,3,"upstream_input"
+"Tal1","P22091","gene_protein","TF",FALSE,1.59562075933846,4,"upstream_input"
+"Ppara","P23204","gene_protein","TF",FALSE,1.24251712397466,3,"upstream_input"
+"Brca1","P48754","gene_protein","TF",FALSE,1.19579430245336,4,"upstream_input"
+"Fosl2","P47930","gene_protein","TF",FALSE,-3.24763067525906,3,"upstream_input"
+"Fus","P56959","gene_protein","TF",FALSE,1.49151339822396,4,"other"
+"Npm1","Q61937","gene_protein","TF",FALSE,1.23927625930705,4,"upstream_input"
+"Tef","Q9JLC6","gene_protein","TF",FALSE,1.39783784196501,5,"upstream_input"
+"Ctnnb1","Q02248","gene_protein","TF",FALSE,0.776233378056028,3,"upstream_input"
+"Srsf2","Q62093","gene_protein","TF",FALSE,-1.89980233811625,5,"upstream_input"
+"E2f2","P56931","gene_protein","TF",FALSE,1.35728746405016,4,"upstream_input"
+"Crebzf","Q91ZR3","gene_protein","TF",FALSE,1.26252775175455,3,"upstream_input"
+"Elavl1","P70372","gene_protein","mRNA",FALSE,1.21127313843715,4,"other"
+"Pcna","P17918","gene_protein","mRNA",FALSE,1.10790927513889,4,"other"
+"Lyn","P25911","gene_protein","mRNA",FALSE,-1.00512238798242,4,"other"
+"Pcbp2","Q61990","gene_protein","PPI/kinase",FALSE,1.49845250957126,5,"other"
+"Egfr","Q01279","gene_protein","mRNA",FALSE,-3.24763067525906,3,"other"
+"Jak2","Q62120","gene_protein","mRNA",FALSE,2.77486351824202,3,"other"
+"Prkaca","P05132","gene_protein","mRNA",FALSE,2.39713909664202,3,"upstream_input"
+"Prkcq","Q02111","gene_protein","mRNA",FALSE,-1.65462029440521,4,"other"
+"Erbb4","Q61527","gene_protein","mRNA",FALSE,-0.768348864759109,4,"other"
+"Spart","Q8R1X6","gene_protein","mRNA",FALSE,1.39536791939797,5,"other"
+"Casp1","P29452","gene_protein","mRNA",FALSE,-1.0342262380599,4,"other"
+"Lrig1","P70193","gene_protein","PPI/kinase",FALSE,2.86231443436029,4,"other"
+"Prkce","P16054","gene_protein","mRNA",FALSE,2.31334484492525,4,"other"
+"Erbb2","P70424","gene_protein","mRNA",FALSE,1.26252775175455,3,"other"
+"Rbbp7","Q60973","gene_protein","mRNA",FALSE,-1.23927625930705,4,"other"
+"Prkcz","Q02956","gene_protein","mRNA",FALSE,-1.6628916430651,3,"other"
+"Ikbke","Q9R0T8","gene_protein","mRNA",FALSE,-0.685873081258387,4,"other"
+"Prkaa1","Q5EG47","gene_protein","mRNA",FALSE,-0.664262005263282,4,"other"
+"Capn1","O35350","gene_protein","PPI/kinase",FALSE,1.54635645725305,4,"other"
+"Itga5","P11688","gene_protein","mRNA",FALSE,2.83021440866844,5,"other"
+"Ptpn6","P29351","gene_protein","mRNA",FALSE,1.45085724741447,4,"other"
+"Gene1497__orphanReacMAR08428","Gene1497__orphanReacMAR08428","gene_protein","enzyme",TRUE,-0.853815643240826,1,"other"
+"Gene1760__orphanReacMAR08754","Gene1760__orphanReacMAR08754","gene_protein","enzyme",TRUE,1.2192058845425,1,"other"
+"Slc29a3","GEMenz__Q99P65","gene_protein","enzyme",FALSE,NA,NA,NA
+"Abcb1a (GEMenz__P21447)","GEMenz__P21447","gene_protein","enzyme",FALSE,1.09313028399195,NA,NA
+"Slc16a12","GEMenz__Q8BGC3","gene_protein","enzyme",FALSE,NA,NA,NA
+"Slc29a2 (GEMenz__Q61672)","GEMenz__Q61672","gene_protein","enzyme",FALSE,2.14635465338354,NA,NA
+"Fasn (GEMenz__P19096)","GEMenz__P19096","gene_protein","enzyme",FALSE,1.06512974623448,NA,NA
+"Aqp9 (GEMenz__Q9JJJ3)","GEMenz__Q9JJJ3","gene_protein","enzyme",FALSE,-1.75371274927023,NA,NA
+"Slc6a8 (GEMenz__Q8VBW1)","GEMenz__Q8VBW1","gene_protein","enzyme",FALSE,-2.76303705967065,NA,NA
+"Slc29a1","GEMenz__Q9JIM1","gene_protein","enzyme",FALSE,NA,NA,NA
+"Urea_m","Metab__CHEBI:16199_m","metabolite","metabolite",FALSE,-3.9547122861964,0,"level0"
+"Hprt1","GEMenz__P00493","gene_protein","enzyme",FALSE,NA,NA,NA
+"Xdh","GEMenz__Q00519","gene_protein","enzyme",FALSE,NA,NA,NA
+"Gene357__orphanReacMAR08484","Gene357__orphanReacMAR08484","gene_protein","enzyme",TRUE,NA,NA,NA
+"Gene3374__orphanReacMAR09290","Gene3374__orphanReacMAR09290","gene_protein","enzyme",TRUE,NA,NA,NA
+"Gene3423__orphanReacMAR09362","Gene3423__orphanReacMAR09362","gene_protein","enzyme",TRUE,NA,NA,NA
+"Gene3490__orphanReacMAR09438","Gene3490__orphanReacMAR09438","gene_protein","enzyme",TRUE,NA,NA,NA
+"Gene4178__orphanReacMAR08975","Gene4178__orphanReacMAR08975","gene_protein","enzyme",TRUE,NA,NA,NA
+"Gene4754__orphanReacMAR11869","Gene4754__orphanReacMAR11869","gene_protein","enzyme",TRUE,NA,NA,NA
+"Bard1 (GEMenz__O70445)","GEMenz__O70445","gene_protein","enzyme",FALSE,0.66464677417399,NA,NA
+"Calm1 (GEMenz__P0DP26)","GEMenz__P0DP26","gene_protein","enzyme",FALSE,0.803005077831859,NA,NA
+"Dnmt1 (GEMenz__P13864)","GEMenz__P13864","gene_protein","enzyme",FALSE,1.68913758057281,NA,NA
+"Tgm2 (GEMenz__P21981)","GEMenz__P21981","gene_protein","enzyme",FALSE,1.37183205418057,NA,NA
+"Cbl (GEMenz__P22682)","GEMenz__P22682","gene_protein","enzyme",FALSE,-1.58350228448229,NA,NA
+"Mdm2 (GEMenz__P23804)","GEMenz__P23804","gene_protein","enzyme",FALSE,-1.02153228492434,NA,NA
+"Fkbp1a (GEMenz__P26883)","GEMenz__P26883","gene_protein","enzyme",FALSE,1.318068661419,NA,NA
+"Fkbp4 (GEMenz__P30416)","GEMenz__P30416","gene_protein","enzyme",FALSE,0.818758167510834,NA,NA
+"Sirt6 (GEMenz__P59941)","GEMenz__P59941","gene_protein","enzyme",FALSE,1.32578546826347,NA,NA
+"Dbp (GEMenz__Q60925)","GEMenz__Q60925","gene_protein","enzyme",FALSE,0.881617444079675,NA,NA
+"Cyld (GEMenz__Q80TQ2)","GEMenz__Q80TQ2","gene_protein","enzyme",FALSE,1.1004944108411,NA,NA
+"Pja2 (GEMenz__Q80U04)","GEMenz__Q80U04","gene_protein","enzyme",FALSE,2.3989802965951,NA,NA
+"Cblc (GEMenz__Q80XL1)","GEMenz__Q80XL1","gene_protein","enzyme",FALSE,2.86231443436029,NA,NA
+"Chfr (GEMenz__Q810L3)","GEMenz__Q810L3","gene_protein","enzyme",FALSE,-2.05116712931756,NA,NA
+"Itch (GEMenz__Q8C863)","GEMenz__Q8C863","gene_protein","enzyme",FALSE,1.70609947285874,NA,NA
+"Kat5 (GEMenz__Q8CHK4)","GEMenz__Q8CHK4","gene_protein","enzyme",FALSE,0.705641040475454,NA,NA
+"Uhrf1 (GEMenz__Q8VDF2)","GEMenz__Q8VDF2","gene_protein","enzyme",FALSE,1.23927625930705,NA,NA
+"Sirt1 (GEMenz__Q923E4)","GEMenz__Q923E4","gene_protein","enzyme",FALSE,0.78990133089647,NA,NA
+"Grk2 (GEMenz__Q99MK8)","GEMenz__Q99MK8","gene_protein","enzyme",FALSE,-0.79583715604265,NA,NA
+"Inpp5d (GEMenz__Q9ES52)","GEMenz__Q9ES52","gene_protein","enzyme",FALSE,-0.636043082852976,NA,NA
+"Sphk2 (GEMenz__Q9JIA7)","GEMenz__Q9JIA7","gene_protein","enzyme",FALSE,-1.36191241321842,NA,NA
+"Prkn (GEMenz__Q9WVS6)","GEMenz__Q9WVS6","gene_protein","enzyme",FALSE,0.640541229476975,NA,NA
+"Htatip2 (GEMenz__Q9Z2G9)","GEMenz__Q9Z2G9","gene_protein","enzyme",FALSE,-0.751088772509733,NA,NA
+"Cish","Q62225","gene_protein","mRNA",FALSE,1.49050422876587,5,"other"
+"Lepr","P48356","gene_protein","mRNA",FALSE,1.69731485865093,4,"other"
+"Gh","P06880","gene_protein","mRNA",FALSE,2.6903221269154,5,"other"
+"Tgfb1","P04202","gene_protein","mRNA",FALSE,-1.30806577008729,4,"other"
+"Errfi1","Q99JZ7","gene_protein","mRNA",FALSE,1.37074445005435,4,"other"
+"Casp8","O89110","gene_protein","mRNA",FALSE,-0.610733560037264,4,"other"
+"Hdac1","O09106","gene_protein","TF",FALSE,1.55514607189339,4,"upstream_input"
+"Icam1","P13597","gene_protein","mRNA",FALSE,-2.86231443436029,4,"other"
+"Mmp9","P41245","gene_protein","mRNA",FALSE,-1.2215871464675,5,"other"
+"Traf6","P70196","gene_protein","mRNA",FALSE,1.14653618539305,4,"other"
+"Ikbkg","O88522","gene_protein","mRNA",FALSE,-2.08749700415826,4,"other"
+"Trp63","O88898","gene_protein","TF",FALSE,-0.791975215926171,3,"upstream_input"
+"Lck","P06240","gene_protein","mRNA",FALSE,0.885510110368587,4,"other"
+"Kit","P05532","gene_protein","mRNA",FALSE,1.67272401156095,4,"other"
+"Notch1","Q01705","gene_protein","TF",FALSE,0.79583715604265,3,"upstream_input"
+"Fyn","P39688","gene_protein","mRNA",FALSE,1.51699397247705,4,"other"
+"Smad2","Q62432","gene_protein","TF",FALSE,0.79583715604265,3,"upstream_input"
+"Ppp3r1","Q63810","gene_protein","PPI/kinase",FALSE,1.50665409684618,4,"other"
+"Ppp3cb","P48453","gene_protein","PPI/kinase",FALSE,2.54856732459531,4,"other"
+"Ppp3ca","P63328","gene_protein","mRNA",FALSE,1.32212370444566,4,"other"
+"Nfatc2","Q60591","gene_protein","TF",FALSE,3.24763067525906,3,"upstream_input"
+"Park7","Q99LX0","gene_protein","TF",FALSE,-1.10962028817374,3,"other"
+"Ezr","P26040","gene_protein","mRNA",FALSE,-1.20125659501688,5,"other"
+"Prkar2b","P31324","gene_protein","mRNA",FALSE,-1.8288583314169,4,"other"
+"Smarca4","Q3TKT4","gene_protein","TF",FALSE,3.24763067525906,3,"upstream_input"
+"Adgrg1","Q8K209","gene_protein","mRNA",FALSE,1.30876067057515,5,"other"
+"Gper1","Q8BMP4","gene_protein","mRNA",FALSE,-2.86231443436029,4,"other"

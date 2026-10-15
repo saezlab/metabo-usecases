@@ -1,0 +1,258 @@
+Acp3	1	Adenosine_c
+Acp3	1	Adenosine_e
+Acp3	1	Adenosine_l
+Nt5c	1	Adenosine_c
+Nt5c	1	Adenosine_e
+Nt5c	1	Adenosine_l
+Nt5c1a	1	Adenosine_c
+Nt5c1a	1	Adenosine_e
+Nt5c1a	1	Adenosine_l
+Nt5c1b	1	Adenosine_c
+Nt5c1b	1	Adenosine_e
+Nt5c1b	1	Adenosine_l
+Nt5c2	1	Adenosine_c
+Nt5c2	1	Adenosine_e
+Nt5c2	1	Adenosine_l
+A0A0N4SVS9	1	Adenosine_c
+A0A0N4SW80	1	Adenosine_c
+S4R2D9	1	Adenosine_c
+A0A0N4SVS9	1	Adenosine_e
+A0A0N4SW80	1	Adenosine_e
+S4R2D9	1	Adenosine_e
+A0A0N4SVS9	1	Adenosine_l
+A0A0N4SW80	1	Adenosine_l
+S4R2D9	1	Adenosine_l
+Nt5c3b	1	Adenosine_c
+Nt5c3b	1	Adenosine_e
+Nt5c3b	1	Adenosine_l
+Nt5e	1	Adenosine_c
+Nt5e	1	Adenosine_e
+Nt5e	1	Adenosine_l
+Nt5m	1	Adenosine_c
+Nt5m	1	Adenosine_e
+Nt5m	1	Adenosine_l
+Rbak	1	Adenosine_c
+Rbak	1	Adenosine_e
+Adenosine_c	1	Adk
+Adenosine_c	1	Dck
+Adenosine_c	1	Ada
+Adenosine_e	1	Ada
+Adenosine_c	1	Pnp
+Pnp	1	Adenosine_c
+Adenosine_c	1	Pnp2
+Pnp2	1	Adenosine_c
+Psph	1	Ser_c
+Vps29	1	Ser_c
+Ser_c	1	Shmt1
+Shmt1	1	Ser_c
+Ser_c	1	Sds
+Ser_c	1	Sdsl
+Ser_c	1	Srr
+Ser_c	1	Agxt
+Ser_x	1	Agxt
+Naa10	1	Carnosine_c
+Carnosine_c	1	Naa10
+Naa11	1	Carnosine_c
+Carnosine_c	1	Naa11
+Naa15	1	Carnosine_c
+Carnosine_c	1	Naa15
+Naa20	1	Carnosine_c
+Carnosine_c	1	Naa20
+Naa30	1	Carnosine_c
+Carnosine_c	1	Naa30
+Naa60	1	Carnosine_c
+Carnosine_c	1	Naa60
+Ahcyl	1	Adenosine_c
+Ahcyl2	1	Adenosine_c
+Ser_c	1	Cbs
+Carns1	1	Carnosine_c
+Carnosine_c	1	Cndp1
+Carnosine_c	1	Cndp2
+Cbs	1	Ser_c
+Adenosine_c	1	Ahcyl
+Adenosine_c	1	Ahcyl2
+Ser_c	1	Sars1
+Ser_c	1	Gene884__orphanReacMAR07197
+Alb	1	Ser_c
+Gene980__orphanReacMAR05260	1	Ser_c
+Gene981__orphanReacMAR05262	1	Ser_c
+Gene982__orphanReacMAR05264	1	Ser_c
+Gene983__orphanReacMAR05266	1	Ser_c
+Gene985__orphanReacMAR05268	1	Ser_c
+Gene986__orphanReacMAR05269	1	Ser_c
+Gene987__orphanReacMAR05270	1	Ser_c
+Gene988__orphanReacMAR05271	1	Ser_c
+Gene989__orphanReacMAR05273	1	Ser_c
+Gene990__orphanReacMAR05275	1	Ser_c
+Gene991__orphanReacMAR05277	1	Ser_c
+Gene992__orphanReacMAR05279	1	Ser_c
+Gene994__orphanReacMAR05281	1	Ser_c
+Gene995__orphanReacMAR05283	1	Ser_c
+Hacd1	1	Ser_c
+Hacd2	1	Ser_c
+Gene999__orphanReacMAR09817	1	Ser_c
+Gene1000__orphanReacMAR09818	1	Ser_c
+Ser_c	1	Ptdss2
+Ser_c	1	Ptdss1
+Pld1	1	Ser_c
+Pld2	1	Ser_c
+Btd	1	Lys_e
+Lys_e	1	Gene3205__orphanReacMAR09041
+Gene3205__orphanReacMAR09041_rev	1	Lys_e
+Ser_e	1	Gene3222__orphanReacMAR09069
+Gene3222__orphanReacMAR09069_rev	1	Ser_e
+Adenosine_e	1	Gene3340__orphanReacMAR09254
+Gene3340__orphanReacMAR09254_rev	1	Adenosine_e
+Ser_c	1	Gene3532__orphanReacMAR00021
+Acp2	1	Adenosine_l
+Acp5	1	Adenosine_l
+Acp6	1	Adenosine_l
+Ser_c	1	Gene4036__orphanReacMAR04413
+Adenosine_c	1	Gene4154__orphanReacMAR07754
+Adenosine_c	1	Gene4155__orphanReacMAR07803
+Carnosine_e	1	Gene4160__orphanReacMAR08644
+Gene4160__orphanReacMAR08644_rev	1	Carnosine_e
+Ser_c	1	Gene4227__orphanReacMAR09931
+Gene4394__orphanReacMAR10994	1	Ser_c
+Ser_c	1	Gene4394__orphanReacMAR10994_rev
+Gene4404__orphanReacMAR11004	1	Ser_c
+Ser_c	1	Gene4404__orphanReacMAR11004_rev
+Gene4435__orphanReacMAR11035	1	Ser_c
+Ser_c	1	Gene4435__orphanReacMAR11035_rev
+Gene4462__orphanReacMAR11062	1	Ser_c
+Ser_c	1	Gene4462__orphanReacMAR11062_rev
+Gene4486__orphanReacMAR11086	1	Ser_c
+Ser_c	1	Gene4486__orphanReacMAR11086_rev
+Gene4494__orphanReacMAR11094	1	Ser_c
+Ser_c	1	Gene4494__orphanReacMAR11094_rev
+Gene4529__orphanReacMAR11129	1	Ser_c
+Ser_c	1	Gene4529__orphanReacMAR11129_rev
+Gene4551__orphanReacMAR11151	1	Ser_c
+Ser_c	1	Gene4551__orphanReacMAR11151_rev
+Gene4552__orphanReacMAR11152	1	Ser_c
+Ser_c	1	Gene4552__orphanReacMAR11152_rev
+Gene4553__orphanReacMAR11153	1	Ser_c
+Ser_c	1	Gene4553__orphanReacMAR11153_rev
+Gene4554__orphanReacMAR11154	1	Ser_c
+Ser_c	1	Gene4554__orphanReacMAR11154_rev
+Gene4555__orphanReacMAR11155	1	Ser_c
+Ser_c	1	Gene4555__orphanReacMAR11155_rev
+Gene4556__orphanReacMAR11156	1	Ser_c
+Ser_c	1	Gene4556__orphanReacMAR11156_rev
+Gene4557__orphanReacMAR11157	1	Ser_c
+Ser_c	1	Gene4557__orphanReacMAR11157_rev
+Gene4566__orphanReacMAR11166	1	Ser_c
+Ser_c	1	Gene4566__orphanReacMAR11166_rev
+Gene4591__orphanReacMAR11191	1	Ser_c
+Ser_c	1	Gene4591__orphanReacMAR11191_rev
+Gene4601__orphanReacMAR11201	1	Ser_c
+Ser_c	1	Gene4601__orphanReacMAR11201_rev
+Gene4618__orphanReacMAR11218	1	Ser_c
+Ser_c	1	Gene4618__orphanReacMAR11218_rev
+Glutarate_e	1	Gene4652__orphanReacMAR11392
+Gene4652__orphanReacMAR11392_rev	1	Glutarate_e
+Ser_c	1	Gene4858__orphanReacMAR12140
+Ser_c	1	Gene5104__orphanReacMAR13078
+Ser_c	1	Gene5119__orphanReacMAR10064
+Ep300 (B2RWS6)	1	Ep300 (GEMenz__B2RWS6)
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
+Cbl (P22682)	1	Cbl (GEMenz__P22682)
+Mdm2 (P23804)	1	Mdm2 (GEMenz__P23804)
+Sirt6 (P59941)	1	Sirt6 (GEMenz__P59941)
+Siah2 (Q06986)	1	Siah2 (GEMenz__Q06986)
+Ezh2 (Q61188)	1	Ezh2 (GEMenz__Q61188)
+Cblc (Q80XL1)	1	Cblc (GEMenz__Q80XL1)
+Znrf1 (Q91V17)	1	Znrf1 (GEMenz__Q91V17)
+Nrf1 (Q9WU00)	1	Nrf1 (GEMenz__Q9WU00)
+Adenosine_c	1	Casp3
+Adenosine_c	1	Fyn
+Adenosine_e	1	Fyn
+Usf1	1	Fasn (P19096)
+Id1	1	Fasn (P19096)
+Srebf1	1	Fasn (P19096)
+Nr1h3	1	Fasn (P19096)
+Nkx3-1	1	Mdm2 (P23804)
+Esr1	1	Siah2 (Q06986)
+Nr1h4	1	Fasn (P19096)
+Mlxipl	1	Fasn (P19096)
+Klf5	1	Fasn (P19096)
+Foxo3	1	Sirt6 (P59941)
+Nrf1 (Q9WU00)	1	Sirt6 (P59941)
+Ezh2 (Q61188)	1	Tnfsf10
+Esr1	1	Fasn (P19096)
+Ezh2 (Q61188)	1	Hoxa7
+Ep300 (B2RWS6)	1	Erbb2
+Ep300 (B2RWS6)	1	Brca1
+Brca1	1	Ep300 (B2RWS6)
+Ep300 (B2RWS6)	1	Epo
+Ep300 (B2RWS6)	1	Il5
+Ets1	-1	Mdm2 (P23804)
+Ezh2 (Q61188)	1	Axl
+Ezh2 (Q61188)	1	Mmp2
+Ezh2 (Q61188)	-1	Twist1
+Fus	-1	Mdm2 (P23804)
+Ezh2 (Q61188)	-1	Il13
+Nfkb1	1	Mdm2 (P23804)
+Hif1a	1	Fasn (P19096)
+Usf2	1	Fasn (P19096)
+Pknox1	-1	Fasn (P19096)
+Sirt6 (P59941)	1	Rbbp8
+Sirt6 (P59941)	-1	Rela
+Cbl (P22682)	1	Lyn
+Lyn	1	Cbl (P22682)
+Cbl (P22682)	1	Syk
+Syk	1	Cbl (P22682)
+Ep300 (B2RWS6)	1	Hif1a
+Egfr	1	Cbl (P22682)
+Cbl (P22682)	1	Egfr
+Siah2 (Q06986)	-1	Hipk2
+Ezh2 (Q61188)	-1	Brca1
+Cbl (P22682)	-1	Kit
+Cblc (Q80XL1)	-1	Egfr
+Cbl (P22682)	-1	Fyn
+Cbl (P22682)	-1	Lrig1
+Siah2 (Q06986)	-1	Vav2
+Ep300 (B2RWS6)	1	Dusp1
+Mapk14	1	Siah2 (Q06986)
+Lrig1	1	Cblc (Q80XL1)
+Cbl (P22682)	-1	Erbb2
+Erbb2	1	Fasn (P19096)
+Egfr	1	Znrf1 (Q91V17)
+Jak2	-1	Ezh2 (Q61188)
+Mapk14	-1	Ezh2 (Q61188)
+Btrc	-1	Ezh2 (Q61188)
+Mdm2 (P23804)	-1	Nfatc2
+Mdm2 (P23804)	-1	Sirt6 (P59941)
+Mdm2 (P23804)	-1	Hif1a
+Sirt6 (P59941)	1	Srebf1
+Cbl (P22682)	-1	Jak2
+Znrf1 (Q91V17)	-1	Cav1
+Itga5	-1	Cbl (P22682)
+Cbl (P22682)	-1	Itga5
+Slc3a1	1	Ser_c
+Slc3a1	1	Lys_e
+Gene1730__orphanReacMAR04468	1	Ser_c
+Gene1730__orphanReacMAR04468	1	Ser_x
+Slc29a3	1	Adenosine_c
+Slc29a3	1	Adenosine_l
+Slc15a1	1	Carnosine_c
+Gene2402__orphanReacMAR09821	1	Carnosine_c
+Gene2402__orphanReacMAR09821	1	Carnosine_e
+Slc22a8	1	Glutarate_e
+Gene2730__orphanReacMAR11735	1	Glutarate_e
+Slc43a1	1	Ser_e
+Fasn (GEMenz__P19096)	1	Adenosine_c
+Fasn (GEMenz__P19096)	1	Adenosine_e
+Carnosine_c	1	Gene2402__orphanReacMAR09821
+Carnosine_e	1	Slc15a1
+Carnosine_e	1	Gene2402__orphanReacMAR09821
+Adenosine_c	1	Slc29a3
+Adenosine_c	1	Fasn (GEMenz__P19096)
+Adenosine_e	1	Fasn (GEMenz__P19096)
+Adenosine_l	1	Slc29a3
+Ser_c	1	Gene1730__orphanReacMAR04468
+Ser_c	1	Slc43a1
+Ser_e	1	Slc3a1
+Ser_x	1	Gene1730__orphanReacMAR04468
+Glutarate_e	1	Slc22a8
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
