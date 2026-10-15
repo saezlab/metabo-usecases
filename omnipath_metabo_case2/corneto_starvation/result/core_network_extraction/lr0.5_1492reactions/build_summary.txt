@@ -1,0 +1,11 @@
+full_model_reactions: 12987
+full_model_metabolites: 8454
+scored_reactions: 3510 (2334 positive, 343 negative)
+solver_status: user_limit
+biomass_reaction: MAR00021
+biomass_flux: 0.01 (floor 0.01)
+core_network_reactions: 1492
+  evidence-supported (kept because scored): 963
+  gap-filled (kept with no direct evidence, structurally required): 529
+core_network_metabolites: 1343
+lambda_reg: 0.5, eps: 0.01

@@ -1,0 +1,4 @@
+set,n_genes
+protein only (no transcript measurement),34
+transcript only (no protein measurement),10599
+measured in both,3418

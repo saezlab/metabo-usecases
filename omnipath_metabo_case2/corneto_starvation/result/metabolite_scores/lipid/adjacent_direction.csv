@@ -1,0 +1,17 @@
+metabolite_name,WT_0h,WT_12h,WT_16h,WT_24h,WT_2h,WT_4h,WT_6h,WT_8h,ob_ob_0h,ob_ob_12h,ob_ob_16h,ob_ob_24h,ob_ob_2h,ob_ob_4h,ob_ob_6h,ob_ob_8h
+CE,NA,Down,NS,Down,NS,NS,Down,Down,NA,NS,Down,Up,Down,NS,NS,Up
+Cer,NA,NS,Down,Up,NS,NS,NS,Up,NA,NS,Down,Up,NS,NS,NS,NS
+Cholesterol,NA,NS,Down,Up,NS,NS,NS,NS,NA,Up,Down,Up,Down,NS,NS,NS
+DG,NA,Up,NS,NS,NS,NS,NS,NS,NA,NS,Down,Up,Down,NS,NS,Up
+HexCer,NA,NS,Down,Up,NS,NS,Down,Up,NA,NS,Down,Up,Down,Up,NS,NS
+LPC,NA,Up,NS,Up,NS,NS,NS,NS,NA,Up,Down,Up,NS,NS,NS,NS
+LPE,NA,NS,Down,Up,NS,NS,NS,NS,NA,Up,Down,Up,NS,NS,NS,NS
+MG,NA,NS,Down,NS,NS,NS,NS,Up,NA,NS,Down,Up,NS,NS,NS,NS
+PA,NA,Up,Down,Up,NS,NS,NS,NS,NA,Up,Down,Up,Down,NS,NS,NS
+PC,NA,NS,NS,Up,NS,NS,NS,NS,NA,Up,Down,Up,NS,NS,NS,NS
+PE,NA,NS,Down,NS,NS,NS,NS,NS,NA,Up,Down,Up,Down,NS,NS,NS
+PG,NA,Up,Down,Up,NS,NS,NS,NS,NA,Up,Down,Up,NS,NS,NS,NS
+PI,NA,NS,NS,NS,NS,NS,NS,NS,NA,Up,Down,Up,Down,NS,NS,NS
+PS,NA,NS,Down,Up,NS,NS,NS,NS,NA,Up,Down,Up,Down,Up,NS,Up
+SM,NA,Up,Down,Up,NS,NS,NS,NS,NA,Up,Down,Up,NS,Up,NS,NS
+TG,NA,Up,Down,Down,Up,Up,Down,Up,NA,NS,Down,Up,Down,Up,NS,Up
