@@ -117,7 +117,7 @@ case_study_differential <- function(
 #' @importFrom digest digest
 #' @export
 case_study_cosmos_pkn <- function(
-    pkn_dir = file.path("data", "derived", "cancer-cell-lines-cosmos")
+    pkn_dir = repo_path("data", "derived", "cancer-cell-lines-cosmos")
 ) {
 
     files <- list(

@@ -27,7 +27,7 @@
 #' @importFrom digest digest
 #' @export
 azelate_panel_c_data <- function(
-    csv_path = file.path(
+    csv_path = repo_path(
         "data",
         "derived",
         "azelate",
@@ -94,7 +94,7 @@ azelate_panel_c_data <- function(
 #' @importFrom digest digest
 #' @export
 azelate_panel_d_data <- function(
-    csv_path = file.path(
+    csv_path = repo_path(
         "data",
         "derived",
         "azelate",

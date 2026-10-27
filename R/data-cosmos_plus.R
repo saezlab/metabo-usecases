@@ -211,5 +211,5 @@ cosmos_plus_data <- function(
 cosmos_plus_csv_path <- function(species = c("human", "mouse")) {
     species <- match.arg(species)
     filename <- paste0("cosmos_plus_", species, ".csv")
-    file.path("data", "vendored", "cosmos", filename)
+    repo_path("data", "vendored", "cosmos", filename)
 }

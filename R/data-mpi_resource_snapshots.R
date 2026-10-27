@@ -200,7 +200,7 @@ load_vendored_mpi_snapshot <- function(resource,
 #' @keywords internal
 #' @noRd
 mpi_baseline_dir <- function() {
-    file.path('data', 'vendored', 'mpi-baselines')
+    repo_path('data', 'vendored', 'mpi-baselines')
 }
 
 
