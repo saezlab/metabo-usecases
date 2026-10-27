@@ -1,12 +1,12 @@
 # cancer-cell-lines — Cancer cell lines use case (FR-012)
 
-**Mode**: pipeline (six pipeline panels A–F, all rendered from
-vendored CSV / xlsx sources).
+**Mode**: pipeline (four pipeline panels A–D, all rendered from
+CSV / xlsx files in `data/derived/`).
 
 ## Purpose
 
 Refactor of the legacy `omnipath_metabo_case1/` Rmd + script chain (now
-`analyses/cancer-cell-lines*/` and `analyses/azelate/`) into
+`analyses/cancer-cell-lines/` and `analyses/azelate/`) into
 the figures-pipeline R-package layout. See spec FR-012 family in
 `specs/001-figures-pipeline/spec.md`.
 
@@ -27,12 +27,12 @@ the figures-pipeline R-package layout. See spec FR-012 family in
   type — stacked bar of MACDB evidence counts per disease type
   coloured by sample (tissue) type (Blood, Serum, Plasma, …).
   Reads `data/derived/azelate/csvs/cancer_assoc_by_sample_type.csv`.
-- **Panel E** (pipeline): GEM / allosteric edge counts by direction
-  (up- / down-regulated) × resource for KRAS and EGFR contrasts.
-  Stacked bars coloured by COSMOS PKN resource.
-- **Panel F** (pipeline): subcellular-location edge counts —
-  four faceted stacked bars (KRAS up, KRAS down, EGFR up, EGFR
-  down) by single-letter compartment code × resource.
+
+The former Panels E and F (COSMOS PKN edges touching the top
+differential metabolites) were dropped on 2026-10-27 as outdated.
+Their analysis is kept as an archive in
+`analyses/cancer-cell-lines-cosmos/`; the figure as of the first
+preprint is at the tag `preprint_v0`.
 
 ## Artifact IDs
 
@@ -43,28 +43,22 @@ the figures-pipeline R-package layout. See spec FR-012 family in
 | `cancer-cell-lines/panel_b` | figure-panel | pipeline |
 | `cancer-cell-lines/panel_c` | figure-panel | pipeline |
 | `cancer-cell-lines/panel_d` | figure-panel | pipeline |
-| `cancer-cell-lines/panel_e` | figure-panel | pipeline |
-| `cancer-cell-lines/panel_f` | figure-panel | pipeline |
 
 ## Deployment
 
 Currently DB-independent: every panel reads a CSV / xlsx produced
 by an analysis (`data/derived/cancer-cell-lines/`,
-`data/derived/cancer-cell-lines-cosmos/`, `data/derived/azelate/`). The build still resolves `dev5`
+`data/derived/azelate/`). The build still resolves `dev5`
 solely to anchor the snapshot identifier in the provenance sidecar
 so Figure 6 binds to the same `build_id` as the rest of the
 pipeline. Panels C / D will move to live `metabo.omnipathdb.org` /
-omnipath-client queries once that wiring lands; Panels E / F will
-move off the vendored `pkn_*.csv` fixtures to the OmniPath Metabo
-API as part of the T066 refactor.
+omnipath-client queries once that wiring lands.
 
 ## Inputs
 
 | Path | Role |
 |------|------|
-| `data/derived/cancer-cell-lines/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx` (written by `analyses/cancer-cell-lines/04_differential_analysis.Rmd`) | Differential analysis output — sheets `KRAS_filt_limma`, `EGFR_filt_limma` drive Panels A, B; both drive top-DEM ChEBI lookup for Panels E, F. |
-| `data/derived/cancer-cell-lines-cosmos/pkn_allosteric.csv` | COSMOS allosteric PKN edges (vendored fixture). Drives Panels E, F. |
-| `data/derived/cancer-cell-lines-cosmos/pkn_enzyme_metabolite.csv` | COSMOS enzyme-metabolite PKN edges (vendored fixture). Drives Panels E, F. |
+| `data/derived/cancer-cell-lines/ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx` (written by `analyses/cancer-cell-lines/04_differential_analysis.Rmd`) | Differential analysis output — sheets `KRAS_filt_limma`, `EGFR_filt_limma` drive Panels A, B. |
 | `data/derived/azelate/csvs/interaction_types_by_source.csv` | Resolved-only interaction-type × source × relation-count table for Azelate; drives Panel C. |
 | `data/derived/azelate/csvs/cancer_assoc_by_sample_type.csv` | Resolved-only disease-type × sample-type × evidence-count table for Azelate (MACDB); drives Panel D. |
 
@@ -72,8 +66,8 @@ API as part of the T066 refactor.
 
 | File | Description |
 |------|-------------|
-| `out/cancer-cell-lines.{pdf,svg}` | Compact composite — nested patchwork over rows AB / CD / E (×2) / F (×4), 180×220 mm. |
-| `out/panel_{a,b,c,d,e_kras,e_egfr,f_kras_up,f_kras_down,f_egfr_up,f_egfr_down}.{pdf,svg}` | Individual pipeline panels. |
+| `out/cancer-cell-lines.{pdf,svg}` | Composite — rows AB / CD, 180×110 mm. |
+| `out/panel_{a,b,c,d}.{pdf,svg}` | Individual pipeline panels. |
 | `out/cancer-cell-lines-with-caption.pdf` | Composite + typeset caption (xelatex + `tex/caption.sty`, FR-041). |
 | `out/caption.txt` | Plain-text caption (FR-041a). |
 | `out/cancer-cell-lines.pdf.provenance.json` | Provenance sidecar — input fingerprints + composite font scale. |
@@ -81,14 +75,12 @@ API as part of the T066 refactor.
 ## Dependencies
 
 - `R/data-case_study.R` — `case_study_differential()` loader for the
-  DA xlsx and `case_study_cosmos_pkn()` loader for the PKN CSVs.
+  DA xlsx.
 - `R/data-azelate.R` — `azelate_panel_c_data()` / `azelate_panel_d_data()`
   loaders for the azelate query-table CSVs.
 - `R/plots-volcano.R` — `volcano_panel()` (A / B).
 - `R/plots-azelate.R` — `azelate_interaction_panel()` (C) and
   `azelate_disease_panel()` (D).
-- `R/plots-stacked_bars.R` — `gem_allosteric_panel()` (E) and
-  `subcellular_location_panel()` (F).
 
 ## Files
 
@@ -99,10 +91,6 @@ API as part of the T066 refactor.
 
 ## Open items
 
-- **T066** — refactor `01_cosmos_pkn.py` into a CLI helper that
-  fetches the COSMOS PKN from the OmniPath Metabo API (via
-  `omnipath-client`) rather than the legacy `pypath` path. Until
-  this lands, Panels E/F consume the vendored CSV fixtures.
 - **T058–T062, T069** — full Rmd-source refactor and parity gate.
   Out of scope for the current slice; Panels A/B currently read the
   pre-computed limma output directly.

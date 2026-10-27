@@ -56,7 +56,7 @@ figures/<id>/out/, tables/<id>/out/   PDF/SVG/CSV + provenance (gitignored)
 | Folder | Content | Used by |
 |---|---|---|
 | `analyses/cancer-cell-lines/` | Shorthouse 2022 cancer cell line metabolomics: preprocessing, Cellosaurus metadata, feature processing, differential analysis. | Figure 6 |
-| `analyses/cancer-cell-lines-cosmos/` | Connects the differential metabolites to the COSMOS prior-knowledge network. | Figure 6 |
+| `analyses/cancer-cell-lines-cosmos/` | Archived: connects the differential metabolites to the COSMOS prior-knowledge network (outdated, no longer used). | — |
 | `analyses/azelate/` | Azelate evidence retrieval from the OmniPath Metabo API; supplementary workbook. | Figure 6, supplement |
 | `analyses/ramp-ambiguity/` | Exploration of ambiguous RaMP ID mappings (runs on dev2 only). | — |
 

@@ -208,8 +208,7 @@ no access to the databases.
       no or only minor changes.
 - [ ] Re-run `analyses/cancer-cell-lines/01`→`04` with the new paths.
 - [ ] Collaborators review their moved parts (open questions are in each
-      README): Yunfan `analyses/cancer-cell-lines-cosmos/`, Daniele
-      `analyses/azelate/`, Christina/Jonathan `analyses/ramp-ambiguity/`,
+      README): Daniele `analyses/azelate/`, Christina/Jonathan `analyses/ramp-ambiguity/`,
       Denes the pipeline changes.
 - [ ] After the re-run: delete the local, untracked `omnipath_metabo_case1/`
       and its entries in `.gitignore`.
@@ -231,6 +230,11 @@ no access to the databases.
 - **Dead LaTeX template.** `tex/compose_fig01.tex` is not used by any code;
   `figures/database-content/` mentions `compose_fig01.tex` / `compose_fig02.tex`
   in comments.
+- **Unused COSMOS-PKN panel code.** Since the cancer cell lines figure dropped
+  its COSMOS PKN panels, `case_study_cosmos_pkn()`, `case_study_pkn_summary()`,
+  `gem_allosteric_panel()`, `subcellular_location_panel()` and
+  `register_case_study_resource_colours()` are not used by any figure. They
+  stay until it is decided whether the package is slimmed down.
 - **Private spec references.** Comments and READMEs still cite `FR-0xx` and
   `T0xx` ids from the saezverse spec; see the mapping below.
 
@@ -300,7 +304,7 @@ Old spec ids as referenced in the code and READMEs, mapped to the new names:
 | FR-015a | Record-coverage table | `tables/record-coverage/`, `record_coverage_*` |
 | FR-029 | Manuscript bundle | `assemble_bundle()`, `build/manuscript-bundle.pdf`, ordered by `manuscript.yaml` |
 | T058–T062, T069 | Refactor of the use-case Rmds into the pipeline | open; the Rmds now live in `analyses/cancer-cell-lines/` |
-| T066 | COSMOS PKN from the OmniPath Metabo API instead of vendored CSVs | open; see `analyses/cancer-cell-lines-cosmos/` |
+| T066 | COSMOS PKN from the OmniPath Metabo API instead of vendored CSVs | dropped; `analyses/cancer-cell-lines-cosmos/` is archived |
 
 Open items that a new spec for the cancer cell lines use case will likely
 cover:
@@ -308,6 +312,4 @@ cover:
 - re-running `analyses/cancer-cell-lines/` in the pinned environment, with new
   contrasts;
 - replacing the cached intermediates in `03_feature_processing.Rmd`;
-- deciding with Yunfan which COSMOS-PKN scripts are still needed and which DEM
-  selection rule applies;
-- T066 (PKN from the API) and the azelate workbook as a `tables/` artifact.
+- the azelate workbook as a `tables/` artifact.

@@ -1,7 +1,6 @@
 # figures/cancer-cell-lines/build.R
 #
-# Figure 6: lung-cancer use case (Shorthouse 2022 + COSMOS PKN +
-# azelate webapp queries).
+# Cancer cell lines use case (Shorthouse 2022 + azelate webapp queries).
 #
 # Panels:
 #   A — KRAS volcano (limma logFC vs. -log10 P)
@@ -10,18 +9,16 @@
 #       (from data/derived/azelate/csvs/interaction_types_by_source.csv)
 #   D — Azelate cancer associations by sample type
 #       (from data/derived/azelate/csvs/cancer_assoc_by_sample_type.csv)
-#   E — COSMOS PKN GEM/allosteric edge counts by direction × resource
-#       (one sub-panel per contrast: KRAS, EGFR)
-#   F — Subcellular-compartment edges (KRAS up/down, EGFR up/down)
+#
+# The former COSMOS PKN panels (E, F) are dropped; their analysis is
+# kept as an archive in analyses/cancer-cell-lines-cosmos/.
 #
 # Inputs consumed (all repo-local):
 #   - data/derived/cancer-cell-lines/ExtendedDataTable_...xlsx
-#   - data/derived/cancer-cell-lines-cosmos/pkn_{allosteric,enzyme_metabolite}.csv
 #   - data/derived/azelate/csvs/{interaction_types_by_source,cancer_assoc_by_sample_type}.csv
 #
-# The full Differential_Analysis.Rmd / 01_cosmos_pkn.py refactor is
-# deferred to tasks T058–T062 and T066 (the latter will move from
-# the vendored pkn_*.csv fixtures to the omnipath-client API).
+# The refactor of the analysis Rmds into the pipeline is deferred
+# (tasks T058–T062).
 
 suppressPackageStartupMessages({
     library(metabo.figures)
@@ -43,9 +40,9 @@ dep5 <- deployment_provenance("dev5")
 #
 # font_scale: body / axis / title size multiplier. ~1.7 lands axis
 # labels around 10 pt at the panel's rendered size in the composite.
-# legend_scale: separately tuned so the many-entry legends in Panels
-# E and F (9 resources) don't crowd the plot area. 1.1 lands legend
-# text around 6.6 pt with a proportionally smaller key swatch.
+# legend_scale: separately tuned so many-entry legends don't crowd the
+# plot area. 1.1 lands legend text around 6.6 pt with a proportionally
+# smaller key swatch.
 font_scale   <- 1.7
 legend_scale <- 1.1
 
@@ -55,16 +52,12 @@ logger::log_info("[cancer-cell-lines] loading differential-analysis xlsx (KRAS, 
 kras_dem <- case_study_differential("KRAS")
 egfr_dem <- case_study_differential("EGFR")
 
-logger::log_info("[cancer-cell-lines] loading COSMOS PKN fixtures")
-pkn <- case_study_cosmos_pkn()
-
 logger::log_info("[cancer-cell-lines] loading azelate Panel C / Panel D source CSVs")
 azelate_c <- azelate_panel_c_data()
 azelate_d <- azelate_panel_d_data()
 
 # ── Category-colour registration ─────────────────────────────────────────────
 
-register_case_study_resource_colours()
 register_azelate_colours()
 
 # ── Volcano shared limits (FR-019) ───────────────────────────────────────────
@@ -117,60 +110,13 @@ panel_d <- azelate_disease_panel(
     legend_scale = legend_scale
 )
 
-logger::log_info("[cancer-cell-lines] building Panel E PKN summaries (KRAS, EGFR)")
-kras_summary <- case_study_pkn_summary(kras_dem, pkn)
-egfr_summary <- case_study_pkn_summary(egfr_dem, pkn)
-
-panel_e_kras <- gem_allosteric_panel(
-    kras_summary,
-    contrast_label = "KRAS",
-    width_mm       = 89L,
-    font_scale     = font_scale,
-    legend_scale   = legend_scale
-)
-panel_e_egfr <- gem_allosteric_panel(
-    egfr_summary,
-    contrast_label = "EGFR",
-    width_mm       = 89L,
-    font_scale     = font_scale,
-    legend_scale   = legend_scale
-)
-
-logger::log_info("[cancer-cell-lines] rendering Panel F sub-panels (location × direction)")
-panel_f_kras_up <- subcellular_location_panel(
-    kras_summary, "KRAS", "up",
-    width_mm = 89L, font_scale = font_scale,
-    legend_scale = legend_scale
-)
-panel_f_kras_down <- subcellular_location_panel(
-    kras_summary, "KRAS", "down",
-    width_mm = 89L, font_scale = font_scale,
-    legend_scale = legend_scale
-)
-panel_f_egfr_up <- subcellular_location_panel(
-    egfr_summary, "EGFR", "up",
-    width_mm = 89L, font_scale = font_scale,
-    legend_scale = legend_scale
-)
-panel_f_egfr_down <- subcellular_location_panel(
-    egfr_summary, "EGFR", "down",
-    width_mm = 89L, font_scale = font_scale,
-    legend_scale = legend_scale
-)
-
 # ── Save individual panels (per FR-026: SVG + PDF per panel) ─────────────────
 
 individual_panels <- list(
     panel_a            = panel_a,
     panel_b            = panel_b,
     panel_c            = panel_c,
-    panel_d            = panel_d,
-    panel_e_kras       = panel_e_kras,
-    panel_e_egfr       = panel_e_egfr,
-    panel_f_kras_up    = panel_f_kras_up,
-    panel_f_kras_down  = panel_f_kras_down,
-    panel_f_egfr_up    = panel_f_egfr_up,
-    panel_f_egfr_down  = panel_f_egfr_down
+    panel_d            = panel_d
 )
 
 for (name in names(individual_panels)) {
@@ -195,15 +141,6 @@ for (name in names(individual_panels)) {
 # Conceptual layout:
 #   Row 1: A | B                          (volcanos)
 #   Row 2: C | D                          (azelate)
-#   Row 3 (40/60 split):
-#     left  40%: E_kras  /  E_egfr        (vertical stack)
-#     right 60%: (F_kras_up | F_kras_down) /
-#                (F_egfr_up | F_egfr_down) — 2x2 grid
-#
-# All E + F sub-panels share the "resources" colour scale via
-# scale_fill_manual (identical scale objects across plots), so
-# plot_layout(guides = "collect") on the EF block merges every
-# Resource legend into one at the bottom.
 
 row_ab <- patchwork::wrap_plots(
     list(
@@ -221,51 +158,27 @@ row_cd <- patchwork::wrap_plots(
     ncol = 2L
 )
 
-e_col <- (panel_e_kras + ggplot2::labs(tag = "E")) /
-    (panel_e_egfr + ggplot2::labs(tag = ""))
-
-f_grid <- (
-    (panel_f_kras_up   + ggplot2::labs(tag = "F")) |
-    (panel_f_kras_down + ggplot2::labs(tag = ""))
-) / (
-    (panel_f_egfr_up   + ggplot2::labs(tag = "")) |
-    (panel_f_egfr_down + ggplot2::labs(tag = ""))
-)
-
-ef_block <- (e_col | f_grid) +
-    patchwork::plot_layout(
-        guides = "collect",
-        widths = c(0.32, 0.68)
-    ) &
-    ggplot2::theme(legend.position = "bottom")
-
-composite <- (row_ab / row_cd / ef_block) +
-    patchwork::plot_layout(
-        heights = c(1, 1, 2)
-    )
+composite <- row_ab / row_cd
 
 logger::log_info(paste0(
-    "[cancer-cell-lines] assembled compact composite (3 outer rows; EF block ",
-    "shares one legend, 40/60 width split; ",
+    "[cancer-cell-lines] assembled composite (2 rows; ",
     "font_scale={font_scale}, legend_scale={legend_scale})"
 ))
 
-# 180 mm × 215 mm — the EF block reclaims the per-panel legend
-# gutters via guides = "collect"; the 40/60 width split makes
-# E sub-panels taller (less flat) than the previous full-width
-# layout.
+# 180 mm × 110 mm — two rows at the row height of the former
+# three-row layout.
 ggsave(
     filename = file.path(out_dir, "cancer-cell-lines.pdf"),
     plot     = composite,
     width    = 180,
-    height   = 215,
+    height   = 110,
     units    = "mm"
 )
 ggsave(
     filename = file.path(out_dir, "cancer-cell-lines.svg"),
     plot     = composite,
     width    = 180,
-    height   = 215,
+    height   = 110,
     units    = "mm"
 )
 
@@ -278,7 +191,7 @@ caption_info <- compose_caption(
     ),
     caption_source = "figures/cancer-cell-lines/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 6L
+    panel_count    = 4L
 )
 
 # ── Provenance sidecar ────────────────────────────────────────────────────────
@@ -290,18 +203,6 @@ external_inputs <- list(
         fingerprint = attr(kras_dem, "fingerprint"),
         source      = "analyses/cancer-cell-lines/04_differential_analysis.Rmd",
         sheets      = c("KRAS_filt_limma", "EGFR_filt_limma")
-    ),
-    list(
-        kind        = "cosmos-pkn-allosteric",
-        path        = attr(pkn$allosteric, "source_path"),
-        fingerprint = attr(pkn$allosteric, "fingerprint"),
-        source      = "01_cosmos_pkn.py (legacy)"
-    ),
-    list(
-        kind        = "cosmos-pkn-enzyme-metabolite",
-        path        = attr(pkn$enzyme_metabolite, "source_path"),
-        fingerprint = attr(pkn$enzyme_metabolite, "fingerprint"),
-        source      = "01_cosmos_pkn.py (legacy)"
     ),
     list(
         kind        = "azelate-panel-c",
@@ -330,14 +231,9 @@ write_sidecar(
     parameters      = list(
         volcano_pvalue_threshold = 0.05,
         volcano_logfc_threshold  = 0.5,
-        top_dems_per_direction   = 10L,
         font_scale               = font_scale,
         legend_scale             = legend_scale,
-        composite_dims_mm        = list(width = 180L, height = 215L),
-        cosmos_pkn_source        = paste0(
-            "from data/derived/cancer-cell-lines-cosmos/ ",
-            "(pending T066 omnipath-client refactor)"
-        ),
+        composite_dims_mm        = list(width = 180L, height = 110L),
         azelate_source           = paste0(
             "CSVs from data/derived/azelate/csvs/ ",
             "(generated by azelaic_acid_query_tables.py against ",

@@ -1,5 +1,11 @@
 # Cancer cell lines: COSMOS PKN
 
+> **Archived (2026-10-27).** This extension is outdated and no longer used
+> by any figure; it is kept for reference only. The cancer cell lines figure
+> dropped its COSMOS PKN panels (formerly E, F). The figure as of the first
+> preprint is at the tag `preprint_v0`. The open questions below are not
+> being followed up.
+
 Extension of the cancer cell lines use case (Yunfan Bai): builds the COSMOS
 prior-knowledge network (PKN) with `omnipath_metabo` and connects the
 differentially abundant metabolites (DEMs) from
@@ -14,9 +20,9 @@ notes: `NOTES_2026-05-20.md`.
 | `02_connect_dem_pkn.R` | DA xlsx + PKN CSVs | nothing (prints tables) |
 | `03_visualization.R` | DA xlsx + PKN CSVs | `output/` (gitignored) |
 
-Figure 6 (panels E, F) reads the two PKN CSVs through
-`case_study_cosmos_pkn()`. Its plots were ported from `03_visualization.R`
-into `R/plots-stacked_bars.R`.
+Until the first preprint, Figure 6 (panels E, F) read the two PKN CSVs
+through `case_study_cosmos_pkn()`; its plots were ported from
+`03_visualization.R` into `R/plots-stacked_bars.R`.
 
 `01_cosmos_pkn.py` needs the `omnipath_metabo` package. It was run from an
 `omnipath-metabo` checkout, e.g.:
