@@ -1985,7 +1985,14 @@ features_Shorthouse_extended <-
         header = TRUE, 
         encoding="UTF-8", 
         check.names = FALSE
-    )
+    ) %>%
+    distinct()  # two features came out of the ID steps as exact duplicate rows
+
+# one row per measured feature; 04_differential_analysis.Rmd joins by ionIdx
+stopifnot(
+    !anyDuplicated(features_Shorthouse_extended$ionIdx),
+    setequal(features_Shorthouse_extended$ionIdx, Shorthouse_2022$features$ionIdx)
+)
 
 Shorthouse_2022_extended <- Shorthouse_2022
 Shorthouse_2022_extended$features <- features_Shorthouse_extended

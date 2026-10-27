@@ -53,15 +53,21 @@ shorthouse_features <- Shorthouse_2022_extended[["features"]]
 
 stopifnot(identical(rownames(shorthouse_intensities), rownames(shorthouse_samples)))
 
-feature_annotations_raw <- as.data.frame(shorthouse_features)
-if (nrow(feature_annotations_raw) < ncol(shorthouse_intensities)) {
-    stop("Feature metadata has fewer rows than the intensity matrix has columns.")
-}
+# Intensity columns are named V<ionIdx> (01_preprocess.Rmd), so annotations
+# are joined by that key; the feature table is not in column order.
+feature_annotations_raw <-
+    as.data.frame(shorthouse_features) %>%
+    mutate(feature_id = paste0("V", ionIdx))
+
+stopifnot(
+    !anyDuplicated(feature_annotations_raw$feature_id),
+    all(colnames(shorthouse_intensities) %in% feature_annotations_raw$feature_id)
+)
 
 feature_annotations <-
-    feature_annotations_raw[seq_len(ncol(shorthouse_intensities)), , drop = FALSE] %>%
+    tibble(feature_id = colnames(shorthouse_intensities)) %>%
+    left_join(feature_annotations_raw, by = "feature_id") %>%
     mutate(
-        feature_id = colnames(shorthouse_intensities),
         metabolite_name = coalesce(na_if(as.character(name), ""), feature_id),
         metabolite_class = coalesce(na_if(as.character(metabolite_class), ""), "Unclassified")
     )

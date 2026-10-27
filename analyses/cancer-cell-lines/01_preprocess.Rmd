@@ -178,6 +178,13 @@ duplicated_features <- unlist(shorthouse_ions[duplicated(shorthouse_ions$id_list
 # There are three cases in which two ions of different ionMz have been measured with
 # either +F(-) or -H. They were assigned the same metabolite name and HMDB ID.
 
+# duplicated_features holds ionIdx values, used as row/column positions here
+# and in process_intensities; this holds only if ionIdx is 1..n in row order
+stopifnot(
+    identical(as.numeric(shorthouse_ions$ionIdx), as.numeric(seq_len(nrow(shorthouse_ions)))),
+    identical(as.numeric(shorthouse_intensities_raw$ionIdx), as.numeric(seq_len(nrow(shorthouse_intensities_raw))))
+)
+
 shorthouse_ions <- shorthouse_ions[-duplicated_features, ]
 
 ```
