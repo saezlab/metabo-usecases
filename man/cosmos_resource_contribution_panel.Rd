@@ -7,7 +7,8 @@
 cosmos_resource_contribution_panel(
   cosmos_plus_by_resource,
   top_n = 15L,
-  width_mm = 89L
+  width_mm = 89L,
+  position = c("stack", "dodge")
 )
 }
 \arguments{
@@ -18,6 +19,10 @@ cosmos_resource_contribution_panel(
 Default 15.}
 
 \item{width_mm}{Numeric panel width in mm.}
+
+\item{position}{Character: bar arrangement. \code{"stack"} (default)
+keeps the existing stacked layout; \code{"dodge"} draws
+Metabolites and Proteins as side-by-side bars per resource.}
 }
 \value{
 A ggplot object.

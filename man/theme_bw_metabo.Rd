@@ -4,12 +4,26 @@
 \alias{theme_bw_metabo}
 \title{The metabo.figures shared ggplot2 theme}
 \usage{
-theme_bw_metabo(width_mm = 89)
+theme_bw_metabo(width_mm = 89, font_scale = 1, legend_scale = NULL)
 }
 \arguments{
 \item{width_mm}{Numeric: target physical figure width in mm.
 \code{89} for single-column, \code{180} for double-column per
 the Nature/Bioinformatics envelope (FR-017a).}
+
+\item{font_scale}{Numeric: multiplier applied to body / axis-label
+/ axis-tick / panel-title / strip / plot-tag font sizes before
+the theme is constructed. Default \code{1} keeps the
+\code{\link{font_sizes}} floor (FR-017a). Composites that
+render each panel at a smaller-than-single-column physical
+size can pass \code{1.5}--\code{2.5} so labels remain readable
+(memory: \code{feedback_composite_panel_label_sizes}).}
+
+\item{legend_scale}{Numeric or \code{NULL}: separate multiplier for
+legend text / title / key size / spacing. \code{NULL} (default)
+inherits \code{font_scale}. Pass a value smaller than
+\code{font_scale} when a panel has many legend entries so the
+legend block does not crowd the plot area.}
 }
 \value{
 A ggplot2 theme object.

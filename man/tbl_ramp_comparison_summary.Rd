@@ -4,10 +4,7 @@
 \alias{tbl_ramp_comparison_summary}
 \title{RaMP InChIKey-conflict summary for the FR-015 Methods table}
 \usage{
-tbl_ramp_comparison_summary(
-  panel_id = "ramp-comparison",
-  example_count = 2L
-)
+tbl_ramp_comparison_summary(panel_id = "ramp-comparison", example_count = 2L)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default

@@ -4,7 +4,11 @@
 \alias{deployment_provenance}
 \title{Resolve a deployment + its native build_manifest in one shot}
 \usage{
-deployment_provenance(deployment, archive_dir = file.path("build", "manifests"))
+deployment_provenance(
+  deployment,
+  archive_dir = file.path("build", "manifests"),
+  allow_optin = FALSE
+)
 }
 \arguments{
 \item{deployment}{Character: deployment label

@@ -2,28 +2,32 @@
 % Please edit documentation in R/data-cosmos_old.R
 \name{cosmos_old_pkn}
 \alias{cosmos_old_pkn}
-\title{Load the old COSMOS prior-knowledge network}
+\title{Load the old COSMOS prior-knowledge network from cosmosR}
 \usage{
 cosmos_old_pkn()
 }
 \value{
 A tibble with columns \code{interaction_type} and
 \code{n_edges}, ordered by \code{n_edges} descending.
-Carries a \code{"source_path"} attribute (vendored file path)
-and a \code{"fingerprint"} attribute (MD5 hex digest) for
+Carries a \code{"source_pkg"} attribute (package name + version)
+and a \code{"fingerprint"} attribute (package version string) for
 sidecar recording.
 }
 \description{
-Reads the vendored \code{inst/extdata/cosmos/meta_network.RData} —
-the pre-OmniPath-Metabo COSMOS PKN serialised from
-\code{cosmosR/data/meta_network.RData} (v1.18.1). Returns
-edge counts per interaction-type category (FR-011, FR-011a)
-suitable for direct use in the grouped-bar comparison renderer
-in \code{\link{cosmos_old_vs_new}}.
+Installs \pkg{cosmosR} from \code{saezlab/cosmosR} on GitHub if not
+already present, then loads the \code{meta_network} dataset and
+categorises edges by node-prefix pattern (FR-011, FR-011a):
 }
 \details{
-The old PKN contains ONLY edges derived from metabolic reactions.
-The comparison figure (FR-011a) must make the scope mismatch
-explicit: categories present in the new PKN but absent here appear
-with an empty old-PKN bar.
+\describe{
+\item{PPI}{Both source and target are plain gene symbols — mixture
+of OmniPath-LR and Collectri; indistinguishable without metadata.}
+\item{metabolite_protein}{Source starts with \code{Metab__}, target
+is a plain gene symbol (STITCH and Recon3D bidirectional).}
+\item{metabolic_reaction}{Plain gene symbol source, target starts
+with \code{Metab__} (Recon3D GEM reactions).}
+}
+
+Edges where either node carries a \code{Gene} prefix are bridge nodes
+(Recon3D internal connectors) and are removed before counting.
 }
