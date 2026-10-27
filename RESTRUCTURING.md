@@ -75,6 +75,9 @@ In order on `restructure`, starting from `preprint_v0` (`25136b9`):
 | `80128de` | Figure/table folders named by content; `manuscript.yaml` | The June renumbering left stale ids everywhere; the next one would have done the same. |
 | `bf64b32` | Functions, R files and output files named by content | Names carried old figure numbers (`fig03_*` drew Figure 4) or private spec ids (`fr007a`). |
 | `f6b6778` | `logs/`, `manifests/`, bundle → `build/` | One gitignored place for pipeline output instead of three root folders. |
+| `7ee388d` | Loaders resolve `data/` paths from the repo root (`repo_path()`) | Fixes a regression from `3611cde`: cwd-relative paths failed outside the repo root, e.g. in tests. |
+| `68bbc68` | Regenerate `NAMESPACE` and `man/` with roxygen2 | The Figure 6 functions were never exported, so the figure did not build from an installed package (also on `preprint_v0`). |
+| `a660713` | Drop the COSMOS PKN panels (E, F) from the cancer cell lines figure | Outdated; the analysis stays as an archive in `analyses/cancer-cell-lines-cosmos/`. |
 
 ## Rename maps
 
@@ -194,18 +197,28 @@ These also appear in `AGENTS.md` and `README.md`.
 
 ## Before merging
 
-None of the commits above was executed, only syntax-checked. The local
-machine used for the restructure has R 4.1.2 (the pipeline needs R ≥ 4.3) and
-no access to the databases.
+The commits up to `0baa991` were only syntax-checked: the local machine used
+for the restructure has R 4.1.2 (the pipeline needs R ≥ 4.3) and no access to
+the databases. Checks on beauty started on 2026-10-27.
 
-- [ ] Full pipeline on beauty: `./rebuild.sh --dry-run`, lint,
-      `devtools::test()`, then `./rebuild.sh --check --bundle`. Confirm every
-      figure and table builds and the bundle is in `manuscript.yaml` order.
-- [ ] `test-palette-consistency.R` pointed at build paths that no longer
-      existed, so its build-script checks were skipped silently since June.
-      They run again now and may fail.
-- [ ] Regenerate `man/` and `NAMESPACE` with `devtools::document()`; expect
-      no or only minor changes.
+`rebuild.R` loads the *installed* `metabo.figures`. The library of the shared
+`omnipath` account on beauty holds the version from 2026-06-18, which other
+checkouts use, so test runs install the branch into a private library
+(`R CMD INSTALL --library=.Rlib .`, then `R_LIBS=$PWD/.Rlib`).
+
+- [x] `./rebuild.sh --dry-run`: all figures and tables planned in
+      `manuscript.yaml` order.
+- [x] `devtools::test()` on `restructure` and `preprint_v0` side by side:
+      no test changes status except three that were skipped on `preprint_v0`
+      and now run (see Known issues). All other failures exist on
+      `preprint_v0` too.
+- [x] Regenerate `man/` and `NAMESPACE` with `devtools::document()`
+      (`68bbc68`).
+- [x] `./rebuild.sh cancer-cell-lines` builds (panels A–D).
+- [ ] Remaining figures and tables, then `./rebuild.sh --check --bundle`,
+      and lint. Compare outputs of `preprint_v0` and `restructure` built
+      against the same database build (the builds used for the preprint no
+      longer exist, see Known issues).
 - [ ] Re-run `analyses/cancer-cell-lines/01`→`04` with the new paths.
 - [ ] Collaborators review their moved parts (open questions are in each
       README): Daniele `analyses/azelate/`, Christina/Jonathan `analyses/ramp-ambiguity/`,
@@ -214,6 +227,28 @@ no access to the databases.
       and its entries in `.gitignore`.
 
 ## Known issues (not fixed in the restructure)
+
+- **Preprint database builds are gone.** The preprint outputs (10–18 June
+  2026) record their builds in the provenance sidecars: dev5 `fca549e16f3c`
+  (most figures and tables), prod `3c096879e546` (MetaLinks versions), and
+  dev3 `bf7f1a7c4ee2` / dev4 `52a1a8472300` for earlier drafts. All dev
+  deployments have been rebuilt since; no dumps of these builds were found on
+  beauty. The database-backed preprint figures cannot be reproduced exactly
+  unless such dumps exist.
+- **Failing tests (also on `preprint_v0`).** `test-deployment-routing.R`
+  (routing changed since dev5 came into use), `test-sidecar-schema.R` and
+  `test-style-readability.R` (logger writes to a deleted temp dir),
+  `test-baseline-grid.R` (`compose_patchwork()` no longer takes
+  `widths`/`heights`), `test-panel-a-digest.R`, `test-palettes.R`,
+  `test-comparison-basis.R` (`cosmos_old_vs_new()` no longer exists;
+  `metalinks_v1_snapshot()` returns a list), and `test-palette-consistency.R`
+  (`category_colours` not exported; `expect_length()` has no `label`
+  argument). The last two had been skipped since June because of dead paths.
+- **COSMOS+ tests are very slow.** `cosmos_plus_data()` on the 29 MB vendored
+  CSV ran for more than 40 minutes at full CPU in
+  `test-cosmos-pkn-composite-merge.R` without finishing.
+- **No `xelatex` on beauty's PATH** in the pipeline environment, so captioned
+  PDFs are skipped.
 
 - **Old COSMOS PKN is not pinned.** `cosmos_old_pkn()` installs cosmosR from
   GitHub HEAD at build time and uses its `meta_network`. It ignores the
