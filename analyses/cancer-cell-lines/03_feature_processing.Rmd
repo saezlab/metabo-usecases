@@ -313,7 +313,7 @@ id_summary_Shorthouse <- tibble(
 id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_HMDB,    "HMDB_original")
 id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_KEGG,    "KEGG_original")
 id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_CHEBI,   "CHEBI_original")
-id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_KEGG,    "PUBCHEM_original")
+id_summary_Shorthouse <- append_id_counts(id_summary_Shorthouse, count_id_Shorthouse_original_PUBCHEM, "PUBCHEM_original")
 
 none_summary_Shorthouse <- tibble(
   row_name = character(),
@@ -326,25 +326,24 @@ none_summary_Shorthouse <- append_none_summary(none_summary_Shorthouse, features
 ```{r}
 # 2. Perform ID QC seed_id_compatibility_check
 
-# features_Shorthouse_compatibility_check <-
-#     MetaProViz:::seed_id_compatibility_check(
-#         data = features_Shorthouse_original,
-#         id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
-#         delimiter = ";",
-#         verbose = TRUE
-#     )
-# save(features_Shorthouse_compatibility_check, file = file.path(derived_dir, "features_Shorthouse_compatibility_check.RData"))
-
-load(file.path(derived_dir, "features_Shorthouse_compatibility_check.RData"))
+features_Shorthouse_compatibility_check <-
+    MetaProViz:::seed_id_compatibility_check(
+        data = features_Shorthouse_original,
+        id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
+        delimiter = ";",
+        verbose = TRUE
+    )
+save(features_Shorthouse_compatibility_check, file = file.path(derived_dir, "features_Shorthouse_compatibility_check.RData"))
 
 compatibility_by_feature_Shorthouse <- 
     features_Shorthouse_compatibility_check$ID_pair_compatibility %>%
-    group_by(name) %>%
+    # group per feature: different features can share a name (e.g. two ions)
+    group_by(row_id, name) %>%
     summarise(
         n_pairs = n(),
         n_true = sum(pair_compatible == TRUE, na.rm = TRUE),
         n_false = sum(pair_compatible == FALSE, na.rm = TRUE),
-        all_seed_ids_compatible = all_seed_ids_compatible,
+        all_seed_ids_compatible = dplyr::first(all_seed_ids_compatible),
         compatibility_class = case_when(
             all_seed_ids_compatible ~ "fully_compatible",
             !all_seed_ids_compatible & n_true > 0 & n_false > 0 ~ "partially_compatible",
@@ -749,17 +748,15 @@ none_delta_Shorthouse <- calculate_none_delta(none_summary_Shorthouse, "original
 ```{r}
 # 4. Perform MetaProViz::traverse_ids()
 
-# features_Shorthouse_traverse_ids <-
-#     MetaProViz::traverse_ids(
-#         data = features_Shorthouse_cleaned,
-#         id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
-#         delimiter = ";",
-#         path = file.path(output_dir, "traverse")
-#     )
-# 
-# save(features_Shorthouse_traverse_ids, file = file.path(derived_dir, "features_Shorthouse_traverse_ids.RData"))
+features_Shorthouse_traverse_ids <-
+    MetaProViz::traverse_ids(
+        data = features_Shorthouse_cleaned,
+        id_types = c("HMDB", "KEGG", "CHEBI", "PUBCHEM"),
+        delimiter = ";",
+        path = file.path(output_dir, "traverse")
+    )
 
-load(file.path(derived_dir, "features_Shorthouse_traverse_ids.RData"))
+save(features_Shorthouse_traverse_ids, file = file.path(derived_dir, "features_Shorthouse_traverse_ids.RData"))
 
 traverse_Shorthouse_ExpandedDF <- features_Shorthouse_traverse_ids$ExpandedDF
 traverse_Shorthouse_ID_pair_compatibility <- features_Shorthouse_traverse_ids$ID_pair_compatibility
