@@ -5,11 +5,13 @@
 ^\.git$
 
 # Project-level dirs that aren't part of the R package surface.
+^analyses$
+^data$
+^docs$
 ^figures$
 ^tables$
 ^lib$
-^logs$
-^manifests$
+^build$
 ^python$
 ^tex$
 ^preview$
@@ -21,14 +23,18 @@
 ^test-output$
 
 # Top-level project docs that aren't R-package docs.
-^CONFIGURATION\.md$
+^AGENTS\.md$
+^CLAUDE\.md$
+^\.gitattributes$
 ^README\.md$
+^RESTRUCTURING\.md$
 ^shell\.nix$
 ^connection\.yaml$
 ^db-version\.txt$
 ^rebuild\.R$
 ^rebuild\.sh$
 ^manifest-config\.yaml$
+^manuscript\.yaml$
 
 # Editor / OS noise.
 ^\.vscode$

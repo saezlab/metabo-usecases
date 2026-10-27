@@ -13,10 +13,10 @@
 #'
 #' \code{pg_query_panel} routes the query to \code{dev4}
 #' automatically via the FR-030 registry entry
-#' (\code{fig02-overview} + \code{facet = "ramp_conflict"}).
+#' (\code{database-content} + \code{facet = "ramp_conflict"}).
 #'
 #' @param panel_id Character: panel identifier. Default
-#'     \code{"fig02-overview"}.
+#'     \code{"database-content"}.
 #'
 #' @return A tibble with \code{conflict_reason} and \code{n},
 #'     ordered by \code{n} descending.
@@ -29,7 +29,7 @@
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-ramp_conflict_counts <- function(panel_id = "fig02-overview") {
+ramp_conflict_counts <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT conflict_reason,

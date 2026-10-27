@@ -4,7 +4,7 @@
 \alias{pg_connect_panel}
 \title{Open and cache a Postgres handle per deployment label}
 \usage{
-pg_connect_panel(deployment)
+pg_connect_panel(deployment, allow_optin = FALSE)
 }
 \arguments{
 \item{deployment}{Character: deployment label

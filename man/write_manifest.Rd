@@ -2,9 +2,9 @@
 % Please edit documentation in R/provenance-manifest.R
 \name{write_manifest}
 \alias{write_manifest}
-\title{Archive a manifest + its identifier to manifests/}
+\title{Archive a manifest + its identifier to build/manifests/}
 \usage{
-write_manifest(manifest, deployment, dir = "manifests")
+write_manifest(manifest, deployment, dir = file.path("build", "manifests"))
 }
 \arguments{
 \item{manifest}{A list as produced by \code{\link{build_manifest_for}}.}
@@ -14,13 +14,13 @@ manifest (e.g. \code{"dev3"}, \code{"dev4"}). Used as the
 filename prefix so a multi-deployment rebuild keeps each
 archive distinct.}
 
-\item{dir}{Output directory; defaults to \code{"manifests"}.}
+\item{dir}{Output directory; defaults to \code{"build/manifests"}.}
 }
 \value{
 The build_id (character scalar).
 }
 \description{
-Emits \code{manifests/<deployment>.<build_id>.json} (canonical JSON
-form) and \code{manifests/<deployment>.<build_id>.SHA256} (one-line
+Emits \code{build/manifests/<deployment>.<build_id>.json} (canonical JSON
+form) and \code{build/manifests/<deployment>.<build_id>.SHA256} (one-line
 hex digest). Returns the build_id.
 }

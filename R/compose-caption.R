@@ -9,7 +9,7 @@
 #' strips the LaTeX markup to produce \code{caption.txt} (FR-041a).
 #'
 #' @param figure_id Character: figure slug, e.g.
-#'     \code{"fig02-overview"}. Used to name the output
+#'     \code{"database-content"}. Used to name the output
 #'     \code{<figure_id>-with-caption.pdf}.
 #' @param composite_pdf Character: path (relative to repo root) to
 #'     the bare composite PDF the caption describes.
@@ -40,10 +40,10 @@
 #' @examples
 #' \dontrun{
 #' compose_caption(
-#'     figure_id      = "fig02-overview",
-#'     composite_pdf  = "figures/fig02-overview/out/fig02-overview.pdf",
-#'     caption_source = "figures/fig02-overview/caption.tex",
-#'     out_dir        = "figures/fig02-overview/out",
+#'     figure_id      = "database-content",
+#'     composite_pdf  = "figures/database-content/out/database-content.pdf",
+#'     caption_source = "figures/database-content/caption.tex",
+#'     out_dir        = "figures/database-content/out",
 #'     panel_count    = 6L
 #' )
 #' }

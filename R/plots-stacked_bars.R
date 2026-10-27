@@ -1,7 +1,7 @@
 #' Canonical COSMOS-PKN resource order for Figure 6 Panels E / F
 #'
 #' Reproduces the resource ordering of the legacy
-#' \code{omnipath_metabo_case1/scripts/03_visualization.R} so the
+#' \code{analyses/cancer-cell-lines-cosmos/03_visualization.R} so the
 #' stacked-bar fills render in a publication-stable sequence.
 #'
 #' @return Character vector of resource names in canonical order.

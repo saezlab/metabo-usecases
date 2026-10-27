@@ -4,7 +4,7 @@
 \alias{section_structures}
 \title{Section 4 — Structures (FR-043d)}
 \usage{
-section_structures(panel_id = "fig01-architecture", runtime = NULL)
+section_structures(panel_id = "architecture", runtime = NULL)
 }
 \arguments{
 \item{panel_id}{Character.}

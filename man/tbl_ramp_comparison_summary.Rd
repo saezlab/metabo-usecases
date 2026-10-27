@@ -4,14 +4,11 @@
 \alias{tbl_ramp_comparison_summary}
 \title{RaMP InChIKey-conflict summary for the FR-015 Methods table}
 \usage{
-tbl_ramp_comparison_summary(
-  panel_id = "tab02-ramp-comparison",
-  example_count = 2L
-)
+tbl_ramp_comparison_summary(panel_id = "ramp-comparison", example_count = 2L)
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default
-\code{"tab02-ramp-comparison"}).}
+\code{"ramp-comparison"}).}
 
 \item{example_count}{Integer: how many example RaMP ids to include
 per reason. Default \code{2L}.}
@@ -33,7 +30,7 @@ counts plus two example RaMP ids.
 }
 \details{
 \code{pg_query_panel} routes the query to \code{dev4} automatically
-via the \code{tab02-ramp-comparison} registry default.
+via the \code{ramp-comparison} registry default.
 }
 \examples{
 \dontrun{

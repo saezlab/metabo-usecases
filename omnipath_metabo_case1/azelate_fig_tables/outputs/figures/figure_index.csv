@@ -1,5 +1,0 @@
-figure_type,panel,title,path
-main_fig3_panel,C,Interaction type by source,../outputs/figures/fig3_panel_C_interaction_type_barplot.png
-main_fig3_panel,D,Cancer associations by sample type,../outputs/figures/fig3_panel_D_cancer_associations_sample_type.png
-extra,,Evidence atlas mindmap,../outputs/figures/extra_evidence_atlas_mindmap.png
-extra,,Target type by source,../outputs/figures/extra_target_type_composition_by_source.png

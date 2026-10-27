@@ -4,13 +4,13 @@
 \alias{section_contributing_resources}
 \title{Per-section contributing-resource list (FR-043f)}
 \usage{
-section_contributing_resources(section_id, panel_id = "fig01-architecture")
+section_contributing_resources(section_id, panel_id = "architecture")
 }
 \arguments{
 \item{section_id}{Integer (1..5).}
 
 \item{panel_id}{Character: panel id used for deployment routing.
-Defaults to \code{"fig01-architecture"}.}
+Defaults to \code{"architecture"}.}
 }
 \value{
 A tibble with columns \code{resource_name} (character) and

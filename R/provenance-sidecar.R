@@ -15,7 +15,7 @@
 #' (FR-032, FR-032a).
 #'
 #' @param artifact_id Character: stable id, e.g.
-#'     \code{"fig02-overview/panelB"}.
+#'     \code{"database-content/panelB"}.
 #' @param artifact_path Character: path of the artifact whose sidecar
 #'     this is — the sidecar file is written to
 #'     \code{paste0(artifact_path, ".provenance.json")}.
@@ -55,11 +55,11 @@
 #' con3 <- pg_connect_panel("dev3")
 #' dep3 <- deployment_provenance(con3, "dev3")
 #' write_sidecar(
-#'     artifact_id   = "fig02-overview/panelB",
-#'     artifact_path = "figures/fig02-overview/out/panelB.pdf",
+#'     artifact_id   = "database-content/panelB",
+#'     artifact_path = "figures/database-content/out/panelB.pdf",
 #'     deployments   = list(dep3$deployment),
 #'     manifests     = list(dep3$manifest),
-#'     script_path   = "figures/fig02-overview/build.R",
+#'     script_path   = "figures/database-content/build.R",
 #'     queries       = list()
 #' )
 #' }
@@ -168,7 +168,7 @@ sidecar_deployment_entry <- function(entry) {
 #' Convenience helper for \code{build.R} orchestrators: opens / reuses
 #' a panel-pool connection to \code{deployment}, reads
 #' \code{build_manifest} natively (cycle-001+), archives the manifest
-#' under \code{manifests/}, and returns both the augmented deployment
+#' under \code{build/manifests/}, and returns both the augmented deployment
 #' record (ready for the sidecar's \code{deployments} array) and the
 #' manifest itself (for \code{write_sidecar}'s parallel
 #' \code{manifests} arg).
@@ -176,7 +176,7 @@ sidecar_deployment_entry <- function(entry) {
 #' @param deployment Character: deployment label
 #'     (e.g. \code{"dev3"}, \code{"dev4"}).
 #' @param archive_dir Character: directory for the archived
-#'     manifest JSON / SHA256 files; defaults to \code{"manifests"}.
+#'     manifest JSON / SHA256 files; defaults to \code{"build/manifests"}.
 #'
 #' @return A list with two elements:
 #'   \itemize{
@@ -192,18 +192,18 @@ sidecar_deployment_entry <- function(entry) {
 #' dep3 <- deployment_provenance("dev3")
 #' dep4 <- deployment_provenance("dev4")
 #' write_sidecar(
-#'     artifact_id = "fig02-overview",
-#'     artifact_path = "figures/fig02-overview/out/fig02-overview.pdf",
+#'     artifact_id = "database-content",
+#'     artifact_path = "figures/database-content/out/database-content.pdf",
 #'     deployments = list(dep3$deployment, dep4$deployment),
 #'     manifests   = list(dep3$manifest,   dep4$manifest),
-#'     script_path = "figures/fig02-overview/build.R"
+#'     script_path = "figures/database-content/build.R"
 #' )
 #' }
 #'
 #' @importFrom logger log_info
 #' @export
 deployment_provenance <- function(deployment,
-                                  archive_dir = "manifests",
+                                  archive_dir = file.path("build", "manifests"),
                                   allow_optin = FALSE) {
 
     record <- load_connection(

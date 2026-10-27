@@ -16,8 +16,8 @@
 #' when a future build cycle re-introduces a per-panel split.
 #'
 #' @param panel_id Character: panel identifier
-#'     (e.g. \code{"fig01-architecture"} or
-#'     \code{"tab02-ramp-comparison"}).
+#'     (e.g. \code{"architecture"} or
+#'     \code{"ramp-comparison"}).
 #' @param facet Character or \code{NULL}: facet identifier
 #'     (e.g. \code{"structures"}, \code{"ramp_conflict"},
 #'     \code{"panel_e"}). Optional; the registry first looks for an
@@ -33,10 +33,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' panel_deployment("fig01-architecture")                          # "dev5"
-#' panel_deployment("fig01-architecture", "structures")            # "dev5"
-#' panel_deployment("fig01-architecture", "ramp_conflict")         # "dev5"
-#' panel_deployment("tab02-ramp-comparison")                   # "dev5"
+#' panel_deployment("architecture")                          # "dev5"
+#' panel_deployment("architecture", "structures")            # "dev5"
+#' panel_deployment("architecture", "ramp_conflict")         # "dev5"
+#' panel_deployment("ramp-comparison")                   # "dev5"
 #' }
 #'
 #' @importFrom logger log_trace
@@ -193,7 +193,7 @@ pg_connect_panel <- function(deployment, allow_optin = FALSE) {
 #' @examples
 #' \dontrun{
 #' rows <- pg_query_panel(
-#'     "fig01-architecture",
+#'     "architecture",
 #'     "SELECT COUNT(*) FROM entity",
 #'     facet = "structures"      # routes to dev5 (post-2026-06-14)
 #' )

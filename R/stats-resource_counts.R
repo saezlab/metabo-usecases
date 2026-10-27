@@ -133,7 +133,7 @@ section_resource_sql <- function() {
 #'
 #' @param section_id Integer (1..5).
 #' @param panel_id Character: panel id used for deployment routing.
-#'     Defaults to \code{"fig01-architecture"}.
+#'     Defaults to \code{"architecture"}.
 #'
 #' @return A tibble with columns \code{resource_name} (character) and
 #'     \code{n_rows} (integer). The tibble also carries
@@ -145,7 +145,7 @@ section_resource_sql <- function() {
 #' @export
 section_contributing_resources <- function(
     section_id,
-    panel_id = "fig01-architecture"
+    panel_id = "architecture"
 ) {
 
     key <- as.character(as.integer(section_id))

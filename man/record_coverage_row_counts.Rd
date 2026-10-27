@@ -4,7 +4,7 @@
 \alias{record_coverage_row_counts}
 \title{Per-resource record-coverage counts for one FR-015a row}
 \usage{
-record_coverage_row_counts(row_def, panel_id = "tab03-record-coverage")
+record_coverage_row_counts(row_def, panel_id = "record-coverage")
 }
 \arguments{
 \item{row_def}{One element of
@@ -12,7 +12,7 @@ record_coverage_row_counts(row_def, panel_id = "tab03-record-coverage")
 \code{kind \%in\% c("entity", "relation")}.}
 
 \item{panel_id}{Character: panel identifier (default
-\code{"tab03-record-coverage"}).}
+\code{"record-coverage"}).}
 }
 \value{
 A tibble with columns \code{resource}, \code{n} (the count
@@ -24,7 +24,7 @@ Issues a bitmap-intersection query for one row's scope:
 \code{rb_and_cardinality(<source bitmap>, <scope bitmap>)} per
 resource. \code{kind = "entity"} reads \code{facet_entity_bitmap},
 \code{kind = "relation"} reads \code{facet_relation_bitmap}.
-Routing follows \code{panel_deployment("tab03-record-coverage",
+Routing follows \code{panel_deployment("record-coverage",
 facet = deployment_facet)}: rows with
 \code{deployment_facet = "structures"} route to dev4, every other
 row to dev3.

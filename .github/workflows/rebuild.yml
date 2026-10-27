@@ -89,4 +89,4 @@ jobs:
 
       - name: Tail unified log on failure
         if: failure()
-        run: tail -n 200 logs/latest.log || true
+        run: tail -n 200 build/logs/latest.log || true

@@ -5,14 +5,14 @@
 \title{Section 3 — Interactions (FR-043c)}
 \usage{
 section_interactions(
-  panel_id = "fig01-architecture",
+  panel_id = "architecture",
   definitions = NULL,
   runtime = NULL
 )
 }
 \arguments{
 \item{panel_id}{Character: panel id for deployment routing.
-Defaults to \code{"fig01-architecture"}.}
+Defaults to \code{"architecture"}.}
 
 \item{definitions}{Named list: from
 \code{\link{digest_definitions}}; \code{NULL} → load fresh.}

@@ -1,7 +1,7 @@
 #' Azelate upstream-source palette mapping
 #'
 #' Reproduces the \code{SOURCE_COLORS} dict from
-#' \code{omnipath_metabo_case1/azelate_fig_tables/notebooks/azelaic_acid_plots.py}
+#' \code{analyses/azelate/azelaic_acid_plots.py}
 #' so the R panels render the same source in the same colour as the
 #' Python reference figures.
 #'
@@ -87,7 +87,7 @@ register_azelate_colours <- function() {
 #'
 #' Stacked-bar plot of relation counts per \code{interaction_type},
 #' fill-coloured by upstream \code{source}. Reproduces the
-#' \code{make_fig3_panel_C_interaction_type_barplot} reference from
+#' \code{make_interaction_types_by_source_plot} reference from
 #' the azelate Python notebook through the shared style module.
 #'
 #' Bars are ordered by descending total relation count; the source
@@ -185,7 +185,7 @@ azelate_interaction_panel <- function(
 #'
 #' Stacked-bar plot of evidence counts per \code{disease_type},
 #' fill-coloured by \code{sample_type}. Reproduces the
-#' \code{make_fig3_panel_D_cancer_stacked} reference from the
+#' \code{make_cancer_assoc_by_sample_type_plot} reference from the
 #' azelate Python notebook through the shared style module.
 #'
 #' Bars are ordered by descending total evidence count; the

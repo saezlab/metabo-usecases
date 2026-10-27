@@ -34,7 +34,7 @@ bitmap.}
 \item{deployment_facet}{Character or NULL: the registry-facet
 name to pass to \code{\link{pg_query_panel}} so dev3 vs dev4
 routing follows the registry. \code{NULL} means the panel's
-default deployment (dev3 for tab03-record-coverage).}
+default deployment (dev3 for record-coverage).}
 \item{note}{Character: short rationale when \code{kind == "blank"}.}
 }
 }

@@ -7,7 +7,7 @@
 #' rows.
 #'
 #' @param panel_id Character: panel identifier (default
-#'     \code{"fig02-overview"}). Passed to
+#'     \code{"database-content"}). Passed to
 #'     \code{\link{pg_query_panel}} so the deployment routing is
 #'     recorded in the result's \code{"deployment"} attribute
 #'     (which surfaces in the sidecar).
@@ -17,7 +17,7 @@
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-entities_by_resource <- function(panel_id = "fig02-overview") {
+entities_by_resource <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT resource_id AS resource,
@@ -42,7 +42,7 @@ entities_by_resource <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-interactions_by_resource <- function(panel_id = "fig02-overview") {
+interactions_by_resource <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT resource_id AS resource,
@@ -75,7 +75,7 @@ interactions_by_resource <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-interactions_by_type <- function(panel_id = "fig02-overview") {
+interactions_by_type <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT
@@ -110,7 +110,7 @@ interactions_by_type <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-associations_by_resource <- function(panel_id = "fig02-overview") {
+associations_by_resource <- function(panel_id = "database-content") {
 
     sql <- "
         SELECT resource_id AS resource,
@@ -143,7 +143,7 @@ associations_by_resource <- function(panel_id = "fig02-overview") {
 #'
 #' @importFrom DBI dbGetQuery
 #' @export
-ontology_terms_by_ontology <- function(panel_id = "fig02-overview",
+ontology_terms_by_ontology <- function(panel_id = "database-content",
                                        top_n = 10L) {
 
     sql <- sprintf("

@@ -1,0 +1,22 @@
+# Numbering of figures and tables in the manuscript.
+#
+# This is the only place where figure and table numbers are defined:
+# folders, artifact ids and function names are named by content. To
+# renumber, edit this file. rebuild.R uses it to order the builds and
+# the PDFs in the manuscript bundle.
+#
+# Keys are the numbers; values are folder names under figures/ or tables/.
+# `null` marks an item that is not built in this repository.
+
+figures:
+  1: architecture
+  2: database-content
+  3: null  # webapp screenshots (manual)
+  4: metalinks-versions
+  5: cosmos-pkn
+  6: cancer-cell-lines
+
+tables:
+  1: id-resolving
+  2: ramp-comparison
+  3: record-coverage

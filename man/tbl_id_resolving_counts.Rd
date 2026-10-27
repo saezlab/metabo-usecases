@@ -4,11 +4,11 @@
 \alias{tbl_id_resolving_counts}
 \title{Per-resource identifier-type counts for the FR-014 Methods table}
 \usage{
-tbl_id_resolving_counts(panel_id = "tab01-id-resolving")
+tbl_id_resolving_counts(panel_id = "id-resolving")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default
-\code{"tab01-id-resolving"} — routes to \code{dev3}).}
+\code{"id-resolving"} — routes to \code{dev3}).}
 }
 \value{
 A long-format tibble with columns \code{resource},
@@ -19,7 +19,7 @@ attribute set by \code{\link{pg_query_panel}}.
 \description{
 Queries \code{identifier_evidence} joined to
 \code{vocab_identifier_type} and \code{entity_evidence_identifier}
-on \code{dev3} (default for \code{tab01-id-resolving}). The
+on \code{dev3} (default for \code{id-resolving}). The
 identifier types are bucketed into a hand-picked set of
 manuscript-relevant categories (chemical structure, chemical names,
 resource-specific chemical ids, gene/protein ids) rather than the

@@ -23,8 +23,13 @@ omnipath_metabo_case1/scripts/omnipathr-log/
 omnipath_metabo_case1/scripts/MetaProViz_Results/
 omnipath_metabo_case1/.RData
 omnipath_metabo_case1/.Ruserdata
-omnipath_metabo_case1/data/cellosaurus.txt
-omnipath_metabo_case1/data/cellosaurus_entry_lookup.RData
+data/raw/cancer-cell-lines/cellosaurus.txt
+
+# Analysis outputs (QC tables/plots) and tool logs written next to the Rmds
+analyses/*/output/
+analyses/**/MetaProViz_Results/
+analyses/**/metaproviz-log/
+analyses/**/omnipathr-log/
 
 # Python (uv-managed)
 **/__pycache__/
@@ -47,13 +52,8 @@ python/.venv/
 *.blg
 
 # Pipeline runtime
-logs/rebuild-*.log
-logs/orphan-*.log
-logs/latest.log
+build/
 **/out/
-manifests/*.json
-manifests/*.SHA256
-manuscript-bundle.pdf
 
 # Environment
 .env
@@ -67,8 +67,6 @@ Thumbs.db
 .idea/
 
 # Keep the directories themselves
-!logs/.gitkeep
-!manifests/.gitkeep
 !**/out/.gitkeep
 
 # Local-preview drop zone (rsync'd from beauty for visual inspection)

@@ -4,7 +4,7 @@
 \alias{section_annotation}
 \title{Section 5 — Annotation (FR-043e)}
 \usage{
-section_annotation(panel_id = "fig01-architecture", runtime = NULL)
+section_annotation(panel_id = "architecture", runtime = NULL)
 }
 \arguments{
 \item{panel_id}{Character.}

@@ -19,7 +19,7 @@ write_sidecar(
 }
 \arguments{
 \item{artifact_id}{Character: stable id, e.g.
-\code{"fig02-overview/panelB"}.}
+\code{"database-content/panelB"}.}
 
 \item{artifact_path}{Character: path of the artifact whose sidecar
 this is — the sidecar file is written to
@@ -85,11 +85,11 @@ natively from that deployment's \code{build_manifest} table
 con3 <- pg_connect_panel("dev3")
 dep3 <- deployment_provenance(con3, "dev3")
 write_sidecar(
-    artifact_id   = "fig02-overview/panelB",
-    artifact_path = "figures/fig02-overview/out/panelB.pdf",
+    artifact_id   = "database-content/panelB",
+    artifact_path = "figures/database-content/out/panelB.pdf",
     deployments   = list(dep3$deployment),
     manifests     = list(dep3$manifest),
-    script_path   = "figures/fig02-overview/build.R",
+    script_path   = "figures/database-content/build.R",
     queries       = list()
 )
 }

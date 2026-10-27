@@ -106,10 +106,10 @@ snapshot_id <- function(manifest) {
 }
 
 
-#' Archive a manifest + its identifier to manifests/
+#' Archive a manifest + its identifier to build/manifests/
 #'
-#' Emits \code{manifests/<deployment>.<build_id>.json} (canonical JSON
-#' form) and \code{manifests/<deployment>.<build_id>.SHA256} (one-line
+#' Emits \code{build/manifests/<deployment>.<build_id>.json} (canonical JSON
+#' form) and \code{build/manifests/<deployment>.<build_id>.SHA256} (one-line
 #' hex digest). Returns the build_id.
 #'
 #' @param manifest A list as produced by \code{\link{build_manifest_for}}.
@@ -117,7 +117,7 @@ snapshot_id <- function(manifest) {
 #'     manifest (e.g. \code{"dev3"}, \code{"dev4"}). Used as the
 #'     filename prefix so a multi-deployment rebuild keeps each
 #'     archive distinct.
-#' @param dir Output directory; defaults to \code{"manifests"}.
+#' @param dir Output directory; defaults to \code{"build/manifests"}.
 #'
 #' @return The build_id (character scalar).
 #'
@@ -125,7 +125,8 @@ snapshot_id <- function(manifest) {
 #' @importFrom fs dir_create path
 #' @importFrom logger log_info
 #' @export
-write_manifest <- function(manifest, deployment, dir = "manifests") {
+write_manifest <- function(manifest, deployment,
+                           dir = file.path("build", "manifests")) {
 
     fs::dir_create(dir)
     sid <- snapshot_id(manifest)
@@ -222,7 +223,7 @@ infer_build_kind <- function(packages) {
 #' flattens the rich shape to the contract's flat shape so the
 #' sidecar's \code{package_commits} field is schema-compliant. The
 #' rich shape is preserved as \code{packages_raw} on the manifest so
-#' the archived manifest JSON in \code{manifests/} keeps the
+#' the archived manifest JSON in \code{build/manifests/} keeps the
 #' \code{dirty} flag.
 #'
 #' Tolerates the legacy flat shape: when a value is already a

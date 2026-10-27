@@ -4,11 +4,11 @@
 \alias{entities_by_resource}
 \title{Number of distinct molecular entities per upstream resource}
 \usage{
-entities_by_resource(panel_id = "fig02-overview")
+entities_by_resource(panel_id = "database-content")
 }
 \arguments{
 \item{panel_id}{Character: panel identifier (default
-\code{"fig02-overview"}). Passed to
+\code{"database-content"}). Passed to
 \code{\link{pg_query_panel}} so the deployment routing is
 recorded in the result's \code{"deployment"} attribute
 (which surfaces in the sidecar).}

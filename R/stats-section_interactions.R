@@ -13,7 +13,7 @@
 #' (post-2026-06-14 dev5 integrated-build promotion).
 #'
 #' @param panel_id Character: panel id for deployment routing.
-#'     Defaults to \code{"fig01-architecture"}.
+#'     Defaults to \code{"architecture"}.
 #' @param definitions Named list: from
 #'     \code{\link{digest_definitions}}; \code{NULL} → load fresh.
 #' @param runtime Named list: from \code{\link{digest_runtime}};
@@ -29,7 +29,7 @@
 #' @importFrom tibble tibble
 #' @export
 section_interactions <- function(
-    panel_id = "fig01-architecture",
+    panel_id = "architecture",
     definitions = NULL,
     runtime = NULL
 ) {

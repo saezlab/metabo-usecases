@@ -60,12 +60,12 @@ test_that("rebuild.R discover_targets returns sorted, stable plan", {
     source(rebuild_R, local = sandbox)
 
     withr::with_tempdir({
-        dir.create("figures/fig01-overview",         recursive = TRUE)
-        dir.create("figures/fig03-metalinks-versions", recursive = TRUE)
-        dir.create("tables/tab01-id-resolving",      recursive = TRUE)
-        writeLines("1+1", "figures/fig01-overview/build.R")
-        writeLines("1+1", "figures/fig03-metalinks-versions/build.R")
-        writeLines("1+1", "tables/tab01-id-resolving/build.R")
+        dir.create("figures/database-content",         recursive = TRUE)
+        dir.create("figures/metalinks-versions", recursive = TRUE)
+        dir.create("tables/id-resolving",      recursive = TRUE)
+        writeLines("1+1", "figures/database-content/build.R")
+        writeLines("1+1", "figures/metalinks-versions/build.R")
+        writeLines("1+1", "tables/id-resolving/build.R")
 
         builds_1 <- sandbox$discover_targets(character(0))
         builds_2 <- sandbox$discover_targets(character(0))
