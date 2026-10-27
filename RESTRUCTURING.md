@@ -215,10 +215,14 @@ checkouts use, so test runs install the branch into a private library
 - [x] Regenerate `man/` and `NAMESPACE` with `devtools::document()`
       (`68bbc68`).
 - [x] `./rebuild.sh cancer-cell-lines` builds (panels A–D).
-- [ ] Remaining figures and tables, then `./rebuild.sh --check --bundle`,
-      and lint. Compare outputs of `preprint_v0` and `restructure` built
-      against the same database build (the builds used for the preprint no
-      longer exist, see Known issues).
+- [x] Parity with `preprint_v0`: both built with `./rebuild.sh figures
+      tables` against the same dev5 build (`dac1e0f66ee8`, 2026-10-27). All 28
+      database queries return identical results (row counts and hashes);
+      metalinks-versions (all 6 PDFs) and cancer-cell-lines panels A–D are
+      pixel-identical. All other artifacts fail on both branches with the
+      same error (see Known issues).
+- [ ] Full build once the database and environment issues below are
+      resolved, then `./rebuild.sh --check --bundle`, and lint.
 - [ ] Re-run `analyses/cancer-cell-lines/01`→`04` with the new paths.
 - [ ] Collaborators review their moved parts (open questions are in each
       README): Daniele `analyses/azelate/`, Christina/Jonathan `analyses/ramp-ambiguity/`,
@@ -247,8 +251,15 @@ checkouts use, so test runs install the branch into a private library
 - **COSMOS+ tests are very slow.** `cosmos_plus_data()` on the 29 MB vendored
   CSV ran for more than 40 minutes at full CPU in
   `test-cosmos-pkn-composite-merge.R` without finishing.
+- **Pipeline no longer matches the current database.** Against dev5
+  `dac1e0f66ee8` (built 2026-10-20), on `preprint_v0` and `restructure`
+  alike: architecture fails (`metabo_entity_structural_specificity` missing),
+  database-content and ramp-comparison fail (`metabo_ramp_inchikey_conflict`
+  missing), cosmos-pkn fails (`custom_views.metalinksdb_relations` missing).
+  Running two builds in parallel also exhausted Postgres shared memory.
 - **No `xelatex` on beauty's PATH** in the pipeline environment, so captioned
-  PDFs are skipped.
+  PDFs are skipped and the three tables fail at their final LaTeX step
+  (their queries succeed).
 
 - **Old COSMOS PKN is not pinned.** `cosmos_old_pkn()` installs cosmosR from
   GitHub HEAD at build time and uses its `meta_network`. It ignores the
