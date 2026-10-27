@@ -78,6 +78,8 @@ In order on `restructure`, starting from `preprint_v0` (`25136b9`):
 | `7ee388d` | Loaders resolve `data/` paths from the repo root (`repo_path()`) | Fixes a regression from `3611cde`: cwd-relative paths failed outside the repo root, e.g. in tests. |
 | `68bbc68` | Regenerate `NAMESPACE` and `man/` with roxygen2 | The Figure 6 functions were never exported, so the figure did not build from an installed package (also on `preprint_v0`). |
 | `a660713` | Drop the COSMOS PKN panels (E, F) from the cancer cell lines figure | Outdated; the analysis stays as an archive in `analyses/cancer-cell-lines-cosmos/`. |
+| `37e2286` | Differential analysis joins feature annotations by key (`V<ionIdx>`) | Annotations were attached by position to a differently ordered table: nearly all metabolite names in the results were wrong (see Known issues). |
+| `f2195c3` | Cancer cell lines analysis runs from raw data in fresh sessions | Cached intermediates are recomputed; PUBCHEM summary row fixed; dplyr 1.2 and missing `library(tibble)` fixed. |
 
 ## Rename maps
 
@@ -223,7 +225,13 @@ checkouts use, so test runs install the branch into a private library
       same error (see Known issues).
 - [ ] Full build once the database and environment issues below are
       resolved, then `./rebuild.sh --check --bundle`, and lint.
-- [ ] Re-run `analyses/cancer-cell-lines/01`→`04` with the new paths.
+- [x] Re-run `analyses/cancer-cell-lines/01`→`04` with the new paths
+      (2026-10-27, beauty, R 4.5.3 with OmnipathR 4.1.2 @ `43056a2` and
+      MetaProViz 4.99.0 @ `f76eacf` from GitHub in a private library;
+      knitted with pandoc from nix). The recomputed former caches equal the
+      cached RData. The re-run outputs are **not** committed: the files in
+      `data/derived/cancer-cell-lines/` are still those behind the first
+      preprint, including the mislabelled differential-analysis xlsx.
 - [ ] Collaborators review their moved parts (open questions are in each
       README): Daniele `analyses/azelate/`, Christina/Jonathan `analyses/ramp-ambiguity/`,
       Denes the pipeline changes.
@@ -267,10 +275,14 @@ checkouts use, so test runs install the branch into a private library
   its documentation says it reads it. `test-comparison-basis.R` expects
   attributes the function does not set. Fixing it may change Figure 5, so this
   needs Denes.
-- **Cached intermediates in `03_feature_processing.Rmd`.** It loads
-  `features_Shorthouse_compatibility_check.RData` and
-  `features_Shorthouse_traverse_ids.RData`, but the code computing them is
-  commented out, so a fresh run depends on the cached files.
+- **Mislabelled metabolites in the first preprint (fixed in `37e2286`).** The
+  differential analysis attached names to intensity columns by position, so
+  in the preprint results (`ExtendedDataTable_…xlsx`, Figure 6) nearly every
+  metabolite name belongs to another feature; of the significant hits
+  (P < 0.05, |logFC| > 0.5) only 1 of 33 (EGFR) and 0 of 13 (KRAS) keep their
+  name. The highlighted azelaic acid (EGFR logFC 1.93, P 0.0017) was
+  galactonic / gluconic / gulonic acid; azelaic acid itself has logFC −0.03,
+  P 0.86. The statistics per feature were correct.
 - **Azelate workbook out of date.** The tracked `azelaic_acid_tables.xlsx` and
   `manifest.json` still use the `fig3_panel_*` names until the next run.
 - **Dead LaTeX template.** `tex/compose_fig01.tex` is not used by any code;
@@ -302,6 +314,17 @@ checkouts use, so test runs install the branch into a private library
   provenance should record the database version, and the pipeline should be
   able to rebuild from the parquet deposit. RDKit structure queries run inside
   Postgres, so their results have to be exported as well.
+- **Use case 2 (branch `UseCase2`, Yunfan).** The mouse starvation time
+  course (COSMOS-MOON, CORNETO) lives in `omnipath_metabo_case2/` on its own
+  branch, which started from `main` on 2026-05-26 and touches only that folder
+  and `.gitignore`. To bring it to `main`: merge `main` into `UseCase2` first
+  and resolve the conflicts there. A trial merge (2026-10-27) gave only
+  trivial ones: modify/delete for a few files under `omnipath_metabo_case2/`,
+  because `main` dropped the folder on 2026-05-27 (`17d8c24`, "Moved use-case
+  to branch UseCase2"; keep the branch's versions), and `.gitignore` (keep both
+  sides). Optionally move it to the new layout (`analyses/<name>/`,
+  `data/raw|derived/<name>/`) and decide whether the ~384 MB of results and
+  model files belong in git.
 - **Azelate supplementary workbook** becomes a `tables/` artifact built by
   `rebuild.sh` from `data/derived/azelate/` (with Daniele).
 - **Large files in git** (COSMOS+ CSVs 49 MB, PKN CSV 13 MB, xlsx): left as
