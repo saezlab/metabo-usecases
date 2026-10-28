@@ -19,7 +19,9 @@ steps <- c(
     "a01" = "audit/01_scale_transform.Rmd",
     "a02" = "audit/02_structure_batch_tissue.Rmd",
     "a03" = "audit/03_tissue_and_overlaps.Rmd",
-    "a04" = "audit/04_mutation_sources.Rmd"
+    "a04" = "audit/04_mutation_sources.Rmd",
+    "a05" = "audit/05_metabolite_annotation.Rmd",
+    "a06" = "audit/06_ortmayr_descriptive.Rmd"
 )
 
 use_case_dir <- here::here("analyses", "cancer-cell-lines")

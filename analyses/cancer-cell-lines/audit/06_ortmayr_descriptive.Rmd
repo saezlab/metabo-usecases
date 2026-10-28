@@ -1,0 +1,161 @@
+---
+title: "Audit 6: Ortmayr et al. 2019 – descriptive comparison with Shorthouse et al. 2022"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Describe the Ortmayr et al. (2019) cell line metabolomics data and its overlap
+with Shorthouse et al. (2022) in cell lines and measured ions, as a basis for
+deciding later whether it is worth using. No processing or integration.
+
+## Inputs
+
+- `data/raw/cancer-cell-lines/ortmayr_2019/41467_2019_9695_MOESM2_ESM.xlsx` (Supplementary Data 1; **local only**)
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_lines.rds`, `02_cell_lines.tsv`
+- `data/raw/cancer-cell-lines/cellosaurus.txt` (name to accession mapping)
+
+## Methods
+
+Cell line names of Ortmayr et al. were mapped to Cellosaurus accessions
+(`map_names_to_accessions()`, primary name before synonyms) and compared with
+the Shorthouse lines. Ions were compared in two ways: by m/z within a fixed
+tolerance (0.001, 0.003 and 0.005 Da, considering only Shorthouse ions measured
+as deprotonated ions, as in Ortmayr et al.), and by shared HMDB or KEGG
+identifiers (HMDB identifiers converted to the current seven-digit format).
+Measurement type and value scale are taken from the data files.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/cellosaurus.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+fig_dir <- uc_dir(config, "output", "audit_06_ortmayr_descriptive")
+
+ortmayr_file <- file.path(raw_dir, "ortmayr_2019", "41467_2019_9695_MOESM2_ESM.xlsx")
+stopifnot(file.exists(ortmayr_file))
+shorthouse_ions <- readRDS(file.path(derived_dir, "01_lines.rds"))$ions
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
+```
+
+## 1. The data set
+
+```{r read}
+# sheet legend as provided by the authors
+readxl::read_excel(ortmayr_file, sheet = "Legend", col_names = FALSE) %>%
+    preview_table(caption = "Legend of Supplementary Data 1")
+
+# relative abundances: ions (rows) × cell lines (columns named Tissue_Line); header in row 4
+abundance <- readxl::read_excel(ortmayr_file, sheet = "Met_alpha", skip = 3)
+line_cols <- names(abundance)[6:ncol(abundance)]
+values <- sapply(abundance[line_cols], as.numeric)   # stored as text in the file
+c(ions = nrow(abundance), cell_lines = length(line_cols), missing_values = sum(is.na(values)))
+table(ionisation = abundance$Ionization)
+summary(as.vector(values))
+preview_table(abundance, rows = 50, cols = 12, caption = "Relative abundances (first rows and columns)")
+```
+
+```{r lines}
+# cell line metadata (header in row 3)
+metadata <- readxl::read_excel(ortmayr_file, sheet = "Cell_metadata", skip = 2) %>%
+    filter(!is.na(`Cell line`))
+count(metadata, Tissue, sort = TRUE)
+```
+
+## 2. Overlap of cell lines
+
+```{r line-overlap}
+cellosaurus <- read_cellosaurus(file.path(raw_dir, config$cellosaurus$file))$entries
+ortmayr_lines <- metadata %>%
+    select(name = `Cell line`, tissue_ortmayr = Tissue) %>%
+    left_join(map_names_to_accessions(metadata$`Cell line`, cellosaurus), by = "name") %>%
+    left_join(cell_lines %>% filter(!engineered) %>% select(accession, shorthouse_line = line, tissue_shorthouse = tissue),
+              by = c("ac" = "accession"))
+
+c(ortmayr_lines = nrow(ortmayr_lines),
+  mapped_to_accession = sum(!is.na(ortmayr_lines$ac)),
+  also_in_shorthouse = sum(!is.na(ortmayr_lines$shorthouse_line)))
+preview_table(ortmayr_lines, caption = "Ortmayr cell lines, accession and Shorthouse counterpart")
+
+p <- ortmayr_lines %>%
+    mutate(in_shorthouse = if_else(is.na(shorthouse_line), "Ortmayr only", "also in Shorthouse")) %>%
+    count(tissue_ortmayr, in_shorthouse) %>%
+    ggplot(aes(n, reorder(tissue_ortmayr, n, sum), fill = in_shorthouse)) +
+    geom_col() +
+    scale_fill_manual(values = c("also in Shorthouse" = "#009E73", "Ortmayr only" = "grey70")) +
+    labs(x = "Cell lines", y = "Tissue (Ortmayr et al.)", fill = NULL,
+         title = "Ortmayr cell lines and their overlap with Shorthouse") +
+    theme_uc()
+save_figure(p, "line_overlap_by_tissue", fig_dir)
+p
+```
+
+## 3. Overlap of measured ions
+
+```{r ion-overlap-mz}
+# Shorthouse ions measured as deprotonated ions; Ortmayr measured only -H(+)
+sh_mz <- shorthouse_ions %>% filter(str_detect(ion, fixed("-H(+)"))) %>% pull(ionMz)
+or_mz <- as.numeric(abundance$`Ion m/z`)
+
+# for each Ortmayr ion: is there a Shorthouse ion within the tolerance?
+nearest <- sapply(or_mz, function(m) min(abs(sh_mz - m)))
+tibble(tolerance_da = c(0.001, 0.003, 0.005)) %>%
+    mutate(ortmayr_ions_matched = sapply(tolerance_da, function(t) sum(nearest <= t)),
+           ortmayr_ions = length(or_mz), shorthouse_deprotonated_ions = length(sh_mz))
+
+p <- ggplot(tibble(d = nearest), aes(d)) +
+    geom_histogram(bins = 60, fill = "#0072B2") +
+    geom_vline(xintercept = c(0.001, 0.003, 0.005), linetype = 2) +
+    scale_x_log10() +
+    labs(x = "Distance to the nearest Shorthouse ion (Da, log scale)", y = "Ortmayr ions",
+         title = "m/z distance between the two data sets",
+         subtitle = "dashed: tolerances 0.001, 0.003, 0.005 Da") +
+    theme_uc()
+save_figure(p, "mz_distance", fig_dir)
+p
+```
+
+```{r ion-overlap-ids}
+# identifiers: HMDB (5-digit -> 7-digit) and KEGG
+normalise_hmdb <- function(x) ifelse(str_detect(x, "^HMDB\\d+$"),
+                                     paste0("HMDB", str_pad(str_remove(x, "^HMDB"), 7, pad = "0")), x)
+ids_of <- function(x) {
+    v <- str_trim(unlist(str_split(coalesce(x, ""), ";")))
+    normalise_hmdb(v[v != ""])
+}
+or_ids <- unique(unlist(lapply(abundance$`Annotation ID`, ids_of)))
+sh_ion_ids <- lapply(paste(shorthouse_ions$hmdb, shorthouse_ions$kegg, sep = ";"), ids_of)
+c(shorthouse_ions = nrow(shorthouse_ions),
+  shorthouse_ions_sharing_an_identifier = sum(sapply(sh_ion_ids, function(v) any(v %in% or_ids))))
+```
+
+## Interpretation
+
+- Ortmayr et al. provide relative intracellular abundances (non-negative, with
+  about 2 % missing values) for 2181 deprotonated ions in 54 adherent NCI-60
+  lines from eight tissues. The scale differs from the normalised intensities
+  of Shorthouse et al., so values cannot be pooled directly.
+- 53 lines map to a Cellosaurus accession, and 43 of them are also in the
+  Shorthouse data. This overlap could serve to check whether metabolite
+  differences between lines replicate across the two studies.
+- At the ion level the overlap depends on how ions are matched: 406 to 653 of
+  the Ortmayr ions lie within 0.001 to 0.005 Da of a Shorthouse ion, and 784 of
+  the 1096 Shorthouse ions share at least one HMDB or KEGG identifier with an
+  Ortmayr ion.
+- Any use of the Ortmayr data (e.g. as replication set) would need its own
+  pre-processing and a matching strategy; this is left for a later decision.
+
+```{r session}
+sessionInfo()
+```

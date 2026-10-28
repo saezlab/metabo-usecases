@@ -26,6 +26,11 @@ shorthouse:
   # same metabolite); kept from the original pipeline, see preprocessing_changes.md
   drop_duplicate_annotation_ions: true
 
+analysis:
+  # Lines kept in the pre-processing output but excluded from all analyses
+  exclude_lines:
+    184A1: non-malignant mammary epithelial line, not a cancer line (decision Checkpoint 1b, 2026-10-28)
+
 tissue:
   # Rule-based labels (step 02) renamed to the 11 tissues of Shorthouse et al. 2022
   rename:

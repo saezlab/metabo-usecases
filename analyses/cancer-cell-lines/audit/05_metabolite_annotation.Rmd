@@ -1,0 +1,208 @@
+---
+title: "Audit 5: metabolite annotation, identifier coverage and readout metabolites"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Describe how well the measured ions can be linked to prior knowledge used in
+later steps (COSMOS, MetalinksDB, OCEAN), how ambiguous the annotation is, and
+whether metabolites expected to respond to candidate positive-control
+genotypes are measured. Coverage is reported only; no identifiers are mapped
+by hand.
+
+**Decisions supported:** none directly; the results feed the caveats and the
+choice of positive controls (Phase 3).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_lines.rds` (original EV2 annotation per ion), `03_features.rds` (identifiers after MetaProViz processing)
+- `data/vendored/cosmos/meta_network.RData`: previous COSMOS prior-knowledge network (cosmosR 1.18.1)
+- `data/vendored/cosmos/cosmos_plus_human.csv`: COSMOS+ network (omnipath-metabo, see `data/vendored/cosmos/SOURCES.md`)
+- MetalinksDB metabolites via OmnipathR `metalinksdb_table("metabolites")`
+
+## Methods
+
+Flow-injection mass spectrometry assigns each ion (m/z) to all metabolites of
+matching mass, so one ion can stand for several candidate metabolites
+(isomers). The number of candidates per ion was taken from the authors'
+annotation (Dataset EV2). Identifier coverage was counted per identifier type
+after the MetaProViz processing (pre-processing step 03). An ion counts as
+covered by a prior-knowledge resource if at least one of its identifiers
+occurs as a metabolite node: HMDB or PubChem identifiers for the previous
+COSMOS network and MetalinksDB, ChEBI identifiers for COSMOS+ (compartment
+suffixes removed). OCEAN could not be checked because the package is not
+installed. Readout metabolites were searched by name in the authors'
+annotation.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+fig_dir <- uc_dir(config, "output", "audit_05_metabolite_annotation")
+
+line_data <- readRDS(file.path(derived_dir, "01_lines.rds"))
+ions <- line_data$ions                                   # original annotation (EV2)
+features <- readRDS(file.path(derived_dir, "03_features.rds"))   # identifiers after step 03
+
+# split a "; "- or ";"-separated identifier string into a vector
+split_ids <- function(x) {
+    v <- str_trim(unlist(str_split(coalesce(as.character(x), ""), ";")))
+    v[v != ""]
+}
+```
+
+## 1. Ambiguity of the annotation
+
+```{r ambiguity}
+# candidate metabolites per ion: names in the authors' annotation
+ions <- ions %>% mutate(n_candidates = lengths(str_split(name, ";\\s*")))
+table(candidates = cut(ions$n_candidates, c(0, 1, 2, 3, 5, 10, 30)))
+
+p <- ggplot(ions, aes(n_candidates)) +
+    geom_bar(fill = "#0072B2") +
+    labs(x = "Candidate metabolites per ion (Dataset EV2)", y = "Ions",
+         title = "Most ions stand for more than one candidate metabolite",
+         subtitle = sprintf("%d of %d ions have a single candidate", sum(ions$n_candidates == 1), nrow(ions))) +
+    theme_uc()
+save_figure(p, "candidates_per_ion", fig_dir)
+p
+```
+
+## 2. Identifier coverage
+
+```{r id-coverage}
+# share of ions with at least one identifier of each type, after step 03
+id_types <- c(HMDB = "hmdb", KEGG = "kegg", ChEBI = "chebi", PubChem = "pubchem")
+coverage <- tibble(
+    id_type = names(id_types),
+    ions_with_id = sapply(id_types, function(col) sum(lengths(lapply(features[[col]], split_ids)) > 0))
+) %>% mutate(share = ions_with_id / nrow(features))
+coverage
+
+p <- ggplot(coverage, aes(reorder(id_type, share), share)) +
+    geom_col(fill = "#009E73") +
+    geom_text(aes(label = sprintf("%d (%.0f%%)", ions_with_id, 100 * share)), hjust = -0.1, size = 3) +
+    coord_flip(ylim = c(0, 1.15)) +
+    labs(x = NULL, y = "Share of ions", title = "Ions with at least one identifier per type",
+         subtitle = sprintf("%d ions after identifier processing (step 03)", nrow(features))) +
+    theme_uc()
+save_figure(p, "id_coverage", fig_dir)
+p
+```
+
+## 3. Coverage of prior-knowledge resources
+
+```{r pk-coverage}
+# metabolite identifiers in each resource
+load_one <- function(f) { e <- new.env(); load(f, envir = e); as.list(e)[[1]] }
+cosmos_old <- load_one(here::here("data/vendored/cosmos/meta_network.RData"))
+cosmos_old_ids <- unique(c(cosmos_old$source, cosmos_old$target)) %>%
+    str_subset("^Metab__") %>%
+    str_remove("^Metab__") %>%
+    str_remove("_[a-z]+$")                              # compartment suffix
+cosmos_plus <- readr::read_csv(here::here("data/vendored/cosmos/cosmos_plus_human.csv"),
+                               show_col_types = FALSE, col_select = c(source, target))
+cosmos_plus_ids <- unique(c(cosmos_plus$source, cosmos_plus$target)) %>%
+    str_subset("^Metab__") %>%
+    str_remove("^Metab__") %>%
+    str_remove("_[a-z]+$")
+metalinks <- OmnipathR::metalinksdb_table("metabolites")
+metalinks_ids <- unique(c(metalinks$hmdb, as.character(metalinks$pubchem)))
+
+# identifiers of each ion in the form the resources use
+ion_ids <- features %>%
+    transmute(
+        feature_id,
+        hmdb = lapply(hmdb, split_ids),
+        pubchem = lapply(pubchem, function(x) str_remove(split_ids(x), "^CID")),
+        chebi = lapply(chebi, split_ids)
+    )
+pk <- ion_ids %>%
+    mutate(
+        `COSMOS (previous)` = mapply(function(h, p) any(c(h, p) %in% cosmos_old_ids), hmdb, pubchem),
+        `COSMOS+` = sapply(chebi, function(ch) any(ch %in% cosmos_plus_ids)),
+        MetalinksDB = mapply(function(h, p) any(c(h, p) %in% metalinks_ids), hmdb, pubchem)
+    ) %>%
+    select(feature_id, `COSMOS (previous)`, `COSMOS+`, MetalinksDB)
+
+pk_summary <- pk %>%
+    summarise(across(-feature_id, sum)) %>%
+    pivot_longer(everything(), names_to = "resource", values_to = "ions") %>%
+    mutate(share = ions / nrow(pk))
+pk_summary
+
+p <- ggplot(pk_summary, aes(reorder(resource, share), share)) +
+    geom_col(fill = "#CC79A7") +
+    geom_text(aes(label = sprintf("%d (%.0f%%)", ions, 100 * share)), hjust = -0.1, size = 3) +
+    coord_flip(ylim = c(0, 1.15)) +
+    labs(x = NULL, y = "Share of ions",
+         title = "Ions with at least one identifier in the resource",
+         subtitle = "OCEAN not checked (package not installed)") +
+    theme_uc()
+save_figure(p, "pk_coverage", fig_dir)
+p
+
+p <- ComplexUpset::upset(as.data.frame(pk), intersect = setdiff(names(pk), "feature_id"),
+                         name = "Resources", width_ratio = 0.25, min_size = 1,
+                         base_annotations = list("Ions" = ComplexUpset::intersection_size(text = list(size = 3)))) +
+    patchwork::plot_annotation(title = "Overlap of resource coverage per ion")
+save_figure(p, "pk_coverage_upset", fig_dir, width = 8, height = 5)
+p
+```
+
+## 4. Readout metabolites for candidate positive controls
+
+Metabolites expected to respond to genotypes named in the planning:
+5'-methylthioadenosine (MTA) for MTAP deletion, 2-hydroxyglutarate for IDH1/2
+mutation, and glutathione for KEAP1/NFE2L2 (NRF2) activation. They are
+searched by name; the other candidates of the same ion are shown, because the
+ion signal cannot be attributed to one of them.
+
+```{r readouts}
+readouts <- c(
+    "MTAP deletion: methylthioadenosine" = "methylthioadenosine",
+    "IDH1/2 mutation: 2-hydroxyglutarate" = "hydroxyglutar",
+    "KEAP1/NFE2L2: glutathione" = "glutathione"
+)
+readout_ions <- bind_rows(lapply(names(readouts), function(r) {
+    ions %>%
+        filter(str_detect(tolower(name), readouts[[r]])) %>%
+        transmute(readout = r, feature_id, ionMz, n_candidates, candidates = name)
+}))
+readout_ions %>%
+    mutate(median_intensity = apply(line_data$intensities[, feature_id, drop = FALSE], 2, median)) %>%
+    preview_table(caption = "Ions whose candidates include a readout metabolite")
+```
+
+## Interpretation
+
+- **Ambiguity:** fewer than half of the ions (519 of 1096) have a single
+  candidate metabolite; many stand for several isomers. Results must be read
+  per ion, and statements about individual metabolites need care.
+- **Identifiers:** after processing, 95 % of the ions carry an HMDB, 87 % a
+  PubChem, 86 % a ChEBI and 71 % a KEGG identifier.
+- **Prior knowledge:** 55 % of the ions have at least one identifier in COSMOS+,
+  38 % in the previous COSMOS network and 27 % in MetalinksDB. OCEAN coverage
+  is open until the package is available.
+- **Readout metabolites:** glutathione, oxidised glutathione,
+  cysteine-glutathione disulfide and S-lactoylglutathione are each measured on
+  an ion with a single candidate, which makes KEAP1/NFE2L2 a usable positive
+  control. 2-Hydroxyglutarate shares its ion with five other candidates
+  (including its isomers), so an IDH readout would not be specific.
+  5'-Methylthioadenosine (MTA), the readout for MTAP deletion, is not among the
+  annotated candidates.
+
+```{r session}
+sessionInfo()
+```

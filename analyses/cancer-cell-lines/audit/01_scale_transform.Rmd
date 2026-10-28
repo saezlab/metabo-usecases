@@ -219,12 +219,50 @@ save_figure(p, "t_half_minimum_vs_missing", fig_dir, width = 10, height = 4.5)
 p
 ```
 
+## 5. How much line-specific signal do the metabolites carry?
+
+Each line was measured several times (mostly 3 biological × 2 technical
+replicates). If a metabolite varies as much between the replicates of one line
+as between lines, it carries little information about differences between
+lines. This is quantified per metabolite as the ratio of the variance between
+line means to the average variance within lines (both on the log2 scale used
+for modelling).
+
+```{r replicate-signal}
+# injection-level data on the modelling scale (half-minimum, log2)
+injections <- readRDS(file.path(derived_dir, "01_injections.rds"))
+X <- log2_half_minimum(injections$intensities)
+line_of <- injections$injections$line[match(rownames(X), injections$injections$injection_id)]
+
+# variance between line means and mean variance within lines, per metabolite
+within <- apply(X, 2, function(v) mean(tapply(v, line_of, var)))
+between <- apply(rowsum(X, line_of) / as.vector(table(line_of)[rownames(rowsum(X, line_of))]), 2, var)
+signal <- tibble(metabolite = colnames(X), ratio = between / within)
+quantile(signal$ratio, c(0.05, 0.25, 0.5, 0.75, 0.95))
+c(ratio_below_1 = sum(signal$ratio < 1), metabolites = nrow(signal))
+
+p <- ggplot(signal, aes(ratio)) +
+    geom_histogram(bins = 60, fill = "#009E73") +
+    geom_vline(xintercept = 1, linetype = 2) +
+    scale_x_log10() +
+    labs(x = "Variance between lines / variance within lines (log scale)", y = "Metabolites",
+         title = "Many metabolites vary within a line about as much as between lines",
+         subtitle = sprintf("%d of %d metabolites below 1 (dashed)", sum(signal$ratio < 1), nrow(signal))) +
+    theme_uc()
+save_figure(p, "replicate_signal", fig_dir)
+p
+```
+
 ## Interpretation and decision
 
 - log2 removes the dependence of the variance on the level and the skewness of
   the raw intensities, as expected for metabolomics data.
 - Values <= 0 are rare (0.15 % of the values) and occur in metabolites with low
   levels, consistent with measurements at the detection limit.
+- Metabolites differ in how much line-specific signal they carry; for some,
+  replicate measurements of one line vary as much as different lines (section 5).
+  Whether to filter such metabolites is a separate decision (see
+  `docs/caveats.md`); by default all are kept.
 - Replacing them by half of the metabolite's minimum leaves the results of both
   example comparisons practically unchanged compared with leaving them missing
   or removing the affected metabolites: the t-statistics correlate at 0.99 or
