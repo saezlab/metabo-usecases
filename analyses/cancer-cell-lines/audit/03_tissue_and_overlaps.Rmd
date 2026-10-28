@@ -131,33 +131,10 @@ final_check %>%
 ## 2. Overlap with other data sources
 
 ```{r name-mapping}
-# Cellosaurus names and synonyms, normalised (case and punctuation removed)
-cellosaurus <- read_cellosaurus(file.path(raw_dir, config$cellosaurus$file))$entries %>% filter(human)
-normalise <- function(x) toupper(gsub("[^A-Za-z0-9]", "", x))
-# the primary Cellosaurus name (priority 1) wins over synonyms (priority 2),
-# because many short names (e.g. PC-3) are also synonyms of other lines
-name_index <- bind_rows(
-    transmute(cellosaurus, ac, name = id, priority = 1L),
-    cellosaurus %>%
-        transmute(ac, name = coalesce(synonyms, "")) %>%
-        separate_rows(name, sep = ";\\s*") %>%
-        filter(name != "") %>%
-        mutate(priority = 2L)
-) %>%
-    transmute(ac, key = normalise(name), priority) %>%
-    distinct()
-
-# map names to accessions: best priority only, and keep only unique matches
-map_names <- function(names) {
-    tibble(name = unique(names)) %>%
-        mutate(key = normalise(name)) %>%
-        left_join(name_index, by = "key", relationship = "many-to-many") %>%
-        group_by(name) %>%
-        filter(is.na(priority) | priority == min(priority)) %>%
-        summarise(n_matches = n_distinct(ac, na.rm = TRUE),
-                  ac = if (n_distinct(ac, na.rm = TRUE) == 1) first(na.omit(ac)) else NA_character_,
-                  .groups = "drop")
-}
+# Cellosaurus entries; names are mapped with map_names_to_accessions()
+# (R/cellosaurus.R: case and punctuation ignored, primary name before synonyms)
+cellosaurus <- read_cellosaurus(file.path(raw_dir, config$cellosaurus$file))$entries
+map_names <- function(names) map_names_to_accessions(names, cellosaurus)
 
 # Ortmayr et al. 2019: cell line names and tissue (header in row 3 of the sheet)
 ortmayr <- readxl::read_excel(ortmayr_file, sheet = "Cell_metadata", skip = 2) %>%

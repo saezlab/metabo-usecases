@@ -40,9 +40,27 @@ files below from the article's supplementary information into
 | `41467_2019_9695_MOESM2_ESM.xlsx` | Supplementary Data 1: metabolomics of 54 adherent NCI-60 cell lines. Sheets: cell line metadata (tissue, doubling time, cell size), relative metabolite abundances, their standard errors, regression p-values, tissue-specific metabolites, glucose uptake and lactate secretion rates, enzyme–metabolite distances, mouse tissue abundances |
 | `41467_2019_9695_MOESM8_ESM.docx` | Titles and descriptions of Supplementary Data 1–5 (Data 2–5, e.g. TR activity profiles, were not downloaded) |
 
+## DepMap 24Q4 Public (`depmap_24Q4/`, local dependency)
+
+Source of mutation and copy-number status (decision in
+`analyses/cancer-cell-lines/audit/04_mutation_sources.Rmd`). DepMap 24Q4 Public,
+Figshare <https://doi.org/10.25452/figshare.plus.27993248.v1>, licence CC BY 4.0.
+Not in git because of its size (about 730 MB). Download the files below from
+the Figshare record into `data/raw/cancer-cell-lines/depmap_24Q4/` and check the
+MD5 sums given there:
+
+| File | Content |
+|---|---|
+| `README.txt` | Description of all files of the release |
+| `Model.csv` | Cell line (model) annotation, including RRID |
+| `OmicsSomaticMutations.csv` | Somatic point mutations and indels (Mutect2) with annotation |
+| `OmicsSomaticMutationsMatrixHotspot.csv` | Model × gene: hotspot mutations |
+| `OmicsSomaticMutationsMatrixDamaging.csv` | Model × gene: likely loss-of-function mutations |
+| `OmicsAbsoluteCNGene.csv` | Gene-level absolute copy number (PureCN) |
+
 ## Cellosaurus (local dependency)
 
-- `analyses/cancer-cell-lines/02_add_metadata.Rmd` expects a local file at `data/raw/cancer-cell-lines/cellosaurus.txt`.
+- `analyses/cancer-cell-lines/preprocessing/02_cell_lines_mutations.Rmd` (and the previous `02_add_metadata.Rmd`) expect a local file at `data/raw/cancer-cell-lines/cellosaurus.txt` (release 53.0 is used, see `config.yml`).
 - Download source: `https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt`
 - After download, remove the first 57 lines before using the file in the workflow.
 - The prepared file is intentionally kept out of Git because it is a large static local dependency.

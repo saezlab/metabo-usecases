@@ -1,0 +1,465 @@
+---
+title: "Audit 4: mutation annotation – Cellosaurus vs the CCLE calls of Shorthouse et al."
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Mutation groups define the contrasts of the analysis, so the mutation source
+must be reliable and as complete as possible. The use case has so far relied
+on Cellosaurus, which lists selected, published variations. Shorthouse et al.
+used CCLE mutation calls instead. This notebook compares the two before a
+decision is made, and shows how the parsing fix (B1) changed the ranking of the
+most frequent mutations used by the original mutation analysis.
+
+**Decision supported:** which mutation source to use (Cellosaurus, the CCLE
+calls of Shorthouse et al., or a current DepMap release, which would require a
+download).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/02_cell_lines.tsv`, `02_gene_status.tsv` (Cellosaurus, release 53.0)
+- `data/derived/cancer-cell-lines/Shorthouse_2022.RData`: output of the previous pipeline (`mutated_genes` before the fix)
+- `data/raw/cancer-cell-lines/shorthouse_github/Mutations_in_celllines.csv`: mutation calls used by Shorthouse et al. (**local only**, no licence)
+- `data/raw/cancer-cell-lines/msb202211006-sup-0005-datasetev4.xlsx`, `…-0006-datasetev5.xlsx`: Datasets EV4/EV5 (genes tested by the authors and their t-statistics)
+
+## Methods
+
+Comparisons were restricted to the 658 genes tested by Shorthouse et al.
+(Dataset EV4, derived from the COSMIC Cancer Gene Census), so that passenger
+mutations in long genes do not dominate. In the CCLE calls of Shorthouse et
+al., a gene counted as mutated if it carried a non-silent variant (missense,
+nonsense, frameshift, in-frame insertion/deletion or splice site); silent,
+intronic and UTR variants were ignored. The calls combine the sources CCLE,
+COSMIC and NCI-60. Cell lines were matched by Cellosaurus name. In Cellosaurus,
+a gene counted as mutated if it carried a "Mutation" entry; reported wild type,
+deletions and fusions were kept apart. Agreement was assessed on the lines
+covered by both sources.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/cellosaurus.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+fig_dir <- uc_dir(config, "output", "audit_04_mutation_sources")
+
+# cell lines and Cellosaurus status per gene (step 02); the engineered line is left out
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE) %>%
+    filter(!engineered)
+gene_status <- readr::read_tsv(file.path(derived_dir, "02_gene_status.tsv"), show_col_types = FALSE) %>%
+    filter(line %in% cell_lines$line)
+
+# genes tested by Shorthouse et al.: the columns of Dataset EV4 ("T_<gene>")
+ev4_file <- file.path(raw_dir, "msb202211006-sup-0005-datasetev4.xlsx")
+ev4 <- readxl::read_excel(ev4_file, sheet = "Sheet1")
+tested_genes <- sub("^T_", "", setdiff(names(ev4), "ionIdx"))
+length(tested_genes)
+```
+
+## 1. The original mutation analysis before and after the parsing fix
+
+The original analysis (`Mutation_Analyses.Rmd` in the thesis) split
+`mutated_genes` into genes and ranked them by the number of lines. Before the
+fix, `mutated_genes` also contained genes with a reported wild type, deletions
+and fusions.
+
+```{r ranking}
+# previous pipeline: genes listed in mutated_genes, per name; names mapped to lines
+load_one <- function(f) { e <- new.env(); load(f, envir = e); as.list(e)[[1]] }
+old_samples <- load_one(file.path(here::here("data/derived/cancer-cell-lines"), "Shorthouse_2022.RData"))$samples
+member_of <- cell_lines %>%
+    separate_rows(member_names, sep = "; ") %>%
+    select(name = member_names, line)
+old_counts <- old_samples %>%
+    select(name, mutated_genes) %>%
+    inner_join(member_of, by = "name") %>%
+    separate_rows(mutated_genes, sep = ";\\s*") %>%
+    filter(mutated_genes != "", !is.na(mutated_genes)) %>%
+    distinct(line, gene = mutated_genes) %>%
+    count(gene, name = "lines_before_fix")
+
+# now: genes with status "mutation"
+new_counts <- gene_status %>%
+    filter(status == "mutation") %>%
+    count(gene, name = "lines_after_fix")
+
+ranking <- full_join(old_counts, new_counts, by = "gene") %>%
+    mutate(across(starts_with("lines"), ~ coalesce(.x, 0L))) %>%
+    arrange(desc(lines_before_fix)) %>%
+    mutate(rank_before = row_number()) %>%
+    arrange(desc(lines_after_fix)) %>%
+    mutate(rank_after = row_number())
+preview_table(arrange(ranking, rank_before), caption = "Lines per gene before and after the fix")
+
+p <- ranking %>%
+    filter(rank_before <= 25 | rank_after <= 25) %>%
+    pivot_longer(c(lines_before_fix, lines_after_fix), names_to = "version", values_to = "lines") %>%
+    mutate(version = recode(version, lines_before_fix = "before fix", lines_after_fix = "after fix")) %>%
+    ggplot(aes(lines, reorder(gene, lines), colour = version)) +
+    geom_line(aes(group = gene), colour = "grey70") +
+    geom_point(size = 2) +
+    scale_colour_manual(values = c("before fix" = "#D55E00", "after fix" = "#0072B2")) +
+    labs(x = "Cell lines with the gene counted as mutated", y = NULL, colour = NULL,
+         title = "Most frequent mutations in Cellosaurus, before and after the parsing fix",
+         subtitle = sprintf("%d cell lines", nrow(cell_lines))) +
+    theme_uc()
+save_figure(p, "ranking_before_after_fix", fig_dir, width = 8, height = 7)
+p
+```
+
+## 2. Coverage of the two sources
+
+```{r ccle-calls}
+# CCLE calls used by Shorthouse et al.; names are Cellosaurus names
+calls <- readr::read_csv(file.path(raw_dir, "shorthouse_github", "Mutations_in_celllines.csv"),
+                         show_col_types = FALSE, name_repair = "unique_quiet")
+
+# non-silent variants
+nonsilent <- calls %>%
+    filter(MutationType %in% c("Missense", "Nonsense", "Frame_Shift", "In_Frame") |
+               grepl("Splice_Site", MutationType_Raw))
+
+# match names: first to the Cellosaurus name of our lines, then via the general mapping
+cellosaurus <- read_cellosaurus(file.path(raw_dir, config$cellosaurus$file))$entries
+normalise <- function(x) toupper(gsub("[^A-Za-z0-9]", "", x))
+call_names <- tibble(name = unique(calls$CellLineName_Cellosaurus)) %>%
+    mutate(line = cell_lines$line[match(normalise(name), normalise(cell_lines$cellosaurus_name))])
+fallback <- map_names_to_accessions(call_names$name[is.na(call_names$line)], cellosaurus)
+call_names <- call_names %>%
+    left_join(select(fallback, name, ac), by = "name") %>%
+    mutate(line = coalesce(line, cell_lines$line[match(ac, cell_lines$accession)])) %>%
+    select(name, line)
+
+ccle_status <- nonsilent %>%
+    inner_join(filter(call_names, !is.na(line)), by = c("CellLineName_Cellosaurus" = "name")) %>%
+    distinct(line, gene = HGNC, source = Source_Type)
+ccle_lines <- unique(inner_join(calls, filter(call_names, !is.na(line)),
+                                by = c("CellLineName_Cellosaurus" = "name"))$line)
+cellosaurus_lines <- unique(gene_status$line)
+
+c(lines = nrow(cell_lines),
+  with_cellosaurus_entries = length(cellosaurus_lines),
+  with_ccle_calls = length(ccle_lines),
+  with_both = length(intersect(ccle_lines, cellosaurus_lines)))
+
+# sources behind the CCLE calls, per line
+ccle_status %>% distinct(line, source) %>% count(source)
+```
+
+```{r genes-per-line}
+# mutated tested genes per line in each source
+per_line <- bind_rows(
+    gene_status %>% filter(status == "mutation", gene %in% tested_genes) %>%
+        count(line) %>% mutate(source = "Cellosaurus"),
+    ccle_status %>% filter(gene %in% tested_genes) %>% distinct(line, gene) %>%
+        count(line) %>% mutate(source = "CCLE calls (Shorthouse)")
+)
+per_line %>% group_by(source) %>% summarise(lines = n(), median_genes = median(n), max_genes = max(n))
+
+p <- ggplot(per_line, aes(n, fill = source)) +
+    geom_histogram(bins = 40, position = "identity", alpha = 0.7) +
+    scale_x_log10() +
+    scale_fill_manual(values = c("Cellosaurus" = "#E69F00", "CCLE calls (Shorthouse)" = "#0072B2")) +
+    labs(x = "Mutated genes per cell line (658 tested genes, log scale)", y = "Cell lines", fill = NULL,
+         title = "Cellosaurus lists few mutations per line; the CCLE calls list many") +
+    theme_uc()
+save_figure(p, "genes_per_line_by_source", fig_dir)
+p
+```
+
+## 3. Agreement per gene
+
+Only lines covered by both sources are used. For each gene, lines are counted
+as mutated in both sources, only in Cellosaurus, or only in the CCLE calls.
+"Cellosaurus wild type" marks lines where Cellosaurus reports the gene as wild
+type but the CCLE calls list a non-silent variant.
+
+```{r agreement}
+both_lines <- intersect(ccle_lines, cellosaurus_lines)
+cello <- gene_status %>% filter(line %in% both_lines, gene %in% tested_genes)
+ccle <- ccle_status %>% filter(line %in% both_lines, gene %in% tested_genes) %>% distinct(line, gene) %>%
+    mutate(ccle_mutated = TRUE)
+
+agreement <- full_join(
+    cello %>% transmute(line, gene, cellosaurus = status),
+    ccle, by = c("line", "gene")
+) %>%
+    mutate(
+        ccle_mutated = coalesce(ccle_mutated, FALSE),
+        category = case_when(
+            cellosaurus %in% "mutation" & ccle_mutated ~ "both",
+            cellosaurus %in% "mutation" ~ "Cellosaurus only",
+            cellosaurus %in% "wild_type_reported" & ccle_mutated ~ "Cellosaurus wild type, CCLE mutated",
+            ccle_mutated ~ "CCLE only",
+            TRUE ~ "neither (other status)"
+        )
+    )
+
+per_gene <- agreement %>%
+    filter(category != "neither (other status)") %>%
+    count(gene, category) %>%
+    pivot_wider(names_from = category, values_from = n, values_fill = 0) %>%
+    mutate(total = rowSums(across(-gene))) %>%
+    arrange(desc(total))
+preview_table(per_gene, caption = sprintf("Agreement per gene (%d lines covered by both)", length(both_lines)))
+
+p <- agreement %>%
+    filter(category != "neither (other status)", gene %in% head(per_gene$gene, 30)) %>%
+    count(gene, category) %>%
+    ggplot(aes(n, reorder(gene, n, sum), fill = category)) +
+    geom_col() +
+    scale_fill_manual(values = c("both" = "#009E73", "Cellosaurus only" = "#E69F00",
+                                 "CCLE only" = "#0072B2", "Cellosaurus wild type, CCLE mutated" = "#D55E00")) +
+    labs(x = "Cell lines", y = NULL, fill = NULL,
+         title = "Most mutations in the CCLE calls are missing in Cellosaurus",
+         subtitle = sprintf("30 most frequently mutated genes; %d lines covered by both sources", length(both_lines))) +
+    theme_uc()
+save_figure(p, "agreement_per_gene", fig_dir, width = 9, height = 7)
+p
+```
+
+## 4. Genes of interest in lung
+
+Group sizes for candidate genes in lung lines, by source. The genes are those
+discussed in the planning (KRAS, EGFR, STK11, KEAP1 and others) and the genes
+Shorthouse et al. analysed in lung (KEAP1, NFE2L2, STK11; Appendix Fig S6).
+
+```{r lung}
+genes_of_interest <- c("TP53", "KRAS", "EGFR", "STK11", "KEAP1", "NFE2L2", "CDKN2A",
+                       "SMARCA4", "PIK3CA", "BRAF", "NRAS", "PTEN", "IDH1", "IDH2")
+lung <- cell_lines$line[cell_lines$tissue %in% "Lung"]
+lung_both <- intersect(lung, both_lines)
+
+lung_counts <- bind_rows(
+    gene_status %>% filter(line %in% lung, status == "mutation") %>% count(gene) %>%
+        mutate(source = sprintf("Cellosaurus (%d lung lines)", length(lung))),
+    gene_status %>% filter(line %in% lung_both, status == "mutation") %>% count(gene) %>%
+        mutate(source = sprintf("Cellosaurus, lines with CCLE calls (%d)", length(lung_both))),
+    ccle_status %>% filter(line %in% lung_both) %>% distinct(line, gene) %>% count(gene) %>%
+        mutate(source = sprintf("CCLE calls, same lines (%d)", length(lung_both)))
+) %>%
+    filter(gene %in% genes_of_interest) %>%
+    complete(gene = genes_of_interest, source, fill = list(n = 0))
+
+lung_counts %>%
+    pivot_wider(names_from = source, values_from = n) %>%
+    preview_table(caption = "Mutated lung lines per gene and source")
+
+p <- ggplot(lung_counts, aes(n, factor(gene, levels = rev(genes_of_interest)), fill = source)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("#E69F00", "#F0E442", "#0072B2")) +
+    labs(x = "Mutated lung lines", y = NULL, fill = NULL,
+         title = "Lung: mutated lines per gene by source") +
+    theme_uc() +
+    theme(legend.position = "bottom", legend.direction = "vertical")
+save_figure(p, "lung_genes_by_source", fig_dir, width = 8, height = 6.5)
+p
+```
+
+## 5. Reference results of Shorthouse et al. (EV4, EV5)
+
+Dataset EV4 holds, for every ion and tested gene, the t-statistic of a
+regression of the metabolite level on mutation status with tissue as
+covariate. Dataset EV5 repeats this for individual KRAS variants. They are a
+reference for later comparisons and for positive controls.
+
+```{r ev4}
+ev5 <- readxl::read_excel(file.path(raw_dir, "msb202211006-sup-0006-datasetev5.xlsx"), sheet = "Sheet1")
+c(ev4_ions = nrow(ev4), ev4_genes = length(tested_genes),
+  ev5_ions = nrow(ev5), ev5_kras_variants = ncol(ev5) - 1)
+names(ev5)[-1]
+
+# number of ions with |t| > 5 (the threshold used in the authors' Appendix Fig S6)
+ev4_strong <- tibble(
+    gene = tested_genes,
+    ions_abs_t_above_5 = colSums(abs(as.matrix(ev4[, paste0("T_", tested_genes)])) > 5, na.rm = TRUE)
+) %>% arrange(desc(ions_abs_t_above_5))
+ev4_strong %>% filter(gene %in% genes_of_interest)
+preview_table(ev4_strong, caption = "Ions with |t| > 5 per gene (EV4)")
+```
+
+## 6. DepMap 24Q4
+
+DepMap 24Q4 Public (Figshare, doi:10.25452/figshare.plus.27993248.v1, CC BY 4.0;
+**local only**, `data/raw/cancer-cell-lines/depmap_24Q4/`) provides Mutect2
+somatic calls of protein-changing variants with annotation, and gene-level
+absolute copy number (PureCN). Two definitions of a mutated gene are used:
+**any** protein-changing variant (comparable to the CCLE calls), and **likely
+driver**: a variant flagged by DepMap as hotspot (Hess et al. 2019, OncoKB,
+COSMIC tier 1), likely loss of function, Hess driver, or high-impact in an
+oncogene or tumour suppressor. A gene counts as deleted at absolute copy number
+0. Lines are matched through the RRID of the DepMap model table, i.e. directly
+by Cellosaurus accession.
+
+```{r depmap-load}
+depmap_dir <- file.path(raw_dir, "depmap_24Q4")
+stopifnot(dir.exists(depmap_dir))
+
+# DepMap models matched to our lines by RRID (= Cellosaurus accession)
+models <- readr::read_csv(file.path(depmap_dir, "Model.csv"), show_col_types = FALSE) %>%
+    select(ModelID, RRID, CellLineName, OncotreeLineage)
+model_of_line <- cell_lines %>%
+    inner_join(models, by = c("accession" = "RRID")) %>%
+    distinct(line, ModelID)
+c(lines = nrow(cell_lines), matched_to_depmap = n_distinct(model_of_line$line),
+  lines_with_several_models = sum(table(model_of_line$line) > 1))
+
+# somatic calls of the matched models
+depmap_calls <- data.table::fread(
+    file.path(depmap_dir, "OmicsSomaticMutations.csv"),
+    select = c("ModelID", "HugoSymbol", "ProteinChange", "VariantInfo", "Hotspot", "LikelyLoF",
+               "HessDriver", "OncogeneHighImpact", "TumorSuppressorHighImpact")
+) %>%
+    as_tibble() %>%
+    inner_join(model_of_line, by = "ModelID", relationship = "many-to-many") %>%
+    mutate(likely_driver = Hotspot | LikelyLoF | HessDriver | OncogeneHighImpact | TumorSuppressorHighImpact)
+
+depmap_status <- depmap_calls %>%
+    group_by(line, gene = HugoSymbol) %>%
+    summarise(any = TRUE, likely_driver = any(likely_driver), .groups = "drop")
+depmap_lines <- unique(model_of_line$line)
+```
+
+```{r depmap-genes-per-line}
+# mutated tested genes per line, now with both DepMap definitions
+per_line_all <- bind_rows(
+    per_line,
+    depmap_status %>% filter(gene %in% tested_genes) %>% count(line) %>% mutate(source = "DepMap, any"),
+    depmap_status %>% filter(gene %in% tested_genes, likely_driver) %>% count(line) %>%
+        mutate(source = "DepMap, likely driver")
+)
+per_line_all %>% group_by(source) %>% summarise(lines = n(), median_genes = median(n), max_genes = max(n))
+
+# genes the CCLE calls list as mutated in most lines: does DepMap agree?
+suspicious <- c("CLTCL1", "MAP3K1", "RECQL4", "MUC16", "LRP1B", "CSMD3")
+common_lines <- Reduce(intersect, list(ccle_lines, depmap_lines, cellosaurus_lines))
+tibble(gene = suspicious) %>%
+    mutate(
+        ccle_calls = sapply(gene, function(g) n_distinct(ccle_status$line[ccle_status$gene == g & ccle_status$line %in% common_lines])),
+        depmap_any = sapply(gene, function(g) sum(depmap_status$gene == g & depmap_status$line %in% common_lines)),
+        depmap_likely_driver = sapply(gene, function(g) sum(depmap_status$gene == g & depmap_status$likely_driver & depmap_status$line %in% common_lines))
+    ) %>%
+    mutate(lines_compared = length(common_lines))
+```
+
+```{r depmap-lung}
+# lung group sizes for the genes of interest, all sources on the same lines
+lung_common <- intersect(lung, common_lines)
+count_lines <- function(lines_mutated) sapply(genes_of_interest, function(g) length(intersect(lines_mutated(g), lung_common)))
+lung_sources <- tibble(
+    gene = genes_of_interest,
+    Cellosaurus = count_lines(function(g) gene_status$line[gene_status$gene == g & gene_status$status == "mutation"]),
+    `CCLE calls (Shorthouse)` = count_lines(function(g) ccle_status$line[ccle_status$gene == g]),
+    `DepMap, any` = count_lines(function(g) depmap_status$line[depmap_status$gene == g]),
+    `DepMap, likely driver` = count_lines(function(g) depmap_status$line[depmap_status$gene == g & depmap_status$likely_driver])
+)
+preview_table(lung_sources, caption = sprintf("Mutated lung lines per gene and source (%d lung lines covered by all sources)", length(lung_common)))
+
+p <- lung_sources %>%
+    pivot_longer(-gene, names_to = "source", values_to = "n") %>%
+    mutate(source = factor(source, levels = names(lung_sources)[-1])) %>%
+    ggplot(aes(n, factor(gene, levels = rev(genes_of_interest)), fill = source)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("#E69F00", "#0072B2", "#009E73", "#CC79A7")) +
+    labs(x = "Mutated lung lines", y = NULL, fill = NULL,
+         title = "Lung: mutated lines per gene, four sources on the same lines",
+         subtitle = sprintf("%d lung lines covered by Cellosaurus, CCLE calls and DepMap", length(lung_common))) +
+    theme_uc() +
+    theme(legend.position = "bottom")
+save_figure(p, "lung_genes_four_sources", fig_dir, width = 9, height = 6.5)
+p
+
+# agreement for the main drivers between Cellosaurus and DepMap (all lines covered by both)
+both_cd <- intersect(cellosaurus_lines, depmap_lines)
+bind_rows(lapply(c("TP53", "KRAS", "EGFR", "BRAF", "PIK3CA", "STK11", "KEAP1"), function(g) {
+    cel <- gene_status$line[gene_status$gene == g & gene_status$status == "mutation"]
+    dep <- depmap_status$line[depmap_status$gene == g]
+    tibble(gene = g, both = length(intersect(intersect(cel, dep), both_cd)),
+           cellosaurus_only = length(intersect(setdiff(cel, dep), both_cd)),
+           depmap_only = length(intersect(setdiff(dep, cel), both_cd)))
+})) %>% mutate(lines_compared = length(both_cd))
+```
+
+```{r depmap-deletions}
+# homozygous deletions (absolute copy number 0) for genes relevant to the planning
+cn_header <- names(data.table::fread(file.path(depmap_dir, "OmicsAbsoluteCNGene.csv"), nrows = 0))
+deletion_genes <- c("CDKN2A", "MTAP", "PTEN", "SMAD4", "STK11", "RB1")
+cn_cols <- cn_header[sub(" \\(.*$", "", cn_header) %in% deletion_genes]
+cn <- data.table::fread(file.path(depmap_dir, "OmicsAbsoluteCNGene.csv"), select = c(cn_header[1], cn_cols)) %>%
+    as_tibble() %>%
+    rename(ModelID = 1) %>%
+    inner_join(model_of_line, by = "ModelID") %>%
+    pivot_longer(all_of(cn_cols), names_to = "gene", values_to = "cn") %>%
+    mutate(gene = sub(" \\(.*$", "", gene))
+
+cn_lines <- unique(cn$line)
+cello_del <- gene_status %>% filter(status == "deletion")
+cn %>%
+    group_by(gene) %>%
+    summarise(
+        lines_with_copy_number = n_distinct(line),
+        depmap_deleted = n_distinct(line[cn == 0 & !is.na(cn)]),
+        cellosaurus_deleted = n_distinct(intersect(cello_del$line[cello_del$gene == first(gene)], cn_lines)),
+        both = n_distinct(intersect(line[cn == 0 & !is.na(cn)], cello_del$line[cello_del$gene == first(gene)])),
+        depmap_deleted_in_lung = n_distinct(intersect(line[cn == 0 & !is.na(cn)], lung)),
+        .groups = "drop"
+    )
+```
+
+## Interpretation and proposed decision
+
+- **Ranking of the original analysis:** after the parsing fix, TP53 drops from
+  150 to 132 mutated lines and CDKN2A from 27 to 13 (most entries were
+  deletions); the order of the other frequent genes barely changes.
+- **Coverage:** Cellosaurus lists a median of 2 mutated tested genes per line,
+  the CCLE calls 24. For the classical drivers both agree well (TP53: 121 lines
+  in both, 7 in only one source; KRAS: 41 in both, 1 only in CCLE).
+- **Cellosaurus misses most co-mutations.** In lung, KEAP1 is mutated in 12
+  lines according to the CCLE calls but in 1 according to Cellosaurus; STK11
+  16 vs 4, SMARCA4 20 vs 4, NFE2L2 5 vs 0. These are exactly the co-mutations
+  planned as covariates (e.g. STK11/KEAP1 for KRAS in lung) and the positive
+  controls analysed by Shorthouse et al. (Appendix Fig S6). With Cellosaurus,
+  absent entries would be read as wild type and the covariates would be wrong.
+- **The CCLE calls of Shorthouse et al. are not a clean alternative either:**
+  they mix three sources (CCLE, COSMIC, NCI-60) and count every non-silent
+  variant, so genes such as CLTCL1, MAP3K1 or RECQL4 appear mutated in most
+  lines, which suggests passenger variants or artefacts rather than drivers.
+  The file also comes from an unlicensed repository.
+- **Reference results:** EV4 reports many ions with |t| > 5 for KRAS, BRAF,
+  PIK3CA, TP53 and STK11, and also for KEAP1 and NFE2L2, which supports these
+  genes as candidates and positive controls.
+
+- **DepMap 24Q4** matches 169 of 174 lines directly by RRID. For the main
+  drivers it agrees with Cellosaurus (KRAS: 43 lines in both, none in only
+  one; TP53: 127 in both, 4 + 4 in only one), and it captures the
+  co-mutations Cellosaurus misses (lung, 83 lines covered by all sources:
+  STK11 20 vs 3, KEAP1 16 vs 1, SMARCA4 21 vs 4, NFE2L2 5 vs 0).
+- The genes that the CCLE calls of Shorthouse et al. list as mutated in most
+  lines (CLTCL1 128 lines, MAP3K1 106, RECQL4 101) are rare in DepMap (7, 3, 3),
+  which confirms that those calls contain artefacts or mixed-source noise.
+- DepMap's "likely driver" flag is stricter: it keeps KRAS and TP53 but drops
+  many KEAP1 missense variants (7 of 16 lung lines kept). Which definition to
+  use per gene is a design question for the contrast selection (Phase 3).
+- **Deletions:** DepMap copy number shows homozygous CDKN2A deletion in 51 and
+  MTAP deletion in 34 of 138 lines; Cellosaurus lists 11 and 0. MTAP, a
+  positive-control genotype in the planning, is only available from DepMap.
+
+**Decision (2026-10-28):** DepMap 24Q4 (Figshare, CC BY 4.0, citable DOI) is
+the source of mutation and copy-number status, matched by RRID; Cellosaurus
+stays for cell line identity (accessions) and as a documented cross-check. The
+per-gene definition of "mutated" (any protein-changing vs likely driver) is
+fixed when the contrasts are chosen (Phase 3).
+
+```{r session}
+sessionInfo()
+```

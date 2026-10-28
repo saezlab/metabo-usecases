@@ -59,6 +59,13 @@ tissue:
       tissue: Unknown
       reason: identity not confirmed by EV1; Unknown in Shorthouse et al.
 
+depmap:
+  # source of mutation and copy-number status (decision: audit/04_mutation_sources.Rmd);
+  # local only, see data/raw/cancer-cell-lines/README.md
+  release: "24Q4 Public"
+  doi: 10.25452/figshare.plus.27993248.v1
+  dir: depmap_24Q4
+
 cellosaurus:
   # local flat file with the first 57 header lines removed (see data/raw README)
   file: cellosaurus.txt

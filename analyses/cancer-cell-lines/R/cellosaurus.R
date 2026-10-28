@@ -57,6 +57,37 @@ read_cellosaurus <- function(path) {
     list(entries = entries[, -1], variations = variations)
 }
 
+#' Map cell line names to Cellosaurus accessions
+#'
+#' Names are compared after removing case and punctuation. The primary
+#' Cellosaurus name wins over synonyms, because many short names (e.g. PC-3)
+#' are also synonyms of other lines. Only unique matches are returned.
+#'
+#' @param names Character vector of cell line names.
+#' @param entries `read_cellosaurus()$entries`.
+#' @return Data frame with name, n_matches and ac (NA if not unique).
+map_names_to_accessions <- function(names, entries) {
+    if (length(names) == 0) {
+        return(data.frame(name = character(), n_matches = integer(), ac = character()))
+    }
+    normalise <- function(x) toupper(gsub("[^A-Za-z0-9]", "", x))
+    human <- entries[entries$human, ]
+    synonyms <- strsplit(ifelse(is.na(human$synonyms), "", human$synonyms), ";\\s*")
+    index <- rbind(
+        data.frame(ac = human$ac, key = normalise(human$id), priority = 1L),
+        data.frame(ac = rep(human$ac, lengths(synonyms)), key = normalise(unlist(synonyms)), priority = 2L)
+    )
+    index <- unique(index[index$key != "", ])
+
+    out <- lapply(unique(names), function(n) {
+        hits <- index[index$key == normalise(n), ]
+        hits <- hits[hits$priority == suppressWarnings(min(hits$priority)), ]
+        acs <- unique(hits$ac)
+        data.frame(name = n, n_matches = length(acs), ac = if (length(acs) == 1) acs else NA_character_)
+    })
+    do.call(rbind, out)
+}
+
 #' Split Cellosaurus sequence variations into fields and classify them
 #'
 #' Formats (Cellosaurus release 53):
