@@ -1,0 +1,268 @@
+---
+title: "Audit 2: global structure – culture batch and tissue"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Find out which known factors shape the metabolite profiles of the cell lines,
+in particular culture batch and tissue of origin, and whether they are
+confounded with each other.
+
+**Decision supported:** which covariates the differential models need
+(planned design so far: `~ tissue + covariates + mutation`).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_injections.rds`, `01_lines.rds`
+- `data/raw/cancer-cell-lines/shorthouse_github/Cellline_mappings_shorthouse.csv`:
+  batch, plate and tissue per injection from the authors' GitHub repository
+  (`shorthouse-mrc/CellLine_Metabolomics` @ cce3b15). **Local only** (no licence
+  in the repository); this notebook does not run without it.
+
+## Methods
+
+Each injection was assigned its culture batch (7 batches; sub-batches such as
+6A/6B were combined) and the tissue label of Shorthouse et al. (11 tissues plus
+"Unknown"). Intensities were averaged per line and transformed with
+log2 after half-minimum imputation of values <= 0 (see Audit 1). Principal component analysis
+was run on the ion-wise standardised values. For each of the first ten
+components, the variance explained by tissue and by batch was estimated as the
+R² of a one-way linear model (lines grown in a single batch only for batch).
+Per ion, association with tissue was tested by one-way ANOVA, and with batch by
+ANOVA after adjusting for tissue; p-values were adjusted with the
+Benjamini–Hochberg procedure.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(limma)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/transform.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+fig_dir <- uc_dir(config, "output", "audit_02_structure_batch_tissue")
+
+injections <- readRDS(file.path(derived_dir, "01_injections.rds"))
+lines <- readRDS(file.path(derived_dir, "01_lines.rds"))
+mapping_file <- file.path(raw_dir, "shorthouse_github", "Cellline_mappings_shorthouse.csv")
+stopifnot(file.exists(mapping_file))
+
+Y <- lines$intensities
+# log2 after half-minimum imputation of values <= 0 (Audit 1)
+A <- log2_half_minimum(Y)
+```
+
+## 1. Batch and tissue per line
+
+```{r batch}
+mapping <- readr::read_csv(mapping_file, show_col_types = FALSE, name_repair = "unique_quiet") %>%
+    transmute(
+        injection_id = as.character(dsIdx),
+        batch = sub("[A-Za-z]$", "", sub("_.*$", "", dsPert)),   # Batch6A -> Batch6
+        tissue_paper = Tissue
+    )
+stopifnot(all(injections$injections$injection_id %in% mapping$injection_id))
+
+per_line <- injections$injections %>%
+    left_join(mapping, by = "injection_id") %>%
+    group_by(line) %>%
+    summarise(
+        n_batches = n_distinct(batch),
+        batch = if (n_distinct(batch) == 1) first(batch) else "several",
+        tissue = paste(sort(unique(tissue_paper)), collapse = "; "),
+        .groups = "drop"
+    ) %>%
+    slice(match(rownames(Y), line))
+
+count(per_line, n_batches)
+per_line %>% filter(n_batches > 1) %>% pull(line)
+count(per_line, tissue, sort = TRUE)
+
+tile <- count(per_line, tissue, batch)
+p <- ggplot(tile, aes(batch, reorder(tissue, n, sum), fill = n)) +
+    geom_tile(colour = "white") +
+    geom_text(aes(label = n), size = 3) +
+    scale_fill_gradient(low = "#DEEBF7", high = "#08519C") +
+    labs(x = "Culture batch", y = "Tissue (Shorthouse et al.)", fill = "Lines",
+         title = "Small tissues sit in one or two batches; lung is spread over all") +
+    theme_uc()
+save_figure(p, "tissue_by_batch", fig_dir, width = 8, height = 5)
+p
+```
+
+## 2. Principal components
+
+```{r pca}
+pca <- prcomp(A, center = TRUE, scale. = TRUE)
+var_explained <- summary(pca)$importance[2, 1:10]
+scores <- as_tibble(pca$x[, 1:4]) %>% mutate(line = rownames(A)) %>% left_join(per_line, by = "line")
+
+p <- ggplot(tibble(pc = factor(1:10), var = var_explained), aes(pc, var)) +
+    geom_col(fill = "#0072B2") +
+    labs(x = "Principal component", y = "Share of variance", title = "Scree plot (log2, 1096 ions, 175 lines)") +
+    theme_uc()
+save_figure(p, "scree", fig_dir)
+p
+
+plot_scores <- function(x, y, colour_by, title) {
+    lv <- sort(unique(scores[[colour_by]]))
+    ggplot(scores, aes(.data[[x]], .data[[y]], colour = .data[[colour_by]])) +
+        geom_point(size = 2, alpha = 0.85) +
+        scale_colour_manual(values = uc_palette(lv)) +
+        labs(title = title, colour = NULL,
+             x = sprintf("%s (%.0f%%)", x, 100 * var_explained[as.integer(sub("PC", "", x))]),
+             y = sprintf("%s (%.0f%%)", y, 100 * var_explained[as.integer(sub("PC", "", y))])) +
+        theme_uc()
+}
+for (pair in list(c("PC1", "PC2"), c("PC2", "PC3"))) {
+    for (by in c("tissue", "batch")) {
+        p <- plot_scores(pair[1], pair[2], by, sprintf("%s vs %s, coloured by %s", pair[1], pair[2], by))
+        save_figure(p, sprintf("pca_%s_%s_%s", pair[1], pair[2], by), fig_dir, width = 7.5, height = 5)
+        print(p)
+    }
+}
+```
+
+## 3. Variance explained by tissue and batch
+
+```{r r2}
+r2 <- function(score, factor) {
+    ok <- !is.na(factor)
+    summary(lm(score[ok] ~ factor(factor[ok])))$r.squared
+}
+batch_single <- ifelse(per_line$n_batches == 1, per_line$batch, NA)
+r2_table <- tibble(
+    pc = factor(1:10),
+    tissue = sapply(1:10, function(k) r2(pca$x[, k], per_line$tissue)),
+    batch = sapply(1:10, function(k) r2(pca$x[, k], batch_single))
+)
+r2_table
+
+p <- r2_table %>%
+    pivot_longer(c(tissue, batch), names_to = "factor", values_to = "r2") %>%
+    ggplot(aes(pc, r2, fill = factor)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c(batch = "#D55E00", tissue = "#009E73")) +
+    labs(x = "Principal component", y = expression(R^2), fill = NULL,
+         title = "Batch explains more of the leading components than tissue",
+         subtitle = sprintf("batch: %d lines grown in one batch; tissue: all %d lines", sum(!is.na(batch_single)), nrow(per_line))) +
+    theme_uc()
+save_figure(p, "r2_tissue_batch_by_pc", fig_dir)
+p
+```
+
+## 4. Ions associated with tissue and with batch
+
+```{r per-ion}
+one <- !is.na(batch_single)
+p_tissue <- apply(A, 2, function(v) anova(lm(v ~ factor(per_line$tissue)))[1, 5])
+p_batch <- apply(A[one, ], 2, function(v) {
+    anova(lm(v ~ factor(per_line$tissue[one]) + factor(batch_single[one])))[2, 5]
+})
+c(ions = ncol(A),
+  tissue_bh_0.05 = sum(p.adjust(p_tissue, "BH") < 0.05),
+  batch_given_tissue_bh_0.05 = sum(p.adjust(p_batch, "BH") < 0.05))
+
+p <- bind_rows(
+    tibble(test = "tissue", p = p_tissue),
+    tibble(test = "batch (given tissue)", p = p_batch)
+) %>%
+    ggplot(aes(p)) +
+    geom_histogram(bins = 40, boundary = 0, fill = "#56B4E9") +
+    facet_wrap(~ test) +
+    labs(x = "ANOVA p-value per ion", y = "Number of ions",
+         title = "Batch leaves a stronger per-ion signature than tissue",
+         subtitle = "A peak near 0 means many ions are associated") +
+    theme_uc()
+save_figure(p, "per_ion_pvalues", fig_dir, width = 9, height = 4)
+p
+```
+
+## 5. Does adjusting for batch change a typical comparison?
+
+As an example, KRAS-mutant lung lines are compared with the other lung lines,
+with and without batch in the model. Lines grown in several batches are
+assigned the batch in which most of their injections were measured. If the
+mutation groups are spread evenly over the batches, adjusting for batch should
+change little; if not, it protects against batch effects being read as
+mutation effects.
+
+```{r batch-example}
+# majority batch per line: the batch with the most injections of that line
+majority_batch <- injections$injections %>%
+    left_join(mapping, by = "injection_id") %>%
+    count(line, batch) %>%
+    group_by(line) %>%
+    slice_max(n, n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    select(line, batch)
+
+# KRAS status from the mutation table; lung from the tissue labels of step 02
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
+gene_status <- readr::read_tsv(file.path(derived_dir, "02_gene_status.tsv"), show_col_types = FALSE)
+kras_lines <- gene_status$line[gene_status$gene == "KRAS" & gene_status$status == "mutation"]
+lung <- tibble(line = cell_lines$line[cell_lines$general_site %in% "Lung/Pleura"]) %>%
+    left_join(majority_batch, by = "line") %>%
+    mutate(kras = factor(if_else(line %in% kras_lines, "KRAS", "other"), levels = c("other", "KRAS")))
+
+# are KRAS-mutant lines spread evenly over the batches?
+table(batch = lung$batch, kras = lung$kras)
+fisher.test(table(lung$batch, lung$kras))$p.value
+
+# limma with and without batch, all metabolites at once
+fit_kras <- function(design) {
+    fit <- eBayes(lmFit(t(A[lung$line, ]), design))
+    topTable(fit, coef = "krasKRAS", number = Inf, sort.by = "none")
+}
+without_batch <- fit_kras(model.matrix(~ kras, lung))
+with_batch <- fit_kras(model.matrix(~ batch + kras, lung))
+c(
+    cor_t = cor(without_batch$t, with_batch$t),
+    top20_overlap = length(intersect(head(order(without_batch$P.Value), 20), head(order(with_batch$P.Value), 20))),
+    p_below_0.01_without = sum(without_batch$P.Value < 0.01),
+    p_below_0.01_with = sum(with_batch$P.Value < 0.01)
+)
+
+p <- ggplot(tibble(without = without_batch$t, with = with_batch$t), aes(without, with)) +
+    geom_abline(linetype = 2, colour = "grey50") +
+    geom_point(alpha = 0.5, size = 1) +
+    labs(x = "t-statistic, ~ kras", y = "t-statistic, ~ batch + kras",
+         title = "KRAS vs other lung lines: batch adjustment changes little here",
+         subtitle = sprintf("%d lung lines; KRAS spread evenly over batches", nrow(lung))) +
+    theme_uc()
+save_figure(p, "kras_with_without_batch", fig_dir)
+p
+```
+
+## Interpretation and decision
+
+- Culture batch is partly confounded with tissue: several small tissues were
+  grown in only one or two batches, whereas lung lines are spread over all
+  seven. Seventeen lines (mostly the QC line and repeated lines) occur in
+  several batches.
+- Batch explains more variance of the leading principal components than tissue,
+  and more metabolites are associated with batch (after adjusting for tissue)
+  than with tissue. The authors removed metabolites with batch/plate effects,
+  but a batch signal remains.
+- Within lung, KRAS-mutant lines are spread evenly over the batches, and
+  adjusting for batch changes the KRAS comparison little. Batch matters most
+  where it is confounded with tissue, i.e. in comparisons across tissues.
+
+**Decision (2026-10-28):** culture batch enters every differential model as one
+covariate (`~ batch + tissue + ... + mutation`); lines grown in several batches
+are assigned the batch with most of their injections. Adjusting for batch is
+the standard approach; removing batch effects beforehand (e.g. ComBat) is not
+used, because it can create artificial differences in unbalanced designs.
+
+```{r session}
+sessionInfo()
+```

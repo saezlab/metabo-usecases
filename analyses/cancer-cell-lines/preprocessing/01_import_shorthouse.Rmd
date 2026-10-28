@@ -40,23 +40,36 @@ library(tidyr)
 library(readxl)
 library(stringr)
 
+# helpers of the use case: configuration, filter log, manifest, previews
 source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
 config <- load_config()
 raw_dir <- uc_dir(config, "raw")
 derived_dir <- uc_dir(config, "derived")
 output_dir <- uc_dir(config, "output", "01_import_shorthouse")
+
+# the three published tables, file names from config.yml
 files <- vapply(config$shorthouse$files, function(f) file.path(raw_dir, f), "")
+
+# every step that removes injections, ions or lines is recorded here
 filter_log <- NULL
 ```
 
 ## Read the published tables
 
 ```{r read}
+# all three tables are on "Sheet1"; the second sheet only holds a legend
 ev1 <- read_xlsx(files[["injections"]], sheet = "Sheet1")
 ev2 <- read_xlsx(files[["ions"]], sheet = "Sheet1")
 ev3 <- read_xlsx(files[["intensities"]], sheet = "Sheet1")
 
 c(ev1_rows = nrow(ev1), ev2_rows = nrow(ev2), ev3_ions = nrow(ev3), ev3_injections = ncol(ev3) - 1)
+```
+
+```{r preview-raw}
+preview_table(ev1, caption = "EV1: injections (one or more rows per injection)")
+preview_table(ev2, caption = "EV2: candidate annotations (several rows per ion)")
+preview_table(ev3, rows = 50, cols = 20, caption = "EV3: intensities, ions (rows) × injections (columns)")
 ```
 
 ## Injections
@@ -66,35 +79,43 @@ fields. They are combined to one row per injection; the cell line name must be
 the same in all rows of an injection.
 
 ```{r injections}
+# check: an injection never belongs to two cell lines
 stopifnot(all(tapply(ev1$celltype, ev1$dsIdx, function(x) length(unique(x)) == 1)))
 
+# combine the distinct, non-empty values of a field ("NA"/"NS" are placeholders in EV1)
 collapse_unique <- function(x) {
     x <- unique(x[!is.na(x) & !x %in% c("", "NA", "NS")])
     if (length(x) == 0) NA_character_ else paste(x, collapse = " || ")
 }
 
+# one row per injection; keep the fields needed to identify the cell line
 injections <- ev1 %>%
     group_by(dsIdx) %>%
     summarise(
         name = first(celltype),
-        rrid = collapse_unique(RRID),
-        cellosaurus_id = collapse_unique(ID),
+        rrid = collapse_unique(RRID),            # Cellosaurus accession given by the authors
+        cellosaurus_id = collapse_unique(ID),    # Cellosaurus name given by the authors
         disease_ev1 = collapse_unique(DI),
         .groups = "drop"
     ) %>%
+    # the injection index is the column name in EV3
     mutate(injection_id = as.character(dsIdx))
 
 nrow(injections)
+preview_table(injections, caption = "Injections after combining EV1 rows")
 ```
 
 ## Ions
 
 ```{r ions}
+# combine the distinct values of a field, separated by "; "
 clean_collapse <- function(x) {
     x <- unique(x[!is.na(x) & !x %in% c("NA", "NS")])
     str_c(x, collapse = "; ")
 }
 
+# EV2 lists every candidate metabolite of an ion as its own row;
+# collapse them to one row per ion
 ions <- ev2 %>%
     mutate(name = str_replace_all(name, " ", "_")) %>%
     group_by(ionIdx) %>%
@@ -109,10 +130,13 @@ ions <- ev2 %>%
         id_list = clean_collapse(c(HMDB, KEGG)),
         .groups = "drop"
     ) %>%
+    # key used by all later steps (also the column names of the intensity matrix)
     mutate(feature_id = paste0("V", ionIdx))
 
+# every ion has at least one HMDB or KEGG identifier
 stopifnot(!any(ions$id_list == ""))
 nrow(ions)
+preview_table(ions, caption = "Ions after collapsing the candidate annotations")
 ```
 
 Three pairs of ions with different m/z carry the same metabolite annotation
@@ -120,12 +144,16 @@ Three pairs of ions with different m/z carry the same metabolite annotation
 each pair is dropped (`drop_duplicate_annotation_ions`).
 
 ```{r duplicate-ions}
+# ions whose identifier list repeats that of an earlier ion
 duplicate_ions <- ions %>%
     filter(duplicated(id_list)) %>%
     pull(ionIdx)
+
+# show both ions of each pair
 ions %>%
     filter(id_list %in% id_list[ionIdx %in% duplicate_ions]) %>%
-    select(ionIdx, ionMz, ion, name)
+    select(ionIdx, ionMz, ion, name) %>%
+    preview_table(caption = "Ion pairs with the same annotation")
 
 n_before <- nrow(ions)
 if (isTRUE(config$shorthouse$drop_duplicate_annotation_ions)) {
@@ -141,34 +169,41 @@ The intensity matrix is built as injections × ions, with rows named by
 `dsIdx` and columns by `V<ionIdx>`; all later steps match by these names.
 
 ```{r intensities}
+# check: one row per ion in EV3, and EV3 has exactly the injections of EV1
 stopifnot(!anyDuplicated(ev3$ionIdx), setequal(setdiff(names(ev3), "ionIdx"), injections$injection_id))
 
+# select injection columns by name (not position), transpose to injections × ions
 intensities <- t(as.matrix(ev3[, injections$injection_id]))
 colnames(intensities) <- paste0("V", ev3$ionIdx)
 storage.mode(intensities) <- "double"
+
+# keep the ions retained above, selected by key
 intensities <- intensities[, ions$feature_id]
 
 c(missing = sum(is.na(intensities)), negative = sum(intensities < 0), zero = sum(intensities == 0))
+preview_table(intensities, rows = 50, cols = 20, caption = "Intensities, injections × ions")
 ```
 
-EV3 contains no missing values. Negative and zero values are kept: they are
-plausibly residuals of the authors' Lowess correction and are assessed in the
-data inventory (Phase 1b), where the transformation is decided.
+EV3 contains no missing values. Negative and zero values are kept here; how
+they are handled is decided in the data inventory (Audit 1).
 
 ## Lines
 
 ```{r lines}
+# remove the QC line(s) listed in config.yml (MCF7), as in the original study
 n_before <- nrow(injections)
 injections <- filter(injections, !name %in% config$shorthouse$exclude_lines)
 filter_log <- log_filter(filter_log, "exclude lines", "injections", n_before, nrow(injections),
                          paste("excluded lines:", paste(config$shorthouse$exclude_lines, collapse = ", ")))
 intensities <- intensities[injections$injection_id, ]
 
+# names of additional cultures are mapped to the name of their cell line
 merge_map <- unlist(config$shorthouse$merge_lines)
 stopifnot(all(names(merge_map) %in% injections$name), all(merge_map %in% injections$name))
 injections <- injections %>%
     mutate(line = coalesce(unname(merge_map[name]), name))
 
+# one row per cell line, with the number of injections behind it
 lines <- injections %>%
     group_by(line) %>%
     summarise(
@@ -182,12 +217,17 @@ lines <- injections %>%
 filter_log <- log_filter(filter_log, "merge lines", "lines", n_distinct(injections$name), nrow(lines),
                          "additional cultures of the same cell line merged")
 
-line_intensities <- rowsum(intensities, injections$line[match(rownames(intensities), injections$injection_id)])
+# mean over all injections of a line: sum per line divided by the number of injections
+line_of_injection <- injections$line[match(rownames(intensities), injections$injection_id)]
+line_intensities <- rowsum(intensities, line_of_injection)
 line_intensities <- line_intensities / as.vector(table(injections$line)[rownames(line_intensities)])
 line_intensities <- line_intensities[lines$line, ]
 
+# check: rows and columns match the line and ion tables
 stopifnot(identical(rownames(line_intensities), lines$line), identical(colnames(line_intensities), ions$feature_id))
 table(lines$n_injections)
+preview_table(lines, caption = "Cell lines")
+preview_table(line_intensities, rows = 50, cols = 20, caption = "Mean intensities, lines × ions")
 ```
 
 ## Outputs
@@ -203,10 +243,12 @@ out <- c(
 saveRDS(injection_data, out[["injections"]])
 saveRDS(line_data, out[["lines"]])
 write.csv(filter_log, file.path(output_dir, "filter_log.csv"), row.names = FALSE)
+
+# manifest: input/output checksums, git commit, package versions, parameters
 write_manifest(out, files, file.path(derived_dir, "01_manifest.json"),
                extra = list(exclude_lines = config$shorthouse$exclude_lines, merge_lines = config$shorthouse$merge_lines))
 
-filter_log
+preview_table(filter_log, caption = "All filtering steps of this notebook")
 ```
 
 ## Interpretation

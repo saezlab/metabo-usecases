@@ -1,0 +1,242 @@
+---
+title: "Audit 1: log2 transformation and non-positive values"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Decide how the Shorthouse intensities are prepared for statistical modelling.
+Metabolite intensities are usually log-transformed, but the published values
+contain a few values at or below zero, where the logarithm is not defined.
+
+**Decision supported:** log2 transformation, with values <= 0 treated as below
+the detection limit and replaced by half of the metabolite's minimum
+(half-minimum imputation).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_lines.rds` (mean intensity per cell line, pre-processing step 01)
+- `02_cell_lines.tsv`, `02_gene_status.tsv` (tissue and KRAS status for the example analyses, step 02)
+
+## Methods
+
+Intensities were averaged per cell line (step 01). Values <= 0 were considered
+below the detection limit, set to missing and replaced by half of the minimum
+positive value of the respective metabolite across all cell lines
+(half-minimum imputation; Wei et al., 2018) using MetaProViz
+`mvi_imputation()`, and all values were log2-transformed. To test whether this
+choice matters, two example comparisons were run with limma (lung vs all other
+lines; KRAS-mutant vs other lung lines) on three versions of the data:
+(a) half-minimum imputation, (b) values <= 0 left missing, which limma skips
+per metabolite, and (c) the affected metabolites removed. Agreement was
+assessed by the correlation of the moderated t-statistics and the overlap of
+significant metabolites (Benjamini–Hochberg adjusted p < 0.05).
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(limma)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/transform.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+fig_dir <- uc_dir(config, "output", "audit_01_scale_transform")
+
+# mean intensity per cell line: 175 lines × 1096 metabolites (ions)
+Y <- readRDS(file.path(derived_dir, "01_lines.rds"))$intensities
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
+gene_status <- readr::read_tsv(file.path(derived_dir, "02_gene_status.tsv"), show_col_types = FALSE)
+
+skewness <- function(v) mean((v - mean(v))^3) / sd(v)^3
+```
+
+## 1. Why log2
+
+On the raw scale, metabolites with higher levels also vary more (the standard
+deviation grows with the mean) and the values are right-skewed. Linear models
+such as limma assume neither. The log2 transformation removes both; it is the
+standard choice for metabolomics intensities.
+
+```{r why-log}
+# per metabolite: mean, SD and skewness across lines, on the raw and log2 scale
+# (log2 only for metabolites without values <= 0 here)
+positive <- colSums(Y <= 0) == 0
+mv <- bind_rows(
+    tibble(scale = "raw (both axes log10)", mean = log10(colMeans(Y[, positive])),
+           sd = log10(apply(Y[, positive], 2, sd)), skewness = apply(Y[, positive], 2, skewness)),
+    tibble(scale = "log2", mean = colMeans(log2(Y[, positive])),
+           sd = apply(log2(Y[, positive]), 2, sd), skewness = apply(log2(Y[, positive]), 2, skewness))
+) %>% mutate(scale = factor(scale, levels = c("raw (both axes log10)", "log2")))
+
+mv %>% group_by(scale) %>% summarise(metabolites = n(), cor_mean_sd = cor(mean, sd), median_skewness = median(skewness))
+
+p <- ggplot(mv, aes(mean, sd)) +
+    geom_point(alpha = 0.3, size = 0.8) +
+    geom_smooth(method = "loess", se = FALSE, colour = "#D55E00", formula = y ~ x) +
+    facet_wrap(~ scale, scales = "free") +
+    labs(x = "Mean across cell lines", y = "SD across cell lines",
+         title = "Raw: SD rises with the mean. log2: largely independent") +
+    theme_uc()
+save_figure(p, "mean_sd_raw_vs_log2", fig_dir, width = 9, height = 4)
+p
+
+p <- ggplot(mv, aes(scale, skewness)) +
+    geom_boxplot(fill = "grey90", outlier.size = 0.5) +
+    geom_hline(yintercept = 0, linetype = 2) +
+    labs(x = NULL, y = "Skewness across cell lines (per metabolite)",
+         title = "Raw values are right-skewed, log2 values close to symmetric") +
+    theme_uc()
+save_figure(p, "skewness_raw_vs_log2", fig_dir)
+p
+```
+
+## 2. How many values are <= 0, and where
+
+```{r nonpositive}
+# count values <= 0 per metabolite
+affected <- colSums(Y <= 0)
+c(values_le_0 = sum(Y <= 0), all_values = length(Y), percent = round(100 * mean(Y <= 0), 2),
+  metabolites_affected = sum(affected > 0), metabolites = ncol(Y))
+
+# how many cell lines are affected per metabolite
+table(lines_le_0 = cut(affected[affected > 0], c(0, 1, 2, 5, 10, 20, 50, 175)))
+
+# metabolites with values <= 0 are those with low typical levels
+p <- ggplot(tibble(median = apply(Y, 2, median), affected = affected),
+            aes(median, affected)) +
+    geom_point(alpha = 0.5, size = 1) +
+    scale_x_log10() +
+    labs(x = "Median intensity of the metabolite (log scale)",
+         y = "Cell lines with value <= 0",
+         title = "Values <= 0 occur in metabolites with low levels",
+         subtitle = sprintf("%d of %d values (%.2f%%), %d of %d metabolites",
+                            sum(Y <= 0), length(Y), 100 * mean(Y <= 0), sum(affected > 0), ncol(Y))) +
+    theme_uc()
+save_figure(p, "nonpositive_vs_level", fig_dir)
+p
+```
+
+## 3. Half-minimum imputation and log2
+
+```{r impute}
+# values <= 0 -> NA -> half of the metabolite's minimum (MetaProViz) -> log2
+L <- log2_half_minimum(Y)
+
+# show the affected values before and after, with the metabolite's minimum
+affected_ids <- names(affected)[affected > 0]
+before_after <- which(Y <= 0, arr.ind = TRUE) %>%
+    as_tibble() %>%
+    transmute(
+        line = rownames(Y)[row], metabolite = colnames(Y)[col],
+        value_before = Y[cbind(row, col)],
+        minimum_positive = apply(Y, 2, function(v) min(v[v > 0]))[col],
+        value_after_log2 = L[cbind(row, col)]
+    )
+preview_table(before_after, caption = "Values <= 0 before and after imputation")
+```
+
+## 4. Does the handling change results?
+
+Two example comparisons are run on three versions of the data. If the
+handling does not matter, the t-statistics agree and the significant
+metabolites overlap.
+
+```{r example-setup}
+# the three versions of the data
+L_missing <- log2(replace(Y, Y <= 0, NA))     # (b) values <= 0 left missing
+versions <- list(
+    "a: half-minimum" = L,
+    "b: left missing" = L_missing,
+    "c: affected removed" = L[, setdiff(colnames(L), affected_ids)]
+)
+
+# example 1: lung vs all other lines; example 2: KRAS-mutant vs other lung lines
+lung <- cell_lines$line[cell_lines$general_site %in% "Lung/Pleura"]
+kras <- gene_status$line[gene_status$gene == "KRAS" & gene_status$status == "mutation"]
+comparisons <- list(
+    "lung vs other lines" = setNames(ifelse(rownames(Y) %in% lung, "lung", "other"), rownames(Y)),
+    "KRAS vs other lung lines" = setNames(ifelse(lung %in% kras, "KRAS", "other"), lung)
+)
+sapply(comparisons, table)
+
+# limma two-group comparison; returns moderated t and adjusted p per metabolite
+run_limma <- function(mat, groups) {
+    mat <- mat[names(groups), , drop = FALSE]
+    design <- model.matrix(~ factor(groups, levels = c("other", setdiff(unique(groups), "other"))))
+    fit <- eBayes(lmFit(t(mat), design))
+    tt <- topTable(fit, coef = 2, number = Inf, sort.by = "none")
+    tibble(metabolite = rownames(tt), t = tt$t, adj_p = tt$adj.P.Val)
+}
+
+results <- bind_rows(lapply(names(comparisons), function(cmp) {
+    bind_rows(lapply(names(versions), function(v) {
+        run_limma(versions[[v]], comparisons[[cmp]]) %>% mutate(comparison = cmp, version = v)
+    }))
+}))
+```
+
+```{r example-agreement}
+# per comparison: t-correlation and overlap of significant metabolites vs version a
+agreement <- results %>%
+    select(comparison, version, metabolite, t, adj_p) %>%
+    pivot_wider(names_from = version, values_from = c(t, adj_p)) %>%
+    group_by(comparison) %>%
+    summarise(
+        cor_t_a_b = cor(`t_a: half-minimum`, `t_b: left missing`, use = "complete.obs"),
+        cor_t_a_b_affected_only = cor(`t_a: half-minimum`[metabolite %in% affected_ids],
+                                      `t_b: left missing`[metabolite %in% affected_ids], use = "complete.obs"),
+        cor_t_a_c = cor(`t_a: half-minimum`, `t_c: affected removed`, use = "complete.obs"),
+        significant_a = sum(`adj_p_a: half-minimum` < 0.05, na.rm = TRUE),
+        significant_b = sum(`adj_p_b: left missing` < 0.05, na.rm = TRUE),
+        significant_c = sum(`adj_p_c: affected removed` < 0.05, na.rm = TRUE),
+        significant_a_and_b = sum(`adj_p_a: half-minimum` < 0.05 & `adj_p_b: left missing` < 0.05, na.rm = TRUE),
+        significant_a_among_affected = sum(`adj_p_a: half-minimum` < 0.05 & metabolite %in% affected_ids, na.rm = TRUE)
+    )
+preview_table(agreement, caption = "Agreement of the three versions")
+
+# t-statistics of version a against version b, affected metabolites highlighted
+plot_data <- results %>%
+    filter(version %in% c("a: half-minimum", "b: left missing")) %>%
+    select(comparison, version, metabolite, t) %>%
+    pivot_wider(names_from = version, values_from = t) %>%
+    mutate(affected = if_else(metabolite %in% affected_ids, "has values <= 0", "no values <= 0"))
+p <- ggplot(plot_data, aes(`b: left missing`, `a: half-minimum`, colour = affected)) +
+    geom_abline(linetype = 2, colour = "grey50") +
+    geom_point(alpha = 0.6, size = 1) +
+    scale_colour_manual(values = c("has values <= 0" = "#D55E00", "no values <= 0" = "grey60")) +
+    facet_wrap(~ comparison) +
+    labs(x = "t-statistic, values <= 0 left missing", y = "t-statistic, half-minimum imputation", colour = NULL,
+         title = "Imputation leaves the example results practically unchanged") +
+    theme_uc()
+save_figure(p, "t_half_minimum_vs_missing", fig_dir, width = 10, height = 4.5)
+p
+```
+
+## Interpretation and decision
+
+- log2 removes the dependence of the variance on the level and the skewness of
+  the raw intensities, as expected for metabolomics data.
+- Values <= 0 are rare (0.15 % of the values) and occur in metabolites with low
+  levels, consistent with measurements at the detection limit.
+- Replacing them by half of the metabolite's minimum leaves the results of both
+  example comparisons practically unchanged compared with leaving them missing
+  or removing the affected metabolites: the t-statistics correlate at 0.99 or
+  higher and the same metabolites are significant.
+- For the affected metabolites themselves, the t-statistics differ more between
+  imputation and leaving values missing, especially in the small KRAS
+  comparison. Their results depend somewhat on how the low values are handled.
+
+**Decision:** values <= 0 are set to half of the metabolite's minimum positive
+value (MetaProViz `mvi_imputation()`), followed by log2. All 1096 metabolites
+are kept. Result tables mark metabolites that contain imputed values.
+
+```{r session}
+sessionInfo()
+```
