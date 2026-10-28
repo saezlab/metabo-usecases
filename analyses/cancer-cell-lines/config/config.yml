@@ -1,0 +1,43 @@
+# Configuration of the cancer cell lines use case.
+# Paths are relative to the repository root and resolved with here::here().
+
+paths:
+  raw: data/raw/cancer-cell-lines
+  # versioned processed dataset; bump the version when processing changes
+  derived: data/derived/cancer-cell-lines/shorthouse_v1
+  # QC tables, plots and rendered reports (gitignored)
+  output: analyses/cancer-cell-lines/output
+
+shorthouse:
+  files:
+    injections: msb202211006-sup-0002-datasetev1.xlsx   # Dataset EV1
+    ions: msb202211006-sup-0003-datasetev2.xlsx         # Dataset EV2
+    intensities: msb202211006-sup-0004-datasetev3.xlsx  # Dataset EV3
+  # Lines removed entirely. MCF7 was a QC line (64 injections) and was removed
+  # by Shorthouse et al. 2022 because its many repeats biased the data.
+  exclude_lines: [MCF7]
+  # Additional cultures of the same cell line, merged into one line
+  # (Shorthouse et al. count these as one line; same Cellosaurus ID in EV1).
+  merge_lines:
+    CORL88B: CORL88A
+    MDAMB231B: MDAMB231
+    NCIH441B: NCIH441
+  # Ions whose HMDB/KEGG annotation duplicates an earlier ion (different m/z,
+  # same metabolite); kept from the original pipeline, see preprocessing_changes.md
+  drop_duplicate_annotation_ions: true
+
+cellosaurus:
+  # local flat file with the first 57 header lines removed (see data/raw README)
+  file: cellosaurus.txt
+  release: "53.0"
+  # Names without an accession in EV1 (RRID) and without a Cellosaurus ID in
+  # EV1. Accessions are resolved first from RRID, then from the EV1 ID field.
+  manual_accessions:
+    NCIH460DNP53:
+      accession: CVCL_0459   # parental NCI-H460
+      note: engineered derivative (dominant-negative TP53); parental mutations do not apply
+      engineered: true
+    SR8714:
+      accession: CVCL_1711   # SR
+      note: mapping from the original pipeline, not confirmed by EV1; tissue Unknown in Shorthouse et al.
+      engineered: false

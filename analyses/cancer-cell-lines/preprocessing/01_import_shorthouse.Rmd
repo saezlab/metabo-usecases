@@ -1,0 +1,222 @@
+---
+title: "Shorthouse 2022: import of injections, ions and intensities"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+---
+
+## Purpose
+
+Read the Shorthouse et al. (2022) metabolomics data and bring it into one
+injection-level and one cell-line-level object, keyed by injection (`dsIdx`)
+and ion (`ionIdx`). No transformation, normalisation or imputation is applied
+here; the published intensities are already normalised (see Methods).
+
+## Inputs
+
+- `data/raw/cancer-cell-lines/msb202211006-sup-0002-datasetev1.xlsx` (Dataset EV1): one or more rows per injection with cell line name and Cellosaurus fields
+- `…-sup-0003-datasetev2.xlsx` (Dataset EV2): candidate metabolite annotations per ion
+- `…-sup-0004-datasetev3.xlsx` (Dataset EV3): intensities, ions × injections
+- `analyses/cancer-cell-lines/config/config.yml`: excluded and merged lines
+
+## Methods
+
+Metabolite levels of cancer cell lines were taken from Shorthouse et al.
+(2022), who reanalysed the flow-injection mass spectrometry data of Cherkaoui
+et al. (2022). The published intensities (Dataset EV3) were already corrected
+for injection order and plate confluence by Lowess smoothing, and ions
+associated with batch or plate were removed by the authors. Injections were
+matched to cell lines through the injection index of Dataset EV1. Candidate
+metabolite annotations (Dataset EV2) were collapsed per ion. The quality
+control line MCF7 was removed, as in the original study. Additional cultures of
+the same cell line (COR-L88, MDA-MB-231, NCI-H441) were merged. Intensities
+were averaged (arithmetic mean) over all injections of a cell line, following
+the original study.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(stringr)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "01_import_shorthouse")
+files <- vapply(config$shorthouse$files, function(f) file.path(raw_dir, f), "")
+filter_log <- NULL
+```
+
+## Read the published tables
+
+```{r read}
+ev1 <- read_xlsx(files[["injections"]], sheet = "Sheet1")
+ev2 <- read_xlsx(files[["ions"]], sheet = "Sheet1")
+ev3 <- read_xlsx(files[["intensities"]], sheet = "Sheet1")
+
+c(ev1_rows = nrow(ev1), ev2_rows = nrow(ev2), ev3_ions = nrow(ev3), ev3_injections = ncol(ev3) - 1)
+```
+
+## Injections
+
+EV1 has several rows for some injections, differing only in the Cellosaurus
+fields. They are combined to one row per injection; the cell line name must be
+the same in all rows of an injection.
+
+```{r injections}
+stopifnot(all(tapply(ev1$celltype, ev1$dsIdx, function(x) length(unique(x)) == 1)))
+
+collapse_unique <- function(x) {
+    x <- unique(x[!is.na(x) & !x %in% c("", "NA", "NS")])
+    if (length(x) == 0) NA_character_ else paste(x, collapse = " || ")
+}
+
+injections <- ev1 %>%
+    group_by(dsIdx) %>%
+    summarise(
+        name = first(celltype),
+        rrid = collapse_unique(RRID),
+        cellosaurus_id = collapse_unique(ID),
+        disease_ev1 = collapse_unique(DI),
+        .groups = "drop"
+    ) %>%
+    mutate(injection_id = as.character(dsIdx))
+
+nrow(injections)
+```
+
+## Ions
+
+```{r ions}
+clean_collapse <- function(x) {
+    x <- unique(x[!is.na(x) & !x %in% c("NA", "NS")])
+    str_c(x, collapse = "; ")
+}
+
+ions <- ev2 %>%
+    mutate(name = str_replace_all(name, " ", "_")) %>%
+    group_by(ionIdx) %>%
+    summarise(
+        ionMz   = first(ionMz),
+        hmdb    = clean_collapse(HMDB),
+        kegg    = clean_collapse(KEGG),
+        score   = clean_collapse(score),
+        formula = clean_collapse(formula),
+        ion     = clean_collapse(ion),
+        name    = clean_collapse(name),
+        id_list = clean_collapse(c(HMDB, KEGG)),
+        .groups = "drop"
+    ) %>%
+    mutate(feature_id = paste0("V", ionIdx))
+
+stopifnot(!any(ions$id_list == ""))
+nrow(ions)
+```
+
+Three pairs of ions with different m/z carry the same metabolite annotation
+(measured as -H and +F adducts). As in the original pipeline, the later ion of
+each pair is dropped (`drop_duplicate_annotation_ions`).
+
+```{r duplicate-ions}
+duplicate_ions <- ions %>%
+    filter(duplicated(id_list)) %>%
+    pull(ionIdx)
+ions %>%
+    filter(id_list %in% id_list[ionIdx %in% duplicate_ions]) %>%
+    select(ionIdx, ionMz, ion, name)
+
+n_before <- nrow(ions)
+if (isTRUE(config$shorthouse$drop_duplicate_annotation_ions)) {
+    ions <- filter(ions, !ionIdx %in% duplicate_ions)
+}
+filter_log <- log_filter(filter_log, "duplicate annotation", "ions", n_before, nrow(ions),
+                         "same HMDB/KEGG annotation as an earlier ion")
+```
+
+## Intensities
+
+The intensity matrix is built as injections × ions, with rows named by
+`dsIdx` and columns by `V<ionIdx>`; all later steps match by these names.
+
+```{r intensities}
+stopifnot(!anyDuplicated(ev3$ionIdx), setequal(setdiff(names(ev3), "ionIdx"), injections$injection_id))
+
+intensities <- t(as.matrix(ev3[, injections$injection_id]))
+colnames(intensities) <- paste0("V", ev3$ionIdx)
+storage.mode(intensities) <- "double"
+intensities <- intensities[, ions$feature_id]
+
+c(missing = sum(is.na(intensities)), negative = sum(intensities < 0), zero = sum(intensities == 0))
+```
+
+EV3 contains no missing values. Negative and zero values are kept: they are
+plausibly residuals of the authors' Lowess correction and are assessed in the
+data inventory (Phase 1b), where the transformation is decided.
+
+## Lines
+
+```{r lines}
+n_before <- nrow(injections)
+injections <- filter(injections, !name %in% config$shorthouse$exclude_lines)
+filter_log <- log_filter(filter_log, "exclude lines", "injections", n_before, nrow(injections),
+                         paste("excluded lines:", paste(config$shorthouse$exclude_lines, collapse = ", ")))
+intensities <- intensities[injections$injection_id, ]
+
+merge_map <- unlist(config$shorthouse$merge_lines)
+stopifnot(all(names(merge_map) %in% injections$name), all(merge_map %in% injections$name))
+injections <- injections %>%
+    mutate(line = coalesce(unname(merge_map[name]), name))
+
+lines <- injections %>%
+    group_by(line) %>%
+    summarise(
+        member_names = paste(sort(unique(name)), collapse = "; "),
+        n_injections = n(),
+        rrid = collapse_unique(rrid),
+        cellosaurus_id = collapse_unique(cellosaurus_id),
+        disease_ev1 = collapse_unique(disease_ev1),
+        .groups = "drop"
+    )
+filter_log <- log_filter(filter_log, "merge lines", "lines", n_distinct(injections$name), nrow(lines),
+                         "additional cultures of the same cell line merged")
+
+line_intensities <- rowsum(intensities, injections$line[match(rownames(intensities), injections$injection_id)])
+line_intensities <- line_intensities / as.vector(table(injections$line)[rownames(line_intensities)])
+line_intensities <- line_intensities[lines$line, ]
+
+stopifnot(identical(rownames(line_intensities), lines$line), identical(colnames(line_intensities), ions$feature_id))
+table(lines$n_injections)
+```
+
+## Outputs
+
+```{r save}
+injection_data <- list(intensities = intensities, injections = injections, ions = ions)
+line_data <- list(intensities = line_intensities, lines = lines, ions = ions)
+
+out <- c(
+    injections = file.path(derived_dir, "01_injections.rds"),
+    lines = file.path(derived_dir, "01_lines.rds")
+)
+saveRDS(injection_data, out[["injections"]])
+saveRDS(line_data, out[["lines"]])
+write.csv(filter_log, file.path(output_dir, "filter_log.csv"), row.names = FALSE)
+write_manifest(out, files, file.path(derived_dir, "01_manifest.json"),
+               extra = list(exclude_lines = config$shorthouse$exclude_lines, merge_lines = config$shorthouse$merge_lines))
+
+filter_log
+```
+
+## Interpretation
+
+The import keeps every published ion except the three duplicate annotations
+and every injection except those of the excluded QC line. The cell-line matrix
+is on the published (normalised, untransformed) scale; the number of
+injections behind each line is kept in `lines$n_injections`, because it varies
+between lines (most have 6, the QC line MDA-MB-231 has 78 after merging).
+
+```{r session}
+sessionInfo()
+```

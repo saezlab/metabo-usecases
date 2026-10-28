@@ -1,0 +1,273 @@
+---
+title: "Shorthouse 2022: cell line identity, mutations and tissue"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+---
+
+## Purpose
+
+Assign a Cellosaurus accession to every cell line, extract its sequence
+variations (mutations, deletions, amplifications, fusions) as a long table,
+and derive a tissue label.
+
+## Inputs
+
+- `01_lines.rds` from `01_import_shorthouse.Rmd`
+- `data/raw/cancer-cell-lines/cellosaurus.txt`: Cellosaurus flat file (release in `config.yml`)
+- `config.yml`: manual accessions for names that EV1 does not annotate
+
+## Methods
+
+Cell lines were identified by their Cellosaurus accession, taken from the
+RRID column of Dataset EV1 where available, otherwise from the Cellosaurus
+name given in EV1 (human entries, exact name match); two names without either
+were assigned manually. Sequence variations were read from the Cellosaurus flat
+file (release 53.0) and classified as mutation, engineered mutation, reported
+wild type ("None_reported"), deletion, amplification or fusion. Cellosaurus
+lists selected, literature-reported variations only, so the absence of an
+entry does not imply a wild-type gene. Tissue of origin was assigned from the
+disease annotation, falling back to the anatomical site the line was derived
+from, using the rules of the original pipeline.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/cellosaurus.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "02_cell_lines_mutations")
+
+line_data <- readRDS(file.path(derived_dir, "01_lines.rds"))
+lines <- line_data$lines
+cellosaurus_file <- file.path(raw_dir, config$cellosaurus$file)
+cellosaurus <- read_cellosaurus(cellosaurus_file)
+```
+
+## Accessions
+
+```{r accessions}
+human <- filter(cellosaurus$entries, human)
+manual <- bind_rows(lapply(names(config$cellosaurus$manual_accessions), function(n) {
+    m <- config$cellosaurus$manual_accessions[[n]]
+    tibble(line = n, manual_accession = m$accession, manual_note = m$note, engineered = isTRUE(m$engineered))
+}))
+
+# EV1 may list several spellings of the Cellosaurus name (e.g. "HX147 || Hx147")
+id_to_ac <- function(ids) {
+    vapply(ids, function(x) {
+        if (is.na(x)) return(NA_character_)
+        hits <- unique(human$ac[human$id %in% str_split(x, " \\|\\| ")[[1]]])
+        if (length(hits) == 1) hits else NA_character_
+    }, "")
+}
+
+cell_lines <- lines %>%
+    select(line, member_names, n_injections, rrid, cellosaurus_id, disease_ev1) %>%
+    mutate(ac_from_id = unname(id_to_ac(cellosaurus_id))) %>%
+    left_join(manual, by = "line") %>%
+    mutate(
+        accession = coalesce(rrid, ac_from_id, manual_accession),
+        accession_source = case_when(
+            !is.na(rrid) ~ "EV1 RRID",
+            !is.na(ac_from_id) ~ "EV1 Cellosaurus ID",
+            !is.na(manual_accession) ~ "manual",
+            TRUE ~ NA_character_
+        ),
+        engineered = coalesce(engineered, FALSE)
+    )
+
+# RRID and Cellosaurus name must agree where EV1 gives both
+conflicts <- filter(cell_lines, !is.na(rrid), !is.na(ac_from_id), rrid != ac_from_id)
+conflicts
+stopifnot(!any(is.na(cell_lines$accession)), !grepl("\\|\\|", cell_lines$accession))
+stopifnot(all(cell_lines$accession %in% cellosaurus$entries$ac))
+count(cell_lines, accession_source)
+```
+
+Merged lines (several names) carry one accession only if all their names agree:
+
+```{r merged-check}
+cell_lines %>% filter(grepl(";", member_names)) %>% select(line, member_names, rrid, cellosaurus_id, accession)
+stopifnot(!anyDuplicated(cell_lines$accession[!cell_lines$engineered]))
+```
+
+## Sequence variations
+
+```{r variations}
+variations <- cellosaurus$variations %>%
+    filter(ac %in% cell_lines$accession) %>%
+    parse_sequence_variations() %>%
+    inner_join(select(cell_lines, line, accession, engineered), by = c("ac" = "accession"),
+               relationship = "many-to-many") %>%
+    rename(accession = ac) %>%
+    select(line, accession, gene, status, variation_type, kind, variant, zygosity, partner_gene, note, source, engineered)
+
+# an engineered derivative inherits none of the parental line's variations
+variations <- filter(variations, !engineered) %>% select(-engineered)
+
+count(variations, status)
+```
+
+Per gene and line, one status is kept for quick use, with precedence
+mutation > deletion > amplification > fusion > engineered > reported wild type.
+A gene with no entry for a line is "not reported", not wild type.
+
+```{r gene-status}
+status_order <- c("mutation", "deletion", "amplification", "fusion", "repeat_expansion",
+                  "mutation_engineered", "wild_type_reported", "other")
+gene_status <- variations %>%
+    mutate(status = factor(status, levels = status_order, ordered = TRUE)) %>%
+    group_by(line, gene) %>%
+    summarise(
+        status = as.character(min(status)),
+        variants = paste(unique(na.omit(variant)), collapse = "; "),
+        .groups = "drop"
+    )
+
+gene_status %>%
+    filter(gene %in% c("TP53", "KRAS", "EGFR", "STK11", "KEAP1", "CDKN2A", "PTEN", "BRAF", "PIK3CA")) %>%
+    count(gene, status) %>%
+    pivot_wider(names_from = status, values_from = n, values_fill = 0)
+```
+
+## Tissue
+
+The rules are those of the original pipeline (disease text first, then the
+derived-from site). Whether to use the tissue labels of Shorthouse et al.
+instead is decided in the data inventory (Phase 1b).
+
+```{r tissue}
+site_rules <- tibble::tribble(
+  ~pattern,                                                     ~general_site,
+  "^Not specified$",                                            NA_character_,
+  "^Bone marrow$",                                              "Bone marrow",
+  "^Peripheral blood$",                                         "Blood",
+  "^Cerebrospinal fluid$",                                      "CSF",
+  "Ascites|effusion",                                           "Body fluid",
+  "lymph node|lymph duct",                                      "Lymphatic",
+  "^Brain",                                                     "Brain",
+  "^Bone(,|$)|innominate bone|acetabulum|femur|humerus|tibia|vertebra|jaw|maxilla", "Bone",
+  "skin|dermis|hypodermis",                                     "Skin",
+  "muscle|perineus|brachialis",                                 "Muscle",
+  "^Lung|^Lung,",                                               "Lung/Pleura",
+  "^Pleura$|pleura",                                            "Lung/Pleura",
+  "^Liver$",                                                    "Liver",
+  "intrahepatic bile duct|^Bile duct|^Gallbladder",             "Biliary tract",
+  "^Kidney|renal pelvis",                                       "Kidney",
+  "^Prostate$",                                                 "Prostate",
+  "^Stomach$",                                                  "Stomach",
+  "^Colon|^Cecum|ileocecal valve",                              "Colon",
+  "^Rectum$",                                                   "Rectum",
+  "^Pancreas|ampulla of Vater|islets of Langerhans",            "Pancreas",
+  "^Breast",                                                    "Breast",
+  "^Ovary",                                                     "Ovary",
+  "^Uterus|cervix|^Endometrium$",                               "Uterus/Cervix/Endometrium",
+  "^Thyroid gland$",                                            "Thyroid",
+  "^Adrenal gland$",                                            "Adrenal gland",
+  "^Salivary gland",                                            "Salivary gland",
+  "^Esophagus$",                                                "Esophagus",
+  "^Pharynx",                                                   "Pharynx",
+  "^Larynx$",                                                   "Larynx",
+  "^Oral cavity",                                               "Oral cavity",
+  "^Urinary bladder$",                                          "Urinary bladder",
+  "^Ureter$",                                                   "Ureter",
+  "^Peritoneum$|^Omentum$|^Abdomen$|abdominal wall|pelvic wall|retroperitoneal", "Abdomen/Peritoneum",
+  "^Spleen$",                                                   "Spleen",
+  "^Neck$",                                                     "Neck",
+  "^Orbital region$",                                           "Orbital region",
+  "^Soft tissue$|^Connective tissue$",                          "Soft tissue"
+)
+
+disease_rules <- tibble::tribble(
+  ~pattern,                                                     ~general_site,
+  "lung|bronch|pleural|mesotheli",                              "Lung/Pleura",
+  "bladder|urothel|urinary bladder",                            "Urinary bladder",
+  "renal|kidney",                                               "Kidney",
+  "pancrea|ampulla of vater",                                   "Pancreas",
+  "breast|mammary",                                             "Breast",
+  "ovar",                                                       "Ovary",
+  "prostate",                                                   "Prostate",
+  "colon|colorectal|cec",                                       "Colon",
+  "rect",                                                       "Rectum",
+  "glioblast|gliosarcoma|astrocyt|brain",                       "Brain",
+  "leukemia|lymphoblastic|myeloid|myelogenous",                 "Blood",
+  "myeloma",                                                    "Bone marrow",
+  "melanoma",                                                   "Skin",
+  "thyroid",                                                    "Thyroid",
+  "adrenal",                                                    "Adrenal gland",
+  "esoph",                                                      "Esophagus",
+  "laryn",                                                      "Larynx",
+  "pharyn",                                                     "Pharynx",
+  "oral cavity",                                                "Oral cavity",
+  "endomet|uter|cervi",                                         "Uterus/Cervix/Endometrium",
+  "liver|hepat|bile duct|gallbladder|cholang",                  "Liver/Biliary",
+  "soft tissue|connective tissue|sarcoma",                      "Soft tissue",
+  "bone",                                                       "Bone"
+)
+
+# first matching rule wins
+map_by_rules <- function(x, rules) {
+    out <- rep(NA_character_, length(x))
+    for (i in seq_len(nrow(rules))) {
+        hit <- is.na(out) & str_detect(x, regex(rules$pattern[i], ignore_case = TRUE))
+        out[which(hit)] <- rules$general_site[i]
+    }
+    out
+}
+
+clean_disease_text <- function(x) {
+    x %>%
+        str_replace_all("\\[|\\]|'", "") %>%
+        str_replace_all("\\bNA\\b", "") %>%
+        str_replace_all("\\s*\\|\\|\\s*", "; ") %>%
+        str_squish() %>%
+        na_if("")
+}
+
+entries <- select(cellosaurus$entries, ac, cellosaurus_name = id, derived_from_site, disease_cellosaurus = disease)
+cell_lines <- cell_lines %>%
+    left_join(entries, by = c("accession" = "ac")) %>%
+    mutate(
+        derived_site = derived_from_site %>% str_extract("(?<=;)[^;]+") %>% str_trim() %>% str_remove("\\.$"),
+        disease_clean = clean_disease_text(disease_ev1),
+        general_site_disease = map_by_rules(disease_clean, disease_rules),
+        general_site_derived = map_by_rules(derived_site, site_rules),
+        general_site = coalesce(general_site_disease, general_site_derived)
+    )
+
+count(cell_lines, general_site, sort = TRUE)
+```
+
+## Outputs
+
+```{r save}
+out <- c(
+    cell_lines = file.path(derived_dir, "02_cell_lines.tsv"),
+    variations = file.path(derived_dir, "02_sequence_variations.tsv"),
+    gene_status = file.path(derived_dir, "02_gene_status.tsv")
+)
+readr::write_tsv(cell_lines, out[["cell_lines"]])
+readr::write_tsv(variations, out[["variations"]])
+readr::write_tsv(gene_status, out[["gene_status"]])
+write_manifest(out, c(lines = file.path(derived_dir, "01_lines.rds"), cellosaurus = cellosaurus_file),
+               file.path(derived_dir, "02_manifest.json"),
+               extra = list(cellosaurus_release = config$cellosaurus$release))
+```
+
+## Interpretation
+
+All lines have an accession; most come from the authors' own RRID annotation,
+so manual mapping is limited to the two names EV1 does not annotate. The
+engineered NCI-H460 derivative keeps the parental accession for identity but
+receives no sequence variations. Reported wild-type entries are kept as such
+and are not counted as mutations.
+
+```{r session}
+sessionInfo()
+```
