@@ -1,0 +1,238 @@
+---
+title: "Audit 3: tissue labels and overlap of cell lines between data sources"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Tissue of origin will be a factor in every differential model, so the labels
+must be reliable. Two sources exist: our rule-based label from the disease and
+derived-from-site annotation (`general_site`, pre-processing step 02) and the
+tissue labels of Shorthouse et al. (11 tissues). In addition, this notebook
+shows which Shorthouse cell lines are also covered by the other data sources
+relevant for later steps.
+
+**Decision supported:** which tissue labels to use.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_injections.rds`, `02_cell_lines.tsv`, `02_sequence_variations.tsv`
+- `data/raw/cancer-cell-lines/shorthouse_github/`: tissue per injection and CCLE mutation calls of Shorthouse et al. (GitHub `shorthouse-mrc/CellLine_Metabolomics` @ cce3b15; **local only**, no licence)
+- `data/raw/cancer-cell-lines/ortmayr_2019/41467_2019_9695_MOESM2_ESM.xlsx`: Ortmayr et al. 2019 cell line metadata (**local only**)
+- `data/raw/cancer-cell-lines/cellosaurus.txt`: name to accession mapping
+
+## Methods
+
+For each Shorthouse cell line, the tissue label of Shorthouse et al. was taken
+from the authors' injection table and compared with our rule-based label.
+Cell line names of the other data sources were mapped to Cellosaurus
+accessions by exact match after removing punctuation and case (human entries
+only), preferring the primary Cellosaurus name over synonyms; names without a
+unique match are reported.
+Overlaps were counted on accessions.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/cellosaurus.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+fig_dir <- uc_dir(config, "output", "audit_03_tissue_and_overlaps")
+
+injections <- readRDS(file.path(derived_dir, "01_injections.rds"))$injections
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
+variations <- readr::read_tsv(file.path(derived_dir, "02_sequence_variations.tsv"), show_col_types = FALSE)
+github_dir <- file.path(raw_dir, "shorthouse_github")
+ortmayr_file <- file.path(raw_dir, "ortmayr_2019", "41467_2019_9695_MOESM2_ESM.xlsx")
+stopifnot(dir.exists(github_dir), file.exists(ortmayr_file))
+```
+
+## 1. Our tissue labels vs the labels of Shorthouse et al.
+
+```{r tissue-compare}
+# tissue label of the paper per injection, collapsed per cell line
+paper_tissue <- readr::read_csv(file.path(github_dir, "Cellline_mappings_shorthouse.csv"),
+                                show_col_types = FALSE, name_repair = "unique_quiet") %>%
+    transmute(injection_id = as.character(dsIdx), tissue_paper = Tissue)
+tissues <- injections %>%
+    left_join(paper_tissue, by = "injection_id") %>%
+    group_by(line) %>%
+    summarise(tissue_paper = paste(sort(unique(tissue_paper)), collapse = "; "), .groups = "drop") %>%
+    left_join(select(cell_lines, line, general_site, derived_site, disease_clean), by = "line")
+
+# the two label sets name some tissues differently
+same_tissue <- c("Lung/Pleura" = "Lung", "Urinary bladder" = "Bladder")
+tissues <- tissues %>%
+    mutate(ours = coalesce(unname(same_tissue[general_site]), general_site),
+           agree = ours == tissue_paper)
+c(lines = nrow(tissues), agree = sum(tissues$agree, na.rm = TRUE))
+
+# cross-table as heatmap
+p <- count(tissues, ours = general_site, paper = tissue_paper) %>%
+    ggplot(aes(paper, ours, fill = n)) +
+    geom_tile(colour = "white") +
+    geom_text(aes(label = n), size = 3) +
+    scale_fill_gradient(low = "#DEEBF7", high = "#08519C") +
+    labs(x = "Tissue (Shorthouse et al.)", y = "Our rule-based label", fill = "Lines",
+         title = "Both label sets agree for most lines") +
+    theme_uc() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_figure(p, "tissue_ours_vs_paper", fig_dir, width = 9, height = 6)
+p
+```
+
+The lines where the labels differ, with the annotation they are based on:
+
+```{r tissue-disagree}
+tissues %>%
+    filter(!agree | is.na(agree)) %>%
+    select(line, ours = general_site, paper = tissue_paper, derived_site, disease_clean) %>%
+    preview_table(caption = "Lines with different tissue labels")
+```
+
+```{r tissue-counts}
+# number of lines per tissue with the labels of the paper
+p <- count(tissues, tissue_paper) %>%
+    ggplot(aes(reorder(tissue_paper, n), n)) +
+    geom_col(fill = "#0072B2") +
+    geom_text(aes(label = n), hjust = -0.2, size = 3) +
+    coord_flip() +
+    labs(x = NULL, y = "Cell lines", title = "Cell lines per tissue (Shorthouse et al.)",
+         subtitle = sprintf("%d lines", nrow(tissues))) +
+    theme_uc()
+save_figure(p, "lines_per_tissue_paper", fig_dir)
+p
+```
+
+After the decision, step 02 harmonises the labels (renaming plus documented
+overrides in `config.yml`). The final label `tissue` should now equal the
+paper's label except for NCIH460, which the paper labels inconsistently:
+
+```{r tissue-final}
+final_check <- tissues %>%
+    left_join(select(cell_lines, line, tissue), by = "line") %>%
+    mutate(same = tissue == tissue_paper)
+c(lines = nrow(final_check), same_as_paper = sum(final_check$same, na.rm = TRUE))
+final_check %>%
+    filter(!same | is.na(same)) %>%
+    select(line, tissue_final = tissue, tissue_paper) %>%
+    preview_table(caption = "Final tissue labels differing from the paper")
+```
+
+## 2. Overlap with other data sources
+
+```{r name-mapping}
+# Cellosaurus names and synonyms, normalised (case and punctuation removed)
+cellosaurus <- read_cellosaurus(file.path(raw_dir, config$cellosaurus$file))$entries %>% filter(human)
+normalise <- function(x) toupper(gsub("[^A-Za-z0-9]", "", x))
+# the primary Cellosaurus name (priority 1) wins over synonyms (priority 2),
+# because many short names (e.g. PC-3) are also synonyms of other lines
+name_index <- bind_rows(
+    transmute(cellosaurus, ac, name = id, priority = 1L),
+    cellosaurus %>%
+        transmute(ac, name = coalesce(synonyms, "")) %>%
+        separate_rows(name, sep = ";\\s*") %>%
+        filter(name != "") %>%
+        mutate(priority = 2L)
+) %>%
+    transmute(ac, key = normalise(name), priority) %>%
+    distinct()
+
+# map names to accessions: best priority only, and keep only unique matches
+map_names <- function(names) {
+    tibble(name = unique(names)) %>%
+        mutate(key = normalise(name)) %>%
+        left_join(name_index, by = "key", relationship = "many-to-many") %>%
+        group_by(name) %>%
+        filter(is.na(priority) | priority == min(priority)) %>%
+        summarise(n_matches = n_distinct(ac, na.rm = TRUE),
+                  ac = if (n_distinct(ac, na.rm = TRUE) == 1) first(na.omit(ac)) else NA_character_,
+                  .groups = "drop")
+}
+
+# Ortmayr et al. 2019: cell line names and tissue (header in row 3 of the sheet)
+ortmayr <- readxl::read_excel(ortmayr_file, sheet = "Cell_metadata", skip = 2) %>%
+    select(name = `Cell line`, tissue = Tissue) %>%
+    filter(!is.na(name))
+ortmayr_map <- map_names(ortmayr$name)
+
+# CCLE mutation calls used by Shorthouse et al. (names are Cellosaurus names)
+ccle_calls <- readr::read_csv(file.path(github_dir, "Mutations_in_celllines.csv"),
+                              show_col_types = FALSE, name_repair = "unique_quiet")
+ccle_map <- map_names(unique(ccle_calls$CellLineName_Cellosaurus))
+
+# names that could not be mapped uniquely
+bind_rows(
+    mutate(filter(ortmayr_map, is.na(ac)), source = "Ortmayr 2019"),
+    mutate(filter(ccle_map, is.na(ac)), source = "CCLE calls (Shorthouse)")
+) %>%
+    select(source, name, n_matches) %>%
+    preview_table(caption = "Names without a unique Cellosaurus match")
+```
+
+```{r overlap}
+# sets of accessions; NCIH460DNP53 shares the parental accession and is left out
+shorthouse_ac <- cell_lines$accession[!cell_lines$engineered]
+sets <- tibble(accession = unique(c(shorthouse_ac, ortmayr_map$ac, ccle_map$ac))) %>%
+    filter(!is.na(accession)) %>%
+    mutate(
+        `Shorthouse metabolomics` = accession %in% shorthouse_ac,
+        `Ortmayr metabolomics` = accession %in% ortmayr_map$ac,
+        `CCLE mutation calls (Shorthouse)` = accession %in% ccle_map$ac,
+        `Cellosaurus variations` = accession %in% variations$accession
+    )
+
+# how many Shorthouse lines each source covers
+sets %>%
+    filter(`Shorthouse metabolomics`) %>%
+    summarise(across(-accession, sum))
+
+p <- ComplexUpset::upset(
+    as.data.frame(sets), intersect = setdiff(names(sets), "accession"),
+    name = "Data sources", width_ratio = 0.25, min_size = 1,
+    base_annotations = list("Cell lines" = ComplexUpset::intersection_size(text = list(size = 3)))
+) + patchwork::plot_annotation(title = "Overlap of cell lines between data sources (Cellosaurus accessions)")
+save_figure(p, "overlap_upset", fig_dir, width = 10, height = 6)
+p
+```
+
+```{r overlap-tissue}
+# lines with metabolomics in both data sets, by tissue (Shorthouse labels)
+both <- cell_lines %>%
+    filter(accession %in% ortmayr_map$ac, !engineered) %>%
+    left_join(select(tissues, line, tissue_paper), by = "line")
+count(both, tissue_paper, sort = TRUE)
+```
+
+## Interpretation and proposed decision
+
+- Our rule-based labels and the labels of Shorthouse et al. agree for nearly
+  all lines. Where they differ, the paper's label is the more plausible one in
+  most cases: our rules are misled by lines with two disease annotations (M14,
+  PC3) and fall back to the sampling site for breast cancers from pleural
+  effusions (MDAMB436, T47D), producing the non-tissue label "Body fluid".
+- The paper labels three lines as "Unknown" (184A1, a non-malignant breast
+  epithelial line; NCIH460DNP53; SR8714) and NCIH460 as "Lung; Unknown"
+  (lung is correct).
+- The overlap shows how many Shorthouse lines have Ortmayr metabolomics and
+  CCLE mutation calls; this matters for the mutation comparison (Audit 4).
+
+**Decision (2026-10-28):** keep the rule-based labels (derived from
+Cellosaurus and EV1, so independent of the unlicensed GitHub repository),
+renamed to the eleven tissues of Shorthouse et al., and set the eight lines
+that differ to the authors' label, each with a documented reason in
+`config.yml`. NCIH460 keeps "Lung". The three "Unknown" lines are excluded from
+tissue-adjusted models.
+
+```{r session}
+sessionInfo()
+```

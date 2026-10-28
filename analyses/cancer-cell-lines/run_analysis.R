@@ -17,7 +17,8 @@ steps <- c(
     "03" = "preprocessing/03_feature_ids.Rmd",
     # audit notebooks: analyses that support decisions (Phase 1b)
     "a01" = "audit/01_scale_transform.Rmd",
-    "a02" = "audit/02_structure_batch_tissue.Rmd"
+    "a02" = "audit/02_structure_batch_tissue.Rmd",
+    "a03" = "audit/03_tissue_and_overlaps.Rmd"
 )
 
 use_case_dir <- here::here("analyses", "cancer-cell-lines")

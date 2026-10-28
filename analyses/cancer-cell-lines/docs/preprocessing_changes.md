@@ -37,13 +37,13 @@ pipelines; every difference below is attributed there, none is unexplained.
 | B10 | Injections, ions and lines matched by key (`dsIdx`, `V<ionIdx>`) instead of by position | no value changes (positions happened to match) |
 | B11 | `"\bNA\b"` (a backspace) replaced by `"\\bNA\\b"` | no change in tissue labels |
 | B16 | addEquivalent UpSet plot saved the traverse plot | QC plot only |
+| B9 | Tissue: rule-based `general_site` renamed to the 11 tissues of Shorthouse et al. and 8 lines overridden with a documented reason (`config.yml`); new column `tissue` (`general_site` kept) | final labels equal the authors' for all lines except NCIH460 (authors: "Lung; Unknown"); "Body fluid" no longer occurs (audit/03) |
 
 Unchanged on purpose (decided later, see `TASKS.md`):
 
-- Intensities stay on the published, normalised scale; negative values are
-  kept. The transformation is chosen in the data inventory (Phase 1b).
+- Intensities stay on the published, normalised scale in the pre-processing
+  output; the analyses apply half-minimum imputation of values <= 0 and log2
+  (`R/transform.R`, decision in audit/01).
 - The three ions with duplicate annotation are still dropped
   (`drop_duplicate_annotation_ions`); the authors kept all 1099 ions.
-- Tissue rules are those of the previous pipeline; the authors' 11 tissue
-  labels are compared in Phase 1b.
 - Equivalent identifiers with 50 or more expansions are still discarded (B12).

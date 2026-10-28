@@ -158,7 +158,7 @@ versions <- list(
 )
 
 # example 1: lung vs all other lines; example 2: KRAS-mutant vs other lung lines
-lung <- cell_lines$line[cell_lines$general_site %in% "Lung/Pleura"]
+lung <- cell_lines$line[cell_lines$tissue %in% "Lung"]
 kras <- gene_status$line[gene_status$gene == "KRAS" & gene_status$status == "mutation"]
 comparisons <- list(
     "lung vs other lines" = setNames(ifelse(rownames(Y) %in% lung, "lung", "other"), rownames(Y)),

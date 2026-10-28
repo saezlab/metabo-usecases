@@ -16,7 +16,7 @@ and derive a tissue label.
 
 - `01_lines.rds` from `01_import_shorthouse.Rmd`
 - `data/raw/cancer-cell-lines/cellosaurus.txt`: Cellosaurus flat file (release in `config.yml`)
-- `config.yml`: manual accessions for names that EV1 does not annotate
+- `config.yml`: manual accessions for names that EV1 does not annotate; tissue renaming and overrides
 
 ## Methods
 
@@ -29,7 +29,9 @@ wild type ("None_reported"), deletion, amplification or fusion. Cellosaurus
 lists selected, literature-reported variations only, so the absence of an
 entry does not imply a wild-type gene. Tissue of origin was assigned from the
 disease annotation, falling back to the anatomical site the line was derived
-from, using the rules of the original pipeline.
+from, and harmonised with the eleven tissues of Shorthouse et al. (2022):
+labels were renamed to their terms, and eight lines whose rule-based label
+differed were set to the authors' label, each with a documented reason.
 
 ```{r setup, message = FALSE}
 library(dplyr)
@@ -38,13 +40,17 @@ library(stringr)
 
 source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
 source(here::here("analyses/cancer-cell-lines/R/cellosaurus.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
 config <- load_config()
 raw_dir <- uc_dir(config, "raw")
 derived_dir <- uc_dir(config, "derived")
 output_dir <- uc_dir(config, "output", "02_cell_lines_mutations")
 
+# cell lines from step 01 (one row per line, with EV1 accession and name)
 line_data <- readRDS(file.path(derived_dir, "01_lines.rds"))
 lines <- line_data$lines
+
+# Cellosaurus entries (names, disease, site) and sequence variations
 cellosaurus_file <- file.path(raw_dir, config$cellosaurus$file)
 cellosaurus <- read_cellosaurus(cellosaurus_file)
 ```
@@ -52,7 +58,10 @@ cellosaurus <- read_cellosaurus(cellosaurus_file)
 ## Accessions
 
 ```{r accessions}
+# only human Cellosaurus entries are considered when matching names
 human <- filter(cellosaurus$entries, human)
+
+# manual accessions for the names EV1 does not annotate (config.yml)
 manual <- bind_rows(lapply(names(config$cellosaurus$manual_accessions), function(n) {
     m <- config$cellosaurus$manual_accessions[[n]]
     tibble(line = n, manual_accession = m$accession, manual_note = m$note, engineered = isTRUE(m$engineered))
@@ -67,6 +76,7 @@ id_to_ac <- function(ids) {
     }, "")
 }
 
+# accession: the authors' RRID first, then their Cellosaurus name, then manual
 cell_lines <- lines %>%
     select(line, member_names, n_injections, rrid, cellosaurus_id, disease_ev1) %>%
     mutate(ac_from_id = unname(id_to_ac(cellosaurus_id))) %>%
@@ -85,6 +95,7 @@ cell_lines <- lines %>%
 # RRID and Cellosaurus name must agree where EV1 gives both
 conflicts <- filter(cell_lines, !is.na(rrid), !is.na(ac_from_id), rrid != ac_from_id)
 conflicts
+# every line has exactly one accession that exists in Cellosaurus
 stopifnot(!any(is.na(cell_lines$accession)), !grepl("\\|\\|", cell_lines$accession))
 stopifnot(all(cell_lines$accession %in% cellosaurus$entries$ac))
 count(cell_lines, accession_source)
@@ -93,13 +104,20 @@ count(cell_lines, accession_source)
 Merged lines (several names) carry one accession only if all their names agree:
 
 ```{r merged-check}
-cell_lines %>% filter(grepl(";", member_names)) %>% select(line, member_names, rrid, cellosaurus_id, accession)
+cell_lines %>%
+    filter(grepl(";", member_names)) %>%
+    select(line, member_names, rrid, cellosaurus_id, accession) %>%
+    preview_table(caption = "Merged lines and their accession")
+
+# no two lines share an accession (except the engineered derivative and its parent)
 stopifnot(!anyDuplicated(cell_lines$accession[!cell_lines$engineered]))
 ```
 
 ## Sequence variations
 
 ```{r variations}
+# variations of the accessions in the data set, split into fields and classified
+# (see parse_sequence_variations() in R/cellosaurus.R)
 variations <- cellosaurus$variations %>%
     filter(ac %in% cell_lines$accession) %>%
     parse_sequence_variations() %>%
@@ -112,6 +130,7 @@ variations <- cellosaurus$variations %>%
 variations <- filter(variations, !engineered) %>% select(-engineered)
 
 count(variations, status)
+preview_table(variations, caption = "Sequence variations (long table)")
 ```
 
 Per gene and line, one status is kept for quick use, with precedence
@@ -119,6 +138,7 @@ mutation > deletion > amplification > fusion > engineered > reported wild type.
 A gene with no entry for a line is "not reported", not wild type.
 
 ```{r gene-status}
+# precedence of statuses when a gene has several entries for one line
 status_order <- c("mutation", "deletion", "amplification", "fusion", "repeat_expansion",
                   "mutation_engineered", "wild_type_reported", "other")
 gene_status <- variations %>%
@@ -130,6 +150,9 @@ gene_status <- variations %>%
         .groups = "drop"
     )
 
+preview_table(gene_status, caption = "Status per line and gene")
+
+# overview for frequently discussed genes
 gene_status %>%
     filter(gene %in% c("TP53", "KRAS", "EGFR", "STK11", "KEAP1", "CDKN2A", "PTEN", "BRAF", "PIK3CA")) %>%
     count(gene, status) %>%
@@ -138,11 +161,13 @@ gene_status %>%
 
 ## Tissue
 
-The rules are those of the original pipeline (disease text first, then the
-derived-from site). Whether to use the tissue labels of Shorthouse et al.
-instead is decided in the data inventory (Phase 1b).
+The rules are those of the original pipeline: the disease text decides first,
+the derived-from site only when the disease text gives no tissue. The result
+(`general_site`) is then harmonised with the tissues of Shorthouse et al.
+(decision and evidence: Audit 3).
 
 ```{r tissue}
+# rules for the anatomical site the line was derived from (fallback)
 site_rules <- tibble::tribble(
   ~pattern,                                                     ~general_site,
   "^Not specified$",                                            NA_character_,
@@ -184,6 +209,7 @@ site_rules <- tibble::tribble(
   "^Soft tissue$|^Connective tissue$",                          "Soft tissue"
 )
 
+# rules for the disease text (checked first); the first matching rule wins
 disease_rules <- tibble::tribble(
   ~pattern,                                                     ~general_site,
   "lung|bronch|pleural|mesotheli",                              "Lung/Pleura",
@@ -221,6 +247,7 @@ map_by_rules <- function(x, rules) {
     out
 }
 
+# remove list brackets, quotes and "NA" placeholders from the EV1 disease text
 clean_disease_text <- function(x) {
     x %>%
         str_replace_all("\\[|\\]|'", "") %>%
@@ -230,6 +257,7 @@ clean_disease_text <- function(x) {
         na_if("")
 }
 
+# disease from EV1, derived-from site from Cellosaurus
 entries <- select(cellosaurus$entries, ac, cellosaurus_name = id, derived_from_site, disease_cellosaurus = disease)
 cell_lines <- cell_lines %>%
     left_join(entries, by = c("accession" = "ac")) %>%
@@ -242,11 +270,31 @@ cell_lines <- cell_lines %>%
     )
 
 count(cell_lines, general_site, sort = TRUE)
+
+# harmonise with Shorthouse et al.: rename, then apply the documented overrides
+rename_map <- unlist(config$tissue$rename)
+overrides <- bind_rows(lapply(names(config$tissue$overrides), function(n) {
+    tibble(line = n, tissue_override = config$tissue$overrides[[n]]$tissue,
+           tissue_note = config$tissue$overrides[[n]]$reason)
+}))
+stopifnot(all(overrides$line %in% cell_lines$line))
+cell_lines <- cell_lines %>%
+    left_join(overrides, by = "line") %>%
+    mutate(tissue = coalesce(tissue_override, unname(rename_map[general_site]), general_site)) %>%
+    select(-tissue_override)
+
+count(cell_lines, tissue, sort = TRUE)
+cell_lines %>%
+    filter(!is.na(tissue_note)) %>%
+    select(line, general_site, tissue, tissue_note) %>%
+    preview_table(caption = "Tissue overrides")
 ```
 
 ## Outputs
 
 ```{r save}
+preview_table(cell_lines, caption = "Cell lines (final table)")
+
 out <- c(
     cell_lines = file.path(derived_dir, "02_cell_lines.tsv"),
     variations = file.path(derived_dir, "02_sequence_variations.tsv"),

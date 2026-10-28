@@ -210,7 +210,7 @@ majority_batch <- injections$injections %>%
 cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
 gene_status <- readr::read_tsv(file.path(derived_dir, "02_gene_status.tsv"), show_col_types = FALSE)
 kras_lines <- gene_status$line[gene_status$gene == "KRAS" & gene_status$status == "mutation"]
-lung <- tibble(line = cell_lines$line[cell_lines$general_site %in% "Lung/Pleura"]) %>%
+lung <- tibble(line = cell_lines$line[cell_lines$tissue %in% "Lung"]) %>%
     left_join(majority_batch, by = "line") %>%
     mutate(kras = factor(if_else(line %in% kras_lines, "KRAS", "other"), levels = c("other", "KRAS")))
 

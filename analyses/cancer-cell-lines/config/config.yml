@@ -26,6 +26,39 @@ shorthouse:
   # same metabolite); kept from the original pipeline, see preprocessing_changes.md
   drop_duplicate_annotation_ions: true
 
+tissue:
+  # Rule-based labels (step 02) renamed to the 11 tissues of Shorthouse et al. 2022
+  rename:
+    Lung/Pleura: Lung
+    Urinary bladder: Bladder
+  # Lines where the rules give a different label than Shorthouse et al.
+  # (decision and evidence: audit/03_tissue_and_overlaps.Rmd)
+  overrides:
+    M14:
+      tissue: Skin
+      reason: amelanotic melanoma; a second disease annotation (pleural) wins under the rule order
+    PC3:
+      tissue: Prostate
+      reason: prostate carcinoma; a second disease annotation (lung) wins under the rule order
+    MDAMB436:
+      tissue: Breast
+      reason: breast carcinoma derived from a pleural effusion; rules fall back to the sampling site
+    T47D:
+      tissue: Breast
+      reason: breast carcinoma derived from a pleural effusion; rules fall back to the sampling site
+    RPMI8826:
+      tissue: Blood
+      reason: plasma cell myeloma; haematological lines are grouped as Blood in Shorthouse et al.
+    184A1:
+      tissue: Unknown
+      reason: non-malignant mammary epithelial line; Unknown in Shorthouse et al.
+    NCIH460DNP53:
+      tissue: Unknown
+      reason: engineered derivative without annotation in EV1; Unknown in Shorthouse et al.
+    SR8714:
+      tissue: Unknown
+      reason: identity not confirmed by EV1; Unknown in Shorthouse et al.
+
 cellosaurus:
   # local flat file with the first 57 header lines removed (see data/raw README)
   file: cellosaurus.txt
