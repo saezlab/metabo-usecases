@@ -13,12 +13,13 @@ Decisions already taken are in `decision_log.md`, open points in
 | p04 | `preprocessing/04_depmap_status.Rmd` | 2→3 | mutation and copy-number tables |
 | p05 | `preprocessing/05_analysis_dataset.Rmd` | 2→3 | one versioned analysis-ready data set |
 | a01–a06 | `audit/*.Rmd` | 1b, done | decisions D7–D13 |
-| 02 | `02_mutation_landscape.Rmd` | 3 | description of mutations in the metabolomics lines |
-| 03 | `03_contrast_selection.Rmd` | 3 | ranked candidate contrasts → **Checkpoint 2** |
-| 04 | `04_metabolomics_qc.Rmd` | 4 | QC for the chosen design |
-| 05 | `05_metabolomics_differential.Rmd` | 4 | full result tables → **Checkpoint 3** |
+| 02 | `analysis/02_mutation_landscape.Rmd` | 3 | description of mutations in the metabolomics lines |
+| 03 | `analysis/03_contrast_selection.Rmd` | 3 | ranked candidate contrasts → **Checkpoint 2** |
+| 04 | `analysis/04_metabolomics_qc.Rmd` | 4 | QC for the chosen design |
+| 05 | `analysis/05_metabolomics_differential.Rmd` | 4 | full result tables → **Checkpoint 3** |
 
-All steps run through `run_analysis.R`; outputs go to
+Analysis steps live in `analysis/` (the previous `01`–`04` still occupy the
+top level). All steps run through `run_analysis.R`; outputs go to
 `data/derived/cancer-cell-lines/shorthouse_v1/` (data handed on) and
 `analyses/cancer-cell-lines/output/<step>/` (tables, figures as PDF + PNG,
 rendered reports). Thresholds and parameters go into `config/config.yml`.

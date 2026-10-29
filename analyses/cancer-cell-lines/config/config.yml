@@ -35,6 +35,11 @@ analysis:
   exclude_lines:
     184A1: non-malignant mammary epithelial line, not a cancer line (decision Checkpoint 1b, 2026-10-28)
 
+landscape:
+  # mutation landscape (analysis/02): genes shown and tested
+  n_top_genes: 30          # genes in the oncoprint-style overview
+  min_altered_lines: 8     # minimum altered lines (all tissues) for a gene to be tested
+
 tissue:
   # Rule-based labels (step 02) renamed to the 11 tissues of Shorthouse et al. 2022
   rename:

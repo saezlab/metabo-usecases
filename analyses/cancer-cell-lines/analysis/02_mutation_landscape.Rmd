@@ -1,0 +1,263 @@
+---
+title: "Mutation landscape of the Shorthouse cell lines"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Describe which genes are mutated or deleted in the cell lines with
+metabolomics data, how alterations distribute over tissues, and which
+alterations co-occur or exclude each other. This is the basis for choosing a
+mutation-based contrast (analysis/03).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds` (lines used in models, DepMap mutation and copy-number status)
+- `data/raw/cancer-cell-lines/msb202211006-sup-0005-datasetev4.xlsx` (genes tested by Shorthouse et al.)
+- `config.yml`: `landscape` parameters
+
+## Methods
+
+All cell lines used in mutation models were included (malignant, with tissue
+label and DepMap data; n given below). Genes were restricted to the 658 genes
+tested by Shorthouse et al. (Dataset EV4, derived from the COSMIC Cancer Gene
+Census) plus MTAP. Mutation status came from DepMap 24Q4: any protein-changing
+somatic variant, and likely-driver variants (hotspot, likely loss of function,
+Hess driver, or high impact in an oncogene or tumour suppressor, as flagged by
+DepMap). Homozygous deletion was defined as absolute copy number 0; lines
+without copy number count as not deleted. For the tests below, a gene was
+considered altered if it carried a likely-driver mutation or a homozygous
+deletion (provisional definition, see open question Q1). Tissue specificity
+was tested per gene and tissue with Fisher's exact test (lines of the tissue
+vs all other lines). Co-occurrence and mutual exclusivity between genes were
+tested with the Cochran–Mantel–Haenszel test stratified by tissue, so that
+shared tissue frequencies do not appear as co-occurrence; the common odds ratio
+gives the direction (> 1 co-occurrence, < 1 mutual exclusivity). p-values were
+adjusted with the Benjamini–Hochberg procedure within each analysis. Only
+genes altered in at least `min_altered_lines` lines were tested.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+output_dir <- uc_dir(config, "output", "02_mutation_landscape")
+params <- config$landscape
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+lines <- filter(data$lines, in_models)
+
+# genes tested by Shorthouse et al. (EV4 columns "T_<gene>") plus MTAP
+ev4 <- readxl::read_excel(file.path(raw_dir, "msb202211006-sup-0005-datasetev4.xlsx"), sheet = "Sheet1", n_max = 1)
+genes <- union(sub("^T_", "", setdiff(names(ev4), "ionIdx")), "MTAP")
+c(lines = nrow(lines), with_copy_number = sum(lines$has_copy_number), genes = length(genes))
+count(lines, tissue, sort = TRUE)
+```
+
+## Alteration status
+
+```{r status}
+# one row per line and gene with mutation (any / likely driver) and deletion status
+mutations <- data$mutation_status %>%
+    filter(line %in% lines$line, gene %in% genes) %>%
+    select(line, gene, any_mutation = n_variants, likely_driver, protein_changes) %>%
+    mutate(any_mutation = any_mutation > 0)
+deletions <- data$homozygous_deletions %>%
+    filter(line %in% lines$line, gene %in% genes) %>%
+    mutate(deleted = TRUE)
+
+status <- expand_grid(line = lines$line, gene = genes) %>%
+    left_join(mutations, by = c("line", "gene")) %>%
+    left_join(deletions, by = c("line", "gene")) %>%
+    mutate(
+        any_mutation = coalesce(any_mutation, FALSE),
+        likely_driver = coalesce(likely_driver, FALSE),
+        deleted = coalesce(deleted, FALSE),
+        # provisional definition used in the tests (open question Q1)
+        altered = likely_driver | deleted
+    ) %>%
+    left_join(select(lines, line, tissue), by = "line")
+
+preview_table(filter(status, any_mutation | deleted), caption = "Altered line–gene pairs")
+```
+
+## 1. Frequencies
+
+```{r frequencies}
+frequencies <- status %>%
+    group_by(gene) %>%
+    summarise(
+        any_mutation = sum(any_mutation),
+        likely_driver = sum(likely_driver),
+        deleted = sum(deleted),
+        altered = sum(altered),
+        .groups = "drop"
+    ) %>%
+    arrange(desc(altered))
+preview_table(frequencies, caption = sprintf("Lines per gene (%d lines)", nrow(lines)))
+
+top_genes <- head(frequencies$gene, params$n_top_genes)
+p <- frequencies %>%
+    filter(gene %in% top_genes) %>%
+    pivot_longer(c(any_mutation, likely_driver, deleted), names_to = "definition", values_to = "lines") %>%
+    mutate(definition = factor(definition, levels = c("any_mutation", "likely_driver", "deleted"),
+                               labels = c("any protein-changing", "likely driver", "homozygous deletion"))) %>%
+    ggplot(aes(lines, factor(gene, levels = rev(top_genes)), fill = definition)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = c("#0072B2", "#D55E00", "#009E73")) +
+    labs(x = "Cell lines", y = NULL, fill = NULL,
+         title = sprintf("Most frequently altered genes (%d lines)", nrow(lines))) +
+    theme_uc() +
+    theme(legend.position = "bottom")
+save_figure(p, "frequencies_top_genes", output_dir, width = 8, height = 8)
+p
+```
+
+Oncoprint-style overview: lines (columns) grouped by tissue, genes (rows)
+ordered by frequency.
+
+```{r oncoprint, fig.width = 14, fig.height = 8}
+oncoprint <- status %>%
+    filter(gene %in% top_genes) %>%
+    mutate(alteration = case_when(
+        likely_driver & deleted ~ "likely driver + deletion",
+        likely_driver ~ "likely driver",
+        deleted ~ "homozygous deletion",
+        any_mutation ~ "other protein-changing",
+        TRUE ~ NA_character_
+    ))
+# order lines by tissue, then by number of altered top genes
+line_order <- oncoprint %>%
+    group_by(line, tissue) %>%
+    summarise(n = sum(!is.na(alteration)), .groups = "drop") %>%
+    arrange(tissue, desc(n)) %>%
+    pull(line)
+p <- oncoprint %>%
+    filter(!is.na(alteration)) %>%
+    ggplot(aes(factor(line, levels = line_order), factor(gene, levels = rev(top_genes)), fill = alteration)) +
+    geom_tile() +
+    facet_grid(~ tissue, scales = "free_x", space = "free_x") +
+    scale_fill_manual(values = c("likely driver" = "#D55E00", "homozygous deletion" = "#0072B2",
+                                 "likely driver + deletion" = "#CC79A7", "other protein-changing" = "grey70")) +
+    labs(x = "Cell lines", y = NULL, fill = NULL, title = "Alterations of the most frequently altered genes by tissue") +
+    theme_uc() +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(),
+          panel.spacing = grid::unit(1, "pt"), strip.text = element_text(angle = 90, size = 8),
+          legend.position = "bottom")
+save_figure(p, "oncoprint", output_dir, width = 14, height = 8)
+p
+```
+
+## 2. Tissue specificity
+
+```{r tissue-specificity}
+tested_genes <- frequencies$gene[frequencies$altered >= params$min_altered_lines]
+length(tested_genes)
+
+# Fisher's exact test per gene and tissue: altered in this tissue vs in all other lines
+tissue_tests <- expand_grid(gene = tested_genes, tissue = sort(unique(lines$tissue))) %>%
+    rowwise() %>%
+    mutate(test = list({
+        s <- status[status$gene == gene, ]
+        tab <- table(factor(s$tissue == tissue, levels = c(TRUE, FALSE)),
+                     factor(s$altered, levels = c(TRUE, FALSE)))
+        ft <- fisher.test(tab)
+        tibble(altered_in_tissue = tab[1, 1], lines_in_tissue = sum(tab[1, ]),
+               altered_elsewhere = tab[2, 1], lines_elsewhere = sum(tab[2, ]),
+               odds_ratio = unname(ft$estimate), p = ft$p.value)
+    })) %>%
+    ungroup() %>%
+    unnest(test) %>%
+    mutate(p_adj = p.adjust(p, "BH"))
+
+tissue_tests %>% arrange(p) %>% preview_table(caption = "Tissue specificity (Fisher, BH over all gene × tissue tests)")
+
+p <- tissue_tests %>%
+    mutate(share = altered_in_tissue / lines_in_tissue,
+           significant = p_adj < 0.05) %>%
+    ggplot(aes(tissue, factor(gene, levels = rev(tested_genes)), fill = share)) +
+    geom_tile(colour = "white") +
+    geom_text(aes(label = ifelse(significant, "*", "")), size = 5, vjust = 0.75) +
+    scale_fill_gradient(low = "#F7FBFF", high = "#08519C", labels = scales::percent) +
+    labs(x = NULL, y = NULL, fill = "Lines altered",
+         title = "Share of altered lines per tissue",
+         subtitle = "* tissue differs from all other lines (Fisher, BH < 0.05)") +
+    theme_uc() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_figure(p, "tissue_specificity", output_dir, width = 8, height = 7)
+p
+```
+
+## 3. Co-occurrence and mutual exclusivity (tissue-adjusted)
+
+```{r cooccurrence}
+# Cochran–Mantel–Haenszel test per gene pair, stratified by tissue
+gene_pairs <- t(combn(tested_genes, 2))
+cmh_test <- function(g1, g2) {
+    a <- status %>% filter(gene == g1) %>% select(line, tissue, a = altered)
+    b <- status %>% filter(gene == g2) %>% select(line, b = altered)
+    d <- inner_join(a, b, by = "line")
+    tab <- table(factor(d$a, levels = c(TRUE, FALSE)), factor(d$b, levels = c(TRUE, FALSE)), d$tissue)
+    # strata with fewer than two lines carry no information
+    tab <- tab[, , apply(tab, 3, sum) > 1, drop = FALSE]
+    result <- tryCatch(mantelhaen.test(tab), error = function(e) NULL)
+    tibble(gene_1 = g1, gene_2 = g2, both_altered = sum(d$a & d$b),
+           common_odds_ratio = if (is.null(result)) NA_real_ else unname(result$estimate),
+           p = if (is.null(result)) NA_real_ else result$p.value)
+}
+cooccurrence <- bind_rows(lapply(seq_len(nrow(gene_pairs)), function(i) cmh_test(gene_pairs[i, 1], gene_pairs[i, 2]))) %>%
+    mutate(p_adj = p.adjust(p, "BH"),
+           relation = case_when(p_adj < 0.05 & common_odds_ratio > 1 ~ "co-occurring",
+                                p_adj < 0.05 & common_odds_ratio < 1 ~ "mutually exclusive",
+                                TRUE ~ "not significant"))
+count(cooccurrence, relation)
+cooccurrence %>% arrange(p) %>% preview_table(caption = "Gene pairs (CMH stratified by tissue, BH)")
+
+p <- cooccurrence %>%
+    mutate(log2_or = pmax(pmin(log2(common_odds_ratio), 4), -4)) %>%
+    ggplot(aes(factor(gene_1, levels = tested_genes), factor(gene_2, levels = rev(tested_genes)), fill = log2_or)) +
+    geom_tile(colour = "white") +
+    geom_text(aes(label = ifelse(p_adj < 0.05, "*", "")), vjust = 0.75) +
+    scale_fill_gradient2(low = "#0072B2", mid = "white", high = "#D55E00", midpoint = 0, na.value = "grey90",
+                         limits = c(-4, 4)) +
+    labs(x = NULL, y = NULL, fill = "log2 common\nodds ratio",
+         title = "Co-occurrence (red) and mutual exclusivity (blue), adjusted for tissue",
+         subtitle = "* BH < 0.05; grey: not estimable") +
+    theme_uc() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_figure(p, "cooccurrence", output_dir, width = 9, height = 8)
+p
+```
+
+## Interpretation
+
+- **Frequencies:** TP53 is altered in most lines (130 of 168), followed by
+  CDKN2A (76, mostly homozygous deletions), KRAS (42) and MTAP (34, deletions
+  only). STK11, ARID1A, RB1, SMARCA4, PTEN, PIK3CA, BRAF, SMAD4 and NRAS are
+  altered in 11 to 22 lines each. 27 genes reach the threshold for testing.
+- **Tissue specificity** reproduces known biology: BRAF in skin (melanoma),
+  APC in colon, KRAS and SMAD4 in pancreas, TERT in bladder and brain, STK11 in
+  lung, and fewer TP53 alterations in kidney. This supports the consistency of
+  the mutation annotation and the tissue labels, and shows that several genes
+  can only be contrasted within one or two tissues.
+- **Co-occurrence:** after adjusting for tissue, only CDKN2A and MTAP co-occur
+  significantly, as expected for their joint deletion at 9p21. No pair is
+  significantly mutually exclusive at this sample size; the relations to watch
+  in the contrast selection have to be checked per contrast (e.g. within lung).
+- **Caution:** genes such as MUC16, LRP1B and CSMD3 count as likely-driver
+  altered because DepMap flags any likely loss-of-function variant; in very
+  long genes these are often passenger events. The definition of "altered"
+  (open question Q1) matters for these genes.
+
+```{r session}
+sessionInfo()
+```

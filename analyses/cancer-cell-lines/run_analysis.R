@@ -17,6 +17,8 @@ steps <- c(
     "03" = "preprocessing/03_feature_ids.Rmd",
     "04" = "preprocessing/04_depmap_status.Rmd",
     "05" = "preprocessing/05_analysis_dataset.Rmd",
+    # analysis steps (Phase 3 and 4)
+    "m02" = "analysis/02_mutation_landscape.Rmd",
     # audit notebooks: analyses that support decisions (Phase 1b)
     "a01" = "audit/01_scale_transform.Rmd",
     "a02" = "audit/02_structure_batch_tissue.Rmd",
