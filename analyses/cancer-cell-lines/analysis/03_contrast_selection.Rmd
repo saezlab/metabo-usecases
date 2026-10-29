@@ -1,0 +1,257 @@
+---
+title: "Selection of mutation-based contrasts"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Rank candidate mutation contrasts on genotype and design grounds, before any
+metabolomics result for them is looked at. For each candidate gene, report how
+many mutant and wild-type lines inform a model with tissue as blocking factor,
+which tissues contribute, whether the groups are balanced across culture
+batches, whether the design is estimable, which other alterations go with the
+mutation, and whether it can serve as a positive control.
+
+**Decision supported:** choice of contrast(s) and design formula (Checkpoint 2),
+the definition of "mutated" per gene (Q1) and the minimum group sizes (Q2).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds` (lines used in models, DepMap status, ion annotation)
+- `data/raw/cancer-cell-lines/msb202211006-sup-0005-datasetev4.xlsx` (genes tested by Shorthouse et al.)
+- `config.yml`: `landscape` and `contrast` parameters
+
+## Methods
+
+Candidate genes were those altered in at least `min_altered_lines` lines in
+the mutation landscape (analysis/02) plus genes named in the planning (EGFR,
+KEAP1, NFE2L2, IDH1, IDH2, MTAP). Each was evaluated under two definitions of
+"mutated": a likely-driver variant or homozygous deletion, and any
+protein-changing variant or homozygous deletion. With tissue as blocking
+factor, only tissues containing at least `min_per_group_per_tissue` mutant and
+wild-type lines inform the mutation effect; their lines give the effective
+group sizes. Balance across culture batches was tested on the contributing
+lines with Fisher's exact test (simulated p-value). Estimability of the design
+`~ batch + tissue + mutation` on the contributing lines was checked by the rank
+of the design matrix, and its residual degrees of freedom reported. Co-occurring
+alterations were summarised as the difference in the share of altered lines
+between mutant and wild-type lines. No metabolomics data are used in this
+notebook.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+output_dir <- uc_dir(config, "output", "03_contrast_selection")
+params <- config$contrast
+set.seed(params$seed)
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+lines <- filter(data$lines, in_models)
+
+# genes tested by Shorthouse et al. plus MTAP (as in analysis/02)
+ev4 <- readxl::read_excel(file.path(raw_dir, "msb202211006-sup-0005-datasetev4.xlsx"), sheet = "Sheet1", n_max = 1)
+genes <- union(sub("^T_", "", setdiff(names(ev4), "ionIdx")), "MTAP")
+status <- alteration_status(data, lines$line, genes) %>%
+    mutate(
+        mutated_driver = likely_driver | deleted,   # definition A
+        mutated_any = any_mutation | deleted        # definition B
+    )
+
+# candidates: genes reaching the landscape threshold under definition A, plus planning genes
+landscape_genes <- status %>%
+    group_by(gene) %>%
+    summarise(n = sum(mutated_driver), .groups = "drop") %>%
+    filter(n >= config$landscape$min_altered_lines) %>%
+    pull(gene)
+candidates <- union(landscape_genes, params$extra_genes)
+c(lines = nrow(lines), candidates = length(candidates))
+```
+
+## 1. Effective group sizes with tissue as blocking factor
+
+```{r effective-n}
+# per candidate, definition and tissue: mutant and wild-type lines
+per_tissue <- status %>%
+    filter(gene %in% candidates) %>%
+    pivot_longer(c(mutated_driver, mutated_any), names_to = "definition", values_to = "mutated") %>%
+    mutate(definition = recode(definition, mutated_driver = "A: likely driver or deletion",
+                               mutated_any = "B: any protein-changing or deletion")) %>%
+    group_by(gene, definition, tissue) %>%
+    summarise(mutant = sum(mutated), wild_type = sum(!mutated), .groups = "drop") %>%
+    mutate(contributes = mutant >= params$min_per_group_per_tissue &
+               wild_type >= params$min_per_group_per_tissue)
+
+effective <- per_tissue %>%
+    group_by(gene, definition) %>%
+    summarise(
+        mutant_all = sum(mutant),
+        effective_mutant = sum(mutant[contributes]),
+        effective_wild_type = sum(wild_type[contributes]),
+        n_tissues = sum(contributes),
+        tissues = paste(sprintf("%s (%d/%d)", tissue[contributes], mutant[contributes], wild_type[contributes]),
+                        collapse = ", "),
+        .groups = "drop"
+    ) %>%
+    arrange(definition, desc(effective_mutant))
+preview_table(effective, caption = "Effective group sizes (tissue: mutant/wild-type)")
+
+p <- effective %>%
+    filter(effective_mutant > 0) %>%
+    ggplot(aes(effective_mutant, reorder(gene, effective_mutant, max), fill = definition)) +
+    geom_col(position = "dodge") +
+    geom_vline(xintercept = params$min_mutant_total, linetype = 2) +
+    scale_fill_manual(values = c("#D55E00", "#0072B2")) +
+    labs(x = "Mutant lines in contributing tissues", y = NULL, fill = NULL,
+         title = "Effective number of mutant lines with tissue as blocking factor",
+         subtitle = sprintf("contributing tissue: >= %d mutant and >= %d wild-type lines; dashed: minimum %d",
+                            params$min_per_group_per_tissue, params$min_per_group_per_tissue, params$min_mutant_total)) +
+    theme_uc() +
+    theme(legend.position = "bottom", legend.direction = "vertical")
+save_figure(p, "effective_n", output_dir, width = 8, height = 8)
+p
+```
+
+## 2. Design checks for the candidates
+
+```{r design}
+ranked <- filter(effective, effective_mutant >= params$min_mutant_total)
+
+# for each remaining candidate: batch balance and estimability on the contributing lines
+check_design <- function(g, def) {
+    col <- if (startsWith(def, "A")) "mutated_driver" else "mutated_any"
+    contributing <- per_tissue %>% filter(gene == g, definition == def, contributes) %>% pull(tissue)
+    d <- status %>% filter(gene == g, tissue %in% contributing) %>%
+        transmute(line, tissue, batch, mutated = .data[[col]])
+    batch_p <- if (n_distinct(d$batch) > 1) {
+        fisher.test(table(d$batch, d$mutated), simulate.p.value = TRUE, B = 1e4)$p.value
+    } else NA_real_
+    # tissue and batch enter the design only if they have more than one level
+    terms <- c(if (n_distinct(d$batch) > 1) "batch", if (n_distinct(d$tissue) > 1) "tissue", "mutated")
+    X <- model.matrix(reformulate(terms), data = d)
+    rank <- qr(X)$rank
+    tibble(gene = g, definition = def, lines = nrow(d), batches = n_distinct(d$batch),
+           batch_balance_p = batch_p, full_rank = rank == ncol(X), residual_df = nrow(d) - rank)
+}
+design_checks <- bind_rows(lapply(seq_len(nrow(ranked)), function(i) check_design(ranked$gene[i], ranked$definition[i])))
+candidate_table <- ranked %>% left_join(design_checks, by = c("gene", "definition"))
+preview_table(candidate_table, caption = "Candidates meeting the minimum, with design checks")
+```
+
+## 3. Co-occurring alterations
+
+For the candidates, the share of lines carrying another alteration among
+mutant and wild-type lines of the contributing tissues (definition A). Large
+differences mark co-mutations that a model should include as covariates, or
+that make a "mutant vs rest" contrast compare against another driver.
+
+```{r comutations, fig.width = 11, fig.height = 7}
+co_genes <- union(landscape_genes, params$extra_genes)
+comutation <- bind_rows(lapply(unique(filter(candidate_table, startsWith(definition, "A"))$gene), function(g) {
+    contributing <- per_tissue %>% filter(gene == g, startsWith(definition, "A"), contributes) %>% pull(tissue)
+    groups <- status %>% filter(gene == g, tissue %in% contributing) %>% select(line, mutant = mutated_driver)
+    status %>%
+        filter(gene %in% setdiff(co_genes, g), line %in% groups$line) %>%
+        inner_join(groups, by = "line") %>%
+        group_by(co_gene = gene) %>%
+        summarise(share_in_mutant = mean(mutated_driver[mutant]),
+                  share_in_wild_type = mean(mutated_driver[!mutant]), .groups = "drop") %>%
+        mutate(gene = g, difference = share_in_mutant - share_in_wild_type)
+}))
+comutation %>% arrange(desc(abs(difference))) %>% preview_table(caption = "Co-occurring alterations (definition A)")
+
+p <- ggplot(comutation, aes(co_gene, gene, fill = difference)) +
+    geom_tile(colour = "white") +
+    scale_fill_gradient2(low = "#0072B2", mid = "white", high = "#D55E00", midpoint = 0, limits = c(-1, 1)) +
+    labs(x = "Other alteration", y = "Candidate", fill = "Share in mutant\nminus wild type",
+         title = "Co-occurring (red) and exclusive (blue) alterations within the contributing tissues") +
+    theme_uc() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_figure(p, "comutations", output_dir, width = 11, height = 7)
+p
+```
+
+## 4. Positive controls
+
+Genotypes with an expected metabolic readout (planning): KEAP1/NFE2L2 →
+glutathione; MTAP deletion → 5'-methylthioadenosine; IDH1/2 →
+2-hydroxyglutarate. Readout ions are looked up by name in the annotation
+(see audit/05); only availability is reported, not their values.
+
+```{r positive-controls}
+readout_patterns <- c(KEAP1 = "glutathione", NFE2L2 = "glutathione", MTAP = "methylthioadenosine",
+                      IDH1 = "hydroxyglutar", IDH2 = "hydroxyglutar")
+readouts <- tibble(gene = names(readout_patterns), pattern = readout_patterns) %>%
+    rowwise() %>%
+    mutate(
+        readout_ions = sum(grepl(pattern, tolower(data$ions$name))),
+        unambiguous_readout_ions = sum(grepl(pattern, tolower(data$ions$name)) & !grepl(";", data$ions$name))
+    ) %>%
+    ungroup()
+effective %>%
+    filter(gene %in% names(readout_patterns)) %>%
+    select(gene, definition, mutant_all, effective_mutant, effective_wild_type, tissues) %>%
+    left_join(readouts, by = "gene") %>%
+    preview_table(caption = "Positive-control genotypes: group sizes and readout ions")
+```
+
+## Interpretation and recommendation
+
+- **Definition of "mutated" (Q1):** definition B (any protein-changing variant)
+  inflates long genes with many passenger variants (MUC4, MUC16, LRP1B, CSMD3)
+  but captures loss-of-function genes better: KEAP1 has 8 mutant lung lines
+  under A and 19 under B. A per-gene choice is therefore needed: likely-driver
+  variants for oncogenes (KRAS, NRAS, BRAF, PIK3CA, EGFR, NFE2L2), any
+  protein-changing variant or homozygous deletion for tumour suppressors (TP53,
+  STK11, KEAP1, SMARCA4, CDKN2A, PTEN, RB1); long passenger-prone genes are not
+  candidates.
+- **TP53** is altered in most lines (110 mutant vs 36 wild-type lines in
+  contributing tissues); it is better used as a covariate than as a contrast.
+- **KRAS** (30 mutant / 67 wild-type lines in lung, colon and blood; mostly
+  lung, 25/61) is balanced across batches and estimable with
+  `~ batch + tissue + mutation`. KRAS-mutant lines carry fewer TP53
+  alterations, so TP53 belongs in the model; STK11 and KEAP1 are planned
+  covariates for lung.
+- **Lung-only contrasts:** STK11 (19/67 under A, 22/64 under B), SMARCA4
+  (15/71) and KEAP1 (8/78 under A, 19/67 under B) are informed by lung lines
+  only. KEAP1 together with NFE2L2 (5 mutant lung lines) defines NRF2
+  activation, whose readout (glutathione ions) is measured unambiguously; this
+  is the best available positive control. Combining them is a pathway-level
+  aggregation and needs your approval (Q3).
+- **MTAP deletion** (32/114 in six tissues) is well powered and balanced, and
+  metabolically direct (methionine salvage), but its readout MTA is not
+  measured, and it is nested in CDKN2A deletion (94 % of MTAP-deleted lines),
+  so the two cannot be separated.
+- **Batch imbalance** (p < 0.05) affects RB1, ARID1A and FAT1; these need care.
+
+**Recommendation:**
+
+1. Positive control first: **NRF2 activation (KEAP1 or NFE2L2 altered) in
+   lung**, design `~ batch + KRAS + STK11 + TP53 + NRF2`, expected readout
+   glutathione-related ions.
+2. Main contrast: **KRAS mutant vs wild type with tissue as blocking factor**,
+   design `~ batch + tissue + TP53 + STK11 + KEAP1 + KRAS` (co-mutation
+   covariates only where they vary within the contributing tissues).
+3. Optional second contrast: **MTAP deletion** across tissues,
+   `~ batch + tissue + TP53 + MTAP`, interpreted as 9p21 (MTAP/CDKN2A) loss.
+
+```{r save}
+readr::write_csv(effective, file.path(output_dir, "effective_group_sizes.csv"))
+readr::write_csv(candidate_table, file.path(output_dir, "candidates.csv"))
+readr::write_csv(comutation, file.path(output_dir, "comutations.csv"))
+```
+
+```{r session}
+sessionInfo()
+```

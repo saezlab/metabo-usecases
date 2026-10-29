@@ -1,0 +1,469 @@
+---
+title: "Audit 7: evidence for the functional gene groups used in the contrasts"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Two contrasts combine genes into one group. The NRF2 positive control counts a
+lung line as altered when KEAP1 **or** NFE2L2 is altered (`pathway_groups` in
+`config.yml`). The MTAP deletion contrast reads MTAP loss as loss of the 9p21
+locus, because MTAP is almost always deleted together with CDKN2A. A grouping
+like this needs evidence that the genes act in the same way. This notebook
+collects that evidence from three sources:
+
+1. published work (verified bibliographic records),
+2. prior knowledge in OmniPath Metabo: direct functional interactions and
+   shared pathways in KEGG, Reactome and WikiPathways,
+3. data: mutual exclusivity (NRF2) or co-deletion (9p21) across all DepMap
+   models.
+
+**Decision supported:** whether the NRF2 group (KEAP1 + NFE2L2) and the 9p21
+reading of the MTAP contrast can be used as specified at Checkpoint 2.
+
+## Inputs
+
+- OmniPath Metabo database, default deployment of `metabo.figures` (dev5), read only
+- `data/raw/cancer-cell-lines/depmap_24Q4/`: `Model.csv`, `OmicsSomaticMutations.csv`, `OmicsAbsoluteCNGene.csv` (DepMap 24Q4, local only)
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds` (lines used in models)
+- `config.yml`: `contrast` (gene roles, groups), `depmap`
+
+## Methods
+
+Interactions and pathways were read from the OmniPath Metabo Postgres
+database. Genes were matched to database entities by gene symbol, Entrez ID
+and UniProt accession, taking the identifiers from DepMap so that no
+non-human ortholog is included. Direct interactions are relations between the
+group members in any resource; sign and direction come from the per-resource
+interaction facts. Pathway membership is any relation between a gene and an
+entity of type "pathway" in KEGG, Reactome or WikiPathways.
+
+For the data check, a DepMap model counts as altered with the same definition
+as in the contrasts: oncogenes (NFE2L2) need a likely-driver variant; tumour
+suppressors (KEAP1) count with any protein-changing variant or a homozygous
+deletion (absolute copy number 0). Only models with both mutation calls and
+copy number were used. Mutual exclusivity was tested with Fisher's exact test
+(all models and lung), and with the Cochran–Mantel–Haenszel test stratified
+by lineage, which removes the confounding by tissue. An odds ratio below 1
+means the two alterations occur together less often than expected.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# metabo.figures provides the database connection and query provenance
+# (loaded first, so that the use-case helpers below take precedence)
+pkgload::load_all(here::here(), export_all = FALSE, quiet = TRUE)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+fig_dir <- uc_dir(config, "output", "audit_07_functional_groups")
+
+# DepMap files of the release given in config.yml
+depmap_dir <- file.path(raw_dir, config$depmap$dir)
+depmap_files <- c(
+    models = file.path(depmap_dir, "Model.csv"),
+    mutations = file.path(depmap_dir, "OmicsSomaticMutations.csv"),
+    copy_number = file.path(depmap_dir, "OmicsAbsoluteCNGene.csv")
+)
+stopifnot(all(file.exists(depmap_files)))
+
+# the groups examined here
+nrf2_genes <- config$contrast$pathway_groups$NRF2
+locus_9p21 <- c("MTAP", "CDKN2A")
+all_genes <- c(nrf2_genes, locus_9p21)
+```
+
+## 1. Literature
+
+Verified against Europe PMC (title, authors, journal, DOI) on 2026-10-29.
+
+| Grouping | Reference | What it supports |
+|---|---|---|
+| NRF2 = KEAP1 + NFE2L2 | Sanchez-Vega F et al. Oncogenic Signaling Pathways in The Cancer Genome Atlas. *Cell* 2018. doi:10.1016/j.cell.2018.03.035 (PMID 29625050) | Curated NRF2 pathway (KEAP1, NFE2L2, CUL3) as one of ten oncogenic signalling pathways, with alterations of its members analysed together |
+| NRF2 in lung adenocarcinoma | Cancer Genome Atlas Research Network. Comprehensive molecular profiling of lung adenocarcinoma. *Nature* 2014. doi:10.1038/nature13385 (PMID 25079552) | KEAP1 and NFE2L2 alterations in lung adenocarcinoma |
+| MTAP deletion = 9p21 loss with CDKN2A | Kryukov GV et al. MTAP deletion confers enhanced dependency on the PRMT5 arginine methyltransferase in cancer cells. *Science* 2016. doi:10.1126/science.aad5214 (PMID 26912360) | "MTAP is frequently lost due to its proximity to the commonly deleted tumor suppressor gene, CDKN2A" (abstract) |
+| | Mavrakis KJ et al. Disordered methionine metabolism in MTAP/CDKN2A-deleted cancers leads to dependence on PRMT5. *Science* 2016. doi:10.1126/science.aad5944 (PMID 26912361) | "The MTAP gene is frequently deleted in human cancers because of its chromosomal proximity to the tumor suppressor gene CDKN2A" (abstract) |
+| | Marjon K et al. MTAP Deletions in Cancer Create Vulnerability to Targeting of the MAT2A/PRMT5/RIOK1 Axis. *Cell Rep* 2016. doi:10.1016/j.celrep.2016.03.043 (PMID 27068473) | MTAP deletion as a metabolic phenotype (methylthioadenosine accumulation) |
+
+## 2. Prior knowledge in OmniPath Metabo
+
+### Database and gene entities
+
+```{r db-connect}
+con <- pg_connect()
+db_build <- build_manifest_for(con)
+c(build_id = db_build$build_id, built_at = db_build$built_at)
+
+# human identifiers of the genes, taken from DepMap (symbol, Entrez ID, UniProt)
+gene_ids <- data.table::fread(depmap_files[["mutations"]],
+                              select = c("HugoSymbol", "EntrezGeneID", "UniprotID")) %>%
+    as_tibble() %>%
+    filter(HugoSymbol %in% all_genes) %>%
+    # DepMap gives UniProt isoforms ("Q16236-1"); the database uses the accession
+    distinct(gene = HugoSymbol, entrez = as.character(EntrezGeneID),
+             uniprot = na_if(sub("-[0-9]+$", "", UniprotID), "")) %>%
+    filter(!is.na(entrez))
+gene_ids
+
+# protein entities in the database carrying one of these identifiers
+identifiers <- unique(na.omit(c(gene_ids$gene, gene_ids$entrez, gene_ids$uniprot)))
+quoted <- paste(DBI::dbQuoteString(con, identifiers), collapse = ", ")
+entities <- pg_query(con, sprintf("
+    SELECT e.entity_id::text AS entity_id, e.canonical_identifier, e.label
+    FROM omnipath.entity e
+    JOIN omnipath.vocab_entity_type t ON t.entity_type_id = e.entity_type_id
+    WHERE t.name = 'protein' AND e.canonical_identifier IN (%s)", quoted))
+
+# each entity belongs to the gene whose symbol, Entrez ID or UniProt it carries
+id_to_gene <- bind_rows(
+    transmute(gene_ids, canonical_identifier = gene, gene),
+    transmute(gene_ids, canonical_identifier = entrez, gene),
+    transmute(gene_ids, canonical_identifier = uniprot, gene)
+) %>%
+    distinct()
+entities <- entities %>% inner_join(id_to_gene, by = "canonical_identifier")
+preview_table(entities, caption = "Database entities of the genes")
+entity_list <- paste(DBI::dbQuoteString(con, entities$entity_id), collapse = ", ")
+```
+
+### Direct interactions between KEAP1 and NFE2L2
+
+```{r interactions}
+# relations between two of the genes, any resource
+relations <- pg_query(con, sprintf("
+    SELECT ds.name AS resource, cat.name AS category, p.name AS predicate,
+           re.subject_entity_id::text AS subject_id, re.object_entity_id::text AS object_id
+    FROM omnipath.relation_evidence re
+    JOIN omnipath.data_source ds ON ds.source_id = re.source_id
+    JOIN omnipath.vocab_relation_category cat ON cat.relation_category_id = re.relation_category_id
+    JOIN omnipath.vocab_relation_predicate p ON p.relation_predicate_id = re.predicate_id
+    WHERE re.subject_entity_id::text IN (%1$s) AND re.object_entity_id::text IN (%1$s)", entity_list))
+
+# direction, sign and references per resource from the interaction facts
+facts <- pg_query(con, sprintf("
+    SELECT ds.name AS resource,
+           f.subject_entity_id::text AS subject_id, f.object_entity_id::text AS object_id,
+           f.is_directed, f.is_stimulation, f.is_inhibition,
+           array_to_string(f.reference_pubmed_ids, ';') AS pmids
+    FROM omnipath.interaction_fact_resource f
+    JOIN omnipath.data_source ds ON ds.source_id = f.source_id
+    WHERE f.subject_entity_id::text IN (%1$s) AND f.object_entity_id::text IN (%1$s)", entity_list))
+
+gene_of <- setNames(entities$gene, entities$entity_id)
+nrf2_pair <- function(x) {
+    x %>%
+        mutate(subject = gene_of[subject_id], object = gene_of[object_id]) %>%
+        filter(subject %in% nrf2_genes, object %in% nrf2_genes, subject != object)
+}
+
+# one row per resource and direction
+interaction_summary <- nrf2_pair(facts) %>%
+    group_by(resource, direction = paste(subject, "->", object)) %>%
+    summarise(
+        directed = any(is_directed %in% TRUE),
+        inhibition = any(is_inhibition %in% TRUE),
+        stimulation = any(is_stimulation %in% TRUE),
+        n_pubmed = n_distinct(unlist(strsplit(na.omit(pmids), ";"))),
+        .groups = "drop"
+    ) %>%
+    full_join(
+        nrf2_pair(relations) %>%
+            group_by(resource, direction = paste(subject, "->", object)) %>%
+            summarise(predicates = paste(sort(unique(predicate)), collapse = ", "), .groups = "drop"),
+        by = c("resource", "direction")
+    ) %>%
+    mutate(evidence = case_when(
+        directed & inhibition ~ "directed, inhibition",
+        directed & stimulation ~ "directed, stimulation",
+        directed ~ "directed, no sign",
+        TRUE ~ "undirected (binding)"
+    )) %>%
+    arrange(evidence, resource)
+preview_table(interaction_summary, caption = "KEAP1-NFE2L2 interactions per resource")
+
+c(resources = n_distinct(interaction_summary$resource),
+  resources_KEAP1_inhibits_NFE2L2 = n_distinct(interaction_summary$resource[
+      interaction_summary$direction == "KEAP1 -> NFE2L2" & interaction_summary$inhibition %in% TRUE]),
+  resources_stimulation = sum(interaction_summary$stimulation %in% TRUE))
+```
+
+```{r interactions-plot, fig.width = 7, fig.height = 5}
+p <- interaction_summary %>%
+    mutate(resource = forcats::fct_rev(factor(resource))) %>%
+    ggplot(aes(direction, resource, fill = evidence)) +
+    geom_tile(colour = "white") +
+    scale_fill_manual(values = uc_palette(c("directed, inhibition", "directed, stimulation",
+                                            "directed, no sign", "undirected (binding)"))) +
+    labs(x = NULL, y = NULL, fill = NULL,
+         title = "KEAP1-NFE2L2 interactions in OmniPath Metabo",
+         subtitle = paste("build", db_build$build_id)) +
+    theme_uc()
+save_figure(p, "keap1_nfe2l2_interactions", fig_dir)
+p
+```
+
+### Shared pathways in KEGG, Reactome and WikiPathways
+
+```{r pathways}
+# gene-pathway relations in the three pathway resources (either direction)
+pathway_relations <- pg_query(con, sprintf("
+    SELECT DISTINCT ds.name AS resource, cat.name AS category,
+           g.entity_id::text AS gene_entity, pw.canonical_identifier AS pathway_id, pw.label AS pathway
+    FROM omnipath.relation_evidence re
+    JOIN omnipath.data_source ds ON ds.source_id = re.source_id
+    JOIN omnipath.vocab_relation_category cat ON cat.relation_category_id = re.relation_category_id
+    JOIN omnipath.entity g ON g.entity_id IN (re.subject_entity_id, re.object_entity_id)
+    JOIN omnipath.entity pw ON pw.entity_id IN (re.subject_entity_id, re.object_entity_id)
+    JOIN omnipath.vocab_entity_type t ON t.entity_type_id = pw.entity_type_id
+    WHERE ds.name IN ('kegg', 'reactome', 'wikipathways')
+      AND t.name = 'pathway'
+      AND (re.subject_entity_id::text IN (%1$s) OR re.object_entity_id::text IN (%1$s))
+      AND g.entity_id::text IN (%1$s)", entity_list)) %>%
+    mutate(gene = gene_of[gene_entity]) %>%
+    distinct(resource, category, gene, pathway_id, pathway)
+
+# pathways per resource containing KEAP1, NFE2L2 or both
+nrf2_pathways <- pathway_relations %>%
+    filter(gene %in% nrf2_genes) %>%
+    group_by(resource, pathway_id, pathway) %>%
+    summarise(genes = paste(sort(unique(gene)), collapse = " + "), .groups = "drop") %>%
+    mutate(membership = if_else(genes == paste(sort(nrf2_genes), collapse = " + "), "both", paste(genes, "only")))
+nrf2_pathways %>% count(resource, membership) %>% pivot_wider(names_from = membership, values_from = n, values_fill = 0)
+
+nrf2_pathways %>%
+    filter(membership == "both") %>%
+    arrange(resource, pathway) %>%
+    preview_table(caption = "Pathways containing both KEAP1 and NFE2L2")
+```
+
+```{r pathways-plot, fig.width = 7, fig.height = 3.5}
+p <- nrf2_pathways %>%
+    count(resource, membership) %>%
+    ggplot(aes(resource, n, fill = membership)) +
+    geom_col() +
+    scale_fill_manual(values = uc_palette(c("both", "KEAP1 only", "NFE2L2 only"))) +
+    labs(x = NULL, y = "Pathways", fill = NULL,
+         title = "Pathways containing KEAP1 and/or NFE2L2 (OmniPath Metabo)") +
+    theme_uc()
+save_figure(p, "nrf2_pathways", fig_dir)
+p
+```
+
+The same query for MTAP and CDKN2A shows whether pathways relate them; their
+grouping rests on genomic position, not on function, so shared pathways are
+not expected.
+
+```{r pathways-9p21}
+pathway_relations %>%
+    filter(gene %in% locus_9p21) %>%
+    group_by(resource, pathway_id, pathway) %>%
+    summarise(genes = paste(sort(unique(gene)), collapse = " + "), .groups = "drop") %>%
+    count(resource, genes)
+DBI::dbDisconnect(con)
+```
+
+## 3. Data: DepMap models
+
+```{r depmap}
+# DepMap models with lineage
+models <- readr::read_csv(depmap_files[["models"]], col_select = c(ModelID, OncotreeLineage),
+                          show_col_types = FALSE)
+
+# protein-changing variants of the four genes, with DepMap's driver flags (as in step 04)
+flag_columns <- c("Hotspot", "LikelyLoF", "HessDriver", "OncogeneHighImpact", "TumorSuppressorHighImpact")
+variants <- data.table::fread(depmap_files[["mutations"]],
+                              select = c("ModelID", "HugoSymbol", "ProteinChange", flag_columns)) %>%
+    as_tibble()
+mutated_models <- unique(variants$ModelID)
+# protein-changing variants per model, used below to recognise hypermutated models
+variants_per_model <- count(variants, ModelID, name = "n_variants")
+variants <- variants %>%
+    filter(HugoSymbol %in% all_genes) %>%
+    group_by(ModelID, gene = HugoSymbol) %>%
+    summarise(any_mutation = TRUE,
+              protein_changes = paste(unique(na.omit(ProteinChange)), collapse = "; "),
+              likely_driver = any(Hotspot | LikelyLoF | HessDriver | OncogeneHighImpact | TumorSuppressorHighImpact),
+              .groups = "drop")
+
+# absolute copy number of the four genes; 0 = homozygous deletion
+cn_header <- names(data.table::fread(depmap_files[["copy_number"]], nrows = 0))
+cn_columns <- cn_header[sub(" \\(.*$", "", cn_header) %in% all_genes]
+cn <- data.table::fread(depmap_files[["copy_number"]], select = c(cn_header[1], cn_columns)) %>%
+    as_tibble() %>%
+    rename(ModelID = 1) %>%
+    pivot_longer(-ModelID, names_to = "gene", values_to = "copy_number") %>%
+    mutate(gene = sub(" \\(.*$", "", gene))
+
+# models with both mutation calls and copy number
+universe <- models %>% filter(ModelID %in% mutated_models, ModelID %in% cn$ModelID)
+c(models = nrow(models), with_mutations = length(mutated_models), with_both = nrow(universe))
+
+# status per model and gene, with the definition of "altered" by gene role (decision Q1)
+status <- tidyr::expand_grid(ModelID = universe$ModelID, gene = all_genes) %>%
+    left_join(variants, by = c("ModelID", "gene")) %>%
+    left_join(cn, by = c("ModelID", "gene")) %>%
+    mutate(
+        any_mutation = coalesce(any_mutation, FALSE),
+        likely_driver = coalesce(likely_driver, FALSE),
+        deleted = coalesce(copy_number == 0, FALSE),
+        altered = if_else(gene %in% config$contrast$oncogenes, likely_driver, any_mutation | deleted)
+    ) %>%
+    left_join(universe, by = "ModelID")
+status %>% group_by(gene) %>%
+    summarise(altered = sum(altered), mutated = sum(any_mutation), deleted = sum(deleted))
+```
+
+### NRF2: mutual exclusivity of KEAP1 and NFE2L2
+
+```{r exclusivity}
+nrf2_status <- status %>%
+    filter(gene %in% nrf2_genes) %>%
+    select(ModelID, OncotreeLineage, gene, altered) %>%
+    pivot_wider(names_from = gene, values_from = altered)
+
+# 2x2 table over all models, and Fisher's exact test
+table(KEAP1 = nrf2_status$KEAP1, NFE2L2 = nrf2_status$NFE2L2)
+fisher_all <- fisher.test(table(nrf2_status$KEAP1, nrf2_status$NFE2L2))
+
+# lung only
+lung <- filter(nrf2_status, OncotreeLineage == "Lung")
+table(KEAP1 = lung$KEAP1, NFE2L2 = lung$NFE2L2)
+fisher_lung <- fisher.test(table(lung$KEAP1, lung$NFE2L2))
+
+# stratified by lineage; strata need both genes altered at least once somewhere to inform the test
+informative <- nrf2_status %>%
+    group_by(OncotreeLineage) %>%
+    filter(n() >= 2, any(KEAP1), any(NFE2L2)) %>%
+    ungroup()
+cmh <- mantelhaen.test(table(informative$KEAP1, informative$NFE2L2, informative$OncotreeLineage), exact = TRUE)
+
+tibble(
+    test = c("Fisher, all models", "Fisher, lung", "CMH, by lineage"),
+    models = c(nrow(nrf2_status), nrow(lung), nrow(informative)),
+    odds_ratio = c(fisher_all$estimate, fisher_lung$estimate, cmh$estimate),
+    p_value = c(fisher_all$p.value, fisher_lung$p.value, cmh$p.value)
+)
+```
+
+```{r exclusivity-plot, fig.width = 7, fig.height = 4}
+# altered models per lineage, split by which gene is altered
+p <- nrf2_status %>%
+    filter(KEAP1 | NFE2L2) %>%
+    mutate(alteration = case_when(KEAP1 & NFE2L2 ~ "both", KEAP1 ~ "KEAP1 only", TRUE ~ "NFE2L2 only")) %>%
+    count(OncotreeLineage, alteration) %>%
+    group_by(OncotreeLineage) %>% filter(sum(n) >= 3) %>% ungroup() %>%
+    ggplot(aes(n, forcats::fct_reorder(OncotreeLineage, n, sum), fill = alteration)) +
+    geom_col() +
+    scale_fill_manual(values = uc_palette(c("both", "KEAP1 only", "NFE2L2 only"))) +
+    labs(x = "DepMap models", y = NULL, fill = NULL,
+         title = "KEAP1 and NFE2L2 alterations across DepMap lineages",
+         subtitle = "lineages with at least 3 altered models") +
+    theme_uc()
+save_figure(p, "nrf2_exclusivity", fig_dir)
+p
+```
+
+Models with both genes altered, with their number of protein-changing
+variants and its percentile among all models. Many co-occurrences in highly
+mutated models would point to passenger variants rather than to two
+independent hits in the pathway.
+
+```{r co-altered}
+burden <- variants_per_model %>%
+    filter(ModelID %in% universe$ModelID) %>%
+    mutate(burden_percentile = round(100 * percent_rank(n_variants)))
+nrf2_status %>%
+    filter(KEAP1, NFE2L2) %>%
+    left_join(burden, by = "ModelID") %>%
+    left_join(
+        status %>%
+            filter(gene %in% nrf2_genes) %>%
+            select(ModelID, gene, protein_changes, likely_driver, deleted) %>%
+            pivot_wider(names_from = gene, values_from = c(protein_changes, likely_driver, deleted)),
+        by = "ModelID"
+    ) %>%
+    preview_table(caption = "DepMap models with KEAP1 and NFE2L2 altered")
+```
+
+The lung lines of the Shorthouse data set, with the same definition:
+
+```{r exclusivity-shorthouse}
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+analysis_data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+lung_lines <- analysis_data$lines %>% filter(in_models, tissue == "Lung") %>% pull(line)
+alteration_status(analysis_data, lung_lines, nrf2_genes) %>%
+    mutate(altered = if_else(gene %in% config$contrast$oncogenes, likely_driver, any_mutation | deleted)) %>%
+    select(line, gene, altered) %>%
+    pivot_wider(names_from = gene, values_from = altered) %>%
+    count(KEAP1, NFE2L2)
+```
+
+### 9p21: co-deletion of MTAP and CDKN2A
+
+```{r codeletion}
+deletion_status <- status %>%
+    filter(gene %in% locus_9p21) %>%
+    select(ModelID, OncotreeLineage, gene, deleted) %>%
+    pivot_wider(names_from = gene, values_from = deleted)
+table(MTAP = deletion_status$MTAP, CDKN2A = deletion_status$CDKN2A)
+fisher.test(table(deletion_status$MTAP, deletion_status$CDKN2A))
+c(MTAP_deleted = sum(deletion_status$MTAP),
+  with_CDKN2A = sum(deletion_status$MTAP & deletion_status$CDKN2A),
+  share = mean(deletion_status$CDKN2A[deletion_status$MTAP]))
+```
+
+## Interpretation
+
+**NRF2 group (KEAP1 + NFE2L2): supported by literature and prior knowledge,
+not by mutual exclusivity.**
+
+- *Literature:* both genes form the curated NRF2 pathway of Sanchez-Vega et
+  al. (2018), where alterations of the members are analysed together.
+- *Interactions (OmniPath Metabo):* 20 resources link KEAP1 and NFE2L2. Six
+  of them (SIGNOR, NRF2ome, SPIKE, WikiPathways, Laudanna, Wang) give a
+  directed, inhibitory KEAP1 → NFE2L2 edge, and no resource gives a
+  stimulatory one. The remaining resources report binding (BioGRID, IntAct,
+  HIPPIE and others, together > 100 PubMed IDs). A loss of KEAP1 and a gain
+  of NFE2L2 therefore act in the same direction: both release NFE2L2.
+- *Pathways (OmniPath Metabo):* the two genes share pathways in all three
+  resources (KEGG 5, Reactome 5, WikiPathways 3), including the specific
+  Reactome "KEAP1-NFE2L2 pathway" (R-HSA-9755511) and "Nuclear events
+  mediated by NFE2L2", and KEGG "Chemical carcinogenesis – reactive oxygen
+  species". Some shared entries are broad (Reactome "Cellular responses to
+  stimuli", KEGG "Pathways in cancer") and add little on their own.
+- *Data (DepMap):* mutual exclusivity is **not** shown. Across all 1607
+  models the two co-occur more often than expected (odds ratio 4.0); within
+  lineages (CMH) and in lung the tests are not significant. In lung, none of
+  the 41 altered models carries both alterations, but with 5 NFE2L2-altered
+  models this is uninformative. Four of the five co-altered models are
+  uterine and lie at the 98th–99th percentile of mutation burden, and in four of
+  the five KEAP1 is altered only through a variant DepMap does not flag as a
+  likely driver. The co-occurrence across all models thus reflects passenger
+  variants in hypermutated models, not two hits in the same pathway.
+- *Shorthouse lung lines:* 19 KEAP1-altered, 5 NFE2L2-altered, none both, so
+  the group in the positive control combines two disjoint sets of lines.
+
+**Caveat raised by this audit:** the definition "any protein-changing variant
+or homozygous deletion" for tumour suppressors (decision Q1) counts passenger
+variants in hypermutated lines. This matters little in lung, but it affects
+pan-tissue contrasts (KRAS covariates, screen) wherever hypermutated lines
+(e.g. uterus, colon) contribute.
+
+**9p21 (MTAP with CDKN2A): supported.** Three verified references attribute
+MTAP loss to its proximity to CDKN2A. In DepMap, 264 of 273 MTAP-deleted models
+(97 %) also have CDKN2A deleted (odds ratio 179). As expected for a positional
+grouping, no pathway in the three resources contains both genes. An effect of
+the MTAP contrast cannot be attributed to MTAP alone and is read as 9p21 loss.
+
+```{r session}
+sessionInfo()
+```

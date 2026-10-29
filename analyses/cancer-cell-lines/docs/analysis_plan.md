@@ -130,6 +130,14 @@ overview of group sizes per tissue and batch.
   sensitivity comparisons. Full signed statistics are kept for later
   footprint and network methods.
 
+- **Contrasts (D18, D22):** positive control NRF2 in lung first; then the
+  pre-specified main contrasts KRAS (tissue-blocked), MTAP deletion
+  (tissue-blocked) and STK11 in lung, each with its own co-mutation covariates
+  (`config.yml: differential.contrasts`); then an exploratory screen of all
+  genes meeting the minimum group sizes with one standard model
+  `~ batch + tissue + TP53 + gene`, labelled hypothesis-generating and compared
+  with Dataset EV4 of Shorthouse et al.
+
 **Checkpoint 3:** results and caveats.
 
 ## Later phases (not started without approval)

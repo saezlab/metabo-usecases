@@ -40,6 +40,50 @@ landscape:
   n_top_genes: 30          # genes in the oncoprint-style overview
   min_altered_lines: 8     # minimum altered lines (all tissues) for a gene to be tested
 
+contrast:
+  # contrast selection (analysis/03); defaults of open question Q2, to be confirmed at Checkpoint 2
+  min_per_group_per_tissue: 2   # mutant and wild-type lines a tissue needs to contribute
+  min_mutant_total: 8           # effective mutant lines (contributing tissues) to rank a candidate
+  # genes considered in addition to those tested in analysis/02 (planning, positive controls)
+  extra_genes: [EGFR, KEAP1, NFE2L2, IDH1, IDH2, MTAP]
+  seed: 2026                    # simulated Fisher p-values for batch balance
+  # Definition of "mutated" by gene role (decision Q1, Checkpoint 2, 2026-10-29)
+  oncogenes: [KRAS, NRAS, BRAF, PIK3CA, EGFR, NFE2L2]                 # likely-driver variant
+  tumour_suppressors: [TP53, STK11, KEAP1, SMARCA4, CDKN2A, PTEN, RB1] # any protein-changing variant or homozygous deletion
+  # Pathway-level groups (decision Q3): line counts as altered if any member gene is
+  pathway_groups:
+    NRF2: [KEAP1, NFE2L2]
+
+differential:
+  # contrasts chosen at Checkpoint 2 (2026-10-29); the main contrast follows after the positive control
+  contrasts:
+    nrf2_lung:
+      description: NRF2 activation (KEAP1 or NFE2L2 altered) vs not, lung lines (positive control)
+      group: NRF2
+      tissues: [Lung]
+      covariates: [KRAS, STK11, TP53]
+      expected_readout: glutathione
+    kras:
+      description: KRAS mutant vs wild type, tissue as blocking factor (main contrast)
+      group: KRAS
+      tissues: contributing        # tissues with >= min_per_group_per_tissue in both groups
+      covariates: [TP53, STK11, KEAP1]
+    mtap_deletion:
+      description: MTAP homozygous deletion vs not, tissue as blocking factor (main contrast; 9p21 loss with CDKN2A)
+      group: MTAP
+      tissues: contributing
+      covariates: [TP53]
+    stk11_lung:
+      description: STK11 altered vs not, lung lines (main contrast)
+      group: STK11
+      tissues: [Lung]
+      covariates: [KRAS, KEAP1, TP53]
+  # exploratory screen of all eligible genes (decision D22): same standard model for every gene,
+  # results labelled hypothesis-generating and compared with Dataset EV4 of Shorthouse et al.
+  screen:
+    standard_covariates: [TP53]    # TP53 itself is tested without TP53 as covariate
+    tissues: contributing
+
 tissue:
   # Rule-based labels (step 02) renamed to the 11 tissues of Shorthouse et al. 2022
   rename:

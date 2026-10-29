@@ -75,11 +75,10 @@ input, data or a decision from you.
 ## Mutations
 
 16. **Source decided:** DepMap 24Q4 for mutation and copy-number status,
-    Cellosaurus for identity (audit/04). The per-gene definition (any
-    protein-changing variant vs DepMap's likely-driver flag) is fixed in
-    Phase 3; it matters for KEAP1 (16 vs 7 mutated lung lines).
-17. **DepMap status per line is not yet part of the pre-processing**; a step is
-    planned in Phase 2.
+    Cellosaurus for identity (audit/04). **Decided (D19):** oncogenes count
+    with a likely-driver variant, tumour suppressors with any protein-changing
+    variant or a homozygous deletion (see 21).
+17. **Done:** DepMap status per line is written by `preprocessing/04_depmap_status.Rmd`.
 
 ## Other modalities
 
@@ -103,3 +102,15 @@ input, data or a decision from you.
     4.1.2 (`43056a2`) installed from GitHub into a private library; versions are
     recorded in the manifests. The Docker image planned for the repository will
     pin them.
+
+## Contrasts
+
+21. **Passenger variants in hypermutated lines (audit/07).** The definition of
+    "altered" for tumour suppressors (any protein-changing variant, D19) also
+    counts passenger variants in hypermutated lines. In DepMap, four of the
+    five models with both KEAP1 and NFE2L2 altered are uterine models in the
+    top 2 % of mutation burden, and in four of the five the KEAP1 variant is
+    not flagged as a likely driver. This matters little in lung but can mislabel lines
+    in tissue-blocked contrasts where hypermutated lines (e.g. uterus, colon)
+    contribute. **Decided (2026-10-29):** keep D19; check once whether any
+    final contrast is affected, and decide then.

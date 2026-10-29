@@ -47,6 +47,7 @@ library(ggplot2)
 
 source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
 source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
 config <- load_config()
 derived_dir <- uc_dir(config, "derived")
 raw_dir <- uc_dir(config, "raw")
@@ -66,26 +67,11 @@ count(lines, tissue, sort = TRUE)
 ## Alteration status
 
 ```{r status}
-# one row per line and gene with mutation (any / likely driver) and deletion status
-mutations <- data$mutation_status %>%
-    filter(line %in% lines$line, gene %in% genes) %>%
-    select(line, gene, any_mutation = n_variants, likely_driver, protein_changes) %>%
-    mutate(any_mutation = any_mutation > 0)
-deletions <- data$homozygous_deletions %>%
-    filter(line %in% lines$line, gene %in% genes) %>%
-    mutate(deleted = TRUE)
-
-status <- expand_grid(line = lines$line, gene = genes) %>%
-    left_join(mutations, by = c("line", "gene")) %>%
-    left_join(deletions, by = c("line", "gene")) %>%
-    mutate(
-        any_mutation = coalesce(any_mutation, FALSE),
-        likely_driver = coalesce(likely_driver, FALSE),
-        deleted = coalesce(deleted, FALSE),
-        # provisional definition used in the tests (open question Q1)
-        altered = likely_driver | deleted
-    ) %>%
-    left_join(select(lines, line, tissue), by = "line")
+# one row per line and gene with mutation (any / likely driver) and deletion
+# status (alteration_status() in R/mutations.R)
+status <- alteration_status(data, lines$line, genes) %>%
+    # provisional definition used in the tests (open question Q1)
+    mutate(altered = likely_driver | deleted)
 
 preview_table(filter(status, any_mutation | deleted), caption = "Altered line–gene pairs")
 ```
