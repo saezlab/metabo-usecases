@@ -1,0 +1,288 @@
+---
+title: "Audit 8: reliability of the genotypes used in the contrasts"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+The mutation status of the lines comes from DepMap 24Q4, which sequenced its
+own stocks. The metabolomics data were measured on the stocks of Cherkaoui
+et al. (2022). Cell lines evolve in culture, so the stocks can differ.
+This notebook asks, for the genes of the pre-specified contrasts (KRAS, MTAP,
+STK11, KEAP1, NFE2L2, TP53), how well the independent sources agree and how
+clear DepMap's calls are. Allele fractions and copy number serve as an
+additional check only; no line is removed on that basis.
+
+**Decision supported:** whether the DepMap status of these genes can be used
+as the genotype of the measured lines, and which limitation is reported.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds` (lines used in models, DepMap status)
+- `data/derived/cancer-cell-lines/shorthouse_v1/02_cell_lines.tsv`, `02_gene_status.tsv` (Cellosaurus, release 53.0)
+- `data/derived/cancer-cell-lines/shorthouse_v1/04_depmap_models.tsv`, `04_copy_number.rds` (DepMap model per line, copy number)
+- `data/raw/cancer-cell-lines/depmap_24Q4/OmicsSomaticMutations.csv` (allele fractions; local only)
+- `data/raw/cancer-cell-lines/shorthouse_github/Mutations_in_celllines.csv`: mutation calls used by Shorthouse et al. (**local only**, no licence)
+
+## Methods
+
+Three sources were compared on the lines used in models: DepMap 24Q4, the
+variations listed by Cellosaurus, and the CCLE/COSMIC/NCI-60 calls used by
+Shorthouse et al. To compare like with like, a line counted as mutated in
+each source if it carried a protein-changing (non-silent) variant in the gene,
+regardless of the definition used in the contrasts. Lines without any entry in
+a source were treated as not covered by that source, not as wild type.
+Agreement was counted on the lines covered by all three sources. Cellosaurus
+lists selected, published variants, so a "DepMap only" call is expected more
+often than a "Cellosaurus only" call.
+
+For DepMap, the allele fraction (AF) of each variant was inspected:
+heterozygous variants in a clonal population lie near 0.5 and homozygous or
+LOH variants near 1, and clearly lower values indicate a subclonal variant.
+For MTAP, a deletion gene, absolute copy number was inspected instead
+(0 = homozygous deletion).
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/cellosaurus.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+fig_dir <- uc_dir(config, "output", "audit_08_genotype_reliability")
+
+# genes of the pre-specified contrasts and their covariates (D22)
+mutation_genes <- c("KRAS", "STK11", "KEAP1", "NFE2L2", "TP53")
+deletion_genes <- c("MTAP", "CDKN2A")
+
+# lines used in models
+analysis_data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+lines <- analysis_data$lines %>% filter(in_models) %>% select(line, tissue)
+nrow(lines)
+```
+
+## 1. Mutation calls in the three sources
+
+```{r sources}
+# DepMap: variants per line and gene (step 04); splice-site variants have no
+# protein change, so presence is taken from the row, not from protein_changes
+depmap <- analysis_data$mutation_status %>%
+    filter(line %in% lines$line, gene %in% mutation_genes) %>%
+    transmute(line, gene, in_depmap = TRUE, depmap_variants = protein_changes, likely_driver)
+
+# Cellosaurus: entries of status "mutation"; lines with any entry count as covered
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
+gene_status <- readr::read_tsv(file.path(derived_dir, "02_gene_status.tsv"), show_col_types = FALSE)
+cellosaurus_covered <- intersect(lines$line, gene_status$line)
+cellosaurus <- gene_status %>%
+    filter(line %in% cellosaurus_covered, gene %in% mutation_genes, status == "mutation") %>%
+    group_by(line, gene) %>%
+    summarise(cellosaurus_variants = paste(unique(variants), collapse = "; "), .groups = "drop")
+
+# CCLE calls used by Shorthouse et al.; non-silent variants; names matched as in audit/04
+calls <- readr::read_csv(file.path(raw_dir, "shorthouse_github", "Mutations_in_celllines.csv"),
+                         show_col_types = FALSE, name_repair = "unique_quiet")
+cellosaurus_entries <- read_cellosaurus(file.path(raw_dir, config$cellosaurus$file))$entries
+normalise <- function(x) toupper(gsub("[^A-Za-z0-9]", "", x))
+call_names <- tibble(name = unique(calls$CellLineName_Cellosaurus)) %>%
+    mutate(line = cell_lines$line[match(normalise(name), normalise(cell_lines$cellosaurus_name))])
+fallback <- map_names_to_accessions(call_names$name[is.na(call_names$line)], cellosaurus_entries)
+call_names <- call_names %>%
+    left_join(select(fallback, name, ac), by = "name") %>%
+    mutate(line = coalesce(line, cell_lines$line[match(ac, cell_lines$accession)])) %>%
+    filter(!is.na(line)) %>%
+    select(name, line)
+calls <- inner_join(calls, call_names, by = c("CellLineName_Cellosaurus" = "name"))
+ccle_covered <- intersect(lines$line, calls$line)
+ccle <- calls %>%
+    filter(line %in% ccle_covered, HGNC %in% mutation_genes,
+           MutationType %in% c("Missense", "Nonsense", "Frame_Shift", "In_Frame") |
+               grepl("Splice_Site", MutationType_Raw)) %>%
+    group_by(line, gene = HGNC) %>%
+    summarise(ccle_variants = paste(unique(na.omit(AA_Mutation)), collapse = "; "), .groups = "drop")
+
+c(lines = nrow(lines), cellosaurus_covered = length(cellosaurus_covered),
+  ccle_covered = length(ccle_covered),
+  all_three = length(intersect(cellosaurus_covered, ccle_covered)))
+
+# one row per covered line and gene, with the call of each source
+comparison <- tidyr::expand_grid(line = intersect(cellosaurus_covered, ccle_covered), gene = mutation_genes) %>%
+    left_join(depmap, by = c("line", "gene")) %>%
+    left_join(cellosaurus, by = c("line", "gene")) %>%
+    left_join(ccle, by = c("line", "gene")) %>%
+    mutate(
+        D = coalesce(in_depmap, FALSE), C = !is.na(cellosaurus_variants), E = !is.na(ccle_variants),
+        agreement = case_when(
+            D & C & E ~ "all three",
+            !D & !C & !E ~ "none",
+            D & E ~ "DepMap + CCLE calls",
+            D & C ~ "DepMap + Cellosaurus",
+            C & E ~ "not DepMap",
+            D ~ "DepMap only",
+            TRUE ~ "not DepMap"
+        )
+    ) %>%
+    left_join(lines, by = "line")
+
+comparison %>%
+    count(gene, agreement) %>%
+    pivot_wider(names_from = agreement, values_from = n, values_fill = 0)
+```
+
+```{r sources-plot, fig.width = 7, fig.height = 3.5}
+agreement_levels <- c("all three", "DepMap + CCLE calls", "DepMap + Cellosaurus", "DepMap only", "not DepMap")
+p <- comparison %>%
+    filter(agreement != "none") %>%
+    mutate(agreement = factor(agreement, levels = agreement_levels)) %>%
+    count(gene, agreement) %>%
+    ggplot(aes(n, gene, fill = agreement)) +
+    geom_col() +
+    scale_fill_manual(values = uc_palette(agreement_levels)) +
+    labs(x = "Mutated lines", y = NULL, fill = NULL,
+         title = "Mutation calls by source",
+         subtitle = "lines used in models and covered by all three sources") +
+    theme_uc()
+save_figure(p, "agreement", fig_dir, height = 3.5)
+p
+```
+
+Lines where the sources disagree, with the variants each source reports:
+
+```{r discordant}
+comparison %>%
+    filter(!agreement %in% c("all three", "none")) %>%
+    select(gene, line, tissue, agreement, depmap_variants, likely_driver, cellosaurus_variants, ccle_variants) %>%
+    arrange(gene, agreement, line) %>%
+    preview_table(caption = "Lines where the sources disagree")
+```
+
+## 2. Allele fractions of the DepMap variants
+
+```{r allele-fraction}
+# DepMap model per line (step 04)
+model_of_line <- readr::read_tsv(file.path(derived_dir, "04_depmap_models.tsv"), show_col_types = FALSE) %>%
+    filter(line %in% lines$line, !is.na(ModelID)) %>%
+    select(line, ModelID)
+
+# variants of the genes with allele fraction and driver flags
+flag_columns <- c("Hotspot", "LikelyLoF", "HessDriver", "OncogeneHighImpact", "TumorSuppressorHighImpact")
+variants <- data.table::fread(
+    file.path(raw_dir, config$depmap$dir, "OmicsSomaticMutations.csv"),
+    select = c("ModelID", "HugoSymbol", "VariantInfo", "ProteinChange", "AF", "DP", flag_columns)
+) %>%
+    as_tibble() %>%
+    filter(HugoSymbol %in% mutation_genes) %>%
+    inner_join(model_of_line, by = "ModelID") %>%
+    mutate(likely_driver = Hotspot | LikelyLoF | HessDriver | OncogeneHighImpact | TumorSuppressorHighImpact) %>%
+    select(line, gene = HugoSymbol, VariantInfo, ProteinChange, AF, DP, likely_driver)
+
+# variant classes counted as "mutated" (any variant listed by DepMap, D19)
+count(variants, gene, VariantInfo) %>% pivot_wider(names_from = gene, values_from = n, values_fill = 0)
+
+variants %>%
+    group_by(gene) %>%
+    summarise(variants = n(), lines = n_distinct(line),
+              median_AF = median(AF), AF_below_0.25 = sum(AF < 0.25), median_depth = median(DP))
+preview_table(arrange(variants, gene, AF), caption = "DepMap variants with allele fraction")
+```
+
+```{r allele-fraction-plot, fig.width = 7, fig.height = 3.5}
+p <- variants %>%
+    mutate(driver = if_else(likely_driver, "likely driver", "other")) %>%
+    ggplot(aes(AF, gene, colour = driver)) +
+    geom_vline(xintercept = c(0.5, 1), linetype = "dashed", colour = "grey70") +
+    geom_jitter(height = 0.2, width = 0, alpha = 0.7) +
+    scale_colour_manual(values = uc_palette(c("likely driver", "other"))) +
+    scale_x_continuous(limits = c(0, 1)) +
+    labs(x = "Allele fraction (DepMap)", y = NULL, colour = NULL,
+         title = "Allele fractions of the variants in the lines used in models") +
+    theme_uc()
+save_figure(p, "allele_fraction", fig_dir, height = 3.5)
+p
+```
+
+## 3. Copy number of MTAP and CDKN2A
+
+```{r copy-number, fig.width = 7, fig.height = 3.5}
+# absolute copy number per line (step 04); 0 = homozygous deletion
+copy_number <- readRDS(file.path(derived_dir, "04_copy_number.rds"))
+cn <- copy_number[intersect(rownames(copy_number), lines$line), deletion_genes, drop = FALSE] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column("line") %>%
+    pivot_longer(-line, names_to = "gene", values_to = "copy_number")
+cn %>% group_by(gene) %>%
+    summarise(lines = n(), deleted = sum(copy_number == 0), between_0_and_1 = sum(copy_number > 0 & copy_number < 1))
+
+p <- ggplot(cn, aes(copy_number)) +
+    geom_histogram(binwidth = 0.25, boundary = 0, fill = uc_palette("lines")) +
+    facet_wrap(~gene) +
+    labs(x = "Absolute copy number (DepMap)", y = "Lines",
+         title = "Copy number of the 9p21 genes in the lines used in models") +
+    theme_uc()
+save_figure(p, "copy_number_9p21", fig_dir, height = 3.5)
+p
+
+# Cellosaurus entries for the two genes, for comparison
+gene_status %>%
+    filter(line %in% lines$line, gene %in% deletion_genes) %>%
+    count(gene, status)
+```
+
+## Interpretation
+
+On the 158 lines covered by all three sources:
+
+- **The driver calls agree.** KRAS: 41 of 42 mutated lines in all three
+  sources; the remaining line (RXF393, kidney) is mutated only in the CCLE
+  calls. NFE2L2: the five lung lines are identical in DepMap and the CCLE calls,
+  with the same protein change (Cellosaurus lists none). TP53: 119 lines in
+  all three. KEAP1 and STK11: DepMap and the CCLE calls agree on the exact
+  protein change in 13 and 16 lines; Cellosaurus lists few of them.
+- **"DepMap only" calls are mostly weak.** KEAP1 has 5 and STK11 has 6, and
+  most of them are variants DepMap does not flag as drivers. Several have low
+  allele fractions or depths (CALU3 STK11 AF 0.18 at depth 10, SW780 STK11
+  0.23, NCIH661 KEAP1 0.25), consistent with subclonal variants or noise.
+  Under D19 these lines count as altered; see caveat 21.
+- **Allele fractions are otherwise clear.** For KEAP1, STK11 and TP53 the
+  median AF is close to 1 (loss of the other allele). For the activating
+  genes it is lower (KRAS 0.78, NFE2L2 0.54), as expected for heterozygous
+  gain-of-function variants. Only 5 of 243 variants have AF < 0.25.
+- **One line has no DepMap mutation calls at all.** NCIH1755 (lung) is
+  matched to a DepMap model (ACH-000282), but that model has no rows in the
+  24Q4 mutation file. It was therefore read as wild type for every gene,
+  although Cellosaurus and the CCLE calls report TP53 C242F and the CCLE calls
+  also report KEAP1 E582\* and STK11 P281fs. **Fixed (D24):** lines without
+  DepMap mutation calls are no longer used in mutation models, so NCIH1755 no
+  longer appears in the tables above (the finding came from the first render).
+- **30 lines in models have no DepMap copy number** (10 lung, 8 breast). They
+  were treated as "not deleted". This mattered for the MTAP deletion contrast,
+  where these lines would have entered the non-deleted group without evidence.
+  **Fixed (D25):** MTAP is evaluated only on lines with copy number; for
+  tumour suppressors, missing copy number still counts as not deleted, since
+  KEAP1, STK11 and TP53 are homozygously deleted in only 1–2 of 137 lines.
+- Three other TP53 discordances (A704, HT1197, PANC0327) are listed by
+  Cellosaurus (A704 also by the CCLE calls) but not by DepMap, which has
+  mutation calls for these models.
+- MTAP and CDKN2A copy number is clearly bimodal: 34 and 51 lines at 0, and
+  only 4 lines each between 0 and 1.
+
+**Limitation (for the manuscript).** The genotypes are those of the DepMap
+stocks, not of the stocks that were measured. Cherkaoui et al. (2022) state
+that "Cell lines were maintained according to standard protocols, their
+identity verified via STR sequencing and tested for mycoplasma infections".
+STR profiling confirms identity, but not the mutation status. Cell lines grown
+in different laboratories can differ genetically (Ben-David U et al. Genetic
+and transcriptional evolution alters cancer cell line drug response.
+*Nature* 2018. doi:10.1038/s41586-018-0409-3, PMID 30089904).
+
+```{r session}
+sessionInfo()
+```

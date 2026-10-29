@@ -29,7 +29,8 @@ Census) plus MTAP. Mutation status came from DepMap 24Q4: any protein-changing
 somatic variant, and likely-driver variants (hotspot, likely loss of function,
 Hess driver, or high impact in an oncogene or tumour suppressor, as flagged by
 DepMap). Homozygous deletion was defined as absolute copy number 0; lines
-without copy number count as not deleted. For the tests below, a gene was
+without copy number count as not deleted here. The contrasts leave these lines
+out for MTAP, whose status rests on copy number alone (D25). For the tests below, a gene was
 considered altered if it carried a likely-driver mutation or a homozygous
 deletion (provisional definition, see open question Q1). Tissue specificity
 was tested per gene and tissue with Fisher's exact test (lines of the tissue
@@ -226,7 +227,7 @@ p
 
 ## Interpretation
 
-- **Frequencies:** TP53 is altered in most lines (130 of 168), followed by
+- **Frequencies:** TP53 is altered in most lines (130 of 167), followed by
   CDKN2A (76, mostly homozygous deletions), KRAS (42) and MTAP (34, deletions
   only). STK11, ARID1A, RB1, SMARCA4, PTEN, PIK3CA, BRAF, SMAD4 and NRAS are
   altered in 11 to 22 lines each. 27 genes reach the threshold for testing.

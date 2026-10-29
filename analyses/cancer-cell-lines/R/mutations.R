@@ -10,7 +10,9 @@
 #'   `likely_driver` (variant flagged by DepMap as hotspot, likely loss of
 #'   function, Hess driver or high-impact oncogene/tumour-suppressor variant),
 #'   `deleted` (homozygous deletion; FALSE for lines without copy number),
-#'   `protein_changes`, and the line's `tissue` and `batch`.
+#'   `protein_changes`, and the line's `tissue`, `batch` and `has_copy_number`.
+#'   Genes defined by deletion alone (`contrast$deletion_genes` in config.yml)
+#'   need `has_copy_number`; callers drop the other lines for them (D25).
 alteration_status <- function(data, lines, genes) {
     mutations <- data$mutation_status |>
         dplyr::filter(line %in% lines, gene %in% genes) |>
@@ -27,5 +29,5 @@ alteration_status <- function(data, lines, genes) {
             likely_driver = dplyr::coalesce(likely_driver, FALSE),
             deleted = dplyr::coalesce(deleted, FALSE)
         ) |>
-        dplyr::left_join(dplyr::select(data$lines, line, tissue, batch), by = "line")
+        dplyr::left_join(dplyr::select(data$lines, line, tissue, batch, has_copy_number), by = "line")
 }

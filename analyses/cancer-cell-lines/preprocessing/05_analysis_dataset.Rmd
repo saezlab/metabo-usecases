@@ -109,9 +109,12 @@ lines <- cell_lines %>%
     left_join(excluded, by = "line") %>%
     mutate(
         has_depmap = !is.na(ModelID),
+        # a matched model can lack mutation calls (NCI-H1755 in 24Q4, audit/08); such a
+        # line would otherwise read as wild type for every gene
+        has_mutation_calls = line %in% readr::read_tsv(inputs[["mutation_status"]], show_col_types = FALSE)$line,
         has_copy_number = line %in% rownames(readRDS(inputs[["copy_number"]])),
-        # lines used in mutation models (D12, D16)
-        in_models = is.na(exclusion_reason) & !engineered & tissue != "Unknown" & has_depmap
+        # lines used in mutation models (D12, D16, D24)
+        in_models = is.na(exclusion_reason) & !engineered & tissue != "Unknown" & has_depmap & has_mutation_calls
     ) %>%
     slice(match(rownames(log2_values), line))
 stopifnot(identical(lines$line, rownames(log2_values)))
@@ -119,7 +122,7 @@ stopifnot(identical(lines$line, rownames(log2_values)))
 c(lines = nrow(lines), in_models = sum(lines$in_models))
 lines %>%
     filter(!in_models) %>%
-    transmute(line, tissue, engineered, has_depmap, exclusion_reason) %>%
+    transmute(line, tissue, engineered, has_depmap, has_mutation_calls, exclusion_reason) %>%
     preview_table(caption = "Lines not used in mutation models")
 count(filter(lines, in_models), tissue, sort = TRUE)
 preview_table(lines, caption = "Cell line table")
@@ -169,7 +172,8 @@ write_manifest(out, inputs, file.path(derived_dir, "05_manifest.json"),
 ## Interpretation
 
 The data set holds all 175 lines and 1096 ions; lines that are excluded,
-engineered, without tissue or without DepMap data are kept but flagged
+engineered, without tissue, without DepMap data or without DepMap mutation
+calls are kept but flagged
 (`in_models = FALSE`). All analysis steps read only this file.
 
 ```{r session}

@@ -27,7 +27,8 @@ steps <- c(
     "a04" = "audit/04_mutation_sources.Rmd",
     "a05" = "audit/05_metabolite_annotation.Rmd",
     "a06" = "audit/06_ortmayr_descriptive.Rmd",
-    "a07" = "audit/07_functional_groups.Rmd"
+    "a07" = "audit/07_functional_groups.Rmd",
+    "a08" = "audit/08_genotype_reliability.Rmd"
 )
 
 use_case_dir <- here::here("analyses", "cancer-cell-lines")

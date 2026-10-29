@@ -63,7 +63,9 @@ lines <- filter(data$lines, in_models)
 # genes tested by Shorthouse et al. plus MTAP (as in analysis/02)
 ev4 <- readxl::read_excel(file.path(raw_dir, "msb202211006-sup-0005-datasetev4.xlsx"), sheet = "Sheet1", n_max = 1)
 genes <- union(sub("^T_", "", setdiff(names(ev4), "ionIdx")), "MTAP")
+# genes defined by deletion alone are only known for lines with copy number (D25)
 status <- alteration_status(data, lines$line, genes) %>%
+    filter(!(gene %in% params$deletion_genes & !has_copy_number)) %>%
     mutate(
         mutated_driver = likely_driver | deleted,   # definition A
         mutated_any = any_mutation | deleted        # definition B
@@ -216,20 +218,20 @@ effective %>%
   protein-changing variant or homozygous deletion for tumour suppressors (TP53,
   STK11, KEAP1, SMARCA4, CDKN2A, PTEN, RB1); long passenger-prone genes are not
   candidates.
-- **TP53** is altered in most lines (110 mutant vs 36 wild-type lines in
+- **TP53** is altered in most lines (110 mutant vs 35 wild-type lines in
   contributing tissues); it is better used as a covariate than as a contrast.
-- **KRAS** (30 mutant / 67 wild-type lines in lung, colon and blood; mostly
-  lung, 25/61) is balanced across batches and estimable with
+- **KRAS** (30 mutant / 66 wild-type lines in lung, colon and blood; mostly
+  lung, 25/60) is balanced across batches and estimable with
   `~ batch + tissue + mutation`. KRAS-mutant lines carry fewer TP53
   alterations, so TP53 belongs in the model; STK11 and KEAP1 are planned
   covariates for lung.
-- **Lung-only contrasts:** STK11 (19/67 under A, 22/64 under B), SMARCA4
-  (15/71) and KEAP1 (8/78 under A, 19/67 under B) are informed by lung lines
+- **Lung-only contrasts:** STK11 (19/66 under A, 22/63 under B), SMARCA4
+  (15/70) and KEAP1 (8/77 under A, 19/66 under B) are informed by lung lines
   only. KEAP1 together with NFE2L2 (5 mutant lung lines) defines NRF2
   activation, whose readout (glutathione ions) is measured unambiguously; this
   is the best available positive control. Combining them is a pathway-level
   aggregation and needs your approval (Q3).
-- **MTAP deletion** (32/114 in six tissues) is well powered and balanced, and
+- **MTAP deletion** (32/89 in six tissues, lines with copy number only, D25) is well powered and balanced, and
   metabolically direct (methionine salvage), but its readout MTA is not
   measured, and it is nested in CDKN2A deletion (94 % of MTAP-deleted lines),
   so the two cannot be separated.
