@@ -92,13 +92,21 @@ contrast_design <- function(d, covariates) {
 #' @param d Output of `contrast_lines()`.
 #' @param X Output of `contrast_design()`.
 #' @return List with the `fit` (eBayes) and the full result `table` for the
-#'   group coefficient, joined to the ion annotation.
+#'   group coefficient, joined to the ion annotation. The table also gives,
+#'   per ion, the number of altered and unaltered lines with an imputed value
+#'   (raw value <= 0, D7), so that effects carried by imputed values in small
+#'   groups can be recognised (audit/09).
 fit_contrast <- function(data, d, X) {
     # limma expects features in rows
     y <- t(data$log2[d$line, , drop = FALSE])
     fit <- limma::eBayes(limma::lmFit(y, X))
+    imputed <- data$raw[d$line, , drop = FALSE] <= 0
     table <- limma::topTable(fit, coef = ncol(X), number = Inf, sort.by = "none") |>
         tibble::rownames_to_column("feature_id") |>
+        dplyr::mutate(
+            imputed_altered = colSums(imputed[d$group, , drop = FALSE])[feature_id],
+            imputed_unaltered = colSums(imputed[!d$group, , drop = FALSE])[feature_id]
+        ) |>
         dplyr::left_join(
             dplyr::select(data$ions, feature_id, name, hmdb, kegg, has_imputed_values, replicate_signal_ratio),
             by = "feature_id"

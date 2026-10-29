@@ -1,0 +1,364 @@
+---
+title: "Audit 12: metabolite identifiers and their link to MetSigDB"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Enrichment on MetSigDB sets (Phase 5) needs a link from each measured ion to
+the metabolites in the sets. The previous identifier processing
+(`preprocessing/03_feature_ids.Rmd`) checked the identifiers of each ion for
+mutual compatibility (RaMP via MetaProViz), removed incompatible ones,
+extended the rest with `traverse_ids()` and `equivalent_id()`, and matched
+one identifier type to the prior knowledge (e.g. KEGG IDs to KEGG pathways).
+This notebook asks:
+
+1. What do the identifiers of an ion mean in the original annotation?
+2. What did the previous processing change?
+3. How many ions reach MetSigDB sets through OmniPath Metabo's own entity
+   resolution, starting from the original identifiers, compared with
+   matching on the KEGG ID?
+4. How ambiguous is the link from ion to set?
+
+**Decision supported:** how ions are linked to MetSigDB sets for enrichment.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_lines.rds` (ion table as published, Dataset EV2)
+- `data/derived/cancer-cell-lines/shorthouse_v1/03_features.rds` (output of the previous identifier processing)
+- OmniPath Metabo database, default deployment of `metabo.figures` (dev5), read only: `identifier_evidence`, `entity_identifier_lookup`, `chemical_resolution_group_member`, `metsigdb_membership`
+
+## Methods
+
+Identifiers were normalised (HMDB to seven digits, whitespace removed). Each
+HMDB and KEGG compound identifier was looked up in OmniPath Metabo and linked
+to all entities carrying it. Entities describing the same structure were
+merged with the database's chemical resolution groups at level 1 (the first
+InChIKey block: connectivity, ignoring stereochemistry and protonation), since
+flow-injection MS cannot separate stereoisomers; level 2 (adding
+stereochemistry) is shown for comparison. For example, the two glutathione
+entities that carry MetSigDB memberships differ only in charge and fall into
+one group. Entities without an InChIKey (name-only records) keep their
+memberships but do not count as a structure. A structure group belongs to a
+set if any of its entities is a member. Pathway sets were restricted to human
+(organism 9606); ClassyFire and MACdb sets have no organism.
+
+For comparison, the KEGG route matches the ion's KEGG compound IDs to the
+`kegg` column of the KEGG sets, as with the previous approach of matching one
+identifier type to the prior knowledge.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# metabo.figures provides the database connection
+pkgload::load_all(here::here(), export_all = FALSE, quiet = TRUE)
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+fig_dir <- uc_dir(config, "output", "audit_12_metabolite_identifiers")
+
+original <- readRDS(file.path(derived_dir, "01_lines.rds"))$ions
+processed <- readRDS(file.path(derived_dir, "03_features.rds"))
+
+# split a ";"-separated field into trimmed values
+split_ids <- function(x) lapply(strsplit(coalesce(x, ""), ";"), function(v) { v <- trimws(v); v[v != ""] })
+# HMDB IDs in the current seven-digit form (HMDB01659 -> HMDB0001659); other values -> NA
+normalise_hmdb <- function(x) {
+    digits <- sub("^HMDB", "", toupper(x))
+    ifelse(grepl("^[0-9]+$", digits), paste0("HMDB", formatC(as.integer(digits), width = 7, flag = "0")), NA_character_)
+}
+```
+
+## 1. What the identifiers of an ion mean
+
+```{r structure}
+# one row per candidate: names and HMDB IDs are parallel lists
+candidates <- original %>%
+    transmute(ionIdx, names = split_ids(name), hmdb = split_ids(hmdb), kegg = split_ids(kegg)) %>%
+    mutate(n_names = lengths(names), n_hmdb = lengths(hmdb), n_kegg = lengths(kegg))
+
+c(ions = nrow(candidates),
+  one_candidate = sum(candidates$n_names == 1),
+  several_candidates = sum(candidates$n_names > 1),
+  names_and_hmdb_parallel = sum(candidates$n_names == candidates$n_hmdb),
+  without_kegg = sum(candidates$n_kegg == 0))
+count(candidates, candidates = pmin(n_names, 10))
+
+candidates %>% filter(n_names > 1) %>% head(8) %>%
+    transmute(ionIdx, names = sapply(names, paste, collapse = "; "), hmdb = sapply(hmdb, paste, collapse = "; "))
+```
+
+## 2. What the previous processing changed
+
+```{r previous}
+# HMDB candidates per ion before and after, both normalised
+hmdb_before <- candidates %>% select(ionIdx, hmdb) %>% unnest(hmdb) %>% mutate(hmdb = normalise_hmdb(hmdb))
+hmdb_after <- processed %>% transmute(ionIdx, hmdb = split_ids(hmdb)) %>% unnest(hmdb) %>% mutate(hmdb = normalise_hmdb(hmdb))
+
+change <- full_join(
+    hmdb_before %>% group_by(ionIdx) %>% summarise(before = list(unique(hmdb)), .groups = "drop"),
+    hmdb_after %>% group_by(ionIdx) %>% summarise(after = list(unique(hmdb)), .groups = "drop"),
+    by = "ionIdx"
+) %>%
+    left_join(select(processed, ionIdx, compatibility = sub_tbl), by = "ionIdx") %>%
+    mutate(removed = mapply(function(b, a) length(setdiff(b, a)), before, after),
+           added = mapply(function(b, a) length(setdiff(a, b)), before, after))
+
+change %>%
+    group_by(compatibility) %>%
+    summarise(ions = n(),
+              ions_losing_candidates = sum(removed > 0), candidates_removed = sum(removed),
+              ions_gaining_ids = sum(added > 0), ids_added = sum(added), .groups = "drop")
+
+change %>%
+    filter(removed > 0) %>%
+    left_join(select(original, ionIdx, name), by = "ionIdx") %>%
+    transmute(ionIdx, compatibility, name = substr(name, 1, 80), removed,
+              removed_ids = mapply(function(b, a) paste(setdiff(b, a), collapse = "; "), before, after)) %>%
+    preview_table(caption = "Ions that lost original HMDB candidates")
+```
+
+## 3. Link to MetSigDB through OmniPath Metabo
+
+```{r resolve}
+con <- pg_connect()
+db_build <- build_manifest_for(con)
+quote_list <- function(x) paste(DBI::dbQuoteString(con, unique(x)), collapse = ", ")
+
+# original identifiers of all ions
+id_table <- bind_rows(
+    hmdb_before %>% filter(!is.na(hmdb)) %>% transmute(ionIdx, id_type = "HMDB", value = hmdb),
+    candidates %>% select(ionIdx, kegg) %>% unnest(kegg) %>% filter(grepl("^C[0-9]{5}$", kegg)) %>%
+        transmute(ionIdx, id_type = "KEGG", value = kegg)
+) %>% distinct()
+
+# identifiers -> entities
+entities <- pg_query(con, sprintf("
+    SELECT CASE WHEN t.name LIKE 'Hmdb%%' THEN 'HMDB' ELSE 'KEGG' END AS id_type, ie.value,
+           l.entity_id::text AS entity_id
+    FROM omnipath.identifier_evidence ie
+    JOIN omnipath.vocab_identifier_type t USING (identifier_type_id)
+    JOIN omnipath.entity_identifier_lookup l ON l.identifier_id = ie.identifier_id
+    WHERE (t.name = 'Hmdb:OM:0004' AND ie.value IN (%s))
+       OR (t.name = 'Kegg Compound:MI:2012' AND ie.value IN (%s))",
+    quote_list(id_table$value[id_table$id_type == "HMDB"]),
+    quote_list(id_table$value[id_table$id_type == "KEGG"])))
+
+# entities -> structure groups; level 1 = InChIKey connectivity block (see specificity below)
+structure_level <- 1
+groups <- pg_query(con, sprintf("
+    SELECT entity_id::text AS entity_id, group_key FROM omnipath.chemical_resolution_group_member
+    WHERE level_id = %d AND entity_id::text IN (%s)", structure_level, quote_list(entities$entity_id)))
+# entities without an InChIKey (name-only records) have no group: they keep their memberships
+# for linking but do not count as a separate structure
+entities <- entities %>% left_join(groups, by = "entity_id") %>% rename(structure = group_key)
+
+# all entities of these structure groups
+members <- pg_query(con, sprintf("
+    SELECT group_key, entity_id::text AS entity_id FROM omnipath.chemical_resolution_group_member
+    WHERE level_id = %d AND group_key IN (%s)", structure_level, quote_list(na.omit(groups$group_key))))
+structure_entities <- distinct(transmute(members, structure = group_key, entity_id))
+
+# MetSigDB memberships of these entities (human pathway sets; other set types have no organism)
+membership <- pg_query(con, sprintf("
+    SELECT resource, set_type, set_source_id, set_label, metabolite_entity_id::text AS entity_id
+    FROM omnipath.metsigdb_membership
+    WHERE metabolite_entity_id::text IN (%s) AND (organism = 9606 OR organism IS NULL)",
+    quote_list(structure_entities$entity_id)))
+
+# sets that list a KEGG compound ID of the data in their kegg column (all resources)
+kegg_listed <- pg_query(con, sprintf("
+    SELECT DISTINCT kegg AS value, resource, set_source_id FROM omnipath.metsigdb_membership
+    WHERE (organism = 9606 OR organism IS NULL) AND kegg IN (%s)",
+    quote_list(id_table$value[id_table$id_type == "KEGG"])))
+DBI::dbDisconnect(con)
+
+c(build_id = db_build$build_id,
+  identifiers = nrow(id_table), resolved_identifiers = n_distinct(paste(entities$id_type, entities$value)),
+  entities = n_distinct(entities$entity_id), structures = n_distinct(na.omit(entities$structure)))
+```
+
+### Specificity of the identifiers
+
+```{r specificity}
+# structures per identifier: generic identifiers (e.g. KEGG lipid classes) resolve to many
+specificity <- entities %>%
+    group_by(id_type, value) %>%
+    summarise(structures = n_distinct(na.omit(structure)), .groups = "drop")
+specificity %>%
+    group_by(id_type) %>%
+    summarise(identifiers = n(), no_structure = sum(structures == 0), one_structure = sum(structures == 1),
+              two_to_five = sum(between(structures, 2, 5)),
+              more_than_five = sum(structures > 5), max = max(structures), .groups = "drop")
+specificity %>% arrange(desc(structures)) %>% head(10)
+
+# for comparison: level 2 (connectivity + stereochemistry); level 1 merges stereoisomers,
+# which the measurement cannot separate anyway
+con <- pg_connect()
+groups_level2 <- pg_query(con, sprintf("
+    SELECT entity_id::text AS entity_id, group_key AS stereo FROM omnipath.chemical_resolution_group_member
+    WHERE level_id = 2 AND entity_id::text IN (%s)", quote_list(entities$entity_id)))
+DBI::dbDisconnect(con)
+entities %>%
+    left_join(groups_level2, by = "entity_id") %>%
+    group_by(id_type, value) %>%
+    summarise(level1 = n_distinct(na.omit(structure)), level2 = n_distinct(na.omit(stereo)), .groups = "drop") %>%
+    group_by(id_type) %>%
+    summarise(one_structure_level1 = sum(level1 == 1), one_structure_level2 = sum(level2 == 1),
+              several_level1 = sum(level1 > 1), several_level2 = sum(level2 > 1), .groups = "drop")
+```
+
+### Coverage under three linking rules
+
+- **A, HMDB:** each candidate's HMDB ID, resolved to structures.
+- **B, HMDB + specific KEGG:** A plus KEGG IDs that resolve to at most one structure.
+- **C, B + listed KEGG:** B plus, for generic KEGG IDs, only the sets that list
+  that KEGG compound ID themselves (no expansion to specific structures).
+- *KEGG route (previous approach):* KEGG IDs matched to the kegg column of the KEGG sets.
+
+```{r coverage}
+pathway_resources <- c("KEGG", "Reactome", "WikiPathways")
+structure_set <- structure_entities %>%
+    inner_join(membership, by = "entity_id", relationship = "many-to-many") %>%
+    distinct(structure, resource, set_source_id)
+specific_kegg <- specificity %>% filter(id_type == "KEGG", structures <= 1) %>% pull(value)
+generic_kegg <- specificity %>% filter(id_type == "KEGG", structures > 1) %>% pull(value)
+
+# ion -> identifier -> entities, plus all entities of their structures
+ion_entities_rule <- function(kegg_values) {
+    direct <- id_table %>%
+        filter(id_type == "HMDB" | value %in% kegg_values) %>%
+        inner_join(entities, by = c("id_type", "value"), relationship = "many-to-many")
+    bind_rows(
+        distinct(direct, ionIdx, entity_id, structure),
+        direct %>% filter(!is.na(structure)) %>% distinct(ionIdx, structure) %>%
+            inner_join(structure_entities, by = "structure", relationship = "many-to-many")
+    ) %>% distinct()
+}
+ion_entities <- list(A = ion_entities_rule(character()), B = ion_entities_rule(specific_kegg))
+ion_structure <- lapply(ion_entities, function(x) x %>% filter(!is.na(structure)) %>% distinct(ionIdx, structure))
+ion_set <- lapply(ion_entities, function(x) x %>%
+    inner_join(membership, by = "entity_id", relationship = "many-to-many") %>%
+    distinct(ionIdx, resource, set_source_id))
+ion_set$C <- bind_rows(
+    ion_set$B,
+    id_table %>% filter(id_type == "KEGG", value %in% generic_kegg) %>%
+        inner_join(kegg_listed, by = "value", relationship = "many-to-many") %>%
+        distinct(ionIdx, resource, set_source_id)
+) %>% distinct()
+ion_set$`KEGG route` <- id_table %>% filter(id_type == "KEGG") %>%
+    inner_join(filter(kegg_listed, resource == "KEGG"), by = "value", relationship = "many-to-many") %>%
+    distinct(ionIdx, resource, set_source_id)
+
+coverage <- bind_rows(lapply(names(ion_set), function(rule) {
+    ion_set[[rule]] %>%
+        group_by(resource) %>%
+        summarise(ions = n_distinct(ionIdx), sets = n_distinct(set_source_id), .groups = "drop") %>%
+        bind_rows(tibble(resource = "any pathway resource",
+                         ions = n_distinct(ion_set[[rule]]$ionIdx[ion_set[[rule]]$resource %in% pathway_resources]),
+                         sets = NA_integer_)) %>%
+        mutate(rule = rule)
+}))
+coverage %>% select(rule, resource, ions) %>% pivot_wider(names_from = rule, values_from = ions)
+```
+
+```{r coverage-plot, fig.width = 8, fig.height = 4}
+rules <- c("A", "B", "C", "KEGG route")
+p <- coverage %>%
+    mutate(rule = factor(rule, levels = rules)) %>%
+    ggplot(aes(ions, resource, fill = rule)) +
+    geom_col(position = position_dodge(preserve = "single")) +
+    geom_vline(xintercept = nrow(original), linetype = 2, colour = "grey50") +
+    scale_fill_manual(values = uc_palette(rules)) +
+    labs(x = "Ions in at least one set (dashed: all ions)", y = NULL, fill = "Rule",
+         title = "Ions linked to MetSigDB sets") +
+    theme_uc()
+save_figure(p, "coverage", fig_dir, width = 8, height = 4)
+p
+```
+
+## 4. Ambiguity of the link
+
+Under rule B: how many structures does an ion have, and are its pathway sets
+shared by its candidates or contributed by one of them?
+
+```{r ambiguity}
+per_ion <- ion_structure$B %>% count(ionIdx, name = "structures")
+summary(per_ion$structures)
+count(per_ion, structures = pmin(structures, 6))
+
+shared <- ion_structure$B %>%
+    inner_join(structure_set %>% filter(resource %in% pathway_resources), by = "structure",
+               relationship = "many-to-many") %>%
+    group_by(ionIdx, set_source_id) %>%
+    summarise(structures_in_set = n_distinct(structure), .groups = "drop") %>%
+    left_join(per_ion, by = "ionIdx")
+c(ion_set_pairs = nrow(shared),
+  from_ions_with_one_structure = sum(shared$structures == 1),
+  from_ambiguous_ions_all_candidates = sum(shared$structures > 1 & shared$structures_in_set == shared$structures),
+  from_ambiguous_ions_one_candidate = sum(shared$structures > 1 & shared$structures_in_set == 1))
+
+# ions with a single structure that are in at least one pathway set (rule B, and rule C)
+unambiguous <- per_ion$ionIdx[per_ion$structures == 1]
+c(unambiguous_ions = length(unambiguous),
+  in_pathway_set_rule_B = n_distinct(intersect(unambiguous, ion_set$B$ionIdx[ion_set$B$resource %in% pathway_resources])),
+  in_pathway_set_rule_C = n_distinct(intersect(unambiguous, ion_set$C$ionIdx[ion_set$C$resource %in% pathway_resources])))
+```
+
+## Interpretation
+
+- **The identifiers of an ion are alternatives, not synonyms.** 577 of 1096
+  ions are annotated with several candidate metabolites of the same mass
+  (isomers or isobars, e.g. "Acetic acid; Glycolaldehyde"), and in 1093 ions
+  the HMDB IDs run parallel to the candidate names, one per candidate.
+- **The previous compatibility check therefore asks the wrong question.** It
+  expects the identifiers of an ion to describe one compound, so ions with
+  several candidates are "partially" or "completely incompatible" by design.
+  The cleaning removed 1780 original HMDB candidates from 369 ions. For the
+  completely incompatible ions it kept "the first" HMDB or KEGG ID, which
+  depends on the order of the published list. The decision also rests on how
+  complete the RaMP mapping is: a missing mapping looks like an
+  incompatibility.
+- **OmniPath Metabo resolves the original identifiers directly.** 4504 of
+  4740 identifiers link to database entities. At InChIKey level 1, 3382 of
+  3464 HMDB IDs resolve to exactly one structure. Most of the remaining
+  ambiguity at level 2 is stereochemistry, which flow-injection MS cannot
+  resolve anyway.
+- **Generic KEGG IDs must not be expanded.** 124 KEGG IDs resolve to several
+  structures, up to 846 for lipid classes (e.g. C00157 phosphatidylcholine,
+  790 structures). At least one link is wrong: C00350
+  (phosphatidylethanolamine) also links to hydroxyclomipramine, a drug
+  metabolite. Rule C uses such IDs only for the sets that list the class
+  compound itself.
+- **Coverage is clearly better than matching on one ID type.** With rule C,
+  719 ions are in at least one KEGG, Reactome or WikiPathways set, against
+  529 with KEGG IDs alone (+36 %). KEGG covers 579 ions, Reactome 407,
+  WikiPathways 604; MACdb covers 784 and ClassyFire 1095.
+- **Ambiguity is the main remaining issue, and it is inherent to the data.**
+  The 519 ions with one structure are exactly the ions with one candidate;
+  306 of them are in a pathway set (rule C). For ions with several
+  candidates, 7524 ion–set links rest on a single candidate and only 253 are
+  shared by all candidates. Enrichment therefore has to handle ambiguity
+  explicitly.
+
+**Recommendations:**
+
+1. Link ions to MetSigDB from the **original identifiers** (HMDB per
+   candidate, KEGG), normalised, resolved through OmniPath Metabo at InChIKey
+   level 1, with rule C for KEGG. The compatibility-based cleaning,
+   `traverse_ids()` and `equivalent_id()` are not needed for this, since the
+   database supplies the cross-references.
+2. Decide how ambiguous ions enter enrichment (Phase 5).
+3. Report C00350 → hydroxyclomipramine and the expansion of KEGG class IDs to
+   the OmniPath Metabo developers.
+
+```{r session}
+sessionInfo()
+```

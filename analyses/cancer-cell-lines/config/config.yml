@@ -94,6 +94,71 @@ differential:
     standard_covariates: [TP53]    # TP53 itself is tested without TP53 as covariate
     tissues: contributing
 
+exploratory:
+  # exploratory contrasts (analysis/07, approved 2026-10-29): hypothesis-generating,
+  # BH within each contrast; groups need >= min_per_group lines on each side
+  min_per_group: 3
+  # F1-F3: declared contrasts. Lines: lines used in models of `tissues`, optionally restricted
+  # to `histologies` and to lines altered in `within` (any of the genes). Group: altered in
+  # `group`, or histology in `group_histology`. Lung contrasts are blocked by histology (D28).
+  contrasts:
+    neuroendocrine_vs_nsclc:
+      family: F1 lung histology
+      tissues: [Lung]
+      histologies: [Adenocarcinoma, Squamous, Other NSCLC, Neuroendocrine]
+      group_histology: [Neuroendocrine]
+    adenocarcinoma_vs_squamous:
+      family: F1 lung histology
+      tissues: [Lung]
+      histologies: [Adenocarcinoma, Squamous]
+      group_histology: [Adenocarcinoma]
+    kras_lung:
+      family: F2 lung genotypes
+      tissues: [Lung]
+      group: KRAS
+      blocking: [histology]
+      covariates: [TP53, STK11, KEAP1]
+    smarca4_lung:
+      family: F2 lung genotypes
+      tissues: [Lung]
+      group: SMARCA4
+      blocking: [histology]
+      covariates: [KRAS, STK11, KEAP1, TP53]
+    kras_vs_egfr_lung:
+      family: F2 lung genotypes
+      tissues: [Lung]
+      within: [KRAS, EGFR]
+      group: KRAS
+      blocking: [histology]
+    # KRAS-mutant subsets KL, KP, KC (Skoulidis et al. 2015, doi:10.1158/2159-8290.cd-14-1236)
+    kras_stk11_lung:
+      family: F3 KRAS subsets
+      tissues: [Lung]
+      within: [KRAS]
+      group: STK11
+      blocking: [histology]
+      covariates: [TP53]
+    kras_tp53_lung:
+      family: F3 KRAS subsets
+      tissues: [Lung]
+      within: [KRAS]
+      group: TP53
+      blocking: [histology]
+      covariates: [STK11]
+    kras_cdkn2a_lung:
+      family: F3 KRAS subsets
+      tissues: [Lung]
+      within: [KRAS]
+      group: CDKN2A
+      blocking: [histology]
+  # F4: each tissue with at least min_lines lines vs all other lines
+  tissue_vs_rest:
+    min_lines: 5
+  # F5: screen within tissues, `~ batch + (histology) + TP53 + gene`, genes of Dataset EV4 plus MTAP
+  tissue_screens:
+    tissues: [Lung, Breast, Bladder]
+    covariates: [TP53]
+
 tissue:
   # Rule-based labels (step 02) renamed to the 11 tissues of Shorthouse et al. 2022
   rename:

@@ -1,0 +1,280 @@
+---
+title: "Exploratory contrasts"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Widen the exploration beyond the pre-specified contrasts (analysis/06) with
+five families of contrasts, each modelled according to the audits. All results
+here are hypothesis-generating.
+
+| Family | Contrasts | Model |
+|---|---|---|
+| F1 lung histology | neuroendocrine vs non-small cell; adenocarcinoma vs squamous | `~ batch + group` |
+| F2 lung genotypes | KRAS, SMARCA4, KRAS vs EGFR | `~ batch + histology + co-mutations + group` (D28) |
+| F3 KRAS subsets | STK11 (KL), TP53 (KP), CDKN2A (KC) within KRAS-mutant lung lines | `~ batch + histology + co-mutation + group` |
+| F4 tissue vs rest | each tissue with >= 5 lines vs all other lines | `~ batch + group` |
+| F5 screens within tissues | each gene of Dataset EV4 (and MTAP) in lung, breast and bladder | `~ batch + (histology) + TP53 + gene` |
+
+**Decision supported:** which contrasts to carry forward to enrichment
+(Phase 5) and to the final selection.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `data/raw/cancer-cell-lines/msb202211006-sup-0005-datasetev4.xlsx` (genes tested by Shorthouse et al.)
+- `config.yml`: `contrast` (gene roles), `exploratory`
+
+## Methods
+
+Status follows the gene roles (D19, D25, D27, D29), and lung contrasts are
+blocked by histology (D28). The KRAS subsets follow Skoulidis F et al.
+(*Cancer Discov* 2015. doi:10.1158/2159-8290.cd-14-1236, PMID 26069186),
+who describe three subsets of KRAS-mutant lung adenocarcinoma "dominated,
+respectively, by co-occurring genetic events in STK11/LKB1 (the KL subgroup),
+TP53 (KP), and CDKN2A/B inactivation". Each subset is compared with the other
+KRAS-mutant lung lines. A contrast is fitted only if both groups have at least
+`min_per_group` lines (approved exploratory minimum). Models are fitted with
+limma on all 1096 ions, BH within each contrast.
+
+**Guard against imputed values** (audit/09): with small groups, one line at the
+half-minimum floor can make an ion significant. For each ion, the number of the
+contrast's lines with an imputed value is counted. The summary reports
+significant ions both in total and among ions without any imputed value in the
+contrast's lines ("robust").
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+output_dir <- uc_dir(config, "output", "07_exploratory_contrasts")
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+params <- config$exploratory
+models <- filter(data$lines, in_models)
+```
+
+```{r helpers}
+# lines, group and covariates of a declared contrast (F1-F3)
+declared_lines <- function(spec) {
+    d <- models %>%
+        filter(tissue %in% spec$tissues) %>%
+        select(line, tissue, batch, histology)
+    if (!is.null(spec$histologies)) d <- filter(d, histology %in% spec$histologies)
+    # restrict to lines altered in any of the `within` genes
+    if (!is.null(spec$within)) {
+        altered <- lapply(spec$within, function(g) altered_status(data, d$line, g, config) %in% TRUE)
+        d <- d[Reduce(`|`, altered), ]
+    }
+    d$group <- if (!is.null(spec$group_histology)) {
+        d$histology %in% spec$group_histology
+    } else {
+        altered_status(data, d$line, spec$group, config)
+    }
+    for (cov in spec$covariates) d[[cov]] <- altered_status(data, d$line, cov, config)
+    filter(d, !is.na(group), if_all(all_of(as.character(spec$covariates)), ~ !is.na(.x)))
+}
+
+# fit one contrast if both groups are large enough; returns summary row and result table
+run_contrast <- function(id, family, d, terms) {
+    n_altered <- sum(d$group)
+    n_unaltered <- sum(!d$group)
+    row <- tibble(family = family, contrast = id, altered = n_altered, unaltered = n_unaltered)
+    if (min(n_altered, n_unaltered) < params$min_per_group) {
+        return(list(summary = mutate(row, status = "too few lines"), table = NULL))
+    }
+    X <- tryCatch(contrast_design(d, terms), error = function(e) NULL)
+    if (is.null(X)) return(list(summary = mutate(row, status = "not estimable"), table = NULL))
+    tab <- fit_contrast(data, d, X)$table %>%
+        mutate(family = family, contrast = id, imputed_lines = imputed_altered + imputed_unaltered)
+    row <- row %>% mutate(
+        status = "fitted",
+        terms = paste(setdiff(colnames(X), "(Intercept)"), collapse = " + "),
+        residual_df = nrow(X) - ncol(X),
+        adj_p_below_0.05 = sum(tab$adj.P.Val < 0.05),
+        robust_adj_p_below_0.05 = sum(tab$adj.P.Val < 0.05 & tab$imputed_lines == 0),
+        min_adj_p = min(tab$adj.P.Val),
+        null_share = round(limma::propTrueNull(tab$P.Value), 2)
+    )
+    list(summary = row, table = tab)
+}
+```
+
+## 1. Declared contrasts (F1–F3)
+
+```{r declared}
+declared <- lapply(names(params$contrasts), function(id) {
+    spec <- params$contrasts[[id]]
+    run_contrast(id, spec$family, declared_lines(spec), c(spec$blocking, spec$covariates))
+})
+bind_rows(lapply(declared, `[[`, "summary")) %>%
+    preview_table(caption = "Declared contrasts")
+```
+
+KRAS vs EGFR is not fitted under the current oncogene rule (D29): only two
+lung lines count as EGFR-altered.
+
+## 2. Tissue vs rest (F4)
+
+```{r tissue-vs-rest}
+tissues <- models %>% count(tissue) %>% filter(n >= params$tissue_vs_rest$min_lines) %>% pull(tissue)
+tissue_results <- lapply(tissues, function(t) {
+    # the group is the tissue itself, so tissue must not enter the design as well
+    d <- models %>% transmute(line, batch, group = tissue == t, tissue = "all lines")
+    run_contrast(paste0(tolower(t), "_vs_rest"), "F4 tissue vs rest", d, character())
+})
+bind_rows(lapply(tissue_results, `[[`, "summary")) %>%
+    preview_table(caption = "Tissue vs rest")
+```
+
+## 3. Screens within tissues (F5)
+
+```{r screens}
+ev4 <- readxl::read_excel(file.path(raw_dir, "msb202211006-sup-0005-datasetev4.xlsx"), sheet = "Sheet1", n_max = 1)
+candidates <- union(sub("^T_", "", setdiff(names(ev4), "ionIdx")), "MTAP")
+
+screen_results <- list()
+for (t in params$tissue_screens$tissues) {
+    base <- models %>% filter(tissue == t) %>% select(line, tissue, batch, histology)
+    # genes with enough altered and unaltered lines in this tissue
+    status <- sapply(candidates, function(g) altered_status(data, base$line, g, config))
+    n_altered <- colSums(status, na.rm = TRUE)
+    n_known <- colSums(!is.na(status))
+    genes <- candidates[n_altered >= params$min_per_group & n_known - n_altered >= params$min_per_group]
+    blocking <- if (t == "Lung") "histology" else character()
+    for (g in genes) {
+        covs <- setdiff(params$tissue_screens$covariates, g)
+        d <- base
+        d$group <- status[, g]
+        for (cov in covs) d[[cov]] <- altered_status(data, d$line, cov, config)
+        d <- filter(d, !is.na(group), if_all(all_of(covs), ~ !is.na(.x)))
+        screen_results[[paste(t, g)]] <- run_contrast(paste0(tolower(t), "_", g), paste("F5 screen", t), d,
+                                                      c(blocking, covs))
+    }
+}
+screen_summary <- bind_rows(lapply(screen_results, `[[`, "summary"))
+screen_summary %>% count(family, status)
+screen_summary %>%
+    filter(status == "fitted") %>%
+    arrange(desc(robust_adj_p_below_0.05), min_adj_p) %>%
+    preview_table(caption = "Screens within tissues")
+```
+
+Lines in the altered group of the screens with at most five altered lines,
+and how many genes each line carries mutations in. In small groups, the
+results of genes mutated in the same few lines are not independent.
+
+```{r small-groups}
+mutated_genes <- data$mutation_status %>% count(line, name = "mutated_genes")
+small <- screen_summary %>% filter(status == "fitted", altered <= 5)
+# altered lines per small screen
+altered_lines <- bind_rows(lapply(names(screen_results), function(k) {
+    tissue <- sub(" .*", "", k); gene <- sub(".* ", "", k)
+    base <- models %>% filter(tissue == !!tissue)
+    s <- altered_status(data, base$line, gene, config)
+    tibble(contrast = paste0(tolower(tissue), "_", gene), line = names(s)[s %in% TRUE])
+})) %>%
+    filter(contrast %in% small$contrast) %>%
+    left_join(mutated_genes, by = "line")
+altered_lines %>%
+    group_by(line, mutated_genes) %>%
+    summarise(small_screens = n(),
+              screens_with_hits = sum(contrast %in% small$contrast[small$robust_adj_p_below_0.05 > 0]),
+              .groups = "drop") %>%
+    arrange(desc(screens_with_hits)) %>%
+    preview_table(caption = "Lines in the altered groups of small screens")
+# for comparison: median number of mutated genes per line
+median(mutated_genes$mutated_genes[mutated_genes$line %in% models$line])
+```
+
+## 4. Overview
+
+```{r overview}
+all_results <- c(declared, tissue_results, screen_results)
+summary_all <- bind_rows(lapply(all_results, `[[`, "summary"))
+tables <- bind_rows(lapply(all_results, `[[`, "table"))
+readr::write_tsv(summary_all, file.path(output_dir, "exploratory_summary.tsv"))
+readr::write_tsv(tables, file.path(output_dir, "exploratory_results.tsv"))
+
+summary_all %>%
+    group_by(family) %>%
+    summarise(fitted = sum(status == "fitted"), skipped = sum(status != "fitted"),
+              with_robust_hits = sum(robust_adj_p_below_0.05 > 0, na.rm = TRUE), .groups = "drop")
+```
+
+```{r overview-plot, fig.width = 9, fig.height = 7}
+families <- sort(unique(summary_all$family))
+p <- summary_all %>%
+    filter(status == "fitted", adj_p_below_0.05 > 0) %>%
+    ggplot(aes(robust_adj_p_below_0.05, reorder(contrast, robust_adj_p_below_0.05), fill = family)) +
+    geom_col() +
+    scale_fill_manual(values = uc_palette(families)) +
+    labs(x = "Ions with adjusted p < 0.05 (no imputed values)", y = NULL, fill = NULL,
+         title = "Exploratory contrasts with significant ions") +
+    theme_uc()
+save_figure(p, "overview", output_dir, width = 9, height = 7)
+p
+```
+
+Significant ions without imputed values:
+
+```{r hits}
+tables %>%
+    filter(adj.P.Val < 0.05, imputed_lines == 0) %>%
+    arrange(family, contrast, P.Value) %>%
+    transmute(family, contrast, feature_id, name = substr(name, 1, 60), logFC = round(logFC, 2),
+              adj.P.Val = signif(adj.P.Val, 2)) %>%
+    preview_table(caption = "Robust significant ions")
+```
+
+## Interpretation
+
+"Robust" below means adjusted p < 0.05 and no imputed value among the
+contrast's lines.
+
+- **F1 lung histology:** neuroendocrine vs non-small cell lines is the
+  strongest exploratory contrast (14/69, 55 robust ions, estimated share of
+  null ions 0.78). The leading ions include cystathionine (log2FC +2.9),
+  S-adenosylhomocysteine, purine nucleotides (dADP, IMP) and several
+  phospholipids, all higher in neuroendocrine lines. Adenocarcinoma vs
+  squamous shows nothing (39/15).
+- **F2 lung genotypes:** KRAS in lung (blocked by histology, adjusted for
+  TP53, STK11 and KEAP1) has no signal. SMARCA4 in lung has 2 robust ions.
+  KRAS vs EGFR was not fitted (two EGFR lines under D29).
+- **F3 KRAS subsets:** no subset (KL 8/17, KP 19/6, KC 12/10) has a
+  significant ion. With 25 KRAS-mutant lines the subsets are small.
+- **F4 tissue vs rest:** colon (19 robust ions), kidney (13) and skin (10;
+  smallest adjusted p 10⁻²⁰) differ from the other lines. Lung (3), blood (1),
+  bladder, breast, ovary and pancreas (0) hardly do once batch is in the model.
+- **F5 screens within tissues:** among the 19 screens with more than five
+  lines per group, only KEAP1 in lung (8 robust ions, the same ions as the
+  NRF2 control) and MUC16 in lung (5) have hits. MUC16 is a long gene with
+  many passenger variants (analysis/03). Screens with at most five altered
+  lines produce hits in 20 of 57 cases, but the same few highly mutated lines
+  recur in their altered groups. NCIH2342 (1666 mutated genes vs a median of
+  356) is in 7 small screens, 6 of them with hits; NCIH1155 (1420) in 7, with
+  hits in 4. These hits describe single lines rather than genes and are not
+  interpretable at the gene level.
+
+**Overall:** beyond the NRF2/KEAP1 signal, the clearest metabolic differences
+are between lineages: neuroendocrine vs non-small cell lung lines, and
+colon, kidney and skin vs the rest. Genotype contrasts other than NRF2 show
+little at the ion level. These contrasts are candidates for the
+enrichment analysis (Phase 5), which may pick up coordinated weak changes.
+
+```{r session}
+sessionInfo()
+```
