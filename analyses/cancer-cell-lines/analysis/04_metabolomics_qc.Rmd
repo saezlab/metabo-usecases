@@ -1,0 +1,188 @@
+---
+title: "Metabolomics QC for the pre-specified contrasts"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Before any differential analysis, check for each pre-specified contrast (D22)
+which lines enter the model, how the groups fall across tissues and culture
+batches, whether the design is estimable, and how much of the metabolic
+variation follows tissue, batch and the mutation group. A mutation group that
+lines up with one batch or one tissue could not be separated from it.
+
+**Decision supported:** whether the designs agreed at Checkpoint 2 can be
+fitted as specified (Phase 4).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `config.yml`: `contrast` (gene roles, groups, minimum sizes), `differential.contrasts`
+
+## Methods
+
+For each contrast, lines were selected with `contrast_lines()` (lines used in
+models, tissues of the contrast, known group status; with tissue blocking only
+tissues with at least two altered and two unaltered lines) and the design
+`~ batch + tissue + covariates + group` was built with `contrast_design()`;
+terms that do not vary among the lines are left out. Balance of the group
+across batches was tested with Fisher's exact test (simulated p-value). A PCA
+was computed on the log2 values of the contrast's lines, each ion centred and
+scaled; for the first five components, the share of variance explained by
+tissue, batch and group was taken as the R² of a linear model of the component
+on each factor alone.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "04_metabolomics_qc")
+set.seed(config$contrast$seed)
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+contrasts <- config$differential$contrasts
+names(contrasts)
+```
+
+## 1. Lines and designs
+
+```{r designs}
+# lines, design and balance per contrast
+qc <- lapply(contrasts, function(contrast) {
+    d <- contrast_lines(data, contrast, config)
+    X <- contrast_design(d, contrast$covariates)
+    list(d = d, X = X)
+})
+
+design_summary <- bind_rows(lapply(names(qc), function(id) {
+    d <- qc[[id]]$d
+    X <- qc[[id]]$X
+    tibble(
+        contrast = id,
+        lines = nrow(d), altered = sum(d$group), unaltered = sum(!d$group),
+        tissues = paste(sprintf("%s (%d/%d)", names(table(d$tissue)),
+                                tapply(d$group, d$tissue, sum), tapply(!d$group, d$tissue, sum)), collapse = ", "),
+        terms = paste(setdiff(colnames(X), "(Intercept)"), collapse = " + "),
+        residual_df = nrow(X) - ncol(X),
+        batch_balance_p = fisher.test(table(d$batch, d$group), simulate.p.value = TRUE, B = 1e4)$p.value
+    )
+}))
+preview_table(design_summary, caption = "Lines and design per contrast (tissue: altered/unaltered)")
+```
+
+```{r batches-plot, fig.width = 9, fig.height = 5}
+# altered and unaltered lines per batch
+p <- bind_rows(lapply(names(qc), function(id) mutate(qc[[id]]$d, contrast = id))) %>%
+    mutate(group = if_else(group, "altered", "unaltered")) %>%
+    count(contrast, batch, group) %>%
+    ggplot(aes(batch, n, fill = group)) +
+    geom_col() +
+    facet_wrap(~contrast, scales = "free_y") +
+    scale_fill_manual(values = uc_palette(c("altered", "unaltered"))) +
+    labs(x = NULL, y = "Lines", fill = NULL, title = "Groups across culture batches") +
+    theme_uc() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+save_figure(p, "groups_per_batch", output_dir, width = 9, height = 5)
+p
+```
+
+Covariate status within the groups, so that a covariate that almost
+coincides with the group is visible:
+
+```{r covariates}
+bind_rows(lapply(names(qc), function(id) {
+    d <- qc[[id]]$d
+    covs <- contrasts[[id]]$covariates
+    tibble(contrast = id, covariate = covs,
+           share_in_altered = sapply(covs, function(cv) mean(d[[cv]][d$group])),
+           share_in_unaltered = sapply(covs, function(cv) mean(d[[cv]][!d$group])))
+})) %>%
+    mutate(across(starts_with("share"), ~ round(.x, 2)))
+```
+
+## 2. Variance explained by tissue, batch and group
+
+```{r pca}
+# PCA of the contrast's lines; R2 of each factor alone on PC1-5
+pca_of <- function(d) {
+    pc <- prcomp(data$log2[d$line, ], center = TRUE, scale. = TRUE)
+    scores <- as_tibble(pc$x[, 1:5]) %>% mutate(line = d$line) %>% left_join(d, by = "line")
+    share <- (pc$sdev^2 / sum(pc$sdev^2))[1:5]
+    r2 <- expand_grid(pc = paste0("PC", 1:5), factor = c("tissue", "batch", "group")) %>%
+        rowwise() %>%
+        mutate(r2 = if (n_distinct(scores[[factor]]) > 1)
+            summary(lm(scores[[pc]] ~ factor(scores[[factor]])))$r.squared else NA_real_) %>%
+        ungroup() %>%
+        mutate(variance_share = share[as.integer(sub("PC", "", pc))])
+    list(scores = scores, r2 = r2, share = share)
+}
+pcas <- lapply(qc, function(x) pca_of(x$d))
+
+r2_table <- bind_rows(lapply(names(pcas), function(id) mutate(pcas[[id]]$r2, contrast = id)))
+r2_table %>%
+    mutate(r2 = round(r2, 2), variance_share = round(variance_share, 3)) %>%
+    pivot_wider(names_from = factor, values_from = r2) %>%
+    preview_table(caption = "R² of tissue, batch and group on the first five components")
+```
+
+```{r pca-r2-plot, fig.width = 9, fig.height = 5}
+# tissue is constant in the lung-only contrasts and has no R²
+p <- ggplot(filter(r2_table, !is.na(r2)), aes(pc, r2, fill = factor)) +
+    geom_col(position = "dodge") +
+    facet_wrap(~contrast) +
+    scale_fill_manual(values = uc_palette(c("tissue", "batch", "group"))) +
+    labs(x = NULL, y = "R² (factor alone)", fill = NULL,
+         title = "Variance of the leading components explained by each factor") +
+    theme_uc()
+save_figure(p, "pca_r2", output_dir, width = 9, height = 5)
+p
+```
+
+```{r pca-plots, fig.width = 10, fig.height = 8}
+# PC1/PC2 per contrast, coloured by group, shaped by batch
+p <- bind_rows(lapply(names(pcas), function(id) mutate(pcas[[id]]$scores, contrast = id))) %>%
+    mutate(group = if_else(group, "altered", "unaltered")) %>%
+    ggplot(aes(PC1, PC2, colour = group)) +
+    geom_point(alpha = 0.8) +
+    facet_wrap(~contrast, scales = "free") +
+    scale_colour_manual(values = uc_palette(c("altered", "unaltered"))) +
+    labs(colour = NULL, title = "PCA of the lines of each contrast") +
+    theme_uc()
+save_figure(p, "pca", output_dir, width = 10, height = 8)
+p
+```
+
+## Interpretation
+
+- **All four designs are estimable** with the specified terms and leave 74–107
+  residual degrees of freedom. In the lung-only contrasts the tissue term drops
+  out because there is only one tissue.
+- **Group sizes:** NRF2 in lung 24/61, KRAS 30/66 (lung, colon, blood), MTAP
+  deletion 32/89 (six tissues, lines with copy number), STK11 in lung 22/63.
+- **No group lines up with a culture batch** (Fisher p 0.07–0.60). The NRF2
+  group comes closest (p = 0.07), and batch is in every model.
+- **Batch is the largest visible factor:** it explains about a third of PC2
+  (R² 0.31–0.37) and a fifth of PC5 in every contrast, while the mutation
+  group explains at most 0.12 of any leading component. This supports keeping
+  batch in the model (D8) and shows that mutation effects, if present, are
+  not the dominant source of variation; they have to be found ion by ion.
+- **Co-mutations within the lung contrasts are as expected:** STK11 and the
+  NRF2 group co-occur (STK11 in 42 % of NRF2-altered vs 20 % of other lung
+  lines; KEAP1 in 45 % of STK11-altered vs 14 %), and KRAS-mutant lines carry
+  fewer TP53 alterations. These genes are covariates in the respective models,
+  so their effects are not attributed to the group.
+
+```{r session}
+sessionInfo()
+```

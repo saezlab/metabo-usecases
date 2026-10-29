@@ -16,7 +16,8 @@ Decisions already taken are in `decision_log.md`, open points in
 | 02 | `analysis/02_mutation_landscape.Rmd` | 3 | description of mutations in the metabolomics lines |
 | 03 | `analysis/03_contrast_selection.Rmd` | 3 | ranked candidate contrasts → **Checkpoint 2** |
 | 04 | `analysis/04_metabolomics_qc.Rmd` | 4 | QC for the chosen design |
-| 05 | `analysis/05_metabolomics_differential.Rmd` | 4 | full result tables → **Checkpoint 3** |
+| 05 | `analysis/05_positive_control_nrf2.Rmd` | 4 | NRF2 positive control in lung (D18) |
+| 06 | `analysis/06_metabolomics_differential.Rmd` | 4 | main contrasts and screen, full result tables → **Checkpoint 3** |
 
 Analysis steps live in `analysis/` (the previous `01`–`04` still occupy the
 top level). All steps run through `run_analysis.R`; outputs go to
@@ -116,8 +117,8 @@ overview of group sizes per tissue and batch.
   `~ batch + tissue + covariates + mutation`; moderated t-statistics, empirical
   Bayes variance moderation; BH over all ions per contrast. Design rank and
   estimability are checked; the tissues and number of lines informing the
-  mutation coefficient are reported. MetaProViz differential analysis is used
-  instead if it supports this design (to be checked in the installed version).
+  mutation coefficient are reported. limma is used directly: MetaProViz `dma()`
+  (4.99.0) fits `~0 + condition` only and takes no covariates (D26).
 - **Missing values:** none beyond the imputed values <= 0 (D7); ions with
   imputed values are flagged.
 - **Sensitivity analyses:** leave-one-tissue-out; covariate-adjusted vs

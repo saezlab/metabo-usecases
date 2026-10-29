@@ -1,0 +1,193 @@
+---
+title: "Positive control: NRF2 activation in lung lines"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Test whether the pipeline (pre-processing, genotypes, design, limma)
+recovers a known mutation–metabolite relationship before the main contrasts
+are fitted (D18). NRF2 activation by KEAP1 loss or NFE2L2 gain increases
+glutathione synthesis, which consumes intracellular glutamate (Okazaki K et
+al. Metabolic features of cancer cells in NRF2 addiction status. *Biophys Rev*
+2020. doi:10.1007/s12551-020-00659-8, PMID 32112372). Shorthouse et al. (2022)
+found glutathione metabolism enriched for KEAP1 and NFE2L2 mutations in the
+same data (Appendix Fig S6).
+
+**Expectation, fixed before the fit** (`config.yml: differential.contrasts.nrf2_lung.readouts`):
+glutathione ions higher, glutamate lower in NRF2-altered lung lines. The
+control counts as passed if the glutathione ions as a set are significantly
+higher (one-sided set test, p < 0.05).
+
+**Decision supported:** whether the main contrasts can be fitted with this
+pipeline (Phase 4).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `config.yml`: `contrast`, `differential.contrasts.nrf2_lung`
+
+## Methods
+
+Lines: lung lines used in models; NRF2 altered if KEAP1 (any protein-changing
+variant or homozygous deletion) or NFE2L2 (likely-driver variant) is altered
+(D19, D21). Model: limma on the log2 values of all 1096 ions with the design
+`~ batch + KRAS + STK11 + TP53 + NRF2` (moderated t-statistics, empirical
+Bayes), BH adjustment over all ions. Readout ions were matched by name. The
+glutathione ions were tested as a set with `limma::fry` (self-contained
+rotation test; direction "Up"); fry was chosen because the set is small and
+pre-specified, and it accounts for the correlation between the ions.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "05_positive_control_nrf2")
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+contrast <- config$differential$contrasts$nrf2_lung
+contrast$description
+```
+
+## 1. Lines and design
+
+```{r design}
+d <- contrast_lines(data, contrast, config)
+X <- contrast_design(d, contrast$covariates)
+c(lines = nrow(d), altered = sum(d$group), unaltered = sum(!d$group), residual_df = nrow(X) - ncol(X))
+colnames(X)
+
+# which gene makes a line NRF2-altered
+d %>%
+    mutate(KEAP1 = altered_status(data, line, "KEAP1", config),
+           NFE2L2 = altered_status(data, line, "NFE2L2", config)) %>%
+    filter(group) %>%
+    count(KEAP1, NFE2L2)
+preview_table(d, caption = "Lines of the contrast with group and covariates")
+```
+
+## 2. Fit
+
+```{r fit}
+result <- fit_contrast(data, d, X)
+res <- result$table %>% arrange(P.Value)
+c(ions = nrow(res), adj_p_below_0.05 = sum(res$adj.P.Val < 0.05), adj_p_below_0.1 = sum(res$adj.P.Val < 0.1))
+preview_table(res, caption = "All ions, NRF2 altered vs not (lung)")
+
+# p-value histogram: a uniform background with a peak near 0 indicates signal
+p <- ggplot(res, aes(P.Value)) +
+    geom_histogram(binwidth = 0.025, boundary = 0, fill = uc_palette("ions")) +
+    labs(x = "p-value", y = "Ions", title = "p-values of the NRF2 coefficient") +
+    theme_uc()
+save_figure(p, "p_value_histogram", output_dir, height = 3.5)
+p
+```
+
+## 3. Pre-specified readouts
+
+```{r readouts}
+# readout ions matched by name, with the expected direction
+readouts <- bind_rows(lapply(contrast$readouts, function(r) {
+    res %>%
+        filter(grepl(r$pattern, name, ignore.case = TRUE)) %>%
+        mutate(readout = r$pattern, expected = r$direction)
+})) %>%
+    mutate(rank = match(feature_id, res$feature_id),
+           as_expected = if_else(expected == "up", logFC > 0, logFC < 0)) %>%
+    select(readout, expected, feature_id, name, logFC, t, P.Value, adj.P.Val, rank, as_expected, has_imputed_values)
+readouts
+
+# set test of the glutathione ions (direction up)
+glutathione_ions <- readouts$feature_id[readouts$readout == "glutathione"]
+set_test <- limma::fry(result$y, index = list(glutathione = glutathione_ions), design = X,
+                       contrast = ncol(X))
+set_test
+```
+
+```{r volcano, fig.width = 7, fig.height = 5}
+p <- res %>%
+    mutate(readout = case_when(
+        feature_id %in% glutathione_ions ~ "glutathione",
+        feature_id %in% readouts$feature_id ~ "glutamate",
+        TRUE ~ "other"
+    )) %>%
+    arrange(readout != "other") %>%
+    ggplot(aes(logFC, -log10(P.Value), colour = readout)) +
+    geom_point(alpha = 0.8) +
+    ggrepel::geom_text_repel(data = ~ filter(.x, readout != "other"), aes(label = name),
+                             size = 3, show.legend = FALSE) +
+    scale_colour_manual(values = c(glutathione = "#D55E00", glutamate = "#0072B2", other = "grey75")) +
+    labs(x = "log2 fold change (NRF2 altered vs not)", y = "-log10 p", colour = NULL,
+         title = "NRF2 activation in lung lines",
+         subtitle = sprintf("%d vs %d lines; ~ batch + KRAS + STK11 + TP53 + NRF2", sum(d$group), sum(!d$group))) +
+    theme_uc()
+save_figure(p, "volcano", output_dir)
+p
+```
+
+```{r readout-values, fig.width = 8, fig.height = 4}
+# log2 values of the readout ions per line and group, not adjusted for batch or covariates
+p <- as_tibble(data$log2[d$line, readouts$feature_id, drop = FALSE], rownames = "line") %>%
+    pivot_longer(-line, names_to = "feature_id", values_to = "log2") %>%
+    left_join(select(d, line, group), by = "line") %>%
+    left_join(select(readouts, feature_id, name), by = "feature_id") %>%
+    mutate(group = if_else(group, "NRF2 altered", "not altered"),
+           name = substr(name, 1, 30)) %>%
+    ggplot(aes(group, log2, fill = group)) +
+    geom_boxplot(outlier.shape = NA, alpha = 0.6) +
+    geom_jitter(width = 0.15, size = 0.8, alpha = 0.6) +
+    facet_wrap(~name, scales = "free_y", nrow = 1) +
+    scale_fill_manual(values = uc_palette(c("NRF2 altered", "not altered"))) +
+    labs(x = NULL, y = "log2 intensity", title = "Readout ions in lung lines (unadjusted values)") +
+    theme_uc() +
+    theme(legend.position = "none", axis.text.x = element_text(angle = 30, hjust = 1))
+save_figure(p, "readout_values", output_dir, width = 8, height = 4)
+p
+```
+
+## Outputs
+
+```{r save}
+out <- c(results = file.path(output_dir, "nrf2_lung_results.tsv"))
+readr::write_tsv(res, out[["results"]])
+```
+
+## Interpretation
+
+**The positive control passes.**
+
+- 24 NRF2-altered lung lines (19 KEAP1, 5 NFE2L2) were compared with 61
+  others; 25 of 1096 ions have an adjusted p < 0.05.
+- **All five pre-specified readouts move in the expected direction.**
+  Glutathione is higher (log2FC 0.89, adjusted p = 0.0015, rank 13 of 1096),
+  oxidised glutathione is higher (0.58, adjusted p = 0.06), S-lactoylglutathione
+  (0.62, p = 0.04 unadjusted) and cysteine-glutathione disulfide (0.21, not
+  significant) as well. The glutamate ion is lower (−0.70, adjusted p = 0.028).
+- **The glutathione set is significantly higher** (fry, direction up,
+  p = 0.0006), which was the pass criterion.
+- None of the readout ions contains imputed values.
+- *Not pre-specified, noted for interpretation only:* further ions of the
+  glutathione pathway are among the significant ions: γ-glutamylcysteine (the
+  product of the first step of glutathione synthesis), cysteinylglycine
+  (a glutathione breakdown product) and glycine are higher. The strongest ions
+  overall (e.g. glycylproline, nicotinuric acid, orotidylic acid, FAD) were
+  not expected and are hypotheses only.
+
+The pipeline recovers the known NRF2–glutathione relationship in this data
+set, in agreement with Shorthouse et al. (2022). The main contrasts can be
+fitted with the same code.
+
+```{r session}
+sessionInfo()
+```

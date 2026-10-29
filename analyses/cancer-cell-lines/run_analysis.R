@@ -20,6 +20,8 @@ steps <- c(
     # analysis steps (Phase 3 and 4)
     "m02" = "analysis/02_mutation_landscape.Rmd",
     "m03" = "analysis/03_contrast_selection.Rmd",
+    "m04" = "analysis/04_metabolomics_qc.Rmd",
+    "m05" = "analysis/05_positive_control_nrf2.Rmd",
     # audit notebooks: analyses that support decisions (Phase 1b)
     "a01" = "audit/01_scale_transform.Rmd",
     "a02" = "audit/02_structure_batch_tissue.Rmd",

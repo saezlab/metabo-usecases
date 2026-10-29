@@ -66,7 +66,11 @@ differential:
       group: NRF2
       tissues: [Lung]
       covariates: [KRAS, STK11, TP53]
-      expected_readout: glutathione
+      # expected readouts, fixed before the fit (Shorthouse et al. 2022, Appendix Fig S6;
+      # Okazaki et al. 2020, doi:10.1007/s12551-020-00659-8); ions matched by name
+      readouts:
+        - {pattern: "glutathione", direction: up}        # NRF2 drives glutathione synthesis
+        - {pattern: "^L-Glutamic_acid", direction: down} # ... which consumes intracellular glutamate
     kras:
       description: KRAS mutant vs wild type, tissue as blocking factor (main contrast)
       group: KRAS
