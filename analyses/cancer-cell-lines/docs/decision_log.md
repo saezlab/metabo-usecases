@@ -21,3 +21,5 @@ and where the evidence is. Newest last. Bug fixes are listed in
 | D13 | 2026-10-28 | No filtering of ions by replicate reproducibility | limma's variance moderation handles noisy ions; avoids an extra data-driven choice | `audit/01` section 5 |
 | D14 | 2026-10-28 | Other modalities chosen before the integration phase | Metabolomics first | Checkpoint 1b |
 | D15 | 2026-10-28 | Analysis plan approved (`analysis_plan.md`) | Checkpoint Phase 2 | `analysis_plan.md` |
+| D16 | 2026-10-29 | Lines without DepMap match or without tissue stay in the analysis data set with a flag but are not used in mutation models | Keeps the data complete; models need both annotations (Q4) | `open_questions.md` |
+| D17 | 2026-10-29 | The three ions with duplicate annotation stay dropped (1096 ions) | As in the previous pipeline (Q8) | `preprocessing/01` |
