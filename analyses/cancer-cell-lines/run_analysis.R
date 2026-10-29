@@ -22,6 +22,7 @@ steps <- c(
     "m03" = "analysis/03_contrast_selection.Rmd",
     "m04" = "analysis/04_metabolomics_qc.Rmd",
     "m05" = "analysis/05_positive_control_nrf2.Rmd",
+    "m06" = "analysis/06_metabolomics_differential.Rmd",
     # audit notebooks: analyses that support decisions (Phase 1b)
     "a01" = "audit/01_scale_transform.Rmd",
     "a02" = "audit/02_structure_batch_tissue.Rmd",
@@ -30,7 +31,8 @@ steps <- c(
     "a05" = "audit/05_metabolite_annotation.Rmd",
     "a06" = "audit/06_ortmayr_descriptive.Rmd",
     "a07" = "audit/07_functional_groups.Rmd",
-    "a08" = "audit/08_genotype_reliability.Rmd"
+    "a08" = "audit/08_genotype_reliability.Rmd",
+    "a09" = "audit/09_previous_lung_contrasts.Rmd"
 )
 
 use_case_dir <- here::here("analyses", "cancer-cell-lines")

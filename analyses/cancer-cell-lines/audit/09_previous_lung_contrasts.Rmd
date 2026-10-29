@@ -1,0 +1,195 @@
+---
+title: "Audit 9: the previous KRAS and EGFR lung contrasts, redone"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+The previous analysis (`04_differential_analysis.Rmd`, thesis) compared
+KRAS- and EGFR-mutant lung lines with the other lung lines in two ways: against
+all lung lines, and against a cohort filtered by co-mutations (TP53 mutant;
+other driver, CDKN2A and STK11 wild type). This test redoes these four
+contrasts with the current data and mutation status, puts each next to a
+covariate-adjusted version that keeps all lines, and adds a direct KRAS vs EGFR
+comparison.
+
+**Decision supported:** whether exclusion by co-mutation (previous approach) or
+adjustment for co-mutations (current approach) is used for lung genotype
+contrasts, and whether KRAS vs EGFR is worth pursuing.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `analyses/cancer-cell-lines/04_differential_analysis.Rmd` (previous contrasts, for the cohort definitions)
+- `config.yml`: `contrast`
+
+## Methods
+
+Lines: lung lines used in models. Status as in the main analysis (D19, D25,
+D27), with one exception for EGFR. DepMap's driver flags miss the classic
+EGFR exon 19 deletions (PC9 and NCIH1650 carry E746_A750del). Activating EGFR
+mutations are "small, in-frame deletions or amino acid substitutions clustered
+around the ATP-binding pocket of the tyrosine kinase domain" (Lynch TJ et al.
+*N Engl J Med* 2004. doi:10.1056/nejmoa040938, PMID 15118073). Here EGFR
+counts as mutated with a likely-driver variant or an in-frame deletion
+starting in codons 745–753 (exon 19). The general rule for oncogenes is
+examined in audit/11.
+
+Differences to the previous analysis: lines instead of injections, the log2
+half-minimum transform (D7) instead of dropping ions with values <= 0, DepMap
+instead of Cellosaurus status, and culture batch in every model. Each contrast
+was fitted with limma on all ions; BH over all ions within each contrast.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "audit_09_previous_lung_contrasts")
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+```
+
+## 1. Lung lines and status
+
+```{r status}
+lung <- data$lines %>% filter(in_models, tissue == "Lung") %>% select(line, tissue, batch)
+for (g in c("KRAS", "TP53", "CDKN2A", "STK11")) lung[[g]] <- altered_status(data, lung$line, g, config)
+
+# EGFR: likely driver or in-frame exon 19 deletion (codons 745-753)
+egfr <- alteration_status(data, lung$line, "EGFR") %>%
+    mutate(exon19_deletion = grepl("p\\.[A-Z]7(4[5-9]|5[0-3])_[A-Z][0-9]+(del|delins)", protein_changes))
+lung$EGFR <- (egfr$likely_driver | egfr$exon19_deletion)[match(lung$line, egfr$line)]
+egfr %>% filter(any_mutation) %>% select(line, protein_changes, likely_driver, exon19_deletion)
+
+# CDKN2A is unknown for lines without copy number (D27)
+c(lung_lines = nrow(lung), CDKN2A_unknown = sum(is.na(lung$CDKN2A)))
+lung %>% summarise(across(c(KRAS, EGFR, TP53, CDKN2A, STK11), ~ sum(.x, na.rm = TRUE)))
+preview_table(lung, caption = "Lung lines with status")
+```
+
+## 2. Contrasts
+
+```{r contrasts}
+# each contrast: lines (a filter on the lung table), group column, covariates
+specs <- list(
+    KRAS_all = list(lines = quote(TRUE), group = "KRAS", covariates = character()),
+    KRAS_filtered = list(lines = quote(TP53 & !EGFR & !CDKN2A & !STK11), group = "KRAS", covariates = character()),
+    KRAS_adjusted = list(lines = quote(TRUE), group = "KRAS", covariates = c("TP53", "EGFR", "CDKN2A", "STK11")),
+    EGFR_all = list(lines = quote(TRUE), group = "EGFR", covariates = character()),
+    EGFR_filtered = list(lines = quote(TP53 & !KRAS & !CDKN2A & !STK11), group = "EGFR", covariates = character()),
+    EGFR_adjusted = list(lines = quote(TRUE), group = "EGFR", covariates = c("TP53", "KRAS", "CDKN2A", "STK11")),
+    KRAS_vs_EGFR = list(lines = quote(KRAS | EGFR), group = "KRAS", covariates = character())
+)
+
+run_spec <- function(spec) {
+    d <- lung %>%
+        filter(!is.na(.data[[spec$group]])) %>%
+        filter(if_all(all_of(spec$covariates), ~ !is.na(.x))) %>%
+        filter(coalesce(!!spec$lines, FALSE))
+    d$group <- d[[spec$group]]
+    X <- contrast_design(d, spec$covariates)
+    fit <- fit_contrast(data, d, X)
+    list(d = d, X = X, table = fit$table)
+}
+results <- lapply(specs, run_spec)
+
+summary_table <- bind_rows(lapply(names(results), function(id) {
+    r <- results[[id]]
+    tibble(contrast = id, lines = nrow(r$d), mutant = sum(r$d$group), other = sum(!r$d$group),
+           batches_of_mutant = n_distinct(r$d$batch[r$d$group]),
+           residual_df = nrow(r$X) - ncol(r$X),
+           p_below_0.05 = sum(r$table$P.Value < 0.05),
+           adj_p_below_0.05 = sum(r$table$adj.P.Val < 0.05),
+           min_adj_p = min(r$table$adj.P.Val),
+           null_share = round(limma::propTrueNull(r$table$P.Value), 2))
+}))
+summary_table
+```
+
+In the KRAS vs EGFR contrast, "mutant" is the KRAS group and "other" the EGFR
+group. The null share is limma's estimate of the share of ions without an
+effect; 55 ions with p < 0.05 are expected by chance.
+
+## 3. Exclusion vs adjustment
+
+```{r agreement, fig.width = 8, fig.height = 4}
+# t-statistics of the filtered and the adjusted version against the "all" version
+compare <- function(gene) {
+    t_of <- function(id) select(results[[id]]$table, feature_id, t) %>% rename(!!id := t)
+    t_of(paste0(gene, "_all")) %>%
+        inner_join(t_of(paste0(gene, "_filtered")), by = "feature_id") %>%
+        inner_join(t_of(paste0(gene, "_adjusted")), by = "feature_id") %>%
+        rename_with(~ sub(paste0(gene, "_"), "", .x)) %>%
+        mutate(gene = gene)
+}
+t_values <- bind_rows(compare("KRAS"), compare("EGFR"))
+t_values %>%
+    group_by(gene) %>%
+    summarise(filtered_vs_all = cor(filtered, all, method = "spearman"),
+              adjusted_vs_all = cor(adjusted, all, method = "spearman"),
+              filtered_vs_adjusted = cor(filtered, adjusted, method = "spearman"))
+
+p <- t_values %>%
+    pivot_longer(c(filtered, adjusted), names_to = "version", values_to = "t_version") %>%
+    ggplot(aes(all, t_version)) +
+    geom_abline(colour = "grey60") +
+    geom_point(alpha = 0.3, size = 0.6) +
+    facet_grid(version ~ gene) +
+    labs(x = "t, all lung lines", y = "t, filtered / adjusted",
+         title = "Exclusion-based and covariate-adjusted versions vs all lung lines") +
+    theme_uc()
+save_figure(p, "versions", output_dir, width = 8, height = 4)
+p
+```
+
+## 4. Top ions
+
+```{r top}
+bind_rows(lapply(names(results), function(id) mutate(results[[id]]$table, contrast = id))) %>%
+    group_by(contrast) %>%
+    slice_min(P.Value, n = 5) %>%
+    ungroup() %>%
+    transmute(contrast, name = substr(name, 1, 50), logFC = round(logFC, 2), P.Value, adj.P.Val) %>%
+    preview_table(caption = "Five strongest ions per contrast")
+```
+
+## Interpretation
+
+- **The co-mutation filter removes most lines.** The KRAS cohort shrinks from
+  85 to 24 lines (7 KRAS-mutant), and the EGFR cohort from 85 to 18 lines
+  with a **single** EGFR-mutant line (NCIH3255).
+- **With one mutant line the test turns into an outlier test.** EGFR_filtered
+  is the only contrast with ions at adjusted p < 0.05 (10-nitrolinoleic acid,
+  adjusted p 4 × 10⁻⁶; pantothenic acid, log2FC −7). In NCIH3255, both ions
+  have negative raw intensities, so they sit at the half-minimum floor (D7).
+  These "hits" are imputation values in one line, not EGFR effects. The same
+  ion leads KRAS_vs_EGFR (+4.2).
+- **Filtering changes the result; adjusting does not.** The filtered versions
+  correlate only moderately with the all-lines versions (Spearman 0.54 KRAS,
+  0.42 EGFR), while the covariate-adjusted versions keep the pattern
+  (0.89, 0.91) and all lines (76; 9 lines without CDKN2A copy number drop
+  out, D27).
+- **No version has a reliable ion-level effect** for KRAS or EGFR in lung
+  (smallest adjusted p ≥ 0.58 apart from the artefact above). With four EGFR
+  lines from two batches, KRAS vs EGFR (25 vs 4) has little power.
+
+**Conclusion:** the exclusion-based design of the previous analysis is not
+kept; lung genotype contrasts adjust for co-mutations instead (as D18/D22).
+Small groups need a guard against effects carried by imputed values:
+exploratory results should report, per ion, how many values of the smaller
+group are imputed.
+
+```{r session}
+sessionInfo()
+```

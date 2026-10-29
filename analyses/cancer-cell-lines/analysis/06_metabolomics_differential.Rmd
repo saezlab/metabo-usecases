@@ -1,0 +1,254 @@
+---
+title: "Differential analysis: main contrasts and exploratory screen"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Fit the pre-specified main contrasts (D22) and the exploratory screen of all
+eligible genes, after the positive control has passed (analysis/05).
+
+1. **Main contrasts** (confirmatory): KRAS with tissue as blocking factor,
+   MTAP deletion with tissue as blocking factor (read as 9p21 loss,
+   audit/07), STK11 in lung lines; each with its own co-mutation covariates.
+2. **Screen** (exploratory, hypothesis-generating): every gene with enough
+   altered lines, one standard model `~ batch + tissue + TP53 + gene`,
+   compared with Dataset EV4 of Shorthouse et al. (2022).
+
+**Decision supported:** Checkpoint 3 (results and caveats).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `data/raw/cancer-cell-lines/msb202211006-sup-0005-datasetev4.xlsx` (Dataset EV4: t-statistics of Shorthouse et al.)
+- `config.yml`: `contrast`, `differential`
+
+## Methods
+
+As in analysis/05: lines and design from `contrast_lines()` and
+`contrast_design()`, limma on the log2 values of all 1096 ions (moderated
+t-statistics), BH adjustment over all ions within each contrast (D22, D26).
+Terms that do not vary among a contrast's lines are left out.
+
+For the screen, the candidate genes are those tested by Shorthouse et al.
+(Dataset EV4) plus MTAP. A gene enters the screen when, with tissue as blocking
+factor, at least `min_mutant_total` altered lines fall in tissues with at least
+`min_per_group_per_tissue` altered and unaltered lines (D20). TP53 is a
+covariate for every gene except TP53 itself. "Altered" follows the gene roles
+(D19, D25), and other genes use a likely-driver variant or homozygous deletion.
+
+Shorthouse et al. fitted ordinary least squares regressions of z-scored
+metabolite levels on each mutation, controlling for tissue, with their CCLE
+mutation calls. Their t-statistics (Dataset EV4) were compared with the
+screen's moderated t-statistics per gene by Spearman correlation over the
+ions; ions were matched by `ionIdx`. A positive correlation means the two
+analyses agree on the direction of the ion changes. Differences are expected
+from the different mutation source, definition, model and batch term.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+raw_dir <- uc_dir(config, "raw")
+output_dir <- uc_dir(config, "output", "06_metabolomics_differential")
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+main_ids <- c("kras", "mtap_deletion", "stk11_lung")
+```
+
+## 1. Main contrasts
+
+```{r main-fit}
+# lines, design and fit per main contrast
+main <- lapply(setNames(main_ids, main_ids), function(id) {
+    contrast <- config$differential$contrasts[[id]]
+    d <- contrast_lines(data, contrast, config)
+    X <- contrast_design(d, contrast$covariates)
+    fit <- fit_contrast(data, d, X)
+    list(d = d, X = X, table = arrange(fit$table, P.Value))
+})
+
+main_summary <- bind_rows(lapply(main_ids, function(id) {
+    m <- main[[id]]
+    tibble(
+        contrast = id,
+        altered = sum(m$d$group), unaltered = sum(!m$d$group),
+        terms = paste(setdiff(colnames(m$X), "(Intercept)"), collapse = " + "),
+        residual_df = nrow(m$X) - ncol(m$X),
+        adj_p_below_0.05 = sum(m$table$adj.P.Val < 0.05),
+        adj_p_below_0.1 = sum(m$table$adj.P.Val < 0.1),
+        min_adj_p = min(m$table$adj.P.Val)
+    )
+}))
+preview_table(main_summary, caption = "Main contrasts")
+
+# full result tables
+for (id in main_ids) readr::write_tsv(main[[id]]$table, file.path(output_dir, paste0(id, "_results.tsv")))
+```
+
+```{r main-histograms, fig.width = 9, fig.height = 3}
+# p-value histograms: uniform = no signal, peak near 0 = signal
+p <- bind_rows(lapply(main_ids, function(id) mutate(main[[id]]$table, contrast = id))) %>%
+    ggplot(aes(P.Value)) +
+    geom_histogram(binwidth = 0.025, boundary = 0, fill = uc_palette("ions")) +
+    facet_wrap(~contrast) +
+    labs(x = "p-value", y = "Ions", title = "p-values of the group coefficient") +
+    theme_uc()
+save_figure(p, "main_p_value_histograms", output_dir, width = 9, height = 3)
+p
+```
+
+```{r main-volcanos, fig.width = 10, fig.height = 4}
+p <- bind_rows(lapply(main_ids, function(id) mutate(main[[id]]$table, contrast = id))) %>%
+    mutate(significant = if_else(adj.P.Val < 0.05, "adjusted p < 0.05", "not significant")) %>%
+    ggplot(aes(logFC, -log10(P.Value), colour = significant)) +
+    geom_point(alpha = 0.7, size = 1) +
+    ggrepel::geom_text_repel(
+        data = ~ .x %>% filter(adj.P.Val < 0.05) %>% group_by(contrast) %>% slice_min(P.Value, n = 8),
+        aes(label = substr(name, 1, 25)), size = 2.5, show.legend = FALSE, max.overlaps = 20) +
+    facet_wrap(~contrast, scales = "free") +
+    scale_colour_manual(values = c("adjusted p < 0.05" = "#D55E00", "not significant" = "grey70")) +
+    labs(x = "log2 fold change (altered vs not)", y = "-log10 p", colour = NULL,
+         title = "Main contrasts") +
+    theme_uc() +
+    theme(legend.position = "bottom")
+save_figure(p, "main_volcanos", output_dir, width = 10, height = 4)
+p
+```
+
+Ions with adjusted p < 0.05 per contrast:
+
+```{r main-hits}
+bind_rows(lapply(main_ids, function(id) mutate(main[[id]]$table, contrast = id))) %>%
+    filter(adj.P.Val < 0.05) %>%
+    select(contrast, feature_id, name, logFC, t, adj.P.Val, has_imputed_values, replicate_signal_ratio) %>%
+    preview_table(caption = "Significant ions in the main contrasts")
+```
+
+## 2. Exploratory screen
+
+```{r screen-candidates}
+# candidate genes: tested by Shorthouse et al. (EV4) plus MTAP
+ev4 <- readxl::read_excel(file.path(raw_dir, "msb202211006-sup-0005-datasetev4.xlsx"), sheet = "Sheet1")
+ev4_genes <- sub("^T_", "", setdiff(names(ev4), "ionIdx"))
+candidates <- union(ev4_genes, "MTAP")
+
+# a gene enters the screen with enough altered lines in contributing tissues (D20)
+screen_contrast <- function(gene) {
+    list(group = gene, tissues = config$differential$screen$tissues,
+         covariates = setdiff(config$differential$screen$standard_covariates, gene))
+}
+eligible <- bind_rows(lapply(candidates, function(g) {
+    d <- contrast_lines(data, screen_contrast(g), config)
+    tibble(gene = g, altered = sum(d$group), unaltered = sum(!d$group), tissues = n_distinct(d$tissue))
+})) %>%
+    filter(altered >= config$contrast$min_mutant_total) %>%
+    arrange(desc(altered))
+preview_table(eligible, caption = "Genes in the screen (lines in contributing tissues)")
+```
+
+```{r screen-fit}
+# one standard model per gene
+screen <- bind_rows(lapply(eligible$gene, function(g) {
+    contrast <- screen_contrast(g)
+    d <- contrast_lines(data, contrast, config)
+    X <- contrast_design(d, contrast$covariates)
+    mutate(fit_contrast(data, d, X)$table, gene = g)
+}))
+readr::write_tsv(screen, file.path(output_dir, "screen_results.tsv"))
+
+screen_summary <- screen %>%
+    group_by(gene) %>%
+    summarise(adj_p_below_0.05 = sum(adj.P.Val < 0.05), adj_p_below_0.1 = sum(adj.P.Val < 0.1),
+              min_adj_p = min(adj.P.Val), .groups = "drop") %>%
+    left_join(eligible, by = "gene") %>%
+    arrange(desc(adj_p_below_0.05))
+preview_table(screen_summary, caption = "Screen: significant ions per gene")
+```
+
+### Comparison with Dataset EV4
+
+```{r ev4}
+# EV4 t-statistics, one column per gene, matched to our ions by ionIdx
+ev4_long <- ev4 %>%
+    pivot_longer(-ionIdx, names_to = "gene", values_to = "t_ev4") %>%
+    mutate(gene = sub("^T_", "", gene)) %>%
+    inner_join(select(data$ions, feature_id, ionIdx), by = "ionIdx")
+
+agreement <- screen %>%
+    select(gene, feature_id, t) %>%
+    inner_join(ev4_long, by = c("gene", "feature_id")) %>%
+    group_by(gene) %>%
+    summarise(ions = n(), spearman = cor(t, t_ev4, method = "spearman", use = "complete.obs"), .groups = "drop") %>%
+    left_join(select(screen_summary, gene, altered, adj_p_below_0.05), by = "gene") %>%
+    arrange(desc(spearman))
+preview_table(agreement, caption = "Agreement with EV4 (Spearman correlation of t-statistics over ions)")
+```
+
+```{r ev4-plot, fig.width = 7, fig.height = 6}
+p <- agreement %>%
+    ggplot(aes(spearman, reorder(gene, spearman), size = altered)) +
+    geom_vline(xintercept = 0, colour = "grey60") +
+    geom_point(colour = "#0072B2") +
+    labs(x = "Spearman correlation with EV4 t-statistics", y = NULL, size = "Altered lines",
+         title = "Screen vs Shorthouse et al. (Dataset EV4)") +
+    theme_uc()
+save_figure(p, "screen_vs_ev4", output_dir, width = 7, height = 6)
+p
+```
+
+## Interpretation
+
+**Main contrasts: no ion reaches adjusted p < 0.05.**
+
+- **KRAS** (30/66, tissue-blocked): smallest adjusted p 0.51. The p-value
+  distribution has a mild excess near 0 (91 ions with p < 0.05 where about 55
+  are expected; estimated share of null ions 0.88), so any effects are weak
+  and spread over many ions.
+- **STK11 in lung** (22/63): smallest adjusted p 0.13. The top ions are
+  phospholipids (PE, PS and PC species, all higher in STK11-altered lines).
+  Estimated share of null ions 0.90.
+- **MTAP deletion** (32/89, six tissues): no signal (estimated share of null
+  ions 0.99; 33 ions with p < 0.05, about as many as expected by chance). Its
+  direct readout, 5'-methylthioadenosine, is not measured (analysis/03).
+
+**Exploratory screen (21 genes, `~ batch + tissue + TP53 + gene`):**
+
+- Genes with ions at adjusted p < 0.05: SMARCA4 (12, mostly lower
+  phospholipids and UDP sugars), CDKN2A (4, led by γ-glutamylcysteine), KEAP1
+  (3: FAD, 6-hydroxy-FAD, orotidylic acid, the same ions that lead the NRF2
+  control) and STK11 (2 phospholipids). No other gene has any.
+- The screen adjusts for TP53 only, so co-mutations are not separated. For
+  example, SMARCA4 alterations are more frequent in STK11-altered lines (33 %
+  vs 20 %, analysis/03). The screen hits are hypotheses, not findings.
+- **Agreement with Shorthouse et al. (EV4):** for the well-defined drivers, the
+  t-statistics correlate strongly over the ions (Spearman 0.68–0.86 for
+  SMARCA4, NRAS, STK11, SMAD4, PTEN, RB1, KRAS, TP53 and KEAP1). The direction
+  of the ion changes is therefore reproduced despite a different mutation
+  source, definition, model and batch term. The correlation is low for
+  passenger-prone long genes (MUC16, CSMD3, LRP1B, EP300), for CDKN2A (0.16;
+  here mostly deletions, which their calls do not include) and negative for
+  TERT (−0.28). These are exactly the genes where the mutation definitions
+  differ most.
+
+**Overall:** the data reproduce a known strong effect (NRF2, analysis/05) and
+the direction of the published associations, but at the ion level the
+pre-specified main contrasts are not significant after correction for 1096
+ions. With 20–30 altered lines and batch as the largest source of variation
+(analysis/04), single-ion tests are underpowered for effects that are weaker
+than NRF2's.
+
+```{r session}
+sessionInfo()
+```

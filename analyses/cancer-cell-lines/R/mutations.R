@@ -11,7 +11,7 @@
 #'   function, Hess driver or high-impact oncogene/tumour-suppressor variant),
 #'   `deleted` (homozygous deletion; FALSE for lines without copy number),
 #'   `protein_changes`, and the line's `tissue`, `batch` and `has_copy_number`.
-#'   Genes defined by deletion alone (`contrast$deletion_genes` in config.yml)
+#'   Frequently deleted genes (`contrast$deletion_genes` in config.yml)
 #'   need `has_copy_number`; callers drop the other lines for them (D25).
 alteration_status <- function(data, lines, genes) {
     mutations <- data$mutation_status |>

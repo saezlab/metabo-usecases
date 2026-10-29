@@ -3,8 +3,8 @@
 #' Altered status of one gene or pathway group per line
 #'
 #' Oncogenes count with a likely-driver variant, tumour suppressors with any
-#' protein-changing variant or a homozygous deletion (D19), genes defined by
-#' deletion alone with a homozygous deletion (D25), other genes with a
+#' protein-changing variant or a homozygous deletion (D19), frequently deleted
+#' genes (`deletion_genes`) only on lines with copy number (D25, D27), other genes with a
 #' likely-driver variant or a homozygous deletion (definition A of
 #' analysis/03). A pathway group is altered if any member is.
 #'
@@ -20,6 +20,7 @@ altered_status <- function(data, lines, name, config) {
     status <- alteration_status(data, lines, genes) |>
         dplyr::mutate(altered = dplyr::case_when(
             gene %in% params$deletion_genes & !has_copy_number ~ NA,
+            gene %in% params$deletion_genes & gene %in% params$tumour_suppressors ~ any_mutation | deleted,
             gene %in% params$deletion_genes ~ deleted,
             gene %in% params$oncogenes ~ likely_driver,
             gene %in% params$tumour_suppressors ~ any_mutation | deleted,

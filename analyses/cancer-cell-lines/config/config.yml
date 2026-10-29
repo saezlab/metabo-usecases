@@ -53,10 +53,10 @@ contrast:
   # Pathway-level groups (decision Q3): line counts as altered if any member gene is
   pathway_groups:
     NRF2: [KEAP1, NFE2L2]
-  # Genes whose status rests on copy number alone: lines without DepMap copy number are
-  # left out for them (D25). For tumour suppressors, lines without copy number count as
-  # not deleted (homozygous deletion of KEAP1/STK11/TP53 in 1-2 of 137 lines, audit/08).
-  deletion_genes: [MTAP]
+  # Genes whose status needs copy number: frequently deleted, so lines without DepMap copy
+  # number are left out for them (D25, D27). For the other tumour suppressors, lines without
+  # copy number count as not deleted (KEAP1/STK11/TP53 deleted in 1-2 of 137 lines, audit/08).
+  deletion_genes: [MTAP, CDKN2A]
 
 differential:
   # contrasts chosen at Checkpoint 2 (2026-10-29); the main contrast follows after the positive control
