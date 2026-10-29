@@ -1,0 +1,226 @@
+---
+title: "Audit 10: lung histology as a confounder of lung contrasts"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+The 85 lung lines used in models are of several histologies: adenocarcinoma,
+squamous cell carcinoma, small cell lung cancer and others. Driver mutations
+differ between histologies (e.g. KRAS mostly in adenocarcinoma), and so may
+metabolism. A lung genotype contrast that ignores histology may then partly
+compare histologies. This notebook checks how histology relates to the
+genotypes, to batch and to the metabolic profiles, and how adding histology
+to the lung models changes their results.
+
+**Decision supported:** whether histology enters the lung contrasts as a
+blocking factor (catalogue families F2, F3, F5), and whether histology
+contrasts (F1) are feasible.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `data/raw/cancer-cell-lines/depmap_24Q4/Model.csv` (Oncotree subtype; local only)
+- `data/derived/cancer-cell-lines/shorthouse_v1/02_cell_lines.tsv` (Cellosaurus disease text, for comparison)
+- `config.yml`: `contrast`, `differential.contrasts`
+
+## Methods
+
+Histology was taken from the DepMap Oncotree subtype and grouped into
+adenocarcinoma, squamous cell carcinoma, neuroendocrine (small cell lung
+cancer and carcinoid), other non-small cell (large cell, adenosquamous,
+mucoepidermoid, not otherwise specified) and other (mesothelioma,
+SMARCA4-deficient undifferentiated tumour). The association of each genotype
+with histology was tested with Fisher's exact test (simulated p-value), and
+that of batch with histology likewise. The metabolic effect of histology was
+measured as the R² of histology on the leading principal components and with
+a limma F-test of histology in `~ batch + histology`. The lung contrasts were
+refitted with histology added to the design, and their results compared with
+the current ones.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "audit_10_lung_histology")
+set.seed(config$contrast$seed)
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+```
+
+## 1. Histology of the lung lines
+
+```{r histology}
+models <- readr::read_csv(file.path(raw_dir, config$depmap$dir, "Model.csv"), show_col_types = FALSE,
+                          col_select = c(ModelID, OncotreePrimaryDisease, OncotreeSubtype))
+cellosaurus <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE) %>%
+    select(line, disease_cellosaurus)
+
+# Oncotree subtype grouped into five histologies
+lung <- data$lines %>%
+    filter(in_models, tissue == "Lung") %>%
+    select(line, tissue, batch, ModelID) %>%
+    left_join(models, by = "ModelID") %>%
+    left_join(cellosaurus, by = "line") %>%
+    mutate(histology = case_when(
+        OncotreeSubtype == "Lung Adenocarcinoma" ~ "Adenocarcinoma",
+        OncotreeSubtype == "Lung Squamous Cell Carcinoma" ~ "Squamous",
+        OncotreePrimaryDisease == "Lung Neuroendocrine Tumor" ~ "Neuroendocrine",
+        OncotreePrimaryDisease == "Non-Small Cell Lung Cancer" ~ "Other NSCLC",
+        TRUE ~ "Other"
+    ))
+count(lung, histology, OncotreeSubtype, sort = TRUE)
+
+# Cellosaurus disease text next to the grouping, for a plausibility check
+lung %>% count(histology, disease_cellosaurus) %>% arrange(histology, desc(n)) %>%
+    preview_table(caption = "Histology group vs Cellosaurus disease")
+```
+
+## 2. Histology, genotypes and batch
+
+```{r genotypes}
+genes <- c("KRAS", "EGFR", "STK11", "KEAP1", "NFE2L2", "SMARCA4", "TP53", "RB1", "CDKN2A")
+for (g in c(genes, "NRF2")) lung[[g]] <- altered_status(data, lung$line, g, config)
+
+genotype_by_histology <- lung %>%
+    pivot_longer(all_of(c(genes, "NRF2")), names_to = "gene", values_to = "altered") %>%
+    filter(!is.na(altered)) %>%
+    group_by(gene) %>%
+    summarise(
+        fisher_p = fisher.test(table(histology, altered), simulate.p.value = TRUE, B = 1e4)$p.value,
+        Adenocarcinoma = sprintf("%d/%d", sum(altered[histology == "Adenocarcinoma"]), sum(histology == "Adenocarcinoma")),
+        Squamous = sprintf("%d/%d", sum(altered[histology == "Squamous"]), sum(histology == "Squamous")),
+        Neuroendocrine = sprintf("%d/%d", sum(altered[histology == "Neuroendocrine"]), sum(histology == "Neuroendocrine")),
+        `Other NSCLC` = sprintf("%d/%d", sum(altered[histology == "Other NSCLC"]), sum(histology == "Other NSCLC")),
+        Other = sprintf("%d/%d", sum(altered[histology == "Other"]), sum(histology == "Other")),
+        .groups = "drop"
+    ) %>%
+    arrange(fisher_p)
+genotype_by_histology
+
+# batch vs histology
+table(lung$histology, lung$batch)
+fisher.test(table(lung$histology, lung$batch), simulate.p.value = TRUE, B = 1e4)$p.value
+```
+
+```{r genotypes-plot, fig.width = 8, fig.height = 4}
+histology_levels <- c("Adenocarcinoma", "Squamous", "Neuroendocrine", "Other NSCLC", "Other")
+p <- lung %>%
+    pivot_longer(all_of(c(genes, "NRF2")), names_to = "gene", values_to = "altered") %>%
+    filter(altered %in% TRUE) %>%
+    count(gene, histology) %>%
+    mutate(histology = factor(histology, levels = histology_levels)) %>%
+    ggplot(aes(n, gene, fill = histology)) +
+    geom_col() +
+    scale_fill_manual(values = uc_palette(histology_levels)) +
+    labs(x = "Altered lung lines", y = NULL, fill = NULL, title = "Altered lung lines by histology") +
+    theme_uc()
+save_figure(p, "genotypes_by_histology", output_dir, width = 8, height = 4)
+p
+```
+
+## 3. Metabolic effect of histology
+
+```{r metabolic}
+# PCA of the lung lines: R2 of histology and batch on PC1-5
+pc <- prcomp(data$log2[lung$line, ], center = TRUE, scale. = TRUE)
+scores <- as_tibble(pc$x[, 1:5]) %>% mutate(line = lung$line) %>% left_join(lung, by = "line")
+sapply(c(histology = "histology", batch = "batch"), function(f)
+    sapply(paste0("PC", 1:5), function(k) round(summary(lm(scores[[k]] ~ factor(scores[[f]])))$r.squared, 2)))
+
+# limma F-test of histology, adjusted for batch
+X <- model.matrix(~ batch + histology, data = lung)
+fit <- limma::eBayes(limma::lmFit(t(data$log2[lung$line, ]), X))
+histology_coefs <- grep("^histology", colnames(X))
+f_test <- limma::topTable(fit, coef = histology_coefs, number = Inf)
+c(ions_adj_p_below_0.05 = sum(f_test$adj.P.Val < 0.05), null_share = round(limma::propTrueNull(f_test$P.Value), 2))
+```
+
+```{r pca-plot, fig.width = 7, fig.height = 5}
+p <- ggplot(scores, aes(PC1, PC2, colour = factor(histology, levels = histology_levels))) +
+    geom_point(size = 2, alpha = 0.8) +
+    scale_colour_manual(values = uc_palette(histology_levels)) +
+    labs(colour = NULL, title = "PCA of the lung lines by histology") +
+    theme_uc()
+save_figure(p, "pca_histology", output_dir)
+p
+```
+
+## 4. Lung contrasts with and without histology
+
+```{r refit}
+# the lung contrasts of the analysis, fitted as specified and with histology added
+lung_contrasts <- list(
+    nrf2_lung = config$differential$contrasts$nrf2_lung,
+    stk11_lung = config$differential$contrasts$stk11_lung,
+    kras_lung = list(group = "KRAS", tissues = "Lung", covariates = c("TP53", "STK11", "KEAP1"))
+)
+refit <- bind_rows(lapply(names(lung_contrasts), function(id) {
+    # histology is added here explicitly, so the configured blocking is left out
+    contrast <- lung_contrasts[[id]]
+    contrast$blocking <- NULL
+    d <- contrast_lines(data, contrast, config) %>% left_join(select(lung, line, histology), by = "line")
+    without <- fit_contrast(data, d, contrast_design(d, contrast$covariates))$table
+    with <- fit_contrast(data, d, contrast_design(d, c("histology", contrast$covariates)))$table
+    both <- inner_join(select(without, feature_id, name, t_without = t, adj_without = adj.P.Val),
+                       select(with, feature_id, t_with = t, adj_with = adj.P.Val), by = "feature_id")
+    tibble(
+        contrast = id, altered = sum(d$group), unaltered = sum(!d$group),
+        adj_p_below_0.05_without = sum(both$adj_without < 0.05),
+        adj_p_below_0.05_with = sum(both$adj_with < 0.05),
+        spearman_t = cor(both$t_without, both$t_with, method = "spearman"),
+        glutathione_adj_p_without = both$adj_without[both$name == "Glutathione"],
+        glutathione_adj_p_with = both$adj_with[both$name == "Glutathione"]
+    )
+}))
+as.data.frame(refit)
+```
+
+
+## Interpretation
+
+- **Annotation:** the DepMap Oncotree subtypes agree with the Cellosaurus
+  disease text for nearly all lines. The 85 lung lines are 39
+  adenocarcinoma, 15 squamous, 14 neuroendocrine (12 small cell, 2
+  carcinoid), 15 other non-small cell and 2 other.
+- **Several genotypes depend on histology:**
+  - RB1 is altered in 9 of 14 neuroendocrine lines;
+  - CDKN2A is rarely altered in them (1 of 12);
+  - STK11 occurs in adenocarcinoma (14 of 39) but in none of 15 squamous lines.
+
+  KRAS leans towards adenocarcinoma (16/39 vs 2/15 squamous, p = 0.17).
+  NRF2 activation does not depend on histology (p = 0.80).
+- **Histology is partly confounded with batch:** the neuroendocrine lines
+  were all cultured in batches 4–7 (p = 0.008). Since these batches also hold
+  other histologies, batch and histology can both enter a model.
+- **Histology has a modest metabolic effect:** it explains a quarter of PC4
+  and 15 ions differ at adjusted p < 0.05 (batch-adjusted F-test). This is
+  less than batch (a third of PC2).
+- **Adding histology to the lung contrasts changes little.** The
+  t-statistics correlate at 0.91–0.98. The positive control keeps
+  glutathione significant (adjusted p 0.005; 17 instead of 25 significant
+  ions). STK11 and KRAS remain without significant ions. Histology is
+  therefore not the reason for the null results of analysis/06.
+
+**Recommendation:** add histology as a blocking factor to all lung genotype
+contrasts (F2, F3, F5). It costs four degrees of freedom and protects the
+genes whose frequency depends on histology (RB1, CDKN2A, STK11) from
+reflecting histology instead. The histology contrasts (F1) are feasible:
+neuroendocrine vs non-small cell 14/69, adenocarcinoma vs squamous 39/15,
+with batch in the model.
+
+```{r session}
+sessionInfo()
+```

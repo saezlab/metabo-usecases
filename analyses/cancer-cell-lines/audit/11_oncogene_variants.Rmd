@@ -1,0 +1,149 @@
+---
+title: "Audit 11: which oncogene variants count as activating"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Oncogenes count as altered with a DepMap "likely driver" variant (D19): a
+variant flagged as Hotspot, LikelyLoF, HessDriver, OncogeneHighImpact or
+TumorSuppressorHighImpact. Two problems showed up in audit/09:
+
+- the flags miss canonical activating variants, such as the EGFR exon 19
+  deletion E746_A750del (PC9, NCIH1650);
+- LikelyLoF and OncogeneHighImpact also mark *truncating* variants
+  (frameshift, stop gained) in oncogenes. A truncated oncogene is not
+  activated, so these lines should not count as altered.
+
+This notebook lists all oncogene variants in the lines used in models with
+their annotations, and compares the current rule with an annotation-based
+alternative.
+
+**Decision supported:** the definition of "altered" for oncogenes (revision of
+D19).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`, `04_depmap_models.tsv`
+- `data/raw/cancer-cell-lines/depmap_24Q4/OmicsSomaticMutations.csv`, `README.txt` (local only)
+- `config.yml`: `contrast$oncogenes`
+
+## Methods
+
+According to the DepMap 24Q4 README, "A variant is considered a hot spot if
+it's present in one of the following: Hess et al. 2019 paper, OncoKB hotspot,
+COSMIC mutation significance tier 1." Each variant also carries its ClinVar
+significance (`VepClinSig`, from the Ensembl Variant Effect Predictor).
+
+Proposed rule for oncogenes: a variant is **activating** if it does not
+truncate the protein (no frameshift, stop gained, start lost or splice-site
+variant) and it is either a hotspot or classified as pathogenic or likely
+pathogenic in ClinVar. Both sources are curated, so no variant is classified
+by hand.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+lines <- data$lines %>% filter(in_models) %>% select(line, tissue, ModelID)
+oncogenes <- config$contrast$oncogenes
+```
+
+## 1. Oncogene variants and their annotations
+
+```{r variants}
+flag_columns <- c("Hotspot", "LikelyLoF", "HessDriver", "OncogeneHighImpact", "TumorSuppressorHighImpact")
+variants <- data.table::fread(
+    file.path(raw_dir, config$depmap$dir, "OmicsSomaticMutations.csv"),
+    select = c("ModelID", "HugoSymbol", "ProteinChange", "VariantInfo", "VepClinSig", flag_columns)
+) %>%
+    as_tibble() %>%
+    filter(HugoSymbol %in% oncogenes) %>%
+    inner_join(lines, by = "ModelID") %>%
+    mutate(
+        truncating = grepl("frameshift|stop_gained|start_lost|splice_acceptor|splice_donor", VariantInfo),
+        clinvar_pathogenic = grepl("(^|&)(pathogenic|likely_pathogenic|pathogenic/likely_pathogenic)(&|$)", VepClinSig),
+        # current rule (D19): any DepMap driver flag
+        current = Hotspot | LikelyLoF | HessDriver | OncogeneHighImpact | TumorSuppressorHighImpact,
+        # proposed rule: not truncating, and hotspot or ClinVar (likely) pathogenic
+        proposed = !truncating & (Hotspot | clinvar_pathogenic)
+    ) %>%
+    select(gene = HugoSymbol, line, tissue, ProteinChange, VariantInfo, VepClinSig, Hotspot,
+           truncating, clinvar_pathogenic, current, proposed)
+
+count(variants, gene, current, proposed)
+
+variants %>%
+    filter(current != proposed) %>%
+    arrange(gene, line) %>%
+    preview_table(caption = "Variants classified differently by the two rules")
+preview_table(arrange(variants, gene, desc(proposed)), caption = "All oncogene variants")
+```
+
+## 2. Altered lines per oncogene
+
+```{r lines}
+# a line is altered if any of its variants in the gene counts
+per_line <- variants %>%
+    group_by(gene, line, tissue) %>%
+    summarise(current = any(current), proposed = any(proposed), .groups = "drop")
+
+per_line %>%
+    group_by(gene) %>%
+    summarise(gained = paste(line[proposed & !current], collapse = ", "),
+              lost = paste(line[current & !proposed], collapse = ", "),
+              current = sum(current), proposed = sum(proposed),
+              .groups = "drop")
+```
+
+```{r lines-plot, fig.width = 7, fig.height = 3.5}
+p <- per_line %>%
+    group_by(gene) %>%
+    summarise(current = sum(current), proposed = sum(proposed), .groups = "drop") %>%
+    pivot_longer(c(current, proposed), names_to = "rule", values_to = "lines") %>%
+    ggplot(aes(lines, gene, fill = rule)) +
+    geom_col(position = "dodge") +
+    scale_fill_manual(values = uc_palette(c("current", "proposed"))) +
+    labs(x = "Altered lines (lines used in models)", y = NULL, fill = "Rule",
+         title = "Oncogene status under the current and the proposed rule") +
+    theme_uc()
+save_figure(p, "oncogene_rules", uc_dir(config, "output", "audit_11_oncogene_variants"), height = 3.5)
+p
+```
+
+## Interpretation
+
+- **The two rules disagree on 10 variants in 9 lines.**
+  - **Newly counted variants:** the EGFR exon 19 deletions in PC9 and
+    NCIH1650, BRAF G464V in MDAMB231 and PIK3CA D549N in HCT15 (both ClinVar
+    pathogenic; HCT15 already counted through another PIK3CA variant).
+  - **Dropped variants:** truncating variants that the current rule counted
+    through LikelyLoF or OncogeneHighImpact: BRAF and EGFR in KM12, EGFR in
+    MOLT4, NRAS in NCIH1048 and a PIK3CA splice-site variant in CORL23.
+  - IGROV1 keeps its PIK3CA status through another variant; its stop-lost
+    variant counts under neither rule.
+- **Per gene the numbers hardly change:** BRAF 13 → 13, EGFR 5 → 5 (but
+  different lines), KRAS 42, NFE2L2 6, NRAS 11 → 10, PIK3CA 16 → 15. The
+  proposed rule changes *which* lines count, which matters for small groups
+  such as EGFR in lung (2 → 4 lines).
+
+**Recommendation:** use the proposed rule for oncogenes: not truncating, and
+hotspot or ClinVar (likely) pathogenic. It rests only on curated
+annotations already in DepMap, no variant is classified by hand, and it
+removes the contradiction of counting truncated oncogenes as activated.
+
+```{r session}
+sessionInfo()
+```

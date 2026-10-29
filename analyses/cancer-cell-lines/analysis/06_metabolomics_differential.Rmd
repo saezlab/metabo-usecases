@@ -74,7 +74,7 @@ main_ids <- c("kras", "mtap_deletion", "stk11_lung")
 main <- lapply(setNames(main_ids, main_ids), function(id) {
     contrast <- config$differential$contrasts[[id]]
     d <- contrast_lines(data, contrast, config)
-    X <- contrast_design(d, contrast$covariates)
+    X <- contrast_design(d, c(contrast$blocking, contrast$covariates))
     fit <- fit_contrast(data, d, X)
     list(d = d, X = X, table = arrange(fit$table, P.Value))
 })
@@ -163,7 +163,7 @@ preview_table(eligible, caption = "Genes in the screen (lines in contributing ti
 screen <- bind_rows(lapply(eligible$gene, function(g) {
     contrast <- screen_contrast(g)
     d <- contrast_lines(data, contrast, config)
-    X <- contrast_design(d, contrast$covariates)
+    X <- contrast_design(d, c(contrast$blocking, contrast$covariates))
     mutate(fit_contrast(data, d, X)$table, gene = g)
 }))
 readr::write_tsv(screen, file.path(output_dir, "screen_results.tsv"))
@@ -216,9 +216,9 @@ p
   distribution has a mild excess near 0 (91 ions with p < 0.05 where about 55
   are expected; estimated share of null ions 0.88), so any effects are weak
   and spread over many ions.
-- **STK11 in lung** (22/63): smallest adjusted p 0.13. The top ions are
-  phospholipids (PE, PS and PC species, all higher in STK11-altered lines).
-  Estimated share of null ions 0.90.
+- **STK11 in lung** (22/63, histology as blocking factor): smallest adjusted
+  p 0.12. The top ions are phospholipids (PE, PS and PC species, all higher in
+  STK11-altered lines). Estimated share of null ions about 0.9.
 - **MTAP deletion** (32/89, six tissues): no signal (estimated share of null
   ions 0.99; 33 ions with p < 0.05, about as many as expected by chance). Its
   direct readout, 5'-methylthioadenosine, is not measured (analysis/03).

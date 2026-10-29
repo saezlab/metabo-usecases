@@ -32,7 +32,9 @@ steps <- c(
     "a06" = "audit/06_ortmayr_descriptive.Rmd",
     "a07" = "audit/07_functional_groups.Rmd",
     "a08" = "audit/08_genotype_reliability.Rmd",
-    "a09" = "audit/09_previous_lung_contrasts.Rmd"
+    "a09" = "audit/09_previous_lung_contrasts.Rmd",
+    "a10" = "audit/10_lung_histology.Rmd",
+    "a11" = "audit/11_oncogene_variants.Rmd"
 )
 
 use_case_dir <- here::here("analyses", "cancer-cell-lines")

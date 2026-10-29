@@ -65,6 +65,7 @@ differential:
       description: NRF2 activation (KEAP1 or NFE2L2 altered) vs not, lung lines (positive control)
       group: NRF2
       tissues: [Lung]
+      blocking: [histology]        # lung contrasts are blocked by histology (D28)
       covariates: [KRAS, STK11, TP53]
       # expected readouts, fixed before the fit (Shorthouse et al. 2022, Appendix Fig S6;
       # Okazaki et al. 2020, doi:10.1007/s12551-020-00659-8); ions matched by name
@@ -85,6 +86,7 @@ differential:
       description: STK11 altered vs not, lung lines (main contrast)
       group: STK11
       tissues: [Lung]
+      blocking: [histology]
       covariates: [KRAS, KEAP1, TP53]
   # exploratory screen of all eligible genes (decision D22): same standard model for every gene,
   # results labelled hypothesis-generating and compared with Dataset EV4 of Shorthouse et al.

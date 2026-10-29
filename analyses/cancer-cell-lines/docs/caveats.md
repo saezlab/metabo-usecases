@@ -114,3 +114,9 @@ input, data or a decision from you.
     in tissue-blocked contrasts where hypermutated lines (e.g. uterus, colon)
     contribute. **Decided (2026-10-29):** keep D19; check once whether any
     final contrast is affected, and decide then.
+22. **Oncogene status (audit/11).** The likely-driver rule (D19) misses
+    activating variants without a DepMap hotspot flag (EGFR exon 19
+    deletions in PC9 and NCIH1650; BRAF G464V) and counts truncating variants
+    in oncogenes as drivers (KM12, MOLT4, NCIH1048, CORL23). **Decided
+    (D29):** kept for now; revisit if a final contrast involves EGFR, BRAF,
+    NRAS or PIK3CA.

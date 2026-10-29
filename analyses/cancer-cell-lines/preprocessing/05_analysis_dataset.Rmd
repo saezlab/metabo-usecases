@@ -105,10 +105,20 @@ lines <- cell_lines %>%
     select(line, member_names, accession, cellosaurus_name, accession_source, engineered,
            tissue, general_site, tissue_note, n_injections) %>%
     left_join(batch_per_line, by = "line") %>%
-    left_join(select(depmap_models, line, ModelID, OncotreeLineage), by = "line") %>%
+    left_join(select(depmap_models, line, ModelID, OncotreeLineage, OncotreePrimaryDisease, OncotreeSubtype),
+              by = "line") %>%
     left_join(excluded, by = "line") %>%
     mutate(
         has_depmap = !is.na(ModelID),
+        # lung histology from the DepMap Oncotree subtype, a blocking factor of lung contrasts (audit/10, D28)
+        histology = case_when(
+            tissue != "Lung" ~ NA_character_,
+            OncotreeSubtype == "Lung Adenocarcinoma" ~ "Adenocarcinoma",
+            OncotreeSubtype == "Lung Squamous Cell Carcinoma" ~ "Squamous",
+            OncotreePrimaryDisease == "Lung Neuroendocrine Tumor" ~ "Neuroendocrine",
+            OncotreePrimaryDisease == "Non-Small Cell Lung Cancer" ~ "Other NSCLC",
+            TRUE ~ "Other"
+        ),
         # a matched model can lack mutation calls (NCI-H1755 in 24Q4, audit/08); such a
         # line would otherwise read as wild type for every gene
         has_mutation_calls = line %in% readr::read_tsv(inputs[["mutation_status"]], show_col_types = FALSE)$line,

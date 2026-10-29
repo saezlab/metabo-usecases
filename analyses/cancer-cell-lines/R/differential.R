@@ -42,12 +42,13 @@ altered_status <- function(data, lines, name, config) {
 #' @param data The analysis data set.
 #' @param contrast One entry of `config$differential$contrasts`.
 #' @param config Configuration from `load_config()`.
-#' @return Data frame with line, tissue, batch, `group` and one logical column
-#'   per covariate.
+#' @return Data frame with line, tissue, batch, the blocking factors of the
+#'   contrast (columns of the line table, e.g. `histology`), `group` and one
+#'   logical column per covariate.
 contrast_lines <- function(data, contrast, config) {
     lines <- dplyr::filter(data$lines, in_models)
     if (!identical(contrast$tissues, "contributing")) lines <- dplyr::filter(lines, tissue %in% contrast$tissues)
-    d <- dplyr::transmute(lines, line, tissue, batch)
+    d <- dplyr::select(lines, line, tissue, batch, dplyr::all_of(as.character(contrast$blocking)))
     d$group <- altered_status(data, d$line, contrast$group, config)
     for (cov in contrast$covariates) d[[cov]] <- altered_status(data, d$line, cov, config)
     d <- dplyr::filter(d, !is.na(group))
@@ -66,11 +67,11 @@ contrast_lines <- function(data, contrast, config) {
 
 #' Design matrix of one contrast
 #'
-#' `~ batch + tissue + covariates + group`; batch, tissue and covariates enter
-#' only when they vary among the lines, so the design stays estimable.
+#' `~ batch + tissue + blocking + covariates + group`; each term enters only
+#' when it varies among the lines, so the design stays estimable.
 #'
 #' @param d Output of `contrast_lines()`.
-#' @param covariates Covariate names.
+#' @param covariates Names of blocking factors and covariates.
 #' @return Design matrix; the last column is the group effect (`groupTRUE`).
 contrast_design <- function(d, covariates) {
     varies <- function(x) dplyr::n_distinct(x) > 1

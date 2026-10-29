@@ -60,7 +60,7 @@ cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_
 ```{r match}
 # DepMap models with their RRID (= Cellosaurus accession)
 models <- readr::read_csv(depmap_files[["models"]], show_col_types = FALSE) %>%
-    select(ModelID, RRID, depmap_name = CellLineName, OncotreeLineage)
+    select(ModelID, RRID, depmap_name = CellLineName, OncotreeLineage, OncotreePrimaryDisease, OncotreeSubtype)
 
 # the engineered derivative gets no status (it would inherit the parental model)
 matched <- cell_lines %>%

@@ -28,7 +28,8 @@ fitted as specified (Phase 4).
 For each contrast, lines were selected with `contrast_lines()` (lines used in
 models, tissues of the contrast, known group status; with tissue blocking only
 tissues with at least two altered and two unaltered lines) and the design
-`~ batch + tissue + covariates + group` was built with `contrast_design()`;
+`~ batch + tissue + blocking + covariates + group` (blocking: histology in the
+lung contrasts, D28) was built with `contrast_design()`;
 terms that do not vary among the lines are left out. Balance of the group
 across batches was tested with Fisher's exact test (simulated p-value). A PCA
 was computed on the log2 values of the contrast's lines, each ion centred and
@@ -61,7 +62,7 @@ names(contrasts)
 # lines, design and balance per contrast
 qc <- lapply(contrasts, function(contrast) {
     d <- contrast_lines(data, contrast, config)
-    X <- contrast_design(d, contrast$covariates)
+    X <- contrast_design(d, c(contrast$blocking, contrast$covariates))
     list(d = d, X = X)
 })
 
@@ -165,9 +166,9 @@ p
 
 ## Interpretation
 
-- **All four designs are estimable** with the specified terms and leave 74–107
+- **All four designs are estimable** with the specified terms and leave 70–107
   residual degrees of freedom. In the lung-only contrasts the tissue term drops
-  out because there is only one tissue.
+  out because there is only one tissue, and histology blocks instead (D28).
 - **Group sizes:** NRF2 in lung 24/61, KRAS 30/66 (lung, colon, blood), MTAP
   deletion 32/89 (six tissues, lines with copy number), STK11 in lung 22/63.
 - **No group lines up with a culture batch** (Fisher p 0.07–0.60). The NRF2

@@ -36,7 +36,8 @@ pipeline (Phase 4).
 Lines: lung lines used in models; NRF2 altered if KEAP1 (any protein-changing
 variant or homozygous deletion) or NFE2L2 (likely-driver variant) is altered
 (D19, D21). Model: limma on the log2 values of all 1096 ions with the design
-`~ batch + KRAS + STK11 + TP53 + NRF2` (moderated t-statistics, empirical
+`~ batch + histology + KRAS + STK11 + TP53 + NRF2` (histology as blocking
+factor, D28; moderated t-statistics, empirical
 Bayes), BH adjustment over all ions. Readout ions were matched by name. The
 glutathione ions were tested as a set with `limma::fry` (self-contained
 rotation test; direction "Up"); fry was chosen because the set is small and
@@ -64,7 +65,7 @@ contrast$description
 
 ```{r design}
 d <- contrast_lines(data, contrast, config)
-X <- contrast_design(d, contrast$covariates)
+X <- contrast_design(d, c(contrast$blocking, contrast$covariates))
 c(lines = nrow(d), altered = sum(d$group), unaltered = sum(!d$group), residual_df = nrow(X) - ncol(X))
 colnames(X)
 
@@ -130,7 +131,7 @@ p <- res %>%
     scale_colour_manual(values = c(glutathione = "#D55E00", glutamate = "#0072B2", other = "grey75")) +
     labs(x = "log2 fold change (NRF2 altered vs not)", y = "-log10 p", colour = NULL,
          title = "NRF2 activation in lung lines",
-         subtitle = sprintf("%d vs %d lines; ~ batch + KRAS + STK11 + TP53 + NRF2", sum(d$group), sum(!d$group))) +
+         subtitle = sprintf("%d vs %d lines; ~ batch + histology + KRAS + STK11 + TP53 + NRF2", sum(d$group), sum(!d$group))) +
     theme_uc()
 save_figure(p, "volcano", output_dir)
 p
@@ -168,19 +169,21 @@ readr::write_tsv(res, out[["results"]])
 **The positive control passes.**
 
 - 24 NRF2-altered lung lines (19 KEAP1, 5 NFE2L2) were compared with 61
-  others; 25 of 1096 ions have an adjusted p < 0.05.
+  others, with histology as blocking factor (D28); 17 of 1096 ions have an
+  adjusted p < 0.05.
 - **All five pre-specified readouts move in the expected direction.**
-  Glutathione is higher (log2FC 0.89, adjusted p = 0.0015, rank 13 of 1096),
-  oxidised glutathione is higher (0.58, adjusted p = 0.06), S-lactoylglutathione
-  (0.62, p = 0.04 unadjusted) and cysteine-glutathione disulfide (0.21, not
-  significant) as well. The glutamate ion is lower (−0.70, adjusted p = 0.028).
+  Glutathione is higher (log2FC 0.84, adjusted p = 0.005, rank 14 of 1096),
+  oxidised glutathione is higher (0.55, adjusted p = 0.11), S-lactoylglutathione
+  (0.54, p = 0.08 unadjusted) and cysteine-glutathione disulfide (0.16, not
+  significant) as well. The glutamate ion is lower (−0.65, adjusted p = 0.064).
 - **The glutathione set is significantly higher** (fry, direction up,
-  p = 0.0006), which was the pass criterion.
+  p = 0.002), which was the pass criterion. Without histology in the model
+  (audit/10), glutathione had adjusted p = 0.0015 and the set p = 0.0006.
 - None of the readout ions contains imputed values.
 - *Not pre-specified, noted for interpretation only:* further ions of the
-  glutathione pathway are among the significant ions: γ-glutamylcysteine (the
-  product of the first step of glutathione synthesis), cysteinylglycine
-  (a glutathione breakdown product) and glycine are higher. The strongest ions
+  glutathione pathway are higher: γ-glutamylcysteine (the product of the
+  first step of glutathione synthesis; adjusted p 0.045), cysteinylglycine
+  (a glutathione breakdown product; 0.054) and glycine (0.088). The strongest ions
   overall (e.g. glycylproline, nicotinuric acid, orotidylic acid, FAD) were
   not expected and are hypotheses only.
 
