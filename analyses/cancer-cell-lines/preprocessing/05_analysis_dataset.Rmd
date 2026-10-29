@@ -1,0 +1,177 @@
+---
+title: "Shorthouse 2022: analysis-ready data set"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+---
+
+## Purpose
+
+Combine the outputs of pre-processing steps 01–04 into one versioned data set
+that all analysis steps read: the log2-transformed metabolite matrix, the cell
+line table with tissue, batch and modelling flags, the ion table, and the
+mutation and copy-number status.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_injections.rds`, `01_lines.rds`, `02_cell_lines.tsv`, `03_features.rds`, `04_depmap_models.tsv`, `04_mutation_status.tsv`, `04_homozygous_deletions.tsv`, `04_copy_number.rds`
+- culture batch per injection (`config.yml: shorthouse.batch_mapping`, local only)
+- `config.yml`: lines excluded from all analyses
+
+## Methods
+
+Intensities were averaged per cell line (step 01). Values <= 0 (0.15 % of the
+values) were considered below the detection limit and replaced by half of the
+minimum positive value of the respective metabolite (Wei et al., 2018) using
+MetaProViz, followed by log2 transformation (decision D7). Each line was
+assigned the culture batch in which most of its injections were measured
+(D8). Lines were used in mutation models only if they are malignant (D12), have
+a tissue label and are matched to DepMap (D16). For every ion, the number of
+imputed values and the ratio of the variance between line means to the mean
+variance within lines (log2 scale) are recorded.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/transform.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "05_analysis_dataset")
+
+inputs <- c(
+    injections = file.path(derived_dir, "01_injections.rds"),
+    lines = file.path(derived_dir, "01_lines.rds"),
+    cell_lines = file.path(derived_dir, "02_cell_lines.tsv"),
+    features = file.path(derived_dir, "03_features.rds"),
+    depmap_models = file.path(derived_dir, "04_depmap_models.tsv"),
+    mutation_status = file.path(derived_dir, "04_mutation_status.tsv"),
+    deletions = file.path(derived_dir, "04_homozygous_deletions.tsv"),
+    copy_number = file.path(derived_dir, "04_copy_number.rds"),
+    batch_mapping = file.path(raw_dir, config$shorthouse$batch_mapping)
+)
+stopifnot(all(file.exists(inputs)))
+
+injection_data <- readRDS(inputs[["injections"]])
+line_data <- readRDS(inputs[["lines"]])
+cell_lines <- readr::read_tsv(inputs[["cell_lines"]], show_col_types = FALSE)
+features <- readRDS(inputs[["features"]])
+depmap_models <- readr::read_tsv(inputs[["depmap_models"]], show_col_types = FALSE)
+```
+
+## Metabolite matrix
+
+```{r matrix}
+# mean intensity per line (step 01); values <= 0 -> half-minimum -> log2 (D7)
+raw <- line_data$intensities
+log2_values <- log2_half_minimum(raw)
+imputed <- raw <= 0
+c(lines = nrow(log2_values), ions = ncol(log2_values), imputed_values = sum(imputed))
+preview_table(round(log2_values, 3), rows = 50, cols = 20, caption = "log2 intensities, lines × ions")
+```
+
+## Cell lines
+
+```{r batch}
+# culture batch per injection (Batch6A -> Batch6), majority batch per line (D8)
+batch_of_injection <- readr::read_csv(inputs[["batch_mapping"]], show_col_types = FALSE,
+                                      name_repair = "unique_quiet") %>%
+    transmute(injection_id = as.character(dsIdx),
+              batch = sub("[A-Za-z]$", "", sub("_.*$", "", dsPert)))
+stopifnot(all(injection_data$injections$injection_id %in% batch_of_injection$injection_id))
+
+batch_per_line <- injection_data$injections %>%
+    left_join(batch_of_injection, by = "injection_id") %>%
+    count(line, batch) %>%
+    group_by(line) %>%
+    summarise(
+        n_batches = n(),
+        batch = batch[which.max(n)],
+        .groups = "drop"
+    )
+count(batch_per_line, n_batches)
+```
+
+```{r lines}
+# lines excluded from all analyses (config.yml), with the reason
+excluded <- tibble(line = names(config$analysis$exclude_lines),
+                   exclusion_reason = unlist(config$analysis$exclude_lines))
+
+lines <- cell_lines %>%
+    select(line, member_names, accession, cellosaurus_name, accession_source, engineered,
+           tissue, general_site, tissue_note, n_injections) %>%
+    left_join(batch_per_line, by = "line") %>%
+    left_join(select(depmap_models, line, ModelID, OncotreeLineage), by = "line") %>%
+    left_join(excluded, by = "line") %>%
+    mutate(
+        has_depmap = !is.na(ModelID),
+        has_copy_number = line %in% rownames(readRDS(inputs[["copy_number"]])),
+        # lines used in mutation models (D12, D16)
+        in_models = is.na(exclusion_reason) & !engineered & tissue != "Unknown" & has_depmap
+    ) %>%
+    slice(match(rownames(log2_values), line))
+stopifnot(identical(lines$line, rownames(log2_values)))
+
+c(lines = nrow(lines), in_models = sum(lines$in_models))
+lines %>%
+    filter(!in_models) %>%
+    transmute(line, tissue, engineered, has_depmap, exclusion_reason) %>%
+    preview_table(caption = "Lines not used in mutation models")
+count(filter(lines, in_models), tissue, sort = TRUE)
+preview_table(lines, caption = "Cell line table")
+```
+
+## Ions
+
+```{r ions}
+# line-specific signal per ion: variance between line means / mean variance
+# within lines, both on the log2 scale (audit/01, section 5)
+X <- log2_half_minimum(injection_data$intensities)
+line_of <- injection_data$injections$line[match(rownames(X), injection_data$injections$injection_id)]
+within <- apply(X, 2, function(v) mean(tapply(v, line_of, var)))
+line_means <- rowsum(X, line_of) / as.vector(table(line_of)[rownames(rowsum(X, line_of))])
+between <- apply(line_means, 2, var)
+
+ions <- features %>%
+    mutate(
+        n_imputed = colSums(imputed)[feature_id],
+        has_imputed_values = n_imputed > 0,
+        replicate_signal_ratio = (between / within)[feature_id]
+    ) %>%
+    slice(match(colnames(log2_values), feature_id))
+stopifnot(identical(ions$feature_id, colnames(log2_values)))
+c(ions = nrow(ions), with_imputed_values = sum(ions$has_imputed_values))
+preview_table(ions, caption = "Ion table")
+```
+
+## Outputs
+
+```{r save}
+analysis_data <- list(
+    log2 = log2_values,                  # lines × ions, model scale
+    raw = raw,                           # lines × ions, published scale (means)
+    lines = lines,
+    ions = ions,
+    mutation_status = readr::read_tsv(inputs[["mutation_status"]], show_col_types = FALSE),
+    homozygous_deletions = readr::read_tsv(inputs[["deletions"]], show_col_types = FALSE),
+    copy_number = readRDS(inputs[["copy_number"]])
+)
+out <- c(analysis_data = file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+saveRDS(analysis_data, out[["analysis_data"]])
+write_manifest(out, inputs, file.path(derived_dir, "05_manifest.json"),
+               extra = list(exclude_lines = config$analysis$exclude_lines))
+```
+
+## Interpretation
+
+The data set holds all 175 lines and 1096 ions; lines that are excluded,
+engineered, without tissue or without DepMap data are kept but flagged
+(`in_models = FALSE`). All analysis steps read only this file.
+
+```{r session}
+sessionInfo()
+```

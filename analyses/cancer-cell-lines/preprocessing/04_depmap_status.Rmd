@@ -1,0 +1,183 @@
+---
+title: "DepMap 24Q4: mutation and copy-number status per cell line"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+---
+
+## Purpose
+
+Provide mutation and copy-number status for the Shorthouse cell lines from
+DepMap 24Q4, the source chosen in Audit 4 (decision D10). This step records
+the status and DepMap's annotation flags; which flag defines "mutated" for a
+gene is decided later, when contrasts are chosen.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/02_cell_lines.tsv` (accessions)
+- DepMap 24Q4 Public (`data/raw/cancer-cell-lines/depmap_24Q4/`, local only; see `data/raw/cancer-cell-lines/README.md`):
+  `Model.csv`, `OmicsSomaticMutations.csv`, `OmicsAbsoluteCNGene.csv`
+
+## Methods
+
+Mutation and copy-number status were taken from DepMap 24Q4 Public (Broad
+Institute; Figshare doi:10.25452/figshare.plus.27993248.v1). Cell lines were
+matched to DepMap models by their Cellosaurus accession (RRID). For every line
+and gene, all protein-changing somatic variants (Mutect2 calls) were recorded
+with DepMap's annotation: hotspot (Hess et al. 2019, OncoKB, COSMIC tier 1),
+likely loss of function, Hess driver, and high impact in an oncogene or tumour
+suppressor. Gene-level absolute copy number (PureCN) was recorded, and a gene
+was called homozygously deleted at copy number 0. The engineered line
+NCIH460DNP53 shares the parental accession and receives no status.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+config <- load_config()
+raw_dir <- uc_dir(config, "raw")
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "04_depmap_status")
+
+# DepMap files of the release given in config.yml
+depmap_dir <- file.path(raw_dir, config$depmap$dir)
+depmap_files <- c(
+    models = file.path(depmap_dir, "Model.csv"),
+    mutations = file.path(depmap_dir, "OmicsSomaticMutations.csv"),
+    copy_number = file.path(depmap_dir, "OmicsAbsoluteCNGene.csv")
+)
+stopifnot(all(file.exists(depmap_files)))
+
+cell_lines <- readr::read_tsv(file.path(derived_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
+```
+
+## Match cell lines to DepMap models
+
+```{r match}
+# DepMap models with their RRID (= Cellosaurus accession)
+models <- readr::read_csv(depmap_files[["models"]], show_col_types = FALSE) %>%
+    select(ModelID, RRID, depmap_name = CellLineName, OncotreeLineage)
+
+# the engineered derivative gets no status (it would inherit the parental model)
+matched <- cell_lines %>%
+    select(line, accession, engineered) %>%
+    left_join(models, by = c("accession" = "RRID")) %>%
+    mutate(ModelID = if_else(engineered, NA_character_, ModelID))
+
+# check: never more than one model per line
+stopifnot(!anyDuplicated(matched$line))
+c(lines = nrow(matched), matched = sum(!is.na(matched$ModelID)))
+
+matched %>%
+    filter(is.na(ModelID)) %>%
+    select(line, accession, engineered) %>%
+    preview_table(caption = "Lines without DepMap model")
+model_of_line <- filter(matched, !is.na(ModelID)) %>% select(line, ModelID)
+```
+
+## Mutations
+
+```{r mutations}
+# protein-changing somatic variants of the matched models, with DepMap's flags
+flag_columns <- c("Hotspot", "LikelyLoF", "HessDriver", "OncogeneHighImpact", "TumorSuppressorHighImpact")
+variants <- data.table::fread(
+    depmap_files[["mutations"]],
+    select = c("ModelID", "HugoSymbol", "ProteinChange", "VariantInfo", flag_columns)
+) %>%
+    as_tibble() %>%
+    inner_join(model_of_line, by = "ModelID")
+
+# one row per line and gene: number of variants, protein changes and whether
+# any variant carries each flag
+mutation_status <- variants %>%
+    group_by(line, gene = HugoSymbol) %>%
+    summarise(
+        n_variants = n(),
+        protein_changes = paste(unique(na.omit(ProteinChange)), collapse = "; "),
+        hotspot = any(Hotspot),
+        likely_lof = any(LikelyLoF),
+        hess_driver = any(HessDriver),
+        oncogene_high_impact = any(OncogeneHighImpact),
+        tumor_suppressor_high_impact = any(TumorSuppressorHighImpact),
+        .groups = "drop"
+    ) %>%
+    mutate(likely_driver = hotspot | likely_lof | hess_driver | oncogene_high_impact | tumor_suppressor_high_impact)
+
+c(lines = n_distinct(mutation_status$line), line_gene_pairs = nrow(mutation_status),
+  likely_driver_pairs = sum(mutation_status$likely_driver))
+preview_table(mutation_status, caption = "Mutation status per line and gene")
+
+# mutated genes per line under both definitions
+per_line <- mutation_status %>%
+    group_by(line) %>%
+    summarise(any = n(), likely_driver = sum(likely_driver), .groups = "drop") %>%
+    pivot_longer(-line, names_to = "definition", values_to = "genes")
+p <- ggplot(per_line, aes(genes, fill = definition)) +
+    geom_histogram(bins = 50, position = "identity", alpha = 0.7) +
+    scale_x_log10() +
+    scale_fill_manual(values = c(any = "#0072B2", likely_driver = "#D55E00"),
+                      labels = c(any = "any protein-changing", likely_driver = "likely driver")) +
+    labs(x = "Mutated genes per line (log scale)", y = "Lines", fill = NULL,
+         title = "Mutated genes per line in DepMap 24Q4") +
+    theme_uc()
+save_figure(p, "genes_per_line", output_dir)
+p
+```
+
+## Copy number
+
+```{r copy-number}
+# gene-level absolute copy number: models (rows) × genes ("SYMBOL (Entrez)")
+cn <- data.table::fread(depmap_files[["copy_number"]])
+cn <- as.data.frame(cn)
+rownames(cn) <- cn[[1]]
+cn <- as.matrix(cn[, -1])
+colnames(cn) <- sub(" \\(.*$", "", colnames(cn))
+
+# rows for the matched lines that have copy number
+cn_lines <- model_of_line %>% filter(ModelID %in% rownames(cn))
+copy_number <- cn[cn_lines$ModelID, , drop = FALSE]
+rownames(copy_number) <- cn_lines$line
+c(lines_with_mutation_calls = n_distinct(model_of_line$line), lines_with_copy_number = nrow(copy_number),
+  genes = ncol(copy_number))
+
+# homozygous deletions: absolute copy number 0
+deletions <- which(copy_number == 0, arr.ind = TRUE)
+homozygous_deletions <- tibble(line = rownames(copy_number)[deletions[, 1]],
+                               gene = colnames(copy_number)[deletions[, 2]])
+homozygous_deletions %>% count(gene, sort = TRUE) %>%
+    preview_table(caption = "Genes with homozygous deletion, number of lines")
+```
+
+## Outputs
+
+```{r save}
+out <- c(
+    model_matches = file.path(derived_dir, "04_depmap_models.tsv"),
+    mutation_status = file.path(derived_dir, "04_mutation_status.tsv"),
+    copy_number = file.path(derived_dir, "04_copy_number.rds"),
+    deletions = file.path(derived_dir, "04_homozygous_deletions.tsv")
+)
+readr::write_tsv(matched, out[["model_matches"]])
+readr::write_tsv(mutation_status, out[["mutation_status"]])
+saveRDS(copy_number, out[["copy_number"]])
+readr::write_tsv(homozygous_deletions, out[["deletions"]])
+write_manifest(out, c(cell_lines = file.path(derived_dir, "02_cell_lines.tsv"), depmap_files),
+               file.path(derived_dir, "04_manifest.json"),
+               extra = list(depmap_release = config$depmap$release, depmap_doi = config$depmap$doi))
+```
+
+## Interpretation
+
+Most Shorthouse lines have DepMap mutation calls; fewer have copy number,
+because DepMap omits copy number for some high-ploidy samples. Lines without
+DepMap data are flagged in the analysis data set and left out of mutation
+models (decision D16).
+
+```{r session}
+sessionInfo()
+```

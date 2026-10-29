@@ -22,6 +22,10 @@ shorthouse:
     CORL88B: CORL88A
     MDAMB231B: MDAMB231
     NCIH441B: NCIH441
+  # Culture batch per injection from the authors' GitHub repository
+  # (shorthouse-mrc/CellLine_Metabolomics @ cce3b15; local only, no licence;
+  # decisions D8, D11)
+  batch_mapping: shorthouse_github/Cellline_mappings_shorthouse.csv
   # Ions whose HMDB/KEGG annotation duplicates an earlier ion (different m/z,
   # same metabolite); kept from the original pipeline, see preprocessing_changes.md
   drop_duplicate_annotation_ions: true
