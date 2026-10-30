@@ -16,8 +16,7 @@ contrasts (neuroendocrine vs non-small cell lung lines; colon, kidney and
 skin vs all other lines). Set tests can detect weak, coordinated changes that
 single-ion tests miss.
 
-**Decision supported:** which sets characterise the contrasts, and whether
-the two methods agree (D34).
+**Decision supported:** which sets characterise the contrasts (D34, D36).
 
 ## Inputs
 
@@ -28,25 +27,37 @@ the two methods agree (D34).
 ## Methods
 
 Each contrast is fitted as in analyses 05–07 (same lines, design and limma
-model). Two set tests were run on all ions:
+model). The test is **camera** (`limma::camera`), a competitive test of
+whether the ions of a set change more than the other ions, on the
+contrast's own linear model. The correlation between the ions of a set is
+estimated from the residuals and widens the test's variance
+(`inter.gene.cor = NA`); audit/13 showed this correlation to be real.
 
-- **camera** (`limma::camera`): a competitive test of whether the ions of a
-  set change more, in one direction, than the other ions, on the contrast's
-  own linear model. The correlation between the ions of a set is estimated
-  from the residuals and widens the test's variance (`inter.gene.cor = NA`).
-- **ULM** (`decoupleR::run_ulm`): for each set, a univariate linear model of
-  the moderated t-statistics of all ions on set membership (1 in the set, 0
-  otherwise); the t-value of the slope is the set score.
+camera is run in two forms (D36):
 
-Ions are linked to sets as in step 06 (D30–D33): an ion belongs to a set if
-any of its candidate metabolites does. Sets with at least
+- **non-directional** (`directional = FALSE`, main test): do the set's ions
+  change more than other ions, in either direction? camera then works on the
+  ranks of the absolute statistics (it sets `use.ranks = TRUE` itself). Metabolic sets contain
+  substrates and products of the same reactions, which can move in opposite
+  directions (e.g. glutamate is consumed when glutathione is made), so a
+  coherent change need not shift the set's mean.
+- **directional** (default): do the set's ions shift up or down together?
+
+**ULM** (`decoupleR::run_ulm`, a univariate linear model of the moderated
+t-statistics of all ions on set membership) gives a set score used only to
+rank sets. It assumes independent ions and overstates significance here
+(audit/13), so its p-values are not reported.
+
+Ions are linked to sets as in step 06 (D30–D33, D35): an ion belongs to a set
+if any of its candidate metabolites does. Sets with at least
 `metsigdb.min_ions_per_set` linked ions were tested. P-values were adjusted
-(BH) within each contrast, method and resource. For every set the share of
+(BH) within each contrast, test and resource. For every set the share of
 unambiguous ions (one candidate compound) is reported.
 
 **Positive control, fixed before the fit:** the glutathione sets (KEGG
-hsa00480, Reactome R-HSA-174403, WikiPathways WP100) are higher in
-NRF2-altered lung lines (analysis/05).
+hsa00480, Reactome R-HSA-174403, WikiPathways WP100) change in NRF2-altered
+lung lines (analysis/05). The directional expectation (higher) was set
+before the non-directional test was added (D36).
 
 ```{r setup, message = FALSE}
 library(dplyr)
@@ -117,19 +128,24 @@ tibble(contrast = names(contrast_data),
 ```{r tests}
 run_tests <- function(id) {
     x <- contrast_data[[id]]
-    # camera on the contrast's model; correlation estimated per set
-    cam <- limma::camera(x$y, index = index, design = x$X, contrast = ncol(x$X), inter.gene.cor = NA) %>%
-        tibble::rownames_to_column("set") %>%
-        transmute(set, method = "camera", n_ions = NGenes, direction = Direction,
-                  score = NA_real_, p_value = PValue)
-    # ULM on the moderated t-statistics
+    # camera on the contrast's model, correlation estimated per set; non-directional and directional
+    camera_run <- function(directional, method) {
+        limma::camera(x$y, index = index, design = x$X, contrast = ncol(x$X), inter.gene.cor = NA,
+                      directional = directional) %>%
+            tibble::rownames_to_column("set") %>%
+            transmute(set, method, n_ions = NGenes, direction = if (directional) Direction else NA_character_,
+                      score = NA_real_, p_value = PValue)
+    }
+    # ULM on the moderated t-statistics: score for ranking only
     t_mat <- matrix(x$table$t, dimnames = list(x$table$feature_id, id))
     network <- set_index %>% transmute(source = set, target = feature_id, mor = 1)
     ulm <- decoupleR::run_ulm(t_mat, network, .source = source, .target = target, .mor = mor,
                               minsize = config$metsigdb$min_ions_per_set) %>%
-        transmute(set = source, method = "ULM", score, direction = if_else(score > 0, "Up", "Down"), p_value)
-    ulm <- ulm %>% left_join(lengths(index) %>% tibble::enframe("set", "n_ions"), by = "set")
-    bind_rows(cam, ulm) %>% mutate(contrast = id)
+        transmute(set = source, method = "ULM score", score, direction = if_else(score > 0, "Up", "Down"),
+                  p_value = NA_real_) %>%
+        left_join(lengths(index) %>% tibble::enframe("set", "n_ions"), by = "set")
+    bind_rows(camera_run(FALSE, "camera, any direction"), camera_run(TRUE, "camera, directional"), ulm) %>%
+        mutate(contrast = id)
 }
 results <- bind_rows(lapply(names(contrast_data), run_tests)) %>%
     separate(set, into = c("resource", "set_source_id"), sep = "\\|", remove = FALSE) %>%
@@ -141,10 +157,11 @@ results <- bind_rows(lapply(names(contrast_data), run_tests)) %>%
 readr::write_tsv(results, file.path(output_dir, "enrichment_results.tsv"))
 
 results %>%
-    group_by(contrast, method, resource) %>%
-    summarise(tested = n(), fdr_below_0.05 = sum(fdr < 0.05), .groups = "drop") %>%
-    pivot_wider(names_from = method, values_from = c(tested, fdr_below_0.05)) %>%
-    select(contrast, resource, tested = tested_camera, camera = fdr_below_0.05_camera, ULM = fdr_below_0.05_ULM)
+    filter(method != "ULM score") %>%
+    group_by(contrast, resource, method) %>%
+    summarise(tested = n(), fdr_below_0.05 = sum(fdr < 0.05, na.rm = TRUE), .groups = "drop") %>%
+    pivot_wider(names_from = method, values_from = fdr_below_0.05) %>%
+    preview_table(caption = "Sets with FDR < 0.05 per contrast, resource and test")
 ```
 
 ## 4. Positive control
@@ -152,31 +169,38 @@ results %>%
 ```{r positive-control}
 pc <- params$positive_control
 results %>%
-    filter(contrast == pc$contrast, set_source_id %in% pc$sets) %>%
+    filter(contrast == pc$contrast) %>%
+    # rank among the tested sets of the resource: by p-value for camera, by score for ULM
+    group_by(method, resource) %>%
+    mutate(rank = if_else(method == "ULM score", rank(-score), rank(p_value)), sets = n()) %>%
+    ungroup() %>%
+    filter(set_source_id %in% pc$sets) %>%
     transmute(method, resource, set_source_id, set_label, n_ions, share_unambiguous, direction,
               score = round(score, 2), p_value = signif(p_value, 2), fdr = signif(fdr, 2),
-              as_expected = direction == pc$direction) %>%
+              rank = paste(rank, "of", sets)) %>%
     arrange(set_source_id, method)
 ```
 
-## 5. Agreement of the methods
+## 5. camera and the ULM ranking
 
 ```{r agreement, fig.width = 8, fig.height = 6}
-# signed -log10 p of camera vs ULM per set and contrast
+# directional camera (signed -log10 p) against the ULM score, per set and contrast
 signed <- results %>%
-    mutate(signed_p = -log10(p_value) * if_else(direction == "Up", 1, -1)) %>%
-    select(contrast, set, method, signed_p) %>%
-    pivot_wider(names_from = method, values_from = signed_p) %>%
-    filter(!is.na(camera), !is.na(ULM))
+    filter(method %in% c("camera, directional", "ULM score")) %>%
+    mutate(value = if_else(method == "ULM score", score, -log10(p_value) * if_else(direction == "Up", 1, -1))) %>%
+    select(contrast, set, method, value) %>%
+    pivot_wider(names_from = method, values_from = value) %>%
+    filter(!is.na(`camera, directional`), !is.na(`ULM score`))
 signed %>% group_by(contrast) %>%
-    summarise(sets = n(), spearman = round(cor(camera, ULM, method = "spearman"), 2), .groups = "drop")
+    summarise(sets = n(), spearman = round(cor(`camera, directional`, `ULM score`, method = "spearman"), 2),
+              .groups = "drop")
 
-p <- ggplot(signed, aes(camera, ULM)) +
+p <- ggplot(signed, aes(`camera, directional`, `ULM score`)) +
     geom_hline(yintercept = 0, colour = "grey80") +
     geom_vline(xintercept = 0, colour = "grey80") +
     geom_point(alpha = 0.3, size = 0.8) +
     facet_wrap(~contrast) +
-    labs(x = "camera, signed -log10 p", y = "ULM, signed -log10 p", title = "camera vs ULM") +
+    labs(x = "camera directional, signed -log10 p", y = "ULM score", title = "camera vs ULM ranking") +
     theme_uc()
 save_figure(p, "methods", output_dir, width = 8, height = 6)
 p
@@ -208,47 +232,76 @@ bind_rows(lapply(names(contrast_data), function(id) {
 
 ## 7. Top sets per contrast
 
-Sets significant with both methods (FDR < 0.05), pathway resources first:
+Sets with FDR < 0.05 in the non-directional camera test, with the
+directional result and the ULM score:
 
 ```{r top}
-both <- results %>%
-    group_by(contrast, set) %>%
-    filter(n() == 2, all(fdr < 0.05), n_distinct(direction) == 1) %>%
-    summarise(resource = first(resource), set_label = first(set_label), direction = first(direction),
-              n_ions = first(n_ions), share_unambiguous = first(share_unambiguous),
-              camera_fdr = signif(fdr[method == "camera"], 2), ulm_fdr = signif(fdr[method == "ULM"], 2),
-              .groups = "drop") %>%
-    arrange(contrast, factor(resource, levels = params$resources), camera_fdr)
-both %>% count(contrast, resource) %>% pivot_wider(names_from = resource, values_from = n, values_fill = 0)
-preview_table(both, caption = "Sets significant with camera and ULM")
+wide <- results %>%
+    select(contrast, set, resource, set_source_id, set_label, n_ions, share_unambiguous, method, direction, fdr, score) %>%
+    pivot_wider(names_from = method, values_from = c(direction, fdr, score)) %>%
+    transmute(contrast, resource, set_source_id, set_label, n_ions, share_unambiguous,
+              fdr_any = signif(`fdr_camera, any direction`, 2),
+              fdr_directional = signif(`fdr_camera, directional`, 2),
+              direction = `direction_camera, directional`,
+              ulm_score = round(`score_ULM score`, 2))
+hits <- wide %>% filter(fdr_any < 0.05) %>%
+    arrange(contrast, factor(resource, levels = params$resources), fdr_any)
+hits %>% count(contrast, resource) %>% pivot_wider(names_from = resource, values_from = n, values_fill = 0)
+preview_table(hits, caption = "Sets with FDR < 0.05 (camera, any direction)")
+readr::write_tsv(wide, file.path(output_dir, "enrichment_summary.tsv"))
 ```
 
 ```{r top-plot, fig.width = 10, fig.height = 9}
-# up to eight pathway sets per contrast
-top <- both %>%
-    filter(resource %in% c("KEGG", "Reactome", "WikiPathways")) %>%
+# up to eight sets per contrast, pathway resources first
+top <- hits %>%
     group_by(contrast) %>%
-    slice_min(camera_fdr, n = 8, with_ties = FALSE) %>%
+    arrange(factor(resource, levels = params$resources), fdr_any, .by_group = TRUE) %>%
+    slice_head(n = 8) %>%
     ungroup() %>%
     mutate(label = paste0(substr(set_label, 1, 45), " (", resource, ")"))
-# skipped when no pathway set is significant with both methods
+# skipped when no set is significant
 if (nrow(top) > 0) {
-p <- ggplot(top, aes(-log10(camera_fdr) * if_else(direction == "Up", 1, -1),
-                     reorder(label, -log10(camera_fdr)), fill = share_unambiguous)) +
+p <- ggplot(top, aes(-log10(fdr_any), reorder(label, -log10(fdr_any)), fill = share_unambiguous)) +
     geom_col() +
     facet_wrap(~contrast, scales = "free_y", ncol = 2) +
     scale_fill_gradient(low = "grey80", high = "#0072B2", limits = c(0, 1)) +
-    labs(x = "camera, signed -log10 FDR", y = NULL, fill = "Share of\nunambiguous ions",
-         title = "Pathway sets significant with both methods") +
+    labs(x = "camera (any direction), -log10 FDR", y = NULL, fill = "Share of\nunambiguous ions",
+         title = "Sets changing in each contrast") +
     theme_uc()
-save_figure(p, "top_pathways", output_dir, width = 10, height = 9)
+save_figure(p, "top_sets", output_dir, width = 10, height = 9)
 p
 }
 ```
 
 ## Interpretation
 
-To be written after the first render.
+- **No set reaches FDR < 0.05 in any contrast**, neither non-directionally
+  nor directionally. The smallest FDR is 0.087 (non-directional,
+  neuroendocrine vs non-small cell lung lines). With the correlation between
+  ions accounted for (audit/13), 20–40 linked ions per set and up to 638 sets
+  per resource, set-level effects of this size do not survive the multiple
+  testing.
+- **The positive control ranks near the top but is not significant after
+  correction.**
+  - WikiPathways Glutathione metabolism (WP100, now reached through the
+    cross-reference, D35) is 4th of 139 WikiPathways sets in the
+    non-directional test (p = 0.043) and 2nd by ULM score.
+  - Reactome Glutathione synthesis and recycling is 14th of 638 (p = 0.073).
+  - KEGG Glutathione metabolism is lower (43rd of 86, p = 0.34). Of its 24
+    linked ions, only the five glutathione-related ions and glutamate change
+    (step 06, audit/13).
+  - The non-directional test ranks the glutathione sets higher than the
+    directional one, as expected when products rise and a substrate falls.
+- **camera and the ULM score rank the sets alike** (Spearman 0.87–0.98 per
+  contrast), so the ranking is robust to the method; only its significance
+  depends on how the correlation is handled.
+
+**Conclusion:** at the set level these data support rankings, not
+significance claims. The enrichment is reported as the camera ranking
+(non-directional and directional p-values, FDR) with the ULM score, and the
+positive control is described as "near the top" rather than as passed. The
+ion-level positive control (analysis/05) remains the evidence that the
+NRF2–glutathione relationship is captured.
 
 ```{r session}
 sessionInfo()

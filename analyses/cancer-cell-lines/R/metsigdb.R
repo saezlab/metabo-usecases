@@ -42,6 +42,13 @@ ion_identifiers <- function(ions) {
 #' Pathway sets are restricted to human; ClassyFire and MACdb sets have no
 #' organism.
 #'
+#' With `cross_references`, the ion also reaches records without a structure
+#' (no InChIKey) that carry a specific identifier (HMDB, KEGG, ChEBI, PubChem)
+#' of one of its structure entities, e.g. WikiPathways' "GSH", which carries
+#' only KEGG C00051 (D35). An identifier is specific if all entities with a
+#' structure that carry it share one skeleton. Such records are not merged
+#' into the structure entity in this build (caveat 24).
+#'
 #' Different compounds are counted by InChIKey skeleton (level 1), whatever
 #' `level` is: the number of skeletons per ion measures its ambiguity, and a
 #' KEGG ID is generic if it resolves to several skeletons. Stereo or charge
@@ -50,10 +57,12 @@ ion_identifiers <- function(ions) {
 #' @param con DBI connection from `pg_connect()`.
 #' @param ids Output of `ion_identifiers()`.
 #' @param level Chemical resolution level (1 connectivity, 2 + stereochemistry, 3 full InChIKey).
+#' @param cross_references Also link records without a structure through specific identifiers.
 #' @return List with `ion_set` (one row per ion and set, with the number of
-#'   the ion's skeletons in the set and the linking route), `ion_structures`
+#'   the ion's skeletons in the set and the linking routes: identifier,
+#'   equivalent, cross-reference, KEGG class), `ion_structures`
 #'   (skeletons per ion) and `sets` (set labels and sizes).
-link_ions_to_sets <- function(con, ids, level = 2) {
+link_ions_to_sets <- function(con, ids, level = 2, cross_references = TRUE) {
     # quoted SQL list; NULL for an empty vector, so that "IN (NULL)" matches nothing
     quote_list <- function(x) {
         x <- unique(stats::na.omit(x))
@@ -102,14 +111,55 @@ link_ions_to_sets <- function(con, ids, level = 2) {
         dplyr::filter(!(id_type == "KEGG" & value %in% generic_kegg)) |>
         dplyr::inner_join(entities, by = c("id_type", "value"), relationship = "many-to-many")
     ion_entities <- dplyr::bind_rows(
-        dplyr::distinct(direct, ionIdx, entity_id, structure),
+        dplyr::distinct(direct, ionIdx, entity_id, structure) |> dplyr::mutate(via = "identifier"),
         direct |>
             dplyr::filter(!is.na(structure)) |>
             dplyr::distinct(ionIdx, structure) |>
-            dplyr::inner_join(members, by = "structure", relationship = "many-to-many")
+            dplyr::inner_join(members, by = "structure", relationship = "many-to-many") |>
+            dplyr::mutate(via = "equivalent")
     ) |>
-        dplyr::distinct()
+        dplyr::distinct(ionIdx, entity_id, .keep_all = TRUE)
     ion_entities <- dplyr::left_join(ion_entities, skeleton_of(ion_entities$entity_id), by = "entity_id")
+
+    # cross-references (D35): specific identifiers of the ion's structure entities lead to
+    # records without a structure that carry them
+    if (cross_references) {
+        source_skeleton <- ion_entities |>
+            dplyr::filter(!is.na(skeleton)) |>
+            dplyr::distinct(source_entity = entity_id, source_skeleton = skeleton)
+        carriers <- pg_query(con, sprintf("
+            WITH src AS (
+                SELECT l.entity_id, l.identifier_id
+                FROM omnipath.entity_identifier_lookup l
+                JOIN omnipath.identifier_evidence ie ON ie.identifier_id = l.identifier_id
+                JOIN omnipath.vocab_identifier_type t ON t.identifier_type_id = ie.identifier_type_id
+                WHERE l.entity_id::text IN (%s)
+                  AND t.name IN ('Hmdb:OM:0004', 'Kegg Compound:MI:2012', 'Chebi:MI:0474', 'Pubchem Compound:OM:0002'))
+            SELECT src.entity_id::text AS source_entity, src.identifier_id::text AS identifier_id,
+                   l.entity_id::text AS entity_id
+            FROM src JOIN omnipath.entity_identifier_lookup l ON l.identifier_id = src.identifier_id
+            WHERE l.entity_id <> src.entity_id", quote_list(source_skeleton$source_entity)))
+        carriers <- carriers |>
+            dplyr::select(source_entity, identifier_id, entity_id) |>
+            dplyr::left_join(skeleton_of(carriers$entity_id), by = "entity_id") |>
+            dplyr::left_join(source_skeleton, by = "source_entity", relationship = "many-to-many")
+        # an identifier is specific if all structures carrying it share one skeleton
+        specific <- carriers |>
+            dplyr::group_by(identifier_id) |>
+            dplyr::summarise(skeletons = dplyr::n_distinct(c(source_skeleton, stats::na.omit(skeleton))),
+                             .groups = "drop") |>
+            dplyr::filter(skeletons == 1) |>
+            dplyr::pull(identifier_id)
+        cross <- carriers |>
+            dplyr::filter(identifier_id %in% specific, is.na(skeleton)) |>
+            dplyr::distinct(source_entity, entity_id, source_skeleton) |>
+            dplyr::inner_join(dplyr::distinct(ion_entities, ionIdx, source_entity = entity_id),
+                              by = "source_entity", relationship = "many-to-many") |>
+            dplyr::transmute(ionIdx, entity_id, structure = NA_character_, via = "cross-reference",
+                             skeleton = source_skeleton) |>
+            dplyr::anti_join(ion_entities, by = c("ionIdx", "entity_id"))
+        ion_entities <- dplyr::bind_rows(ion_entities, dplyr::distinct(cross, ionIdx, entity_id, .keep_all = TRUE))
+    }
 
     # human pathway sets; ClassyFire and MACdb have no organism (82 WikiPathways sets without
     # organism and label are left out); ClassyFire sets need a ChemOnt ID (657 HMDB disease
@@ -136,8 +186,8 @@ link_ions_to_sets <- function(con, ids, level = 2) {
     by_structure <- ion_entities |>
         dplyr::inner_join(membership, by = "entity_id", relationship = "many-to-many") |>
         dplyr::group_by(ionIdx, resource, set_source_id) |>
-        dplyr::summarise(structures_in_set = dplyr::n_distinct(stats::na.omit(skeleton)), .groups = "drop") |>
-        dplyr::mutate(route = "structure")
+        dplyr::summarise(structures_in_set = dplyr::n_distinct(stats::na.omit(skeleton)),
+                         route = paste(sort(unique(via)), collapse = "+"), .groups = "drop")
     by_kegg_class <- ids |>
         dplyr::filter(id_type == "KEGG", value %in% generic_kegg) |>
         dplyr::inner_join(kegg_listed, by = "value", relationship = "many-to-many") |>
@@ -147,7 +197,8 @@ link_ions_to_sets <- function(con, ids, level = 2) {
     ion_set <- dplyr::bind_rows(by_structure, by_kegg_class) |>
         dplyr::group_by(ionIdx, resource, set_source_id) |>
         dplyr::summarise(structures_in_set = max(structures_in_set, -1L, na.rm = TRUE),
-                         route = paste(sort(unique(route)), collapse = "+"), .groups = "drop") |>
+                         route = paste(sort(unique(unlist(strsplit(route, "+", fixed = TRUE)))), collapse = "+"),
+                         .groups = "drop") |>
         dplyr::mutate(structures_in_set = dplyr::na_if(structures_in_set, -1L)) |>
         dplyr::left_join(ion_structures, by = "ionIdx")
 

@@ -30,7 +30,10 @@ The ion's entities were looked up in the membership table by exact entity
 match. KEGG IDs resolving to several compounds (classes) get no equivalents
 and match only the sets that list that KEGG compound. Different compounds are
 counted by InChIKey skeleton (level 1, D33), so that stereo or charge
-variants of one candidate do not make an ion ambiguous. An
+variants of one candidate do not make an ion ambiguous. Records without a
+structure (no InChIKey) that the database did not merge into the structure
+entity are reached through the specific identifiers (HMDB, KEGG, ChEBI,
+PubChem) of the ion's structure entities (D35). An
 ion belongs to a set if any of its candidates does; for each link, the
 number of the ion's structures in the set is kept, and each set reports how
 many of its ions have a single structure (unambiguous ions). Pathway sets are
@@ -66,8 +69,9 @@ db_build <- build_manifest_for(con)
 level <- config$metsigdb$chemical_resolution_level
 links <- link_ions_to_sets(con, ids, level = level)
 
-# for comparison: the other two levels
+# for comparison: the other two levels, and the chosen level without cross-references
 by_level <- lapply(c(`1` = 1, `2` = 2, `3` = 3), function(l) if (l == level) links else link_ions_to_sets(con, ids, l))
+by_level[["2 without cross-references"]] <- link_ions_to_sets(con, ids, level, cross_references = FALSE)
 DBI::dbDisconnect(con)
 bind_rows(lapply(names(by_level), function(l) {
     x <- by_level[[l]]
@@ -79,6 +83,10 @@ bind_rows(lapply(names(by_level), function(l) {
            generic_kegg_ids = length(x$generic_kegg))
 }))
 c(build_id = db_build$build_id, generic_kegg_ids = length(links$generic_kegg))
+
+# links by route; the glutathione ion (V474) and WikiPathways' Glutathione metabolism (WP100)
+count(links$ion_set, route, sort = TRUE)
+links$ion_set %>% filter(ionIdx == 474, set_source_id %in% c("WP100", "hsa00480", "R-HSA-174403"))
 
 ion_set <- links$ion_set %>%
     left_join(select(ions, ionIdx, feature_id), by = "ionIdx") %>%
