@@ -141,5 +141,13 @@ input, data or a decision from you.
     published tables do not include these lookups, so this is probably a
     property of the Parquet load rather than a failed build (to be confirmed
     with the developers). No effect here: `entity_identifier_lookup` is
-    populated and gives the identifier-to-entity links. Handling: (a) rule C,
+    populated and gives the identifier-to-entity links. (g) Records without
+    a structure are not merged into the structure entity that shares a
+    specific identifier: WikiPathways' "GSH" (only KEGG C00051) is separate
+    from the glutathione entity (C00051, HMDB0000125, InChIKey). 14–25 % of
+    the KEGG, Reactome and WikiPathways members have no InChIKey; 291 have no
+    HMDB, KEGG, ChEBI or PubChem ID at all. (h) ChEBI IDs are stored twice,
+    bare and prefixed (`16856`, `CHEBI:16856`). Handling of (g): ions also
+    reach members through the specific cross-references of their matched
+    entities (D35). Handling: (a) rule C,
     (c) and (d) excluded, (e) not used for matching (audit/12, step 06).

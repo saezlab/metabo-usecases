@@ -54,7 +54,12 @@ ion_identifiers <- function(ions) {
 #'   the ion's skeletons in the set and the linking route), `ion_structures`
 #'   (skeletons per ion) and `sets` (set labels and sizes).
 link_ions_to_sets <- function(con, ids, level = 2) {
-    quote_list <- function(x) paste(DBI::dbQuoteString(con, unique(x)), collapse = ", ")
+    # quoted SQL list; NULL for an empty vector, so that "IN (NULL)" matches nothing
+    quote_list <- function(x) {
+        x <- unique(stats::na.omit(x))
+        if (!length(x)) return("NULL")
+        paste(DBI::dbQuoteString(con, x), collapse = ", ")
+    }
 
     # identifiers -> entities
     entities <- pg_query(con, sprintf("

@@ -1,0 +1,251 @@
+---
+title: "Audit 13: where the correlation between ions comes from"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+After fitting the contrasts' models, ions remain correlated with each other
+about twice as much as independent ions would be (analysis/08, section 6).
+Set tests then disagree strongly: camera, which accounts for the correlation,
+finds no significant set, while ULM, which assumes independent ions, finds
+hundreds. A correlation that runs through all ions usually points to a global
+factor per line (amount of material, overall signal, ion suppression). This
+notebook checks whether such a factor exists, whether one covariate removes it,
+and what that does to the positive control.
+
+**Decision supported:** whether a per-line covariate enters all models, and
+how the enrichment is reported.
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `data/derived/cancer-cell-lines/shorthouse_v1/06_ion_sets.tsv`, `06_sets.tsv`
+- `config.yml`: `differential.contrasts.nrf2_lung`, `enrichment`
+
+## Methods
+
+A baseline model `~ batch + tissue` was fitted with limma to the log2 values of
+all lines used in models. Its residuals were analysed with a PCA (ions
+centred, not scaled). A global factor shows up as a leading component that
+explains more variance than expected for unstructured noise, and whose
+loadings have the same sign for most ions. The expectation for noise was
+obtained by fitting the same model to data with the line labels permuted
+within each ion, which keeps every ion's distribution but removes all
+correlation between ions.
+
+Two candidate covariates were compared:
+
+- the **median log2 intensity of the line** over all ions, a standard
+  normalisation factor;
+- the **first principal component of the residuals**, which captures the
+  global factor directly but may also absorb biological signal.
+
+For each, the median absolute correlation between ions after the model, the
+positive control (NRF2 in lung lines, analysis/05) and the camera test of the
+glutathione sets (analysis/08) were recomputed.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+fig_dir <- uc_dir(config, "output", "audit_13_ion_correlation")
+set.seed(config$contrast$seed)
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+lines <- filter(data$lines, in_models)
+y <- t(data$log2[lines$line, ])   # ions x lines
+
+# median absolute correlation between ions of a residual matrix (ions x lines)
+median_abs_cor <- function(residual) {
+    m <- cor(t(residual))
+    median(abs(m[upper.tri(m)]))
+}
+```
+
+## 1. Residual structure of the baseline model
+
+```{r baseline}
+X0 <- model.matrix(~ batch + tissue, data = lines)
+residual0 <- residuals(limma::lmFit(y, X0), y)
+
+# the same model on permuted data: each ion's values shuffled across lines
+y_perm <- t(apply(y, 1, sample))
+residual_perm <- residuals(limma::lmFit(y_perm, X0), y_perm)
+
+pc0 <- prcomp(t(residual0), center = TRUE, scale. = FALSE)
+pc_perm <- prcomp(t(residual_perm), center = TRUE, scale. = FALSE)
+share <- tibble(component = 1:10,
+                observed = (pc0$sdev^2 / sum(pc0$sdev^2))[1:10],
+                permuted = (pc_perm$sdev^2 / sum(pc_perm$sdev^2))[1:10])
+share %>% mutate(across(c(observed, permuted), ~ round(.x, 3)))
+
+c(median_abs_correlation = round(median_abs_cor(residual0), 3),
+  median_abs_correlation_permuted = round(median_abs_cor(residual_perm), 3),
+  share_of_ions_with_positive_PC1_loading = round(mean(pc0$rotation[, 1] > 0), 2))
+```
+
+```{r scree, fig.width = 7, fig.height = 3.5}
+p <- share %>%
+    pivot_longer(-component, names_to = "data", values_to = "share") %>%
+    ggplot(aes(component, share, colour = data)) +
+    geom_line() + geom_point() +
+    scale_colour_manual(values = uc_palette(c("observed", "permuted"))) +
+    scale_x_continuous(breaks = 1:10) +
+    labs(x = "Component of the residuals", y = "Share of residual variance", colour = NULL,
+         title = "Residual structure after ~ batch + tissue") +
+    theme_uc()
+save_figure(p, "scree", fig_dir, height = 3.5)
+p
+```
+
+## 2. What the leading component relates to
+
+```{r drivers}
+scores <- tibble(line = lines$line, PC1 = pc0$x[, 1], PC2 = pc0$x[, 2]) %>%
+    left_join(select(lines, line, tissue, batch, n_injections), by = "line") %>%
+    mutate(
+        median_log2 = apply(data$log2[line, ], 1, median),
+        imputed_ions = rowSums(data$raw[line, ] <= 0)
+    )
+# correlation of PC1 and PC2 with per-line quantities
+sapply(c(median_log2 = "median_log2", n_injections = "n_injections", imputed_ions = "imputed_ions"), function(v)
+    round(c(PC1 = cor(scores$PC1, scores[[v]], method = "spearman"),
+            PC2 = cor(scores$PC2, scores[[v]], method = "spearman")), 2))
+summary(scores$median_log2)
+```
+
+```{r drivers-plot, fig.width = 7, fig.height = 3.5}
+p <- ggplot(scores, aes(median_log2, PC1)) +
+    geom_point(alpha = 0.7) +
+    labs(x = "Median log2 intensity of the line", y = "Residual PC1",
+         title = "Leading residual component vs overall intensity") +
+    theme_uc()
+save_figure(p, "pc1_vs_median", fig_dir, height = 3.5)
+p
+```
+
+## 3. Candidate covariates
+
+```{r covariates}
+lines_cov <- lines %>%
+    mutate(median_log2 = apply(data$log2[line, ], 1, median),
+           residual_pc1 = pc0$x[line, 1])
+fit_residual <- function(formula) {
+    X <- model.matrix(formula, data = lines_cov)
+    residuals(limma::lmFit(y, X), y)
+}
+tibble(
+    model = c("~ batch + tissue", "+ median log2 intensity", "+ residual PC1"),
+    median_abs_correlation = c(
+        median_abs_cor(residual0),
+        median_abs_cor(fit_residual(~ batch + tissue + median_log2)),
+        median_abs_cor(fit_residual(~ batch + tissue + residual_pc1))
+    )
+) %>% mutate(median_abs_correlation = round(median_abs_correlation, 3))
+```
+
+## 4. Effect on the positive control
+
+```{r positive-control}
+# NRF2 in lung lines, as in analysis/05, with and without each covariate
+contrast <- config$differential$contrasts$nrf2_lung
+d <- contrast_lines(data, contrast, config) %>%
+    left_join(select(lines_cov, line, median_log2, residual_pc1), by = "line")
+
+ion_sets <- readr::read_tsv(file.path(derived_dir, "06_ion_sets.tsv"), show_col_types = FALSE)
+pc_sets <- config$enrichment$positive_control$sets
+glutathione_index <- lapply(setNames(pc_sets, pc_sets), function(s) unique(ion_sets$feature_id[ion_sets$set_source_id == s]))
+readout_ions <- data$ions$feature_id[grepl("glutathione", data$ions$name, ignore.case = TRUE)]
+
+check <- function(extra) {
+    X <- contrast_design(d, c(contrast$blocking, extra, contrast$covariates))
+    # keep the group effect last for contrast_design's convention
+    X <- X[, c(setdiff(colnames(X), "groupTRUE"), "groupTRUE")]
+    fit <- fit_contrast(data, d, X)
+    gsh <- fit$table %>% filter(name == "Glutathione")
+    readout <- limma::fry(fit$y, index = list(readouts = readout_ions), design = X, contrast = ncol(X))
+    camera <- limma::camera(fit$y, index = glutathione_index, design = X, contrast = ncol(X), inter.gene.cor = NA)
+    resid <- residuals(limma::lmFit(fit$y, X), fit$y)
+    tibble(covariate = if (length(extra)) extra else "none",
+           ions_adj_p_below_0.05 = sum(fit$table$adj.P.Val < 0.05),
+           glutathione_logFC = round(gsh$logFC, 2), glutathione_adj_p = signif(gsh$adj.P.Val, 2),
+           readout_set_fry_p = signif(readout$PValue, 2),
+           camera_hsa00480_p = signif(camera["hsa00480", "PValue"], 2),
+           camera_R_HSA_174403_p = signif(camera["R-HSA-174403", "PValue"], 2),
+           camera_WP100_p = signif(camera["WP100", "PValue"], 2),
+           median_abs_correlation = round(median_abs_cor(resid), 3))
+}
+bind_rows(check(character()), check("median_log2"), check("residual_pc1"))
+```
+
+## 5. What the leading component contains
+
+```{r pc1-content}
+loading <- pc0$rotation[, 1]
+ions <- data$ions %>% mutate(loading = loading[feature_id], mean_log2 = rowMeans(y)[feature_id])
+round(c(loading_vs_mz = cor(ions$loading, ions$ionMz, method = "spearman"),
+        loading_vs_mean_intensity = cor(ions$loading, ions$mean_log2, method = "spearman"),
+        loading_vs_replicate_signal_ratio = cor(ions$loading, ions$replicate_signal_ratio, method = "spearman")), 2)
+ions %>% group_by(metabolite_class) %>%
+    summarise(ions = n(), mean_loading = round(mean(loading), 3), share_positive = round(mean(loading > 0), 2),
+              .groups = "drop") %>%
+    filter(ions >= 15) %>% arrange(desc(mean_loading))
+ions %>% arrange(desc(loading)) %>% head(10) %>% transmute(name = substr(name, 1, 50), ionMz = round(ionMz), loading = round(loading, 3))
+```
+
+## Interpretation
+
+- **There is no global technical factor.** The median intensity of a line
+  hardly varies (log2 12.2–12.7, as expected for the authors' normalised
+  data), relates only weakly to the leading residual component (Spearman
+  0.26), and as a covariate does not lower the correlation between ions
+  (0.16 → 0.17). Number of injections and imputed values do not explain it
+  either.
+- **The residual structure is one strong axis of variation between lines.**
+  After batch and tissue, the first component explains 20 % of the residual
+  variance, against 3 % in permuted data. It is not a size factor: half of
+  the ions load positively, half negatively. The ions that load most are
+  phosphatidylglycerols, citrate/isocitrate, glycerophosphoethanolamine and
+  nucleotides (92 % of nucleotide ions load positively). Ions with a strong,
+  reproducible line-specific signal load more (Spearman 0.56 with the
+  replicate signal ratio). This looks like a biological difference between
+  lines rather than a technical artefact; which biology it reflects cannot be
+  said from these data.
+- **Removing the axis is not justified for the analysis.** As a covariate it
+  lowers the correlation (0.16 → 0.10) and slightly strengthens the ion-level
+  positive control (25 instead of 17 significant ions; glutathione adjusted p
+  0.003). But it is estimated from the same data and probably biological, so
+  it may remove signal or bias a contrast that relates to it.
+- **Correlation is not why the set-level control fails.** With the axis
+  removed, camera still finds no glutathione set (p 0.30–0.97), while the four
+  glutathione ions as a set remain clearly higher (fry p 0.0014–0.0044 in all
+  models). The pathway sets dilute the signal: KEGG glutathione metabolism
+  links 24 ions, of which only about half are unambiguous, and most of its
+  ions do not change.
+
+**Conclusions:**
+
+1. No covariate is added to the models; the data need no further
+   normalisation for this.
+2. The correlation between ions is a property of the data, so a set test has
+   to account for it: camera is the appropriate test, and ULM, which assumes
+   independent ions, overstates significance here. ULM scores can still be
+   used to rank sets.
+3. The weak set-level result reflects what the sets contain (many unchanged
+   and ambiguous ions), not the test.
+
+```{r session}
+sessionInfo()
+```
