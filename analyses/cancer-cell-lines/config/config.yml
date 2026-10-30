@@ -100,6 +100,22 @@ metsigdb:
   chemical_resolution_level: 2
   min_ions_per_set: 5
 
+enrichment:
+  # enrichment on MetSigDB sets (analysis/08, D34): camera and decoupleR ULM on the moderated t
+  resources: [KEGG, Reactome, WikiPathways, MACdb, ClassyFire]
+  # contrasts: from differential.contrasts, exploratory.contrasts or tissue vs rest
+  contrasts:
+    nrf2_lung: {source: differential}
+    neuroendocrine_vs_nsclc: {source: exploratory}
+    colon_vs_rest: {source: tissue_vs_rest, tissue: Colon}
+    kidney_vs_rest: {source: tissue_vs_rest, tissue: Kidney}
+    skin_vs_rest: {source: tissue_vs_rest, tissue: Skin}
+  # positive control, fixed before the fit: glutathione sets higher in NRF2-altered lung lines
+  positive_control:
+    contrast: nrf2_lung
+    sets: [hsa00480, R-HSA-174403, WP100]
+    direction: Up
+
 exploratory:
   # exploratory contrasts (analysis/07, approved 2026-10-29): hypothesis-generating,
   # BH within each contrast; groups need >= min_per_group lines on each side

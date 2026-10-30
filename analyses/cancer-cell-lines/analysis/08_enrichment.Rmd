@@ -1,0 +1,255 @@
+---
+title: "Enrichment on MetSigDB sets"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Test which MetSigDB sets (KEGG, Reactome and WikiPathways pathways, MACdb
+disease sets, ClassyFire chemical classes) change as a whole in the contrasts
+carried forward: the NRF2 positive control in lung lines and the lineage
+contrasts (neuroendocrine vs non-small cell lung lines; colon, kidney and
+skin vs all other lines). Set tests can detect weak, coordinated changes that
+single-ion tests miss.
+
+**Decision supported:** which sets characterise the contrasts, and whether
+the two methods agree (D34).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
+- `data/derived/cancer-cell-lines/shorthouse_v1/06_ion_sets.tsv`, `06_sets.tsv` (ions linked to sets, step 06)
+- `config.yml`: `enrichment`, `metsigdb`, the contrast definitions
+
+## Methods
+
+Each contrast is fitted as in analyses 05–07 (same lines, design and limma
+model). Two set tests were run on all ions:
+
+- **camera** (`limma::camera`): a competitive test of whether the ions of a
+  set change more, in one direction, than the other ions, on the contrast's
+  own linear model. The correlation between the ions of a set is estimated
+  from the residuals and widens the test's variance (`inter.gene.cor = NA`).
+- **ULM** (`decoupleR::run_ulm`): for each set, a univariate linear model of
+  the moderated t-statistics of all ions on set membership (1 in the set, 0
+  otherwise); the t-value of the slope is the set score.
+
+Ions are linked to sets as in step 06 (D30–D33): an ion belongs to a set if
+any of its candidate metabolites does. Sets with at least
+`metsigdb.min_ions_per_set` linked ions were tested. P-values were adjusted
+(BH) within each contrast, method and resource. For every set the share of
+unambiguous ions (one candidate compound) is reported.
+
+**Positive control, fixed before the fit:** the glutathione sets (KEGG
+hsa00480, Reactome R-HSA-174403, WikiPathways WP100) are higher in
+NRF2-altered lung lines (analysis/05).
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/mutations.R"))
+source(here::here("analyses/cancer-cell-lines/R/differential.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "08_enrichment")
+params <- config$enrichment
+
+data <- readRDS(file.path(derived_dir, "shorthouse_analysis_v1.rds"))
+ion_sets <- readr::read_tsv(file.path(derived_dir, "06_ion_sets.tsv"), show_col_types = FALSE) %>%
+    filter(resource %in% params$resources)
+sets <- readr::read_tsv(file.path(derived_dir, "06_sets.tsv"), show_col_types = FALSE)
+```
+
+## 1. Sets tested
+
+```{r sets}
+# sets with enough linked ions; index = feature IDs per set
+tested <- sets %>% filter(resource %in% params$resources, ions >= config$metsigdb$min_ions_per_set)
+count(tested, resource)
+set_index <- ion_sets %>%
+    semi_join(tested, by = c("resource", "set_source_id")) %>%
+    mutate(set = paste(resource, set_source_id, sep = "|")) %>%
+    distinct(set, feature_id)
+index <- split(set_index$feature_id, set_index$set)
+length(index)
+```
+
+## 2. Contrasts
+
+```{r contrasts}
+# lines and design per contrast, from the same definitions as analyses 05-07
+contrast_data <- lapply(names(params$contrasts), function(id) {
+    src <- params$contrasts[[id]]
+    if (src$source == "differential") {
+        spec <- config$differential$contrasts[[id]]
+        d <- contrast_lines(data, spec, config)
+        terms <- c(spec$blocking, spec$covariates)
+    } else if (src$source == "exploratory") {
+        spec <- config$exploratory$contrasts[[id]]
+        d <- exploratory_lines(data, spec, config)
+        terms <- c(spec$blocking, spec$covariates)
+    } else {
+        d <- tissue_vs_rest_lines(data, src$tissue)
+        terms <- character()
+    }
+    X <- contrast_design(d, terms)
+    fit <- fit_contrast(data, d, X)
+    list(d = d, X = X, y = fit$y, table = fit$table)
+})
+names(contrast_data) <- names(params$contrasts)
+
+tibble(contrast = names(contrast_data),
+       altered = sapply(contrast_data, function(x) sum(x$d$group)),
+       other = sapply(contrast_data, function(x) sum(!x$d$group)),
+       ions_adj_p_below_0.05 = sapply(contrast_data, function(x) sum(x$table$adj.P.Val < 0.05)))
+```
+
+## 3. Set tests
+
+```{r tests}
+run_tests <- function(id) {
+    x <- contrast_data[[id]]
+    # camera on the contrast's model; correlation estimated per set
+    cam <- limma::camera(x$y, index = index, design = x$X, contrast = ncol(x$X), inter.gene.cor = NA) %>%
+        tibble::rownames_to_column("set") %>%
+        transmute(set, method = "camera", n_ions = NGenes, direction = Direction,
+                  score = NA_real_, p_value = PValue)
+    # ULM on the moderated t-statistics
+    t_mat <- matrix(x$table$t, dimnames = list(x$table$feature_id, id))
+    network <- set_index %>% transmute(source = set, target = feature_id, mor = 1)
+    ulm <- decoupleR::run_ulm(t_mat, network, .source = source, .target = target, .mor = mor,
+                              minsize = config$metsigdb$min_ions_per_set) %>%
+        transmute(set = source, method = "ULM", score, direction = if_else(score > 0, "Up", "Down"), p_value)
+    ulm <- ulm %>% left_join(lengths(index) %>% tibble::enframe("set", "n_ions"), by = "set")
+    bind_rows(cam, ulm) %>% mutate(contrast = id)
+}
+results <- bind_rows(lapply(names(contrast_data), run_tests)) %>%
+    separate(set, into = c("resource", "set_source_id"), sep = "\\|", remove = FALSE) %>%
+    group_by(contrast, method, resource) %>%
+    mutate(fdr = p.adjust(p_value, "BH")) %>%
+    ungroup() %>%
+    left_join(select(sets, resource, set_source_id, set_label, unambiguous_ions, share_unambiguous),
+              by = c("resource", "set_source_id"))
+readr::write_tsv(results, file.path(output_dir, "enrichment_results.tsv"))
+
+results %>%
+    group_by(contrast, method, resource) %>%
+    summarise(tested = n(), fdr_below_0.05 = sum(fdr < 0.05), .groups = "drop") %>%
+    pivot_wider(names_from = method, values_from = c(tested, fdr_below_0.05)) %>%
+    select(contrast, resource, tested = tested_camera, camera = fdr_below_0.05_camera, ULM = fdr_below_0.05_ULM)
+```
+
+## 4. Positive control
+
+```{r positive-control}
+pc <- params$positive_control
+results %>%
+    filter(contrast == pc$contrast, set_source_id %in% pc$sets) %>%
+    transmute(method, resource, set_source_id, set_label, n_ions, share_unambiguous, direction,
+              score = round(score, 2), p_value = signif(p_value, 2), fdr = signif(fdr, 2),
+              as_expected = direction == pc$direction) %>%
+    arrange(set_source_id, method)
+```
+
+## 5. Agreement of the methods
+
+```{r agreement, fig.width = 8, fig.height = 6}
+# signed -log10 p of camera vs ULM per set and contrast
+signed <- results %>%
+    mutate(signed_p = -log10(p_value) * if_else(direction == "Up", 1, -1)) %>%
+    select(contrast, set, method, signed_p) %>%
+    pivot_wider(names_from = method, values_from = signed_p) %>%
+    filter(!is.na(camera), !is.na(ULM))
+signed %>% group_by(contrast) %>%
+    summarise(sets = n(), spearman = round(cor(camera, ULM, method = "spearman"), 2), .groups = "drop")
+
+p <- ggplot(signed, aes(camera, ULM)) +
+    geom_hline(yintercept = 0, colour = "grey80") +
+    geom_vline(xintercept = 0, colour = "grey80") +
+    geom_point(alpha = 0.3, size = 0.8) +
+    facet_wrap(~contrast) +
+    labs(x = "camera, signed -log10 p", y = "ULM, signed -log10 p", title = "camera vs ULM") +
+    theme_uc()
+save_figure(p, "methods", output_dir, width = 8, height = 6)
+p
+```
+
+## 6. Correlation between ions
+
+camera estimates the correlation of the ions within each set. For comparison,
+the same is computed for all ion pairs from the residuals of each contrast's
+model. If ions are correlated throughout the data, a set is not more coherent
+than a random group of ions, and a test assuming independent ions (ULM) is
+too optimistic. For reference, limma's default for camera is a preset
+correlation of 0.01.
+
+```{r correlation}
+bind_rows(lapply(names(contrast_data), function(id) {
+    x <- contrast_data[[id]]
+    within <- limma::camera(x$y, index = index, design = x$X, contrast = ncol(x$X), inter.gene.cor = NA)$Correlation
+    residual <- residuals(limma::lmFit(x$y, x$X), x$y)
+    all_pairs <- cor(t(residual))
+    preset <- limma::camera(x$y, index = index, design = x$X, contrast = ncol(x$X))
+    tibble(contrast = id,
+           within_set_correlation = round(median(within), 3),
+           all_ion_pairs_abs_correlation = round(median(abs(all_pairs[upper.tri(all_pairs)])), 3),
+           expected_abs_if_independent = round(sqrt(2 / (pi * (ncol(x$y) - ncol(x$X)))), 3),
+           camera_preset_0.01_fdr_below_0.05 = sum(preset$FDR < 0.05))
+}))
+```
+
+## 7. Top sets per contrast
+
+Sets significant with both methods (FDR < 0.05), pathway resources first:
+
+```{r top}
+both <- results %>%
+    group_by(contrast, set) %>%
+    filter(n() == 2, all(fdr < 0.05), n_distinct(direction) == 1) %>%
+    summarise(resource = first(resource), set_label = first(set_label), direction = first(direction),
+              n_ions = first(n_ions), share_unambiguous = first(share_unambiguous),
+              camera_fdr = signif(fdr[method == "camera"], 2), ulm_fdr = signif(fdr[method == "ULM"], 2),
+              .groups = "drop") %>%
+    arrange(contrast, factor(resource, levels = params$resources), camera_fdr)
+both %>% count(contrast, resource) %>% pivot_wider(names_from = resource, values_from = n, values_fill = 0)
+preview_table(both, caption = "Sets significant with camera and ULM")
+```
+
+```{r top-plot, fig.width = 10, fig.height = 9}
+# up to eight pathway sets per contrast
+top <- both %>%
+    filter(resource %in% c("KEGG", "Reactome", "WikiPathways")) %>%
+    group_by(contrast) %>%
+    slice_min(camera_fdr, n = 8, with_ties = FALSE) %>%
+    ungroup() %>%
+    mutate(label = paste0(substr(set_label, 1, 45), " (", resource, ")"))
+# skipped when no pathway set is significant with both methods
+if (nrow(top) > 0) {
+p <- ggplot(top, aes(-log10(camera_fdr) * if_else(direction == "Up", 1, -1),
+                     reorder(label, -log10(camera_fdr)), fill = share_unambiguous)) +
+    geom_col() +
+    facet_wrap(~contrast, scales = "free_y", ncol = 2) +
+    scale_fill_gradient(low = "grey80", high = "#0072B2", limits = c(0, 1)) +
+    labs(x = "camera, signed -log10 FDR", y = NULL, fill = "Share of\nunambiguous ions",
+         title = "Pathway sets significant with both methods") +
+    theme_uc()
+save_figure(p, "top_pathways", output_dir, width = 10, height = 9)
+p
+}
+```
+
+## Interpretation
+
+To be written after the first render.
+
+```{r session}
+sessionInfo()
+```

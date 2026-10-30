@@ -348,6 +348,13 @@ c(unambiguous_ions = length(unambiguous),
   shared by all candidates. Enrichment therefore has to handle ambiguity
   explicitly.
 
+**Update (2026-10-30):** step 06 follows these recommendations with two
+refinements decided afterwards: equivalent entities are taken at InChIKey
+level 2 (connectivity and stereochemistry) so that the MetSigDB sets keep
+stereoisomers apart (D32), while ambiguity and generic KEGG IDs are still
+counted at level 1 (D33). This notebook keeps level 1 throughout, as the basis
+of those decisions.
+
 **Recommendations:**
 
 1. Link ions to MetSigDB from the **original identifiers** (HMDB per

@@ -127,3 +127,19 @@ input, data or a decision from you.
     under active development; once they are final, these queries are to be
     refactored to the client calls, and results re-checked against the
     released build.
+24. **Issues found in the OmniPath Metabo build dac1e0f66ee8 (dev5), to be
+    reported to the developers.** (a) KEGG class IDs such as C00157
+    (phosphatidylcholine) resolve to hundreds of specific lipid entities;
+    (b) C00350 (phosphatidylethanolamine) also resolves to
+    hydroxyclomipramine; (c) 82 WikiPathways sets have neither organism nor
+    label; (d) 657 HMDB disease annotations are filed as ClassyFire chemical
+    classes; (e) the per-member `kegg` column can hold KEGG DRUG IDs (ATP:
+    D08646); (f) the resolver lookup tables (`resolver_chemical_identifier_lookup*`,
+    `resolver_protein_identifier_lookup*`) are empty in the database, although
+    the resolver ran (lookup Parquet files in `~/instances/dev5/data/`). The
+    database is loaded from the published Parquet release 2026.10.19, whose
+    published tables do not include these lookups, so this is probably a
+    property of the Parquet load rather than a failed build (to be confirmed
+    with the developers). No effect here: `entity_identifier_lookup` is
+    populated and gives the identifier-to-entity links. Handling: (a) rule C,
+    (c) and (d) excluded, (e) not used for matching (audit/12, step 06).

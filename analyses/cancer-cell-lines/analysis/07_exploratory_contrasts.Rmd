@@ -68,26 +68,6 @@ models <- filter(data$lines, in_models)
 ```
 
 ```{r helpers}
-# lines, group and covariates of a declared contrast (F1-F3)
-declared_lines <- function(spec) {
-    d <- models %>%
-        filter(tissue %in% spec$tissues) %>%
-        select(line, tissue, batch, histology)
-    if (!is.null(spec$histologies)) d <- filter(d, histology %in% spec$histologies)
-    # restrict to lines altered in any of the `within` genes
-    if (!is.null(spec$within)) {
-        altered <- lapply(spec$within, function(g) altered_status(data, d$line, g, config) %in% TRUE)
-        d <- d[Reduce(`|`, altered), ]
-    }
-    d$group <- if (!is.null(spec$group_histology)) {
-        d$histology %in% spec$group_histology
-    } else {
-        altered_status(data, d$line, spec$group, config)
-    }
-    for (cov in spec$covariates) d[[cov]] <- altered_status(data, d$line, cov, config)
-    filter(d, !is.na(group), if_all(all_of(as.character(spec$covariates)), ~ !is.na(.x)))
-}
-
 # fit one contrast if both groups are large enough; returns summary row and result table
 run_contrast <- function(id, family, d, terms) {
     n_altered <- sum(d$group)
@@ -118,7 +98,7 @@ run_contrast <- function(id, family, d, terms) {
 ```{r declared}
 declared <- lapply(names(params$contrasts), function(id) {
     spec <- params$contrasts[[id]]
-    run_contrast(id, spec$family, declared_lines(spec), c(spec$blocking, spec$covariates))
+    run_contrast(id, spec$family, exploratory_lines(data, spec, config), c(spec$blocking, spec$covariates))
 })
 bind_rows(lapply(declared, `[[`, "summary")) %>%
     preview_table(caption = "Declared contrasts")
@@ -132,8 +112,7 @@ lung lines count as EGFR-altered.
 ```{r tissue-vs-rest}
 tissues <- models %>% count(tissue) %>% filter(n >= params$tissue_vs_rest$min_lines) %>% pull(tissue)
 tissue_results <- lapply(tissues, function(t) {
-    # the group is the tissue itself, so tissue must not enter the design as well
-    d <- models %>% transmute(line, batch, group = tissue == t, tissue = "all lines")
+    d <- tissue_vs_rest_lines(data, t)
     run_contrast(paste0(tolower(t), "_vs_rest"), "F4 tissue vs rest", d, character())
 })
 bind_rows(lapply(tissue_results, `[[`, "summary")) %>%

@@ -107,8 +107,12 @@ link_ions_to_sets <- function(con, ids, level = 2) {
     ion_entities <- dplyr::left_join(ion_entities, skeleton_of(ion_entities$entity_id), by = "entity_id")
 
     # human pathway sets; ClassyFire and MACdb have no organism (82 WikiPathways sets without
-    # organism and label are left out)
-    organism_filter <- "(organism = 9606 OR (organism IS NULL AND resource IN ('ClassyFire', 'MACdb')))"
+    # organism and label are left out); ClassyFire sets need a ChemOnt ID (657 HMDB disease
+    # annotations are filed under ClassyFire in this build, caveat 24)
+    organism_filter <- paste(
+        "(organism = 9606 OR (organism IS NULL AND resource IN ('ClassyFire', 'MACdb')))",
+        "AND (resource <> 'ClassyFire' OR set_source_id LIKE 'CHEMONTID:%')"
+    )
     membership <- pg_query(con, sprintf("
         SELECT resource, set_type, set_source_id, set_label, set_size, metabolite_entity_id::text AS entity_id
         FROM omnipath.metsigdb_membership

@@ -113,3 +113,47 @@ fit_contrast <- function(data, d, X) {
         )
     list(fit = fit, table = table, y = y)
 }
+
+#' Lines, group and covariates of a declared exploratory contrast
+#'
+#' Lines used in models of `spec$tissues`, optionally restricted to
+#' `spec$histologies` and to lines altered in any of `spec$within`. The group
+#' is histology in `spec$group_histology`, or the altered status of
+#' `spec$group` (`config.yml: exploratory.contrasts`).
+#'
+#' @param data The analysis data set.
+#' @param spec One entry of `config$exploratory$contrasts`.
+#' @param config Configuration from `load_config()`.
+#' @return Data frame as from `contrast_lines()`.
+exploratory_lines <- function(data, spec, config) {
+    d <- data$lines |>
+        dplyr::filter(in_models, tissue %in% spec$tissues) |>
+        dplyr::select(line, tissue, batch, histology)
+    if (!is.null(spec$histologies)) d <- dplyr::filter(d, histology %in% spec$histologies)
+    # restrict to lines altered in any of the `within` genes
+    if (!is.null(spec$within)) {
+        altered <- lapply(spec$within, function(g) altered_status(data, d$line, g, config) %in% TRUE)
+        d <- d[Reduce(`|`, altered), ]
+    }
+    d$group <- if (!is.null(spec$group_histology)) {
+        d$histology %in% spec$group_histology
+    } else {
+        altered_status(data, d$line, spec$group, config)
+    }
+    for (cov in spec$covariates) d[[cov]] <- altered_status(data, d$line, cov, config)
+    dplyr::filter(d, !is.na(group), dplyr::if_all(dplyr::all_of(as.character(spec$covariates)), ~ !is.na(.x)))
+}
+
+#' Lines of a tissue-vs-rest contrast
+#'
+#' All lines used in models; the group is the tissue. The tissue column is set
+#' to one value so that tissue does not enter the design next to the group.
+#'
+#' @param data The analysis data set.
+#' @param tissue Tissue of the group.
+#' @return Data frame with line, batch, tissue and group.
+tissue_vs_rest_lines <- function(data, tissue) {
+    data$lines |>
+        dplyr::filter(in_models) |>
+        dplyr::transmute(line, batch, group = .data$tissue == !!tissue, tissue = "all lines")
+}
