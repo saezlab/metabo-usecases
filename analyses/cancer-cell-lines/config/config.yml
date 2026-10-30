@@ -94,6 +94,12 @@ differential:
     standard_covariates: [TP53]    # TP53 itself is tested without TP53 as covariate
     tissues: contributing
 
+metsigdb:
+  # ions are linked to MetSigDB sets with equivalent entities at this InChIKey level (D32):
+  # 1 connectivity, 2 + stereochemistry (charge variants equivalent), 3 full InChIKey
+  chemical_resolution_level: 2
+  min_ions_per_set: 5
+
 exploratory:
   # exploratory contrasts (analysis/07, approved 2026-10-29): hypothesis-generating,
   # BH within each contrast; groups need >= min_per_group lines on each side

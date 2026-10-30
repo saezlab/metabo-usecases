@@ -17,6 +17,7 @@ steps <- c(
     "03" = "preprocessing/03_feature_ids.Rmd",
     "04" = "preprocessing/04_depmap_status.Rmd",
     "05" = "preprocessing/05_analysis_dataset.Rmd",
+    "06" = "preprocessing/06_metsigdb_sets.Rmd",
     # analysis steps (Phase 3 and 4)
     "m02" = "analysis/02_mutation_landscape.Rmd",
     "m03" = "analysis/03_contrast_selection.Rmd",

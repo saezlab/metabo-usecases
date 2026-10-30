@@ -120,3 +120,10 @@ input, data or a decision from you.
     in oncogenes as drivers (KM12, MOLT4, NCIH1048, CORL23). **Decided
     (D29):** kept for now; revisit if a final contrast involves EGFR, BRAF,
     NRAS or PIK3CA.
+23. **Access to OmniPath Metabo is interim.** The notebooks query the dev5
+    Postgres tables directly with SQL (`metabo.figures::pg_connect()`;
+    audit/07, audit/12, `R/metsigdb.R`, step 06), because dev5 has no API
+    container. OmniPath Metabo, its API and its R and Python clients are
+    under active development; once they are final, these queries are to be
+    refactored to the client calls, and results re-checked against the
+    released build.

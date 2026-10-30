@@ -1,0 +1,143 @@
+---
+title: "Shorthouse 2022: ions linked to MetSigDB sets"
+author: "Jannik Franken"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Purpose
+
+Link every measured ion to the MetSigDB sets of OmniPath Metabo (KEGG,
+Reactome and WikiPathways pathways, MACdb disease sets, ClassyFire chemical
+classes), as input for the enrichment analysis (Phase 5).
+
+## Inputs
+
+- `data/derived/cancer-cell-lines/shorthouse_v1/01_lines.rds` (ion table as published, Dataset EV2)
+- OmniPath Metabo database, default deployment of `metabo.figures` (dev5), read only
+
+## Methods
+
+As decided after audit/12 (D30–D32): the MetSigDB sets are used as they are,
+and only the feature side is extended. The original identifiers of each ion
+(HMDB ID per candidate, normalised to seven digits; KEGG compound IDs) were
+resolved to OmniPath Metabo entities, and each ion received the entities
+equivalent to these at InChIKey level 2 (`config.yml: metsigdb`; same
+connectivity and stereochemistry, so only charge variants are equivalent).
+The ion's entities were looked up in the membership table by exact entity
+match. KEGG IDs resolving to several compounds (classes) get no equivalents
+and match only the sets that list that KEGG compound. Different compounds are
+counted by InChIKey skeleton (level 1, D33), so that stereo or charge
+variants of one candidate do not make an ion ambiguous. An
+ion belongs to a set if any of its candidates does; for each link, the
+number of the ion's structures in the set is kept, and each set reports how
+many of its ions have a single structure (unambiguous ions). Pathway sets are
+restricted to human; ClassyFire and MACdb sets have no organism. Levels 1
+and 3 are shown for comparison.
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# metabo.figures provides the database connection
+pkgload::load_all(here::here(), export_all = FALSE, quiet = TRUE)
+source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
+source(here::here("analyses/cancer-cell-lines/R/plotting.R"))
+source(here::here("analyses/cancer-cell-lines/R/metsigdb.R"))
+config <- load_config()
+derived_dir <- uc_dir(config, "derived")
+output_dir <- uc_dir(config, "output", "06_metsigdb_sets")
+
+inputs <- c(lines = file.path(derived_dir, "01_lines.rds"))
+ions <- readRDS(inputs[["lines"]])$ions %>% mutate(feature_id = paste0("V", ionIdx))
+```
+
+## Identifiers and links
+
+```{r link}
+ids <- ion_identifiers(ions)
+count(ids, id_type)
+
+con <- pg_connect()
+db_build <- build_manifest_for(con)
+level <- config$metsigdb$chemical_resolution_level
+links <- link_ions_to_sets(con, ids, level = level)
+
+# for comparison: the other two levels
+by_level <- lapply(c(`1` = 1, `2` = 2, `3` = 3), function(l) if (l == level) links else link_ions_to_sets(con, ids, l))
+DBI::dbDisconnect(con)
+bind_rows(lapply(names(by_level), function(l) {
+    x <- by_level[[l]]
+    pathway <- x$ion_set$resource %in% c("KEGG", "Reactome", "WikiPathways")
+    tibble(level = l,
+           ions_in_pathway_sets = n_distinct(x$ion_set$ionIdx[pathway]),
+           unambiguous_ions = sum(x$ion_structures$ion_structures == 1),
+           ion_set_links = nrow(x$ion_set),
+           generic_kegg_ids = length(x$generic_kegg))
+}))
+c(build_id = db_build$build_id, generic_kegg_ids = length(links$generic_kegg))
+
+ion_set <- links$ion_set %>%
+    left_join(select(ions, ionIdx, feature_id), by = "ionIdx") %>%
+    left_join(select(links$sets, resource, set_source_id, set_type, set_label), by = c("resource", "set_source_id")) %>%
+    mutate(unambiguous = ion_structures == 1) %>%
+    relocate(feature_id, ionIdx)
+preview_table(ion_set, caption = "Ion-set links")
+```
+
+## Coverage
+
+```{r coverage}
+ion_set %>%
+    group_by(resource) %>%
+    summarise(ions = n_distinct(ionIdx), unambiguous_ions = n_distinct(ionIdx[unambiguous %in% TRUE]),
+              sets = n_distinct(set_source_id), .groups = "drop")
+c(ions = nrow(ions),
+  in_any_pathway_set = n_distinct(ion_set$ionIdx[ion_set$resource %in% c("KEGG", "Reactome", "WikiPathways")]))
+```
+
+## Sets
+
+```{r sets}
+sets <- ion_set %>%
+    group_by(resource, set_type, set_source_id, set_label) %>%
+    summarise(ions = n_distinct(ionIdx), unambiguous_ions = n_distinct(ionIdx[unambiguous %in% TRUE]),
+              .groups = "drop") %>%
+    left_join(select(links$sets, resource, set_source_id, set_size_db = set_size), by = c("resource", "set_source_id")) %>%
+    mutate(share_unambiguous = round(unambiguous_ions / ions, 2))
+sets %>% group_by(resource) %>%
+    summarise(sets = n(), median_ions = median(ions), sets_with_5_or_more_ions = sum(ions >= 5), .groups = "drop")
+preview_table(arrange(sets, resource, desc(ions)), caption = "Sets with linked ions")
+```
+
+```{r sets-plot, fig.width = 8, fig.height = 4}
+p <- sets %>%
+    filter(ions >= 5) %>%
+    ggplot(aes(ions, share_unambiguous)) +
+    geom_point(alpha = 0.4) +
+    facet_wrap(~resource, scales = "free_x") +
+    scale_x_log10() +
+    labs(x = "Ions in set (log scale)", y = "Share of unambiguous ions",
+         title = "Size and ambiguity of the sets (sets with >= 5 ions)") +
+    theme_uc()
+save_figure(p, "sets", output_dir, width = 8, height = 4)
+p
+```
+
+## Outputs
+
+```{r save}
+out <- c(ion_sets = file.path(derived_dir, "06_ion_sets.tsv"),
+         sets = file.path(derived_dir, "06_sets.tsv"))
+readr::write_tsv(ion_set, out[["ion_sets"]])
+readr::write_tsv(sets, out[["sets"]])
+write_manifest(out, inputs, file.path(derived_dir, "06_manifest.json"),
+               extra = list(omnipath_metabo_build = db_build$build_id, chemical_resolution_level = level))
+```
+
+```{r session}
+sessionInfo()
+```
