@@ -143,6 +143,10 @@ overview of group sizes per tissue and batch.
 
 ## Later phases (not started without approval)
 
+Status 2026-10-30: the multi-omics and reaction-aware work moves to a new,
+exploratory branch; see `use_case_overview.md` (what changed and why) and
+`handoff_multiomics.md` (starting point).
+
 Same contrast and design in other modalities, restricted to shared lines;
 footprint methods (decoupleR + CollecTRI for TF activities, kinase–substrate
 prior knowledge for kinase activities, OCEAN for enzyme activities) on full
