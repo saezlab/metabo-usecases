@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
 omnipath_metabo_case1/omnipath_metabo_case1.Rproj
 omnipath_metabo_case1/.Rhistory
 omnipath_metabo_case1/.RData
