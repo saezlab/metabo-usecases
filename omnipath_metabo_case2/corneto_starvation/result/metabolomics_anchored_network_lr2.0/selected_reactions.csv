@@ -1,0 +1,389 @@
+reaction,name,combined_score,proteomics_score,touches_variable_metabolite
+MAR04388,(S)-Lactate:NAD+ oxidoreductase,1.0,,Lactate;NAD+;NADH;Pyruvate
+MAR04002,ATP:AMP phosphotransferase,1.0,1.0,ADP;AMP;ATP
+MAR04004,ATP:AMP phosphotransferase,1.0,1.0,ADP;AMP;ATP
+MAR04020,ATP:GMP phosphotransferase,1.0,,ADP;ATP;GMP
+MAR04040,IMP:NAD+ oxidoreductase,1.0,0.0,IMP;NAD+;NADH
+MAR04080,AMP aminohydrolase,1.0,,AMP;IMP
+MAR04453,Xanthosine-5'-phosphate:ammonia ligase (AMP-forming),1.0,,AMP;ATP;GMP
+MAR04611,2'-deoxyadenosine 5'-triphosphate:oxydized-thioredoxin 2'-oxidoreductase,1.0,0.0,ATP
+MAR04614,2'-deoxyguanosine 5'-triphosphate:oxydized-thioredoxin 2'-oxidoreductase,0.0,0.0,
+MAR04617,2'-deoxyuridine 5'-triphosphate:oxydized-thioredoxin 2'-oxidoreductase,0.0,0.0,
+MAR04016,ATP:GDP phosphotransferase,1.0,,ADP;ATP
+MAR04635,ATP:dTDP phosphotransferase,1.0,,ADP;ATP
+MAR03931,NADPH:oxidized-thioredoxin oxidoreductase,0.0,,
+MAR04059,UDP phosphohydrolase,1.0,1.0,UMP
+MAR04182,GTP:cytidine 5'-phosphotransferase,1.0,1.0,Cytidine
+MAR04194,UTP:L-glutamine amido-ligase (ADP-forming),1.0,0.0,ADP;ATP;Gln;Glu
+MAR04637,ATP:dTMP phosphotransferase,1.0,,ADP;ATP
+MAR04054,ATP:thymidine 5'-phosphotransferase,1.0,,ADP;ATP
+MAR04185,ATP:sulfate adenylyltransferase,1.0,,ATP
+MAR04186,ATP:adenylylsulfate 3'-phosphotransferase,1.0,,ADP;ATP
+MAR07160,Deoxynucleoside triphosphate:DNA deoxynucleotidyltransferase,0.0,,
+MAR07161,nucleoside-triphosphate:RNA nucleotidyltransferase (DNA-directed),1.0,-1.0,ATP
+MAR07863,exchange / transport,1.0,1.0,UMP
+MAR07867,exchange / transport,1.0,1.0,UMP
+MAR08465,exchange / transport,1.0,1.0,
+MAR08467,exchange / transport,1.0,1.0,
+MAR03903,L-aspartate:L-glutamine amido-ligase (AMP-forming),1.0,,AMP;ATP;Asn;Asp;Gln;Glu
+MAR03845,"5,10-Methylenetetrahydrofolate:glycine hydroxymethyltransferase",1.0,,Gly;Ser
+MAR03875,ATP:L-methionine S-adenosyltransferase,1.0,,ATP;Met
+MAR03995,exchange / transport,1.0,,Cystine
+MAR03996,L-cysteine:NAD+ oxidoreductase,1.0,,Cystine;NAD+;NADH
+MAR08641,S-adenosyl-L-methionine:DNA (cytosine-5-)-methyltransferase,0.0,,
+MAR05130,L-Tyrosine:tRNA(Tyr) ligase (AMP-forming),1.0,,AMP;ATP;Tyr
+MAR05131,L-Alanine:tRNA(Ala) ligase (AMP-forming),1.0,,AMP;ATP;Ala
+MAR05132,L-Arginine:tRNA(Arg) ligase (AMP-forming),1.0,,AMP;ATP;Arg
+MAR05133,L-Asparagine:tRNA(Asn) ligase (AMP-forming),1.0,,AMP;ATP;Asn
+MAR05134,L-Aspartate:tRNA(Asp) ligase (AMP-forming),1.0,,AMP;ATP;Asp
+MAR05135,L-Cysteine:tRNA(Cys) ligase (AMP-forming),1.0,,AMP;ATP
+MAR05136,L-Glutamine:tRNA(Gln) ligase (AMP-forming),1.0,,AMP;ATP;Gln
+MAR05137,L-glutamate:tRNA(Glu) ligase (AMP-forming),1.0,,AMP;ATP;Glu
+MAR05138,glycine:tRNA(Gly) ligase (AMP-forming),1.0,,AMP;ATP;Gly
+MAR05139,L-Histidine:tRNA(His) ligase (AMP-forming),1.0,,AMP;ATP;His
+MAR05140,L-Isoleucine:tRNA(Ile) ligase (AMP-forming),1.0,,AMP;ATP;Ile
+MAR05141,L-Leucine:tRNA(Leu) ligase (AMP-forming),1.0,,AMP;ATP;Leu
+MAR05142,L-lysine:tRNALys ligase (AMP-forming),1.0,,AMP;ATP;Lys
+MAR05143,L-Methionine:tRNAMet ligase (AMP-forming),1.0,,AMP;ATP;Met
+MAR05145,L-Phenylalanine:tRNA(Ala) ligase (AMP-forming),1.0,,AMP;ATP;Phe
+MAR05146,L-proline:tRNA(Pro) ligase (AMP-forming),1.0,,AMP;ATP;Pro
+MAR05147,L-Serine:tRNA(Ser) ligase (AMP-forming),1.0,,AMP;ATP;Ser
+MAR05148,L-Threonine:tRNA(Thr) ligase (AMP-forming),1.0,,AMP;ATP;Thr
+MAR05149,L-Tryptophan -tRNA(Trp) ligase (AMP-forming),1.0,,AMP;ATP;Trp
+MAR05150,L-Valine:tRNAVal ligase (AMP-forming),1.0,,AMP;ATP;Val
+MAR05166,exchange / transport,1.0,,ADP;ATP
+MAR05171,exchange / transport,1.0,,ADP;ATP
+MAR04084,"adenosine-3',5'-bisphosphate 3'-phosphohydrolase",1.0,1.0,AMP
+MAR00710,Isocitrate:NADP+ oxidoreductase (decarboxylating),1.0,,Isocitrate
+MAR03957,isocitrate:NAD+ oxidoreductase (decarboxylating),1.0,-1.0,Isocitrate;NAD+;NADH
+MAR03977,diphosphate phosphohydrolase,1.0,1.0,
+MAR06912,diphosphate phosphohydrolase,1.0,1.0,
+MAR06914,ferrocytochrome-c:oxygen oxidoreductase,-1.0,-1.0,
+MAR06916,ATP phosphohydrolase,1.0,,ADP;ATP
+MAR06918,exchange / transport,0.0,,
+MAR06921,NADH:ubiquinone oxidoreductase,1.0,-1.0,NAD+;NADH
+MAR03980,hydrogen-peroxide:hydrogen-peroxide oxidoreductase,1.0,1.0,
+MAR03982,hydrogen-peroxide:hydrogen-peroxide oxidoreductase,1.0,1.0,
+MAR02152,Acyl-[acyl-carrier-protein]:malonyl-[acyl-carrier-protein] C-acyltransferase (decarboxylating),0.0,0.0,
+MAR02153,(3R)-3-hydroxybutanoyl-[acyl-carrier protein]:NADP+ oxidoreductase,0.0,,
+MAR02154,(3R)-3-hydroxybutanoyl-[acyl-carrier-protein] hydro-lyase,0.0,,
+MAR02155,butyryl-[acp]:NADP+ trans-2-oxidoreductase,1.0,1.0,
+MAR02156,butyryl-[acyl-carrier protein]:malonyl-[acyl-carrier-protein] C-acyltransferase (decarboxylating),0.0,0.0,
+MAR02157,(3R)-3-hydroxyhexanoyl-[acyl-carrier-protein]:NADP+ oxidoreductase,0.0,,
+MAR02158,(3R)-3-hydroxybutanoyl-[acyl-carrier-protein] hydro-lyase,0.0,,
+MAR02159,hexanoyl-[acp]:NADP+ trans-2-oxidoreductase,0.0,,
+MAR02160,hexanoyl-[acyl-carrier protein]:malonyl-[acyl-carrier-protein] C-acyltransferase (decarboxylating),0.0,0.0,
+MAR02161,(3R)-3-hydroxyoctanoyl-[acyl-carrier-protein]:NADP+ oxidoreductase,0.0,,
+MAR02162,(3R)-3-hydroxyoctanoyl-[acyl-carrier-protein] hydro-lyase,0.0,,
+MAR02163,octanoyl-[acp]:NADP+ trans-2-oxidoreductase,0.0,,
+MAR02150,acetyl-CoA:[acyl-carrier-protein] S-acetyltransferase,0.0,,
+MAR02151,Malonyl-CoA:[acyl-carrier-protein] S-malonyltransferase,1.0,1.0,
+MAR06402,octanoyl-[acp]:protein N6-octanoyltransferase,0.0,,
+MAR06403,[protein]-N6-(octanoyl)-L-lysine:an [Fe-S] cluster scaffold protein carrying a [4Fe-4S]2+ cluster sulfurtransferase,1.0,,Met
+MAR02591,Acetyl-CoA:carnitine O-acetyltransferase,1.0,,Carnitine;o-Acetylcarnitine
+MAR02594,exchange / transport,1.0,,Carnitine
+MAR02592,exchange / transport,1.0,,Carnitine;o-Acetylcarnitine
+MAR02593,Acetyl-CoA:carnitine O-acetyltransferase,1.0,1.0,Carnitine;o-Acetylcarnitine
+MAR00605,"acyl-CoA:1,2-diacyl-sn-glycerol O-acyltransferase",0.0,,
+MAR00665,triacylglycerol acylhydrolase,0.0,,
+MAR07588,Acyl-CoA:glycerone-phosphate O-acyltransferase,0.0,,
+MAR07942,Cortisol:NADP+ 11-oxidoreductase,1.0,1.0,
+MAR07943,Cortisol:NAD+ 11-oxidoreductase,1.0,,NAD+;NADH
+MAR00736,ceramide:phosphatidylcholine cholinephosphotransferase,0.0,,
+MAR00758,acyl-CoA:sphingosine N-acyltransferase,0.0,,
+MAR00588,acyl-CoA:1-acyl-sn-glycerol-3-phosphate 2-O-acyltransferase,1.0,1.0,
+MAR00596,"1,2-diacyl-sn-glycerol 3-phosphate phosphohydrolase",1.0,1.0,
+MAR07599,CDPethanolamine:1-alkyl-2-acylglycerol ethanolaminephosphotransferase,1.0,1.0,
+MAR00479,sn-Glycerol-3-phosphate:NAD+ 2-oxidoreductase,1.0,1.0,NAD+;NADH
+MAR00579,acyl-CoA:sn-glycerol-3-phosphate 1-O-acyltransferase,1.0,1.0,
+MAR00580,acyl-CoA:1-acyl-sn-glycerol-3-phosphate 2-O-acyltransferase,1.0,1.0,
+MAR00581,exchange / transport,1.0,1.0,
+MAR00590,acyl-CoA:1-acyl-sn-glycerol-3-phosphate 2-O-acyltransferase,1.0,1.0,
+MAR00598,"1,2-diacyl-sn-glycerol 3-phosphate phosphohydrolase",1.0,1.0,
+MAR00614,"CDPethanolamine:1,2-diacylglycerol ethanolaminephosphotransferase",1.0,1.0,
+MAR00623,exchange / transport,1.0,,Choline;Ser
+MAR00625,exchange / transport,1.0,1.0,
+MAR00632,Acyl-CoA:1-acyl-sn-glycero-3-phosphocholine O-acyltransferase,0.0,,
+MAR00634,Phosphatidylcholine:sterol O-acyltransferase,0.0,,
+MAR00636,ATP:choline phosphotransferase,1.0,1.0,ADP;ATP;Choline
+MAR00638,CTP:choline-phosphate cytidylyltransferase,0.0,,
+MAR00643,phosphatidylethanolamine 2-acylhydrolase,1.0,1.0,
+MAR00651,CTP:ethanolamine-phosphate cytidylyltransferase,0.0,,
+MAR07591,exchange / transport,1.0,1.0,
+MAR07594,1-Acyl-glycerone-3-phosphate:long-chain-alcohol O-3-phospho-2-oxopropanyltransferase,1.0,1.0,
+MAR07597,exchange / transport,0.0,,
+MAR07601,"plasmanylethanolamine,ferrocytochrome b5:oxygen oxidoreductase (plasmenylethanolamine-forming)",0.0,,
+MAR07598,1-Alkyl-2-acyl-sn-glycero-3-phosphate phosphohydrolase,1.0,1.0,
+MAR07600,exchange / transport,1.0,1.0,
+MAR04257,ATP:nicotinamide-nucleotide adenylyltransferase,1.0,1.0,ATP
+MAR04260,Deamido-NAD+:L-glutamine amido-ligase (AMP-forming),1.0,,AMP;ATP;Gln;Glu;NAD+
+MAR04269,ATP:NAD+ 2'-phosphotransferase,1.0,,ADP;ATP;NAD+
+MAR04271,NADPH:NAD+ oxidoreductase,1.0,,NAD+;NADH
+MAR07672,biotin-carboxyl-carrier-protein:carbon-dioxide ligase (ADP-forming),1.0,,ADP;ATP
+MAR07673,carboxybiotin-carboxyl-carrier-protein:acetyl-CoA carboxytransferase,0.0,,
+MAR04762,Cytochrome c apocytochrome-c-lyase,0.0,,
+MAR06632,retinol: NADP+ oxidoreductase,1.0,1.0,
+MAR06634,exchange / transport,0.0,,
+MAR06638,11-cis-retinol:NAD+ oxidoreductase,1.0,1.0,NAD+;NADH
+MAR06641,exchange / transport,0.0,,
+MAR06642,exchange / transport,0.0,,
+MAR06643,exchange / transport,0.0,0.0,
+MAR06647,retinal:NAD+ oxidoreductase,1.0,1.0,NAD+;NADH
+MAR06648,exchange / transport,0.0,,
+MAR06649,exchange / transport,0.0,,
+MAR06650,exchange / transport,0.0,0.0,
+MAR06651,all-trans-Retinal 11-cis-trans-isomerase,0.0,0.0,
+MAR06652,exchange / transport,1.0,1.0,NAD+;NADH
+MAR06654,exchange / transport,0.0,,
+MAR06655,exchange / transport,0.0,,
+MAR06656,exchange / transport,0.0,,
+MAR06657,exchange / transport,1.0,1.0,
+MAR06658,exchange / transport,1.0,1.0,
+MAR06659,exchange / transport,0.0,,
+MAR06661,exchange / transport,1.0,1.0,
+MAR06664,exchange / transport,0.0,,
+MAR06665,exchange / transport,0.0,,
+MAR06668,exchange / transport,1.0,1.0,UDP-glucuronate
+MAR06669,exchange / transport,1.0,1.0,UDP-glucuronate
+MAR06674,exchange / transport,1.0,1.0,NAD+;NADH
+MAR06675,exchange / transport,1.0,1.0,NAD+;NADH
+MAR06676,exchange / transport,1.0,1.0,NAD+;NADH
+MAR06677,exchange / transport,0.0,,
+MAR06678,exchange / transport,0.0,,
+MAR06682,exchange / transport,0.0,,
+MAR06687,exchange / transport,0.0,,
+MAR06690,exchange / transport,0.0,,
+MAR06691,exchange / transport,0.0,,
+MAR06692,exchange / transport,0.0,,
+MAR06693,exchange / transport,0.0,,
+MAR06700,exchange / transport,0.0,,
+MAR06701,exchange / transport,0.0,,
+MAR06702,exchange / transport,0.0,,
+MAR06703,exchange / transport,0.0,,
+MAR08698,exchange / transport,0.0,,
+MAR08711,all-trans-Retinol 11-cis-trans-isomerase,0.0,,
+MAR06506,ATP:riboflavin 5'-phosphotransferase,1.0,,ADP;ATP
+MAR06508,ATP:FMN adenylyltransferase,1.0,,ATP
+MAR06510,FADH2:NAD+ oxidoreductase,1.0,,NAD+;NADH
+MAR08613,exchange / transport,1.0,,NAD+;NADH
+MAR08615,ATP:cob(I)alamin Co-beta-adenosyltransferase,1.0,1.0,NAD+;NADH
+MAR08616,ATP:cob(I)alamin Co-beta-adenosyltransferase,1.0,1.0,ATP
+MAR02129,exchange / transport,1.0,1.0,
+MAR02131,exchange / transport,1.0,1.0,NAD+;NADH
+MAR02133,exchange / transport,1.0,1.0,
+MAR02134,exchange / transport,1.0,1.0,
+MAR02135,exchange / transport,1.0,1.0,
+MAR02136,exchange / transport,1.0,1.0,
+MAR02137,exchange / transport,0.0,,
+MAR02138,exchange / transport,0.0,,
+MAR02139,exchange / transport,1.0,,NAD+;NADH
+MAR02140,exchange / transport,1.0,,NAD+;NADH
+MAR02142,exchange / transport,1.0,1.0,
+MAR02143,exchange / transport,1.0,1.0,
+MAR02144,exchange / transport,1.0,1.0,
+MAR02145,exchange / transport,1.0,1.0,
+MAR06426,exchange / transport,0.0,0.0,
+MAR06428,exchange / transport,0.0,0.0,
+MAR06432,exchange / transport,1.0,1.0,AMP;ATP;NAD+;NADH
+MAR06433,exchange / transport,1.0,1.0,AMP;ATP;NAD+;NADH
+MAR06434,exchange / transport,1.0,,AMP;ATP;NAD+;NADH
+MAR06435,exchange / transport,1.0,1.0,AMP;ATP
+MAR06436,exchange / transport,1.0,1.0,AMP;ATP;NAD+;NADH
+MAR06441,exchange / transport,0.0,0.0,
+MAR06443,exchange / transport,0.0,0.0,
+MAR06447,exchange / transport,1.0,,AMP;ATP;NAD+;NADH
+MAR06448,exchange / transport,1.0,1.0,AMP;ATP;NAD+;NADH
+MAR06450,exchange / transport,1.0,1.0,AMP;ATP;NAD+;NADH
+MAR06451,exchange / transport,1.0,1.0,AMP;ATP
+MAR06453,exchange / transport,1.0,1.0,AMP;ATP;NAD+;NADH
+MAR06490,exchange / transport,1.0,1.0,UDP-glucuronate
+MAR03955,carbonate hydro-lyase (carbon-dioxide-forming),1.0,1.0,
+MAR08617,Triphosphate phosphohydrolase,0.0,,
+MAR00018,exchange / transport,0.0,,
+MAR00167,exchange / transport,1.0,1.0,
+MAR04931,exchange / transport,1.0,,Cystine;Glu
+MAR04954,exchange / transport,1.0,,Choline
+MAR05003,exchange / transport,1.0,,Cytidine
+MAR05034,exchange / transport,0.0,,
+MAR05071,exchange / transport,1.0,1.0,Lys
+MAR05074,exchange / transport,1.0,1.0,Tyr
+MAR05078,exchange / transport,1.0,1.0,Gln
+MAR05079,exchange / transport,1.0,1.0,Ser
+MAR05080,exchange / transport,1.0,1.0,Trp
+MAR05091,exchange / transport,1.0,1.0,Thr
+MAR05092,exchange / transport,1.0,1.0,Ile
+MAR05303,exchange / transport,1.0,,ATP
+MAR05328,exchange / transport,1.0,,Asp
+MAR05330,exchange / transport,1.0,,Glu
+MAR05335,exchange / transport,1.0,,His
+MAR05472,exchange / transport,1.0,,Gly;Ile
+MAR05475,exchange / transport,1.0,,Ala;Met
+MAR05493,exchange / transport,1.0,,Gln;Leu
+MAR05539,exchange / transport,1.0,0.0,Phe;Thr
+MAR05557,exchange / transport,1.0,,Leu;Pro
+MAR05559,exchange / transport,1.0,,Leu;Val
+MAR05583,exchange / transport,1.0,,Arg;His
+MAR05998,exchange / transport,1.0,,Lactate
+MAR06020,exchange / transport,1.0,,Pyruvate
+MAR06049,exchange / transport,1.0,,Lactate
+MAR06424,exchange / transport,0.0,,
+MAR06439,exchange / transport,0.0,,
+MAR07700,exchange / transport,0.0,,
+MAR07735,exchange / transport,0.0,,
+MAR08010,exchange / transport,0.0,,
+MAR08408,exchange / transport,0.0,,
+MAR08612,exchange / transport,0.0,,
+MAR08676,exchange / transport,1.0,,Carnitine
+MAR08730,exchange / transport,1.0,,ADP;ATP
+MAR09605,exchange / transport,1.0,,Ala
+MAR09637,exchange / transport,0.0,,
+MAR09641,exchange / transport,0.0,,
+MAR09728,exchange / transport,1.0,,Glycogen
+MAR00578,exchange / transport,0.0,,
+MAR04760,exchange / transport,0.0,,
+MAR04888,exchange / transport,0.0,,
+MAR04898,exchange / transport,0.0,,
+MAR04905,exchange / transport,1.0,,ATP
+MAR04914,exchange / transport,1.0,1.0,
+MAR04922,exchange / transport,0.0,,
+MAR05043,exchange / transport,0.0,,
+MAR05227,exchange / transport,0.0,,
+MAR06289,exchange / transport,1.0,-1.0,Isocitrate
+MAR06328,ATP:ADP phosphatransferase,1.0,,ADP;ATP
+MAR06389,exchange / transport,0.0,,
+MAR06431,exchange / transport,0.0,,
+MAR06438,exchange / transport,0.0,,
+MAR06446,exchange / transport,0.0,,
+MAR06454,exchange / transport,0.0,,
+MAR08009,exchange / transport,0.0,,
+MAR08614,exchange / transport,1.0,1.0,
+MAR07590,exchange / transport,0.0,,
+MAR07596,exchange / transport,0.0,,
+MAR07777,exchange / transport,0.0,,
+MAR07779,exchange / transport,0.0,,
+MAR01095,exchange / transport,0.0,,
+MAR05422,exchange / transport,0.0,,
+MAR05423,exchange / transport,0.0,,
+MAR07765,exchange / transport,0.0,,
+MAR07767,exchange / transport,0.0,,
+MAR07786,exchange / transport,1.0,,ATP
+MAR07792,exchange / transport,0.0,,
+MAR07796,exchange / transport,0.0,0.0,
+MAR07857,exchange / transport,0.0,,
+MAR07860,exchange / transport,0.0,,
+MAR07861,exchange / transport,0.0,,
+MAR07862,exchange / transport,0.0,,
+MAR00020,exchange / transport,0.0,,
+MAR04880,exchange / transport,1.0,,UDP-glucuronate;UMP
+MAR04883,exchange / transport,0.0,,
+MAR04894,exchange / transport,0.0,,
+MAR06629,exchange / transport,0.0,,
+MAR07772,exchange / transport,1.0,,NAD+
+MAR07776,exchange / transport,1.0,,NADH
+MAR08722,exchange / transport,0.0,,
+MAR09811,exchange / transport,0.0,,
+MAR09038,exchange / transport,1.0,,His
+MAR09039,exchange / transport,1.0,,Ile
+MAR09040,exchange / transport,1.0,,Leu
+MAR09041,exchange / transport,1.0,,Lys
+MAR09042,exchange / transport,1.0,,Met
+MAR09043,exchange / transport,1.0,,Phe
+MAR09044,exchange / transport,1.0,,Thr
+MAR09045,exchange / transport,1.0,,Trp
+MAR09046,exchange / transport,1.0,,Val
+MAR09061,exchange / transport,1.0,,Ala
+MAR09063,exchange / transport,1.0,,Gln
+MAR09064,exchange / transport,1.0,,Tyr
+MAR09066,exchange / transport,1.0,,Arg
+MAR09067,exchange / transport,1.0,,Gly
+MAR09068,exchange / transport,1.0,,Pro
+MAR09069,exchange / transport,1.0,,Ser
+MAR09070,exchange / transport,1.0,,Asp
+MAR09071,exchange / transport,1.0,,Glu
+MAR09072,exchange / transport,0.0,,
+MAR09074,exchange / transport,0.0,,
+MAR09079,exchange / transport,0.0,,
+MAR09083,exchange / transport,1.0,,Choline
+MAR09107,exchange / transport,0.0,,
+MAR09109,exchange / transport,0.0,,
+MAR09133,exchange / transport,1.0,,Pyruvate
+MAR09135,exchange / transport,1.0,,Lactate
+MAR09143,exchange / transport,0.0,,
+MAR09152,exchange / transport,0.0,,
+MAR09154,exchange / transport,0.0,,
+MAR09215,exchange / transport,0.0,,
+MAR09269,exchange / transport,0.0,,
+MAR09285,exchange / transport,0.0,,
+MAR09292,exchange / transport,1.0,,Carnitine
+MAR09295,exchange / transport,1.0,,Cytidine
+MAR09298,exchange / transport,0.0,,
+MAR09354,exchange / transport,0.0,,
+MAR09363,exchange / transport,1.0,,Cystine
+MAR09404,exchange / transport,0.0,,
+MAR09423,exchange / transport,0.0,,
+MAR09729,exchange / transport,1.0,,Glycogen
+MAR00031,exchange / transport,1.0,1.0,
+MAR00021,exchange / transport,1.0,,Ala;Arg;Asn;Asp;Gln;Glu;Gly;Glycogen;His;Ile;Leu;Lys;Met;Phe;Pro;Ser;Thr;Trp;Tyr;Val
+MAR00022,exchange / transport,1.0,,Carnitine;NADH
+MAR00023,exchange / transport,0.0,,
+MAR00033,exchange / transport,0.0,,
+MAR00034,exchange / transport,0.0,,
+MAR00060,O-Acetylcarnintine Transport into Mitochondria via Diffusion,1.0,,o-Acetylcarnitine
+MAR00094,Biotin Transport via Sodium Symport,1.0,,ADP;ATP
+MAR00129,Cardiolipin Synthase (Homo Sapiens),0.0,,
+MAR00569,Exchange of ATP,1.0,,ATP
+MAR00628,Exchange of Lysophosphatidylcholine,0.0,,
+MAR00658,Exchange of Phosphatidylglycerol (Homo Sapiens),0.0,,
+MAR01462,"H Transporter, Peroxisome",0.0,,
+MAR01499,Lysophosphatidylcholine Transport,0.0,,
+MAR01607,Phosphatidylglycerol Transport,0.0,,
+MAR01621,"Phosphate Transport, Endoplasmic Reticulum",0.0,,
+MAR01922,Exchange of Glycerone Phosphate,0.0,,
+MAR02303,Mitochondrial Carrier (Mc) Tcdb:2.A.29.7.2,1.0,-1.0,Isocitrate
+MAR02340,Active Transport,1.0,,Carnitine
+MAR02351,Facilitated Diffusion,0.0,,
+MAR02767,exchange / transport,1.0,,NAD+;NADH
+MAR02960,exchange / transport,0.0,,
+MAR04384,Exchange of N-Acylsphingosine,0.0,,
+MAR07819,Transport of Q10,0.0,,
+MAR08966,Exchange of Ubiquinone,0.0,,
+MAR08998,Transport of Ubiquinone into Mitochondria,0.0,,
+MAR09006,Transport of S-Adenosyl-L-Homocysteine,0.0,,
+MAR09026,Exchange of S-Adenosyl-L-Homocysteine,0.0,,
+MAR09825,Transport of Dihydroxyacetone Phosphate,0.0,,
+MAR09827,Transport of Ethanolamine Phosphate,0.0,,
+MAR09837, Transport of UDP-Glucuronate,1.0,,UDP-glucuronate
+MAR09840,Transport of Nicotinate D-Ribonucleotide,0.0,,
+MAR09849,Exchange of Ethanolamine Phosphate,0.0,,
+MAR09864,Exchange,1.0,,UDP-glucuronate
+MAR09866,Exchange,0.0,,
+MAR09902,Pyruvate Transport by Smct1,1.0,,Pyruvate
+MAR09913,Transport of O-Propanoylcarnitine,0.0,,
+MAR09920,Exchange of O-Acetylcarnitine,1.0,,o-Acetylcarnitine
+MAR09921,Exchange of O-Propanoylcarnitine,0.0,,
+MAR09939,Formation of Methyl-Histidine,1.0,,3-Methylhistidine;His
+MAR09973,Transport of Methyl-Histidine by System N Transport,1.0,,3-Methylhistidine
+MAR09974,Transport of Methyl-Histidine by System L Transport (Lat1),1.0,,3-Methylhistidine;Leu
+MAR10188,Exchange of Methyl-Histidine,1.0,,3-Methylhistidine
+MAR10250,Exchange of Hexanoate,0.0,,
+MAR10375,"Transport of Hexanoate, Cytosol",0.0,,
+MAR10489,"Transport of 5,6,7,8-Tetrahydrobiopterin",0.0,,
+MAR10496,"Exchange of 5,6,7,8-Tetrahydrobiopterin",0.0,,
+MAR11250,Transport of Acetyl Carnitine,1.0,,o-Acetylcarnitine
+MAR11544,Hexanoyl-CoA hydrolase,1.0,1.0,
+MAR11583,Transport of 1-Phosphatidyl-1D-Myo-Inositol,0.0,,
+MAR11800,Transport by Folr into Extracellular Space,0.0,,
+MAR11947,Exchange of Sphingosine,0.0,,
+MAR11953,"Exchange of 5,10-Methylenetetrahydrofolate",0.0,,
+MAR12040,Ceramide Diffusion,0.0,,
+MAR12127,Exchange of 1-Phosphatidyl-1D-Myo-Inositol,0.0,,
+MAR10023,exchange / transport,0.0,,
+MAR10024,exchange / transport,0.0,,
+MAR10039,fatty acid pool transport (Cytosol to Peroxisome),0.0,,
+MAR10040,acyl-CoA pool transport (Cytosol to Peroxisome),0.0,,
+MAR10049,CDP-diacylglycerol-CL pool transport(Cytosol to Mitochondria),0.0,,
+MAR10061,fatty acyl-CoA reduction,0.0,,
+MAR13086,exchange / transport,-1.0,-1.0,
+MAR20115,MAR20115,1.0,,AMP
+MAR20130,MAR20130,1.0,,AMP
+MAR20164,MAR20164,0.0,,

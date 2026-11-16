@@ -1,0 +1,492 @@
+reaction,name
+MAR04388,(S)-Lactate:NAD+ oxidoreductase
+MAR04363,2-phospho-D-glycerate hydro-lyase (phosphoenolpyruvate-forming)
+MAR04365,"D-phosphoglycerate 2,3-phosphomutase"
+MAR04368,ATP:3-phospho-D-glycerate 1-phosphotransferase
+MAR04373,D-glyceraldehyde-3-phosphate:NAD+ oxidoreductase (phosphorylating)
+MAR04381,D-glucose-6-phosphate aldose-ketose-isomerase
+MAR04391,D-glyceraldehyde-3-phosphate aldose-ketose-isomerase
+MAR04396,"alpha-D-glucose 1,6-phosphomutase"
+MAR04122,UDP-glucose:NAD+ 6-oxidoreductase
+MAR09727,exchange / transport
+MAR03944,UTP:alpha-D-glucose-1-phosphate uridylyltransferase
+MAR04128,UDP-glucose 4-epimerase
+MAR04383,D-mannose-6-phosphate aldose-ketose-isomerase
+MAR04385,"D-mannose 6-phosphate 1,6-phosphomutase"
+MAR04386,GDP:D-mannose-1-phosphate guanylyltransferase
+MAR04399,"GDP-alpha-D-mannose 4,6-hydro-lyase (GDP-4-dehydro-alpha-D-rhamnose-forming)"
+MAR04400,"GDP-L-fucose:NADP+ 4-oxidoreductase (3,5-epimerizing)"
+MAR08729,UDP-glucuronate glucuronohydrolase
+MAR04350,ATP:D-ribose 5-phosphotransferase
+MAR04354,"D-Ribose 1,5-phosphomutase"
+MAR04004,ATP:AMP phosphotransferase
+MAR04020,ATP:GMP phosphotransferase
+MAR04040,IMP:NAD+ oxidoreductase
+MAR04042,IMP:L-aspartate ligase (GDP-forming)
+MAR04171,GTP:pyruvate 2-O-phosphotransferase
+MAR04412,"N6-(1,2-dicarboxyethyl)AMP AMP-lyase (fumarate-forming)"
+MAR04453,Xanthosine-5'-phosphate:ammonia ligase (AMP-forming)
+MAR04519,hypoxanthine:NAD+ oxidoreductase
+MAR04574,inosine:phosphate alpha-D-ribosyltransferase
+MAR04611,2'-deoxyadenosine 5'-triphosphate:oxydized-thioredoxin 2'-oxidoreductase
+MAR04614,2'-deoxyguanosine 5'-triphosphate:oxydized-thioredoxin 2'-oxidoreductase
+MAR04617,2'-deoxyuridine 5'-triphosphate:oxydized-thioredoxin 2'-oxidoreductase
+MAR04649,Xanthine:oxygen oxidoreductase
+MAR07144,ADP-ribose ribophosphohydrolase
+MAR09797,Adenine aminohydrolase
+MAR04030,ATP:CDP phosphotransferase
+MAR04635,ATP:dTDP phosphotransferase
+MAR03931,NADPH:oxidized-thioredoxin oxidoreductase
+MAR04032,UTP:ammonia ligase (ADP-forming)
+MAR04059,UDP phosphohydrolase
+MAR04177,cytidine-5'-monophosphate phosphohydrolase
+MAR04580,Cytidine aminohydrolase
+MAR04637,ATP:dTMP phosphotransferase
+MAR05299,ATP:uridine 5'-phosphotransferase
+MAR06627,exchange / transport
+MAR04026,ATP:CMP phosphotransferase
+MAR04054,ATP:thymidine 5'-phosphotransferase
+MAR07160,Deoxynucleoside triphosphate:DNA deoxynucleotidyltransferase
+MAR07161,nucleoside-triphosphate:RNA nucleotidyltransferase (DNA-directed)
+MAR07800,exchange / transport
+MAR07865,exchange / transport
+MAR07867,exchange / transport
+MAR08486,adenosine:phosphate alpha-D-ribosyltransferase
+MAR03829,L-Aspartate:2-oxoglutarate aminotransferase
+MAR03899,L-Alanine:2-oxoglutarate aminotransferase
+MAR03903,L-aspartate:L-glutamine amido-ligase (AMP-forming)
+MAR04073,S-adenosyl-L-methionine carboxy-lyase [S-adenosyl 3-(methylsulfanyl)propylamine-forming]
+MAR04077,S-adenosylmethioninamine:spermidine 3-aminopropyltransferase
+MAR04583,S-Adenosyl-L-methionine:guanidinoacetate N-methyltransferase
+MAR03901,S-Adenosyl-L-methionine:glycine N-methyltransferase
+MAR04582,L-Arginine:glycine amidinotransferase
+MAR04696,exchange / transport
+MAR04698,p-Cumic alcohol:NADP+ oxidoreductase
+MAR04699,Trimethylaminoacetate:L-homosysteine S-methyltransferase
+MAR07702,glycolate:NADP+ oxidoreductase
+MAR07703,glycolate:oxygen 2-oxidoreductase
+MAR08442,exchange / transport
+MAR04596,L-2-aminoadipate:2-oxoglutarate aminotransferase
+MAR04597,L-2-aminoadipate:2-oxoglutarate aminotransferase
+MAR04668,"N6-(L-1,3-Dicarboxypropyl)-L-lysine:NADP+ oxidoreductase"
+MAR04737,L-2-aminoadipate-6-semialdehyde:NAD+ 6-oxidoreductase
+MAR04739,L-2-aminoadipate-6-semialdehyde:NAD+ 6-oxidoreductase
+MAR04740,(S)-2-amino-6-oxohexanoate hydro-lyase (spontaneous)
+MAR08021,"L-Pipecolate:oxygen 1,6-oxidoreductase"
+MAR03877,S-Adenosyl-L-homocysteine hydrolase
+MAR03879,L-serine hydro-lyase (adding homocysteine
+MAR03881,L-cystathionine cysteine-lyase (deaminating
+MAR08641,S-adenosyl-L-methionine:DNA (cytosine-5-)-methyltransferase
+MAR03889,5-oxo-L-proline amidohydrolase (ATP-hydrolysing)
+MAR08770,exchange / transport
+MAR04078,spermidine:oxygen oxidoreductase (spermidine-forming)
+MAR04079,exchange / transport
+MAR04158,exchange / transport
+MAR04299,D-glucosamine-6-phosphate aminohydrolase (ketol isomerizing)
+MAR04494,ATP:D-glucosamine 6-phosphotransferase
+MAR04628,acetyl-CoA:D-glucosamine-6-phosphate N-acetyltransferase
+MAR04631,exchange / transport
+MAR05130,L-Tyrosine:tRNA(Tyr) ligase (AMP-forming)
+MAR05131,L-Alanine:tRNA(Ala) ligase (AMP-forming)
+MAR05132,L-Arginine:tRNA(Arg) ligase (AMP-forming)
+MAR05133,L-Asparagine:tRNA(Asn) ligase (AMP-forming)
+MAR05134,L-Aspartate:tRNA(Asp) ligase (AMP-forming)
+MAR05135,L-Cysteine:tRNA(Cys) ligase (AMP-forming)
+MAR05136,L-Glutamine:tRNA(Gln) ligase (AMP-forming)
+MAR05137,L-glutamate:tRNA(Glu) ligase (AMP-forming)
+MAR05138,glycine:tRNA(Gly) ligase (AMP-forming)
+MAR05139,L-Histidine:tRNA(His) ligase (AMP-forming)
+MAR05140,L-Isoleucine:tRNA(Ile) ligase (AMP-forming)
+MAR05141,L-Leucine:tRNA(Leu) ligase (AMP-forming)
+MAR05142,L-lysine:tRNALys ligase (AMP-forming)
+MAR05143,L-Methionine:tRNAMet ligase (AMP-forming)
+MAR05145,L-Phenylalanine:tRNA(Ala) ligase (AMP-forming)
+MAR05146,L-proline:tRNA(Pro) ligase (AMP-forming)
+MAR05147,L-Serine:tRNA(Ser) ligase (AMP-forming)
+MAR05148,L-Threonine:tRNA(Thr) ligase (AMP-forming)
+MAR05149,L-Tryptophan -tRNA(Trp) ligase (AMP-forming)
+MAR05150,L-Valine:tRNAVal ligase (AMP-forming)
+MAR05171,exchange / transport
+MAR05275,exchange / transport
+MAR05283,exchange / transport
+MAR04701,S-adenosyl-L-methionine:sarcosine N-methyltransferase
+MAR00710,Isocitrate:NADP+ oxidoreductase (decarboxylating)
+MAR04139,(S)-malate:NAD+ oxidoreductase
+MAR04149,"acetyl-CoA:oxaloacetate C-acetyltransferase [(pro-S)-carboxymethyl-forming, ADP-phosphorylating]"
+MAR04408,(S)-malate hydro-lyase (fumarate-forming)
+MAR04454,citrate hydroxymutase
+MAR06912,diphosphate phosphohydrolase
+MAR06914,ferrocytochrome-c:oxygen oxidoreductase
+MAR06916,ATP phosphohydrolase
+MAR06918,exchange / transport
+MAR03982,hydrogen-peroxide:hydrogen-peroxide oxidoreductase
+MAR02152,Acyl-[acyl-carrier-protein]:malonyl-[acyl-carrier-protein] C-acyltransferase (decarboxylating)
+MAR02153,(3R)-3-hydroxybutanoyl-[acyl-carrier protein]:NADP+ oxidoreductase
+MAR02154,(3R)-3-hydroxybutanoyl-[acyl-carrier-protein] hydro-lyase
+MAR02155,butyryl-[acp]:NADP+ trans-2-oxidoreductase
+MAR02156,butyryl-[acyl-carrier protein]:malonyl-[acyl-carrier-protein] C-acyltransferase (decarboxylating)
+MAR02157,(3R)-3-hydroxyhexanoyl-[acyl-carrier-protein]:NADP+ oxidoreductase
+MAR02158,(3R)-3-hydroxybutanoyl-[acyl-carrier-protein] hydro-lyase
+MAR02159,hexanoyl-[acp]:NADP+ trans-2-oxidoreductase
+MAR02160,hexanoyl-[acyl-carrier protein]:malonyl-[acyl-carrier-protein] C-acyltransferase (decarboxylating)
+MAR02161,(3R)-3-hydroxyoctanoyl-[acyl-carrier-protein]:NADP+ oxidoreductase
+MAR02162,(3R)-3-hydroxyoctanoyl-[acyl-carrier-protein] hydro-lyase
+MAR02163,octanoyl-[acp]:NADP+ trans-2-oxidoreductase
+MAR02150,acetyl-CoA:[acyl-carrier-protein] S-acetyltransferase
+MAR02151,Malonyl-CoA:[acyl-carrier-protein] S-malonyltransferase
+MAR06402,octanoyl-[acp]:protein N6-octanoyltransferase
+MAR06403,[protein]-N6-(octanoyl)-L-lysine:an [Fe-S] cluster scaffold protein carrying a [4Fe-4S]2+ cluster sulfurtransferase
+MAR02591,Acetyl-CoA:carnitine O-acetyltransferase
+MAR02594,exchange / transport
+MAR02593,Acetyl-CoA:carnitine O-acetyltransferase
+MAR00605,"acyl-CoA:1,2-diacyl-sn-glycerol O-acyltransferase"
+MAR07588,Acyl-CoA:glycerone-phosphate O-acyltransferase
+MAR00736,ceramide:phosphatidylcholine cholinephosphotransferase
+MAR00758,acyl-CoA:sphingosine N-acyltransferase
+MAR00588,acyl-CoA:1-acyl-sn-glycerol-3-phosphate 2-O-acyltransferase
+MAR00596,"1,2-diacyl-sn-glycerol 3-phosphate phosphohydrolase"
+MAR07599,CDPethanolamine:1-alkyl-2-acylglycerol ethanolaminephosphotransferase
+MAR00479,sn-Glycerol-3-phosphate:NAD+ 2-oxidoreductase
+MAR00579,acyl-CoA:sn-glycerol-3-phosphate 1-O-acyltransferase
+MAR00580,acyl-CoA:1-acyl-sn-glycerol-3-phosphate 2-O-acyltransferase
+MAR00581,exchange / transport
+MAR00582,exchange / transport
+MAR00584,exchange / transport
+MAR00586,CDP-diacylglycerol:phosphatidylglycerol 3-phosphatidyltransferase
+MAR00598,"1,2-diacyl-sn-glycerol 3-phosphate phosphohydrolase"
+MAR00614,"CDPethanolamine:1,2-diacylglycerol ethanolaminephosphotransferase"
+MAR00622,L-1-phosphatidylethanolamine:L-serine phosphatidyltransferase
+MAR00623,exchange / transport
+MAR00625,exchange / transport
+MAR00627,Phsophatidyl-L-serine carboxy-lyase
+MAR00632,Acyl-CoA:1-acyl-sn-glycero-3-phosphocholine O-acyltransferase
+MAR00634,Phosphatidylcholine:sterol O-acyltransferase
+MAR00636,ATP:choline phosphotransferase
+MAR00638,CTP:choline-phosphate cytidylyltransferase
+MAR00643,phosphatidylethanolamine 2-acylhydrolase
+MAR00644,Acyl-CoA:1-acyl-sn-glycero-3-phosphoethanolamine O-acyltransferase
+MAR00648,ATP:ethanolamine O-phosphotransferase
+MAR00651,CTP:ethanolamine-phosphate cytidylyltransferase
+MAR07591,exchange / transport
+MAR07594,1-Acyl-glycerone-3-phosphate:long-chain-alcohol O-3-phospho-2-oxopropanyltransferase
+MAR07597,exchange / transport
+MAR07601,"plasmanylethanolamine,ferrocytochrome b5:oxygen oxidoreductase (plasmenylethanolamine-forming)"
+MAR00859,exchange / transport
+MAR00875,exchange / transport
+MAR00889,exchange / transport
+MAR00890,exchange / transport
+MAR00911,exchange / transport
+MAR07598,1-Alkyl-2-acyl-sn-glycero-3-phosphate phosphohydrolase
+MAR07600,exchange / transport
+MAR01843,3'-Phosphoadenylylsulfate:taurolithocholate sulfotransferase
+MAR01889,exchange / transport
+MAR01890,exchange / transport
+MAR04257,ATP:nicotinamide-nucleotide adenylyltransferase
+MAR04260,Deamido-NAD+:L-glutamine amido-ligase (AMP-forming)
+MAR04261,deamido-NAD+:ammonia ligase (AMP-forming)
+MAR04269,ATP:NAD+ 2'-phosphotransferase
+MAR07143,NAD+ glycohydrolase
+MAR07672,biotin-carboxyl-carrier-protein:carbon-dioxide ligase (ADP-forming)
+MAR07673,carboxybiotin-carboxyl-carrier-protein:acetyl-CoA carboxytransferase
+MAR08621,L-Dehydroascorbate lactonohydrolase
+MAR08624,exchange / transport
+MAR04762,Cytochrome c apocytochrome-c-lyase
+MAR06632,retinol: NADP+ oxidoreductase
+MAR06634,exchange / transport
+MAR06638,11-cis-retinol:NAD+ oxidoreductase
+MAR06641,exchange / transport
+MAR06642,exchange / transport
+MAR06643,exchange / transport
+MAR06648,exchange / transport
+MAR06649,exchange / transport
+MAR06650,exchange / transport
+MAR06651,all-trans-Retinal 11-cis-trans-isomerase
+MAR06652,exchange / transport
+MAR06654,exchange / transport
+MAR06655,exchange / transport
+MAR06656,exchange / transport
+MAR06657,exchange / transport
+MAR06658,exchange / transport
+MAR06659,exchange / transport
+MAR06661,exchange / transport
+MAR06662,exchange / transport
+MAR06664,exchange / transport
+MAR06665,exchange / transport
+MAR06668,exchange / transport
+MAR06669,exchange / transport
+MAR06672,exchange / transport
+MAR06675,exchange / transport
+MAR06676,exchange / transport
+MAR06677,exchange / transport
+MAR06678,exchange / transport
+MAR06682,exchange / transport
+MAR06687,exchange / transport
+MAR06690,exchange / transport
+MAR06691,exchange / transport
+MAR06692,exchange / transport
+MAR06693,exchange / transport
+MAR06700,exchange / transport
+MAR06701,exchange / transport
+MAR06702,exchange / transport
+MAR06703,exchange / transport
+MAR08709,11-cis-retinol: NADP+ oxidoreductase
+MAR08711,all-trans-Retinol 11-cis-trans-isomerase
+MAR06510,FADH2:NAD+ oxidoreductase
+MAR08613,exchange / transport
+MAR08615,ATP:cob(I)alamin Co-beta-adenosyltransferase
+MAR08616,ATP:cob(I)alamin Co-beta-adenosyltransferase
+MAR02129,exchange / transport
+MAR02131,exchange / transport
+MAR02133,exchange / transport
+MAR02134,exchange / transport
+MAR02135,exchange / transport
+MAR02136,exchange / transport
+MAR02137,exchange / transport
+MAR02138,exchange / transport
+MAR02139,exchange / transport
+MAR02140,exchange / transport
+MAR02142,exchange / transport
+MAR02143,exchange / transport
+MAR02144,exchange / transport
+MAR02145,exchange / transport
+MAR06426,exchange / transport
+MAR06428,exchange / transport
+MAR06432,exchange / transport
+MAR06433,exchange / transport
+MAR06434,exchange / transport
+MAR06435,exchange / transport
+MAR06436,exchange / transport
+MAR06441,exchange / transport
+MAR06443,exchange / transport
+MAR06447,exchange / transport
+MAR06448,exchange / transport
+MAR06450,exchange / transport
+MAR06451,exchange / transport
+MAR06453,exchange / transport
+MAR06492,exchange / transport
+MAR03955,carbonate hydro-lyase (carbon-dioxide-forming)
+MAR03984,hydrogen-peroxide:hydrogen-peroxide oxidoreductase
+MAR08617,Triphosphate phosphohydrolase
+MAR00018,exchange / transport
+MAR04896,exchange / transport
+MAR04947,exchange / transport
+MAR04949,exchange / transport
+MAR04958,exchange / transport
+MAR04969,exchange / transport
+MAR04982,exchange / transport
+MAR04996,exchange / transport
+MAR05206,exchange / transport
+MAR05216,exchange / transport
+MAR05441,exchange / transport
+MAR05446,exchange / transport
+MAR05471,exchange / transport
+MAR05548,exchange / transport
+MAR05573,exchange / transport
+MAR05577,exchange / transport
+MAR05646,exchange / transport
+MAR05750,exchange / transport
+MAR05896,exchange / transport
+MAR05952,exchange / transport
+MAR05969,exchange / transport
+MAR05985,exchange / transport
+MAR06011,exchange / transport
+MAR06030,exchange / transport
+MAR06071,exchange / transport
+MAR06090,exchange / transport
+MAR06356,exchange / transport
+MAR06424,exchange / transport
+MAR06439,exchange / transport
+MAR06505,exchange / transport
+MAR06512,exchange / transport
+MAR06531,exchange / transport
+MAR07735,exchange / transport
+MAR07736,exchange / transport
+MAR07903,exchange / transport
+MAR08010,exchange / transport
+MAR08336,exchange / transport
+MAR08429,exchange / transport
+MAR08612,exchange / transport
+MAR08676,exchange / transport
+MAR08846,exchange / transport
+MAR08861,exchange / transport
+MAR09637,exchange / transport
+MAR09640,exchange / transport
+MAR09641,exchange / transport
+MAR00578,exchange / transport
+MAR00587,exchange / transport
+MAR04237,exchange / transport
+MAR04760,exchange / transport
+MAR04888,exchange / transport
+MAR04898,exchange / transport
+MAR04905,exchange / transport
+MAR04914,exchange / transport
+MAR04963,exchange / transport
+MAR05126,exchange / transport
+MAR05227,exchange / transport
+MAR05361,exchange / transport
+MAR06287,exchange / transport
+MAR06328,ATP:ADP phosphatransferase
+MAR06431,exchange / transport
+MAR06438,exchange / transport
+MAR06446,exchange / transport
+MAR06454,exchange / transport
+MAR08009,exchange / transport
+MAR08614,exchange / transport
+MAR08891,exchange / transport
+MAR04890,exchange / transport
+MAR05453,exchange / transport
+MAR07590,exchange / transport
+MAR07596,exchange / transport
+MAR07777,exchange / transport
+MAR07779,exchange / transport
+MAR08020,exchange / transport
+MAR01095,exchange / transport
+MAR05422,exchange / transport
+MAR05423,exchange / transport
+MAR07765,exchange / transport
+MAR07767,exchange / transport
+MAR07786,exchange / transport
+MAR07792,exchange / transport
+MAR07796,exchange / transport
+MAR07857,exchange / transport
+MAR07860,exchange / transport
+MAR07861,exchange / transport
+MAR07862,exchange / transport
+MAR00020,exchange / transport
+MAR04880,exchange / transport
+MAR04883,exchange / transport
+MAR04894,exchange / transport
+MAR05342,exchange / transport
+MAR06629,exchange / transport
+MAR07778,exchange / transport
+MAR07780,exchange / transport
+MAR08716,exchange / transport
+MAR09038,exchange / transport
+MAR09039,exchange / transport
+MAR09040,exchange / transport
+MAR09043,exchange / transport
+MAR09044,exchange / transport
+MAR09046,exchange / transport
+MAR09047,exchange / transport
+MAR09048,exchange / transport
+MAR09064,exchange / transport
+MAR09067,exchange / transport
+MAR09068,exchange / transport
+MAR09069,exchange / transport
+MAR09072,exchange / transport
+MAR09075,exchange / transport
+MAR09079,exchange / transport
+MAR09087,exchange / transport
+MAR09107,exchange / transport
+MAR09109,exchange / transport
+MAR09131,exchange / transport
+MAR09135,exchange / transport
+MAR09143,exchange / transport
+MAR09152,exchange / transport
+MAR09154,exchange / transport
+MAR09165,exchange / transport
+MAR09168,exchange / transport
+MAR09215,exchange / transport
+MAR09259,exchange / transport
+MAR09260,exchange / transport
+MAR09269,exchange / transport
+MAR09285,exchange / transport
+MAR09290,exchange / transport
+MAR09292,exchange / transport
+MAR09298,exchange / transport
+MAR09301,exchange / transport
+MAR09319,exchange / transport
+MAR09338,exchange / transport
+MAR09378,exchange / transport
+MAR09406,exchange / transport
+MAR09418,exchange / transport
+MAR09421,exchange / transport
+MAR09423,exchange / transport
+MAR09440,exchange / transport
+MAR00031,exchange / transport
+MAR00021,exchange / transport
+MAR00022,exchange / transport
+MAR00023,exchange / transport
+MAR00033,exchange / transport
+MAR00034,exchange / transport
+MAR00060,O-Acetylcarnintine Transport into Mitochondria via Diffusion
+MAR00095,Biotin Uptake (Antiport)
+MAR00628,Exchange of Lysophosphatidylcholine
+MAR00661,Exchange of Phosphatidylserine (Homo Sapiens)
+MAR01462,"H Transporter, Peroxisome"
+MAR01499,Lysophosphatidylcholine Transport
+MAR01621,"Phosphate Transport, Endoplasmic Reticulum"
+MAR01669,Transport of Phosphatidylserine
+MAR01780,Tetrahydrofolate Transport via Anion Antiport
+MAR01922,Exchange of Glycerone Phosphate
+MAR01939,Exchange of Flavin Adenine Dinucleotide Oxidized
+MAR02220,Mitochondrial Carrier (Mc) Tcdb:2.A.29.7.2
+MAR02340,Active Transport
+MAR02351,Facilitated Diffusion
+MAR02767,exchange / transport
+MAR02960,exchange / transport
+MAR04110,Exchange of Apoa1
+MAR04129,Exchange of Plasminogen
+MAR04146,Exchange of Taurolithocholate
+MAR04181,"Exchange of 2-[ (4R)-4-[ (1S, 2S, 5R, 7R, 10R, 11S, 14R, 15R)-2, 15-Dimethyl-5- (Sulfonatooxy)Tetracyclo[8.7.0.0^{2, 7}.0^{11, 15}]Heptadecan-14-Yl]Pentanamido]Ethane-1-Sulfonate"
+MAR04384,Exchange of N-Acylsphingosine
+MAR04719,Production of Hexanoylcarnitine
+MAR04899,Exchange of Hexanoyl Carnitine
+MAR07819,Transport of Q10
+MAR08963,Exchange of Hypotaurine
+MAR08966,Exchange of Ubiquinone
+MAR08967,Exchange of Ubiquinol
+MAR08974,"Hypotaurine Oxidase, Extracellular"
+MAR08975,Insosine Kinase
+MAR08987,"Diphopshate Transporter, Mitochondrial"
+MAR08991,Transport of Ubiquinol into Lymph
+MAR08997,Transport of Ubiquinol into Cytosol
+MAR08998,Transport of Ubiquinone into Mitochondria
+MAR09004,Transport of 5-S-Methyl-5-Thioadenosine
+MAR09021,Exchange of 5-S-Methyl-5-Thioadenosine
+MAR09459,Transport of 3-Ureidopropionate
+MAR09533,Transport of 3-Ureidopropionate
+MAR09825,Transport of Dihydroxyacetone Phosphate
+MAR09840,Transport of Nicotinate D-Ribonucleotide
+MAR09866,Exchange
+MAR09898,Phenylalanine Transport by B0At3
+MAR09921,Exchange of O-Propanoylcarnitine
+MAR09967,Transport of 2-Oxoadipate by Alpha-Ketoglutarate Antiport
+MAR09973,Transport of Methyl-Histidine by System N Transport
+MAR09974,Transport of Methyl-Histidine by System L Transport (Lat1)
+MAR09979,"Transport of 4- (Trimethylammonio)Butanoate, Sodium Symport"
+MAR09980,"Transport of 4- (Trimethylammonio)Butanoate, Proton Symport"
+MAR10004,"Transport of S-Adenosyl-L-Methionine, Paracellular Transport"
+MAR10183,Exchange of 2-Oxoadipate
+MAR10202,Exchange of S-Adenosyl-L-Methionine
+MAR10250,Exchange of Hexanoate
+MAR10255,Exchange of L-Pipecolic Acid
+MAR10320,Exchange of L-Saccharopinate
+MAR10342,Exchange of L-Threonate
+MAR10361,"Malonate Transport, Antiport with Chloride"
+MAR10367,"Transport of O-Propanoylcarnitine, Sodium Symport"
+MAR10375,"Transport of Hexanoate, Cytosol"
+MAR10384,"Transport of L-Pipecolic Acid by Sodium Symport, Extracellular"
+MAR10385,"Transport of L-Pipecolic Acid by Sodium Symport, Intracellular"
+MAR10397,"Transport of L-Saccharopinate, Intracellular"
+MAR10398,"Transport of L-Saccharopinate, Extracellular"
+MAR10404,Transport of L-Threonate by Active Transport
+MAR10489,"Transport of 5,6,7,8-Tetrahydrobiopterin"
+MAR10496,"Exchange of 5,6,7,8-Tetrahydrobiopterin"
+MAR11261,Transport of Hexanoyl Carnitine
+MAR11583,Transport of 1-Phosphatidyl-1D-Myo-Inositol
+MAR11734,"Transport of Glutarate, Extracellular, Antiport"
+MAR11735,"Transport of Glutarate, Extracellular"
+MAR11894,Transport of 13-Cis-Retinoate
+MAR11895,Exchange of 13-Cis-Retinoate
+MAR11947,Exchange of Sphingosine
+MAR12040,Ceramide Diffusion
+MAR12127,Exchange of 1-Phosphatidyl-1D-Myo-Inositol
+MAR10023,exchange / transport
+MAR10024,exchange / transport
+MAR10027,Exchange of LacCer pool
+MAR10039,fatty acid pool transport (Cytosol to Peroxisome)
+MAR10040,acyl-CoA pool transport (Cytosol to Peroxisome)
+MAR10061,fatty acyl-CoA reduction
+MAR13086,exchange / transport
+MAR20123,MAR20123

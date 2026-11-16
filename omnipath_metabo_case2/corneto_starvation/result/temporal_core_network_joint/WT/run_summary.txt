@@ -1,0 +1,11 @@
+genotype: WT
+states: WT_0h, WT_2h, WT_4h, WT_6h, WT_8h, WT_12h, WT_16h, WT_24h
+gene coverage: 223/582 network genes measured
+score thresholds (pooled across BOTH genotypes, (0.5, 0.76) quantiles): low<=1.42, high>=1.81
+[joint fit] solver_status: optimal
+[joint fit] optimality_proven: True
+[joint fit] objective_value: 3572.43
+[joint fit] total_switches (both genotypes): 51
+switches within WT only: 39
+temporal_mode: flux
+epsilon_fit: 0.03, lambda_reg: 0.08, lambda_temporal: 0.16, lambda_flux: 0.05

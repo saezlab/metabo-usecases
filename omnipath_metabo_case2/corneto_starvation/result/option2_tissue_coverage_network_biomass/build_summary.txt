@@ -1,0 +1,11 @@
+Mouse-GEM: 12987 reactions total
+Biomass/ATP-maintenance floor required: True ({'MAR00021': (0.01, 1000.0)})
+Candidate tissue metabolites (abundance + cofactor filters): 118
+Matched to Mouse-GEM vertices: 84
+Dropped (all reactions FVA-blocked): 1
+Metabolites with an active coverage requirement: 83
+MILP solve status: user_limit (1880.7s, max 1200s, MIPGap=0.05)
+Mass balance violation (max |S@flux|): 1.07e-08
+edge_has_flux/witness_flux mismatches: 0
+Metabolite coverage satisfied: 83/83
+Selected network: 491/12987 reactions

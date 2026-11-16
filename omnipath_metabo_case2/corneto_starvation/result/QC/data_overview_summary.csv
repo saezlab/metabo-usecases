@@ -1,0 +1,5 @@
+modality,n_measured,source,replicate_design,qc_rule
+Proteomics,3452,data/ads2547_data_file_s1.h5 /protein,16 states x 5 replicates,log2(x+1); keep if >=3/5 replicates non-missing; median-aggregate
+Tissue metabolites (intracellular),171,data/ads2547_data_file_s1.h5 /metabolite,16 states x 5 replicates,log2(x+1); keep if >=3/5 replicates non-missing; median-aggregate
+Plasma metabolites (extracellular),98,data/ads2547_data_file_s1.h5 /plasma_metabolite,16 states x 5 replicates,log2(x+1); keep if >=3/5 replicates non-missing; median-aggregate
+Lipid species,16,data/ads2547_data_file_s1.h5 /lipid,16 states x 5 replicates,log2(x+1); keep if >=3/5 replicates non-missing; median-aggregate

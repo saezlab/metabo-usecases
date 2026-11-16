@@ -1,0 +1,34 @@
+2,3-DPG
+2AB
+3-Hydroxybutyrate
+3PG
+6-Phosphogluconate
+Diethanolamine
+Dodecanoate
+Ethanolamine phosphate
+F1,6P
+F2,6P
+F6P
+G1P
+G6P
+GABA
+Glutathione(ox)
+Glutathione(red)
+Glycerophosphate
+Glycerophosphorylcholine
+Glyoxylate
+Hydroxyproline
+Isethionate
+Mucate
+N,N-Dimethylglycine
+N-Acetylaspartate
+N-Acetylglucosamine 1-phosphate
+N-Acetylglutamate
+Ophthalmate
+Phosphorylcholine
+Pyridoxamine 5'-phosphate
+Ru5P
+S7P
+SAM+
+Tartrate
+Thiamine monophosphate

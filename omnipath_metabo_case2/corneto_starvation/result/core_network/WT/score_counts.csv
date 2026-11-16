@@ -1,0 +1,9 @@
+timepoint,high (+1),neutral or unavailable (0),low (−1)
+WT_0h,8,24,26
+WT_2h,8,21,29
+WT_4h,8,20,30
+WT_6h,8,20,30
+WT_8h,6,26,26
+WT_12h,8,25,25
+WT_16h,7,24,27
+WT_24h,7,27,24

@@ -1,0 +1,10 @@
+genotype: ob_ob
+states: ob_ob_0h, ob_ob_2h, ob_ob_4h, ob_ob_6h, ob_ob_8h, ob_ob_12h, ob_ob_16h, ob_ob_24h
+gene coverage: 404/953 network genes measured
+score thresholds (global pooled (0.5, 0.76) quantiles): low<=1.53, high>=1.98
+solver_status: user_limit
+optimality_proven: False
+objective_value: 3877.75
+total_switches: 65
+temporal_mode: flux
+epsilon_fit: 0.03, lambda_reg: 0.08, lambda_temporal: 0.16, lambda_flux: 0.05

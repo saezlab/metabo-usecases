@@ -1,0 +1,10 @@
+Mouse-GEM: 12987 reactions total
+Candidate tissue metabolites (abundance + cofactor filters): 118
+Matched to Mouse-GEM vertices: 84
+Dropped (all reactions FVA-blocked): 1
+Metabolites with an active coverage requirement: 83
+MILP solve status: user_limit (1200.5s, max 1200s, MIPGap=0.05)
+Mass balance violation (max |S@flux|): 9.88e-10
+edge_has_flux/witness_flux mismatches: 0
+Metabolite coverage satisfied: 83/83
+Selected network: 191/12987 reactions
