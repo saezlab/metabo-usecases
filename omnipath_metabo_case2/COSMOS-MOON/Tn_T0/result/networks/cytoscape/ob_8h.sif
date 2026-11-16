@@ -1,0 +1,581 @@
+Ldha	1	(S)-Lactate_c
+(S)-Lactate_c	1	Ldha
+Ldhb	1	(S)-Lactate_c
+(S)-Lactate_c	1	Ldhb
+Ldhal6b	1	(S)-Lactate_c
+(S)-Lactate_c	1	Ldhal6b
+Ldhc	1	(S)-Lactate_c
+(S)-Lactate_c	1	Ldhc
+(S)-Malate_m	1	Me2
+(S)-Malate_m	1	Me3
+(S)-Malate_c	1	Me1
+(S)-Malate_c	1	Rwdd2a
+Aldh1a3	1	(S)-Lactate_c
+Aldh3a1	1	(S)-Lactate_c
+Aldh3a2	1	(S)-Lactate_c
+Aldh3b1	1	(S)-Lactate_c
+Aldh3b2	1	(S)-Lactate_c
+Aldh3b3	1	(S)-Lactate_c
+Aldh7a1	1	(S)-Lactate_c
+Q9JLJ2	1	(S)-Lactate_c
+(S)-Lactate_c	1	Cyb5d1
+(S)-Lactate_c	1	Ldhd
+2-Oxoglutarate_c	1	L2hgdh
+2-Oxoglutarate_c	1	Phgdh
+Acp3	1	Inosine_c
+Nt5c	1	Inosine_c
+Nt5c1a	1	Inosine_c
+Nt5c1b	1	Inosine_c
+Nt5c2	1	Inosine_c
+A0A0N4SVS9	1	Inosine_c
+A0A0N4SW80	1	Inosine_c
+S4R2D9	1	Inosine_c
+Nt5c3b	1	Inosine_c
+Nt5e	1	Inosine_c
+Nt5m	1	Inosine_c
+Rbak	1	Inosine_c
+Hypoxanthine_c	1	Hprt1
+Ada	1	Inosine_c
+Ada	1	Inosine_e
+Hypoxanthine_c	1	Xdh
+Hypoxanthine_x	1	Xdh
+Inosine_c	1	Pnp
+Pnp	1	Hypoxanthine_c
+Hypoxanthine_c	1	Pnp
+Pnp	1	Inosine_c
+Inosine_c	1	Pnp2
+Pnp2	1	Hypoxanthine_c
+Hypoxanthine_c	1	Pnp2
+Pnp2	1	Inosine_c
+Xdh	1	Urate_c
+Urate_c	1	Epx
+Urate_e	1	Epx
+Epx	1	Urate_c
+Epx	1	Urate_e
+Urate_c	1	Lpo
+Urate_e	1	Lpo
+Lpo	1	Urate_c
+Lpo	1	Urate_e
+Urate_c	1	Prdx6
+Urate_e	1	Prdx6
+Prdx6	1	Urate_c
+Prdx6	1	Urate_e
+Urate_c	1	Pxdn
+Urate_e	1	Pxdn
+Pxdn	1	Urate_c
+Pxdn	1	Urate_e
+Gene242__orphanReacMAR06605	1	Urate_c
+Urate_c	1	Gene242__orphanReacMAR06605_rev
+Gene243__orphanReacMAR06606	1	Urate_c
+Urate_c	1	Gene243__orphanReacMAR06606_rev
+Gene244__orphanReacMAR06607	1	Urate_c
+Urate_c	1	Gene244__orphanReacMAR06607_rev
+Urate_c	1	Gene247__orphanReacMAR06611
+Gene247__orphanReacMAR06611_rev	1	Urate_c
+Gene249__orphanReacMAR09797	1	Hypoxanthine_c
+Inosine_m	1	Gene357__orphanReacMAR08484
+2-Oxoglutarate_m	1	Glud1
+Glud1	1	2-Oxoglutarate_m
+2-Oxoglutarate_c	1	Got2
+2-Oxoglutarate_m	1	Got2
+Got2	1	2-Oxoglutarate_c
+Got2	1	2-Oxoglutarate_m
+2-Oxoglutarate_c	1	Got1
+2-Oxoglutarate_m	1	Got1
+Got1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Got1l1
+Got1l1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Gpt
+Gpt	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Gpt2
+2-Oxoglutarate_m	1	Gpt2
+Gpt2	1	2-Oxoglutarate_c
+Gpt2	1	2-Oxoglutarate_m
+Nit2	1	2-Oxoglutarate_c
+Nit2	1	2-Oxoglutarate_m
+Ldha	1	Succinate_m
+2-Oxoglutarate_m	1	Abat
+Abat	1	2-Oxoglutarate_m
+2-Oxoglutarate_c	1	Tat
+2-Oxoglutarate_m	1	Tat
+2-Oxoglutarate_m	1	Oat
+Oat	1	2-Oxoglutarate_m
+2-Oxoglutarate_c	1	P4ha1
+2-Oxoglutarate_m	1	P4ha1
+P4ha1	1	Succinate_c
+P4ha1	1	Succinate_m
+2-Oxoglutarate_c	1	P4ha2
+2-Oxoglutarate_m	1	P4ha2
+P4ha2	1	Succinate_c
+P4ha2	1	Succinate_m
+2-Oxoglutarate_c	1	P4ha3
+2-Oxoglutarate_m	1	P4ha3
+P4ha3	1	Succinate_c
+P4ha3	1	Succinate_m
+Aldh5a1	1	Succinate_m
+Psat1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Psat1
+2-Oxoglutarate_m	1	Aass
+Aadat	1	2-Oxoglutarate_c
+Aadat	1	2-Oxoglutarate_m
+Aadat	1	CHEBI:37024_c
+Aadat	1	CHEBI:37024_m
+2-Oxoglutarate_c	1	Aadat
+2-Oxoglutarate_m	1	Aadat
+CHEBI:37024_c	1	Aadat
+CHEBI:37024_m	1	Aadat
+Aldh7a1	1	CHEBI:37024_c
+Aldh7a1	1	CHEBI:37024_m
+2-Oxoglutarate_c	1	Tmlhe
+Tmlhe	1	Succinate_c
+2-Oxoglutarate_c	1	Bbox1
+Bbox1	1	Succinate_c
+2-Oxoglutarate_c	1	Plod1
+Plod1	1	Succinate_c
+2-Oxoglutarate_c	1	Plod2
+Plod2	1	Succinate_c
+2-Oxoglutarate_c	1	Plod3
+Plod3	1	Succinate_c
+2-Oxoglutarate_c	1	Bcat1
+2-Oxoglutarate_m	1	Bcat2
+2-Oxoglutarate_c	1	Kyat1
+2-Oxoglutarate_c	1	Kyat3
+2-Oxoglutarate_m	1	Kyat3
+Kyat1	1	2-Oxoglutarate_c
+Kyat3	1	2-Oxoglutarate_c
+Tat	1	2-Oxoglutarate_c
+Tat	1	2-Oxoglutarate_m
+Agxt2	1	2-Oxoglutarate_m
+2-Oxoglutarate_m	1	Agxt2
+Idh1	1	2-Oxoglutarate_c
+2-Oxoglutarate_c	1	Idh1
+Oxct1	1	Succinate_m
+Oxct2a (GEMenz__Q9JJN4)	1	Succinate_m
+Oxct2a (GEMenz__Q9ESL0)	1	Succinate_m
+Idh2	1	2-Oxoglutarate_m
+2-Oxoglutarate_m	1	Idh2
+Mdh1	1	(S)-Malate_c
+(S)-Malate_c	1	Mdh1
+Mdh1b	1	(S)-Malate_c
+(S)-Malate_c	1	Mdh1b
+Mdh2	1	(S)-Malate_m
+(S)-Malate_m	1	Mdh2
+2-Oxoglutarate_m	1	Dhtkd1
+2-Oxoglutarate_m	1	Ogdh
+H3BJV5	1	(S)-Malate_c
+H3BKG7	1	(S)-Malate_c
+H3BJV5	1	(S)-Malate_m
+H3BKG7	1	(S)-Malate_m
+(S)-Malate_c	1	H3BJV5
+(S)-Malate_c	1	H3BKG7
+(S)-Malate_m	1	H3BJV5
+(S)-Malate_m	1	H3BKG7
+Cbr1	1	Alprostadil_c
+Alprostadil_c	1	Cbr1
+Cbr3	1	Alprostadil_c
+Alprostadil_c	1	Cbr3
+Dhrs4	1	Alprostadil_c
+Alprostadil_c	1	Dhrs4
+Phyh	1	Succinate_x
+Alprostadil_c	1	Ptges
+Ptges	1	Alprostadil_c
+Alprostadil_c	1	Ptges2
+Ptges2	1	Alprostadil_c
+Alprostadil_c	1	Ptges3
+Ptges3	1	Alprostadil_c
+Rpp14	1	Alprostadil_c
+Alprostadil_c	1	Rpp14
+Scarf2	1	Alprostadil_c
+Alprostadil_c	1	Scarf2
+2-Oxoglutarate_c	1	Asph
+Asph	1	Succinate_c
+2-Oxoglutarate_c	1	Hif1an
+Hif1an	1	Succinate_c
+Urate_e	1	Gene3228__orphanReacMAR09075
+Gene3228__orphanReacMAR09075_rev	1	Urate_e
+(S)-Lactate_e	1	Gene3271__orphanReacMAR09135
+Gene3271__orphanReacMAR09135_rev	1	(S)-Lactate_e
+2-Oxoglutarate_e	1	Gene3345__orphanReacMAR09259
+Gene3345__orphanReacMAR09259_rev	1	2-Oxoglutarate_e
+3',5'-Cyclic AMP_e	1	Gene3360__orphanReacMAR09275
+Gene3360__orphanReacMAR09275_rev	1	3',5'-Cyclic AMP_e
+Inosine_e	1	Gene3423__orphanReacMAR09362
+Gene3423__orphanReacMAR09362_rev	1	Inosine_e
+Alprostadil_e	1	Gene3453__orphanReacMAR09396
+Gene3453__orphanReacMAR09396_rev	1	Alprostadil_e
+Urate_c	1	Gene3869__orphanReacMAR03167
+Succinate_c	1	Gene4138__orphanReacMAR06846
+Acot4	1	Succinate_x
+Acot8	1	Succinate_x
+Inosine_c	1	Gene4178__orphanReacMAR08975
+(S)-Malate_x	1	Gene4180__orphanReacMAR08981
+Gene4180__orphanReacMAR08981_rev	1	(S)-Malate_x
+Glutarate_e	1	Gene4652__orphanReacMAR11392
+Gene4652__orphanReacMAR11392_rev	1	Glutarate_e
+(S)-Malate_e	1	Gene4660__orphanReacMAR11404
+Gene4660__orphanReacMAR11404_rev	1	(S)-Malate_e
+17alpha-Hydroxyprogesterone_e	1	Gene4754__orphanReacMAR11869
+Gene4754__orphanReacMAR11869_rev	1	17alpha-Hydroxyprogesterone_e
+Urate_c	1	Gene5008__orphanReacMAR12742
+Urate_e	1	Gene5008__orphanReacMAR12742
+Gene5008__orphanReacMAR12742	1	Urate_c
+Gene5008__orphanReacMAR12742	1	Urate_e
+Urate_c	1	Gene5011__orphanReacMAR12751
+Urate_e	1	Gene5011__orphanReacMAR12751
+Gene5011__orphanReacMAR12751	1	Urate_c
+Gene5011__orphanReacMAR12751	1	Urate_e
+2-Oxoglutarate_c	1	Slc22a6
+2-Oxoglutarate_e	1	Slc22a6
+Slc22a6	1	2-Oxoglutarate_c
+Slc22a6	1	2-Oxoglutarate_e
+2-Oxoglutarate_c	1	Gene5119__orphanReacMAR10064
+(S)-Malate_c	1	Gene5119__orphanReacMAR10064
+2-Oxoglutarate_m	1	Adhfe1
+Clybl	1	(S)-Malate_m
+Fga (E9PV24)	1	Fga (GEMenz__E9PV24)
+Abcc4 (E9Q236)	1	Abcc4 (GEMenz__E9Q236)
+Pten (O08586)	1	Pten (GEMenz__O08586)
+Mid1 (O70583)	1	Mid1 (GEMenz__O70583)
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
+Plg (P20918)	1	Plg (GEMenz__P20918)
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Cbl (P22682)	1	Cbl (GEMenz__P22682)
+Mdm2 (P23804)	1	Mdm2 (GEMenz__P23804)
+Fkbp4 (P30416)	1	Fkbp4 (GEMenz__P30416)
+Pik3ca (P42337)	1	Pik3ca (GEMenz__P42337)
+Aldh2 (P47738)	1	Aldh2 (GEMenz__P47738)
+Sirt6 (P59941)	1	Sirt6 (GEMenz__P59941)
+Ncoa1 (P70365)	1	Ncoa1 (GEMenz__P70365)
+Bmp1 (P98063)	1	Bmp1 (GEMenz__P98063)
+Siah2 (Q06986)	1	Siah2 (GEMenz__Q06986)
+Ehmt1 (Q5DW34)	1	Ehmt1 (GEMenz__Q5DW34)
+Dbp (Q60925)	1	Dbp (GEMenz__Q60925)
+Slc29a2 (Q61672)	1	Slc29a2 (GEMenz__Q61672)
+Pja2 (Q80U04)	1	Pja2 (GEMenz__Q80U04)
+Cblc (Q80XL1)	1	Cblc (GEMenz__Q80XL1)
+Nsd2 (Q8BVE8)	1	Nsd2 (GEMenz__Q8BVE8)
+Itch (Q8C863)	1	Itch (GEMenz__Q8C863)
+Kat5 (Q8CHK4)	1	Kat5 (GEMenz__Q8CHK4)
+Slc25a1 (Q8JZU2)	1	Slc25a1 (GEMenz__Q8JZU2)
+Sirt2 (Q8VDQ8)	1	Sirt2 (GEMenz__Q8VDQ8)
+Inpp5d (Q9ES52)	1	Inpp5d (GEMenz__Q9ES52)
+Kat2b (Q9JHD1)	1	Kat2b (GEMenz__Q9JHD1)
+Pik3cg (Q9JHG7)	1	Pik3cg (GEMenz__Q9JHG7)
+Slc29a1 (Q9JIM1)	1	Slc29a1 (GEMenz__Q9JIM1)
+Pin1 (Q9QUR7)	1	Pin1 (GEMenz__Q9QUR7)
+Acox1 (Q9R0H0)	1	Acox1 (GEMenz__Q9R0H0)
+Nrf1 (Q9WU00)	1	Nrf1 (GEMenz__Q9WU00)
+Padi4 (Q9Z183)	1	Padi4 (GEMenz__Q9Z183)
+Htatip2 (Q9Z2G9)	1	Htatip2 (GEMenz__Q9Z2G9)
+Urate_e	1	Tnf
+Alprostadil_e	-1	Icam1
+Alprostadil_c	1	Fos
+3',5'-Cyclic AMP_e	1	Abcc4 (E9Q236)
+Fos	1	Abcb1a (P21447)
+Nfkbib	1	Plg (P20918)
+Id1	1	Fasn (P19096)
+Ncoa1 (P70365)	1	Erbb2
+Kat5 (Q8CHK4)	1	Prkaca
+Ncoa1 (P70365)	1	Kat2b (Q9JHD1)
+Arnt	1	Abcb1a (P21447)
+Nr0b1	1	Plg (P20918)
+Ar	1	Kat2b (Q9JHD1)
+Nr1i2	1	Abcb1a (P21447)
+Ar	1	Kat5 (Q8CHK4)
+Kat5 (Q8CHK4)	1	Ar
+Ar	1	Pten (O08586)
+Ncoa1 (P70365)	1	Tnf
+Kat5 (Q8CHK4)	1	Tnf
+Nr1h4	1	Abcb1a (P21447)
+Kat2b (Q9JHD1)	1	Trp73
+Trp73	1	Kat2b (Q9JHD1)
+Hes1	1	Mdm2 (P23804)
+Trp73	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Smarcc1
+Ar	1	Abcc4 (E9Q236)
+Kat5 (Q8CHK4)	1	Lepr
+Trp73	1	Fasn (P19096)
+Nr1h4	1	Fasn (P19096)
+Ncoa1 (P70365)	1	Lep
+Hif1a	1	Abcb1a (P21447)
+Nrf1 (Q9WU00)	1	Sp7
+Nsd2 (Q8BVE8)	1	Fgfr1
+Ar	1	Abcb1a (P21447)
+Kat5 (Q8CHK4)	1	Col2a1
+Foxo1	1	Abcb1a (P21447)
+Kat5 (Q8CHK4)	1	Trp73
+Kat5 (Q8CHK4)	1	Trp53
+Trp53	1	Padi4 (Q9Z183)
+Spdef	1	Plg (P20918)
+Trp73	1	Itch (Q8C863)
+Nfil3	1	Abcb1a (P21447)
+Klf5	1	Fasn (P19096)
+Id1	1	Pten (O08586)
+Hif1a	1	Slc29a2 (Q61672)
+Trp73	1	Pten (O08586)
+Htatip2 (Q9Z2G9)	1	Tgfb1
+Hif1a	1	Plg (P20918)
+Q08775	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Epo
+Trp53	1	Ehmt1 (Q5DW34)
+Cdx2	1	Abcb1a (P21447)
+Ncoa1 (P70365)	1	Ccnd1
+Ncoa1 (P70365)	1	Itga5
+Klf5	1	Plg (P20918)
+Max	1	Slc25a1 (Q8JZU2)
+Ar	1	Fkbp4 (P30416)
+Kat5 (Q8CHK4)	1	Xiap
+Ets2	1	Abcb1a (P21447)
+Nsd2 (Q8BVE8)	1	Trim28
+Fos	1	Sirt6 (P59941)
+Fos	1	Fasn (P19096)
+Ncoa1 (P70365)	1	Ar
+Dbp (Q60925)	1	Arnt
+Ppara	1	Abcb1a (P21447)
+Foxo1	1	Fasn (P19096)
+Htatip2 (Q9Z2G9)	-1	Ccnd1
+Fos	1	Padi4 (Q9Z183)
+Dbp (Q60925)	1	Cish
+Nsd2 (Q8BVE8)	1	Cdkn2b
+Ar	1	Mid1 (O70583)
+Fus	-1	Mdm2 (P23804)
+Mef2a	1	Nrf1 (Q9WU00)
+Nfyb	1	Abcb1a (P21447)
+Nsd2 (Q8BVE8)	1	Ar
+Nsd2 (Q8BVE8)	1	Id1
+Gli2	-1	Bmp1 (P98063)
+Gli2	-1	Pten (O08586)
+Trp53	1	Abcc4 (E9Q236)
+Ar	1	Fasn (P19096)
+Srsf2	1	Mdm2 (P23804)
+Bmal1	1	Acox1 (Q9R0H0)
+E2f2	-1	Mdm2 (P23804)
+Ncoa1 (P70365)	1	Trp53
+Trp53	1	Slc29a1 (Q9JIM1)
+Hif1a	1	Fasn (P19096)
+Ptpn12	1	Pin1 (Q9QUR7)
+Pin1 (Q9QUR7)	1	Ptpn12
+Trp53	1	Abcb1a (P21447)
+Sirt2 (Q8VDQ8)	1	Foxo1
+Pin1 (Q9QUR7)	1	Bcl6
+Mdm2 (P23804)	-1	Kat5 (Q8CHK4)
+Jarid2	1	Ehmt1 (Q5DW34)
+Ehmt1 (Q5DW34)	1	Ccnd1
+Mdm2 (P23804)	-1	Ar
+Cbl (P22682)	1	Lyn
+Lyn	1	Cbl (P22682)
+Egfr	1	Cbl (P22682)
+Cbl (P22682)	1	Egfr
+Itch (Q8C863)	1	Trp73
+Mdm2 (P23804)	-1	Trp53
+Padi4 (Q9Z183)	1	Npm1
+Cdkn2b	1	Kat5 (Q8CHK4)
+Ppara	-1	Acox1 (Q9R0H0)
+Rpl11	-1	Mdm2 (P23804)
+Erbb4	1	Mdm2 (P23804)
+Cops5	1	Ncoa1 (P70365)
+Cdkn2b	-1	Mdm2 (P23804)
+Cbl (P22682)	-1	Kit
+Cblc (Q80XL1)	-1	Egfr
+Numb	1	Itch (Q8C863)
+Cbl (P22682)	-1	Fyn
+Kat2b (Q9JHD1)	1	Ar
+Hck	1	Cbl (P22682)
+Pten (O08586)	1	Pdpk1
+Cbl (P22682)	-1	Lrig1
+Jak2	1	Dbp (Q60925)
+Siah2 (Q06986)	-1	Vav2
+Erbb2	1	Pik3ca (P42337)
+Fga (E9PV24)	1	Itgb1
+Prkaca	1	Pja2 (Q80U04)
+Erbb4	1	Cbl (P22682)
+Prkce	1	Aldh2 (P47738)
+Csnk2a2	-1	Pten (O08586)
+Itch (Q8C863)	1	Spart
+Spart	1	Itch (Q8C863)
+Bmp1 (P98063)	1	Col5a1
+Ppp2cb	1	Mdm2 (P23804)
+Inpp5d (Q9ES52)	-1	Traf6
+Mdm2 (P23804)	-1	Numb
+Numb	-1	Mdm2 (P23804)
+Dyrk2	1	Siah2 (Q06986)
+Mapk14	1	Siah2 (Q06986)
+Mdm2 (P23804)	-1	Trp73
+Lrig1	1	Cblc (Q80XL1)
+Mapk14	1	Kat5 (Q8CHK4)
+Cbl (P22682)	-1	Erbb2
+Traf6	1	Pik3ca (P42337)
+Lyn	1	Inpp5d (Q9ES52)
+Prkce	1	Kat5 (Q8CHK4)
+Bmp1 (P98063)	1	Col1a1
+Erbb2	1	Fasn (P19096)
+Mmp14	-1	Fga (E9PV24)
+Cdk5	1	Sirt2 (Q8VDQ8)
+Aldh2 (P47738)	1	Hdac3
+Acox1 (Q9R0H0)	-1	Trp73
+Bmp1 (P98063)	1	Col5a2
+Sirt6 (P59941)	1	Tnf
+Itch (Q8C863)	-1	Egfr
+Itch (Q8C863)	-1	Erbb4
+Hdac3	1	Fasn (P19096)
+Mmp13	-1	Fga (E9PV24)
+Btk	1	Mdm2 (P23804)
+Pten (O08586)	1	Cfl1
+Pik3cg (Q9JHG7)	1	Set
+Cbl (P22682)	-1	Insr
+Pak6	1	Mdm2 (P23804)
+Mdm2 (P23804)	-1	Nfatc2
+Arrb2	1	Mdm2 (P23804)
+Mdm2 (P23804)	-1	Sirt6 (P59941)
+Prkaca	-1	Pin1 (Q9QUR7)
+Mdm2 (P23804)	-1	Kat2b (Q9JHD1)
+Mdm2 (P23804)	-1	Irf1
+Pten (O08586)	1	Ppm1a
+Mdm2 (P23804)	-1	Hif1a
+Pik3cg (Q9JHG7)	1	Pdpk1
+Mmp12	-1	Fga (E9PV24)
+Arrb2	1	Inpp5d (Q9ES52)
+Cbl (P22682)	-1	Jak2
+Mdm2 (P23804)	-1	Dyrk2
+Pja2 (Q80U04)	-1	Prkar2b
+Mid1 (O70583)	-1	Ppp2ca
+Map3k11	1	Pin1 (Q9QUR7)
+Mapk9	1	Pin1 (Q9QUR7)
+Tnf	1	Pik3cg (Q9JHG7)
+Ppp2ca	1	Mdm2 (P23804)
+Kat5 (Q8CHK4)	-1	Srsf2
+Fkbp4 (P30416)	1	Ar
+Capn1	-1	Cbl (P22682)
+Cbl (P22682)	-1	Capn1
+Itga5	-1	Cbl (P22682)
+Cbl (P22682)	-1	Itga5
+Cbl (P22682)	-1	Ptpn6
+Ptpn6	-1	Cbl (P22682)
+Cbl (P22682)	-1	Pik3ca (P42337)
+Pik3ca (P42337)	-1	Cbl (P22682)
+Pik3ca (P42337)	1	Pdpk1
+Pdpk1	1	Pik3ca (P42337)
+Plg (P20918)	1	Itgb1
+3',5'-Cyclic AMP_e	1	Erbb2
+17alpha-Hydroxyprogesterone_e	-1	Gper1
+Abcc4 (E9Q236)	1	Abcc4 (GEMenz__E9Q236)
+Abcc4 (GEMenz__E9Q236)	1	Urate_e
+Slco3a1	1	Alprostadil_c
+Abcc4 (GEMenz__E9Q236)	1	3',5'-Cyclic AMP_e
+Abcc4 (GEMenz__E9Q236)	1	Alprostadil_e
+Slc2a9	1	Urate_c
+Slc22a12	1	Urate_c
+Slc22a12	1	(S)-Lactate_e
+Slc25a21	1	2-Oxoglutarate_c
+Slc25a21	1	2-Oxoglutarate_m
+Slc25a21	1	CHEBI:37024_c
+Slc25a21	1	CHEBI:37024_m
+Gene1554__orphanReacMAR04738	1	CHEBI:37024_c
+Gene1554__orphanReacMAR04738	1	CHEBI:37024_m
+Slc25a10	1	Succinate_c
+Slc25a10	1	Succinate_m
+Slc25a10	1	2-Oxoglutarate_c
+Slc25a10	1	2-Oxoglutarate_m
+Slc25a11	1	(S)-Malate_c
+Slc25a11	1	(S)-Malate_m
+Slc25a11	1	2-Oxoglutarate_c
+Slc25a11	1	2-Oxoglutarate_m
+Slc25a10	1	(S)-Malate_c
+Slc25a10	1	(S)-Malate_m
+Slc25a1 (GEMenz__Q8JZU2)	1	(S)-Malate_c
+Slc25a1 (GEMenz__Q8JZU2)	1	(S)-Malate_m
+Slc25a1 (GEMenz__Q8JZU2)	1	Succinate_c
+Slc25a1 (GEMenz__Q8JZU2)	1	Succinate_m
+Gene1747__orphanReacMAR06987	1	Succinate_c
+Gene1747__orphanReacMAR06987	1	Succinate_x
+Gene1755__orphanReacMAR07797	1	2-Oxoglutarate_c
+Gene1760__orphanReacMAR08754	1	Hypoxanthine_x
+Slc29a3	1	Hypoxanthine_c
+Slc29a3	1	Inosine_c
+Gene2362__orphanReacMAR08980	1	(S)-Malate_c
+Gene2362__orphanReacMAR08980	1	(S)-Malate_x
+Gene2383__orphanReacMAR09030	1	(S)-Malate_c
+Gene2383__orphanReacMAR09030	1	(S)-Malate_e
+Gene2413__orphanReacMAR09832	1	CHEBI:37024_c
+Gene2459__orphanReacMAR09964	1	(S)-Lactate_c
+Gene2459__orphanReacMAR09964	1	(S)-Lactate_e
+Gene2462__orphanReacMAR09967	1	2-Oxoglutarate_c
+Gene2462__orphanReacMAR09967	1	2-Oxoglutarate_e
+Gene2505__orphanReacMAR10022	1	(S)-Lactate_c
+Gene2505__orphanReacMAR10022	1	(S)-Lactate_e
+Gene2508__orphanReacMAR10134	1	(S)-Lactate_c
+Gene2508__orphanReacMAR10134	1	(S)-Lactate_e
+Gene2512__orphanReacMAR10138	1	(S)-Lactate_c
+Gene2512__orphanReacMAR10138	1	(S)-Lactate_e
+Gene2525__orphanReacMAR10152	1	(S)-Lactate_c
+Gene2525__orphanReacMAR10152	1	(S)-Lactate_e
+Slc22a8	1	Glutarate_e
+Gene2730__orphanReacMAR11735	1	Glutarate_e
+Abcb1a (GEMenz__P21447)	1	17alpha-Hydroxyprogesterone_e
+Slc29a2 (GEMenz__Q61672)	1	Hypoxanthine_c
+Slc22a7	1	2-Oxoglutarate_e
+Fasn (GEMenz__P19096)	1	Inosine_c
+Fasn (GEMenz__P19096)	1	Inosine_e
+Slc29a1 (GEMenz__Q9JIM1)	1	Inosine_c
+Slc29a1 (GEMenz__Q9JIM1)	1	Inosine_e
+Slc29a1 (GEMenz__Q9JIM1)	1	Inosine_m
+Alprostadil_c	1	Abcc4 (GEMenz__E9Q236)
+Alprostadil_e	1	Slco3a1
+Succinate_c	1	Slc25a10
+Succinate_c	1	Slc25a1 (GEMenz__Q8JZU2)
+Succinate_c	1	Gene1747__orphanReacMAR06987
+Succinate_m	1	Slc25a10
+Succinate_m	1	Slc25a1 (GEMenz__Q8JZU2)
+Succinate_x	1	Gene1747__orphanReacMAR06987
+Hypoxanthine_c	1	Gene1760__orphanReacMAR08754
+Hypoxanthine_c	1	Slc29a3
+Hypoxanthine_c	1	Slc29a2 (GEMenz__Q61672)
+Inosine_c	1	Slc29a3
+Inosine_c	1	Fasn (GEMenz__P19096)
+Inosine_c	1	Slc29a1 (GEMenz__Q9JIM1)
+Inosine_e	1	Fasn (GEMenz__P19096)
+Inosine_e	1	Slc29a1 (GEMenz__Q9JIM1)
+Inosine_m	1	Slc29a1 (GEMenz__Q9JIM1)
+Urate_c	1	Abcc4 (GEMenz__E9Q236)
+Urate_e	1	Slc2a9
+Urate_e	1	Slc22a12
+Glutarate_e	1	Slc22a8
+(S)-Malate_c	1	Slc25a11
+(S)-Malate_c	1	Slc25a10
+(S)-Malate_c	1	Slc25a1 (GEMenz__Q8JZU2)
+(S)-Malate_c	1	Gene2362__orphanReacMAR08980
+(S)-Malate_c	1	Gene2383__orphanReacMAR09030
+(S)-Malate_e	1	Gene2383__orphanReacMAR09030
+(S)-Malate_m	1	Slc25a11
+(S)-Malate_m	1	Slc25a10
+(S)-Malate_m	1	Slc25a1 (GEMenz__Q8JZU2)
+(S)-Malate_x	1	Gene2362__orphanReacMAR08980
+2-Oxoglutarate_c	1	Slc25a21
+2-Oxoglutarate_c	1	Slc25a10
+2-Oxoglutarate_c	1	Gene1755__orphanReacMAR07797
+2-Oxoglutarate_c	1	Gene2462__orphanReacMAR09967
+2-Oxoglutarate_c	1	Slc22a7
+2-Oxoglutarate_e	1	Gene2462__orphanReacMAR09967
+2-Oxoglutarate_m	1	Slc25a21
+2-Oxoglutarate_m	1	Slc25a10
+CHEBI:37024_c	1	Slc25a21
+CHEBI:37024_c	1	Gene1554__orphanReacMAR04738
+CHEBI:37024_c	1	Gene2413__orphanReacMAR09832
+CHEBI:37024_m	1	Slc25a21
+CHEBI:37024_m	1	Gene1554__orphanReacMAR04738
+(S)-Lactate_c	1	Slc22a12
+(S)-Lactate_c	1	Gene2459__orphanReacMAR09964
+(S)-Lactate_c	1	Gene2505__orphanReacMAR10022
+(S)-Lactate_c	1	Gene2508__orphanReacMAR10134
+(S)-Lactate_c	1	Gene2512__orphanReacMAR10138
+(S)-Lactate_c	1	Gene2525__orphanReacMAR10152
+(S)-Lactate_e	1	Gene2459__orphanReacMAR09964
+(S)-Lactate_e	1	Gene2505__orphanReacMAR10022
+(S)-Lactate_e	1	Gene2508__orphanReacMAR10134
+(S)-Lactate_e	1	Gene2512__orphanReacMAR10138
+(S)-Lactate_e	1	Gene2525__orphanReacMAR10152
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
+Abcb1a (P21447)	1	Abcb1a (GEMenz__P21447)
+Slc29a2 (Q61672)	1	Slc29a2 (GEMenz__Q61672)
+Slc25a1 (Q8JZU2)	1	Slc25a1 (GEMenz__Q8JZU2)
+Slc29a1 (Q9JIM1)	1	Slc29a1 (GEMenz__Q9JIM1)

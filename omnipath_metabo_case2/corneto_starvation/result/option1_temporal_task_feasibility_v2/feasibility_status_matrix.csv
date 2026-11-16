@@ -1,0 +1,16 @@
+,WT_0h,WT_2h,WT_4h,WT_6h,WT_8h,WT_12h,WT_16h,WT_24h,ob_ob_0h,ob_ob_2h,ob_ob_4h,ob_ob_6h,ob_ob_8h,ob_ob_12h,ob_ob_16h,ob_ob_24h
+Gluconeogenesis from lactate,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True
+Gluconeogenesis from alanine,True,True,True,True,True,True,True,True,True,True,False,True,False,True,True,True
+Glycogenolysis,True,True,True,True,True,False,False,False,True,True,True,True,True,True,True,True
+Ketogenesis from fatty acid,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True
+Fatty acid oxidation for energy,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True
+Ureagenesis from alanine,True,True,True,False,False,True,False,True,True,True,False,True,False,True,False,False
+Gluconeogenesis from glycerol,True,True,True,True,True,True,True,True,False,False,False,False,False,True,False,False
+Ureagenesis from glutamine,True,True,True,True,True,True,True,True,True,True,False,True,False,True,True,True
+Combined fasted state,True,True,True,True,True,True,True,True,True,True,False,True,False,True,True,True
+Glucose to glycogen (storage),True,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True
+Glucose to lipid (lipogenesis),False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False
+Combined fed state,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False
+BCAA oxidation for energy,True,True,True,False,False,True,False,True,True,True,False,True,False,True,False,False
+Transsulfuration: methionine to taurine,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False
+Glutathione synthesis,False,False,False,False,False,True,False,True,True,True,False,True,False,True,False,False

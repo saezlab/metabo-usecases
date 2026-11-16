@@ -1,0 +1,7 @@
+Network: 69 reactions, 12 tasks
+
+WT: 10/12 tasks feasible
+  INFEASIBLE: Glucose to lipid (lipogenesis) (blocked by: )
+  INFEASIBLE: Combined fed state (blocked by: )
+ob_ob: 11/12 tasks feasible
+  INFEASIBLE: Gluconeogenesis from glycerol (blocked by: )

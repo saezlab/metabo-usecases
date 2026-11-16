@@ -1,0 +1,5 @@
+Full network: 95 reactions total (Script 21's 69 - 1 [UREA_SYN removed] + 25 new)
+Tasks (15): Gluconeogenesis from lactate, Gluconeogenesis from alanine, Glycogenolysis, Ketogenesis from fatty acid, Fatty acid oxidation for energy, Ureagenesis from alanine, Gluconeogenesis from glycerol, Ureagenesis from glutamine, Combined fasted state, Glucose to glycogen (storage), Glucose to lipid (lipogenesis), Combined fed state, BCAA oxidation for energy, Transsulfuration: methionine to taurine, Glutathione synthesis
+Stage 1 (minimize union) solve status: optimal
+Stage 2 (minimize flux at fixed size) solve status: optimal
+Smallest joint network: 78/95 reactions

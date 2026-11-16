@@ -1,0 +1,122 @@
+Acp3	1	Adenosine_c
+Acp3	1	Adenosine_e
+Acp3	1	Adenosine_l
+Nt5c	1	Adenosine_c
+Nt5c	1	Adenosine_e
+Nt5c	1	Adenosine_l
+Nt5c1a	1	Adenosine_c
+Nt5c1a	1	Adenosine_e
+Nt5c1a	1	Adenosine_l
+Nt5c1b	1	Adenosine_c
+Nt5c1b	1	Adenosine_e
+Nt5c1b	1	Adenosine_l
+Nt5c2	1	Adenosine_c
+Nt5c2	1	Adenosine_e
+Nt5c2	1	Adenosine_l
+A0A0N4SVS9	1	Adenosine_c
+A0A0N4SW80	1	Adenosine_c
+S4R2D9	1	Adenosine_c
+A0A0N4SVS9	1	Adenosine_e
+A0A0N4SW80	1	Adenosine_e
+S4R2D9	1	Adenosine_e
+A0A0N4SVS9	1	Adenosine_l
+A0A0N4SW80	1	Adenosine_l
+S4R2D9	1	Adenosine_l
+Nt5c3b	1	Adenosine_c
+Nt5c3b	1	Adenosine_e
+Nt5c3b	1	Adenosine_l
+Nt5e	1	Adenosine_c
+Nt5e	1	Adenosine_e
+Nt5e	1	Adenosine_l
+Nt5m	1	Adenosine_c
+Nt5m	1	Adenosine_e
+Nt5m	1	Adenosine_l
+Rbak	1	Adenosine_c
+Rbak	1	Adenosine_e
+Adenosine_c	1	Adk
+Adenosine_c	1	Dck
+Adenosine_c	1	Ada
+Adenosine_e	1	Ada
+Adenosine_c	1	Pnp
+Pnp	1	Adenosine_c
+Adenosine_c	1	Pnp2
+Pnp2	1	Adenosine_c
+Ahcyl	1	Adenosine_c
+Ahcyl2	1	Adenosine_c
+Adenosine_c	1	Ahcyl
+Adenosine_c	1	Ahcyl2
+Adenosine_e	1	Gene3340__orphanReacMAR09254
+Gene3340__orphanReacMAR09254_rev	1	Adenosine_e
+Acp2	1	Adenosine_l
+Acp5	1	Adenosine_l
+Acp6	1	Adenosine_l
+Adenosine_c	1	Gene4154__orphanReacMAR07754
+Adenosine_c	1	Gene4155__orphanReacMAR07803
+Pten (O08586)	1	Pten (GEMenz__O08586)
+Fasn (P19096)	1	Fasn (GEMenz__P19096)
+Cbl (P22682)	1	Cbl (GEMenz__P22682)
+Mdm2 (P23804)	1	Mdm2 (GEMenz__P23804)
+Kat7 (Q5SVQ0)	1	Kat7 (GEMenz__Q5SVQ0)
+Rnf31 (Q924T7)	1	Rnf31 (GEMenz__Q924T7)
+Kat2a (Q9JHD2)	1	Kat2a (GEMenz__Q9JHD2)
+Pin1 (Q9QUR7)	1	Pin1 (GEMenz__Q9QUR7)
+Adenosine_c	1	Fyn
+Adenosine_e	1	Fyn
+Usf1	1	Fasn (P19096)
+Srebf1	1	Fasn (P19096)
+Kat7 (Q5SVQ0)	1	Rela
+Rela	-1	Pten (O08586)
+Nkx3-1	1	Mdm2 (P23804)
+Egr1	1	Mdm2 (P23804)
+Jun	-1	Pten (O08586)
+Nr2e1	-1	Pten (O08586)
+Mlxipl	1	Fasn (P19096)
+Klf5	1	Fasn (P19096)
+Nr0b1	1	Rnf31 (Q924T7)
+Kat7 (Q5SVQ0)	1	Btk
+Smad3	1	Mdm2 (P23804)
+Egr1	1	Pin1 (Q9QUR7)
+Jun	1	Pin1 (Q9QUR7)
+Kat7 (Q5SVQ0)	1	Jun
+Nfatc4	1	Pten (O08586)
+Kat7 (Q5SVQ0)	1	Kat2a (Q9JHD2)
+Elf4	1	Mdm2 (P23804)
+Ets1	-1	Mdm2 (P23804)
+Jund	-1	Mdm2 (P23804)
+Nfkb1	-1	Pten (O08586)
+Jun	1	Mdm2 (P23804)
+Smad3	1	Pin1 (Q9QUR7)
+Srsf2	1	Mdm2 (P23804)
+Nfkb1	1	Mdm2 (P23804)
+Smad4	1	Mdm2 (P23804)
+Srebf1	1	Pten (O08586)
+Usf2	1	Fasn (P19096)
+Pknox1	-1	Fasn (P19096)
+Pten (O08586)	-1	Prex2
+Prex2	-1	Pten (O08586)
+Ptpn12	1	Pin1 (Q9QUR7)
+Pin1 (Q9QUR7)	1	Ptpn12
+Cbl (P22682)	1	Lyn
+Lyn	1	Cbl (P22682)
+Cbl (P22682)	-1	Fyn
+Pten (O08586)	1	Pdpk1
+Kat2a (Q9JHD2)	1	Smad3
+Pin1 (Q9QUR7)	1	Jun
+Cbl (P22682)	-1	Erbb2
+Csk	1	Mdm2 (P23804)
+Erbb2	1	Fasn (P19096)
+Hipk2	1	Mdm2 (P23804)
+Btk	1	Mdm2 (P23804)
+Arrb2	1	Mdm2 (P23804)
+Mdm2 (P23804)	1	Rb1
+Rnf31 (Q924T7)	1	Nr0b1
+Cdk2	-1	Mdm2 (P23804)
+Slc29a3	1	Adenosine_c
+Slc29a3	1	Adenosine_l
+Fasn (GEMenz__P19096)	1	Adenosine_c
+Fasn (GEMenz__P19096)	1	Adenosine_e
+Adenosine_c	1	Slc29a3
+Adenosine_c	1	Fasn (GEMenz__P19096)
+Adenosine_e	1	Fasn (GEMenz__P19096)
+Adenosine_l	1	Slc29a3
+Fasn (P19096)	1	Fasn (GEMenz__P19096)

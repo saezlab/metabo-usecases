@@ -1,0 +1,35 @@
+Network: 95 reactions, 15 tasks
+
+Gluconeogenesis from alanine:
+  WT    11111111 (0h->24h)
+  ob_ob 11010111 (0h->24h)
+Glycogenolysis:
+  WT    11111000 (0h->24h)
+  ob_ob 11111111 (0h->24h)
+Ureagenesis from alanine:
+  WT    11100101 (0h->24h)
+  ob_ob 11010100 (0h->24h)
+Gluconeogenesis from glycerol:
+  WT    11111111 (0h->24h)
+  ob_ob 00000100 (0h->24h)
+Ureagenesis from glutamine:
+  WT    11111111 (0h->24h)
+  ob_ob 11010111 (0h->24h)
+Combined fasted state:
+  WT    11111111 (0h->24h)
+  ob_ob 11010111 (0h->24h)
+Glucose to lipid (lipogenesis):
+  WT    00000000 (0h->24h)
+  ob_ob 11111100 (0h->24h)
+Combined fed state:
+  WT    00000000 (0h->24h)
+  ob_ob 11111100 (0h->24h)
+BCAA oxidation for energy:
+  WT    11100101 (0h->24h)
+  ob_ob 11010100 (0h->24h)
+Transsulfuration: methionine to taurine:
+  WT    00000011 (0h->24h)
+  ob_ob 00000000 (0h->24h)
+Glutathione synthesis:
+  WT    00000101 (0h->24h)
+  ob_ob 11010100 (0h->24h)

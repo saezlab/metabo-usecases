@@ -1,0 +1,321 @@
+genotype,timepoint,state,task,status
+WT,0h,WT_0h,Gluconeogenesis from lactate,optimal
+WT,0h,WT_0h,Gluconeogenesis from alanine,optimal
+WT,0h,WT_0h,Glycogenolysis,optimal
+WT,0h,WT_0h,Ketogenesis from fatty acid,optimal
+WT,0h,WT_0h,Fatty acid oxidation for energy,optimal
+WT,0h,WT_0h,Ureagenesis from alanine,optimal
+WT,0h,WT_0h,Gluconeogenesis from glycerol,optimal
+WT,0h,WT_0h,Ureagenesis from glutamine,optimal
+WT,0h,WT_0h,Combined fasted state,optimal
+WT,0h,WT_0h,Glucose to glycogen (storage),optimal
+WT,0h,WT_0h,Glucose to lipid (lipogenesis),infeasible
+WT,0h,WT_0h,Combined fed state,infeasible
+WT,0h,WT_0h,BCAA oxidation for energy,optimal
+WT,0h,WT_0h,Transsulfuration: methionine to taurine,infeasible
+WT,0h,WT_0h,Glutathione synthesis,infeasible
+WT,0h,WT_0h,Creatine synthesis,infeasible
+WT,0h,WT_0h,Polyamine synthesis,infeasible
+WT,0h,WT_0h,Homocysteine remethylation via betaine,infeasible
+WT,0h,WT_0h,Nicotinamide clearance via NNMT,infeasible
+WT,0h,WT_0h,NAD salvage cycle,optimal
+WT,2h,WT_2h,Gluconeogenesis from lactate,optimal
+WT,2h,WT_2h,Gluconeogenesis from alanine,optimal
+WT,2h,WT_2h,Glycogenolysis,optimal
+WT,2h,WT_2h,Ketogenesis from fatty acid,optimal
+WT,2h,WT_2h,Fatty acid oxidation for energy,optimal
+WT,2h,WT_2h,Ureagenesis from alanine,optimal
+WT,2h,WT_2h,Gluconeogenesis from glycerol,optimal
+WT,2h,WT_2h,Ureagenesis from glutamine,optimal
+WT,2h,WT_2h,Combined fasted state,optimal
+WT,2h,WT_2h,Glucose to glycogen (storage),optimal
+WT,2h,WT_2h,Glucose to lipid (lipogenesis),infeasible
+WT,2h,WT_2h,Combined fed state,infeasible
+WT,2h,WT_2h,BCAA oxidation for energy,optimal
+WT,2h,WT_2h,Transsulfuration: methionine to taurine,infeasible
+WT,2h,WT_2h,Glutathione synthesis,infeasible
+WT,2h,WT_2h,Creatine synthesis,infeasible
+WT,2h,WT_2h,Polyamine synthesis,infeasible
+WT,2h,WT_2h,Homocysteine remethylation via betaine,infeasible
+WT,2h,WT_2h,Nicotinamide clearance via NNMT,infeasible
+WT,2h,WT_2h,NAD salvage cycle,optimal
+WT,4h,WT_4h,Gluconeogenesis from lactate,optimal
+WT,4h,WT_4h,Gluconeogenesis from alanine,optimal
+WT,4h,WT_4h,Glycogenolysis,optimal
+WT,4h,WT_4h,Ketogenesis from fatty acid,optimal
+WT,4h,WT_4h,Fatty acid oxidation for energy,optimal
+WT,4h,WT_4h,Ureagenesis from alanine,optimal
+WT,4h,WT_4h,Gluconeogenesis from glycerol,optimal
+WT,4h,WT_4h,Ureagenesis from glutamine,optimal
+WT,4h,WT_4h,Combined fasted state,optimal
+WT,4h,WT_4h,Glucose to glycogen (storage),optimal
+WT,4h,WT_4h,Glucose to lipid (lipogenesis),infeasible
+WT,4h,WT_4h,Combined fed state,infeasible
+WT,4h,WT_4h,BCAA oxidation for energy,optimal
+WT,4h,WT_4h,Transsulfuration: methionine to taurine,infeasible
+WT,4h,WT_4h,Glutathione synthesis,infeasible
+WT,4h,WT_4h,Creatine synthesis,infeasible
+WT,4h,WT_4h,Polyamine synthesis,infeasible
+WT,4h,WT_4h,Homocysteine remethylation via betaine,infeasible
+WT,4h,WT_4h,Nicotinamide clearance via NNMT,infeasible
+WT,4h,WT_4h,NAD salvage cycle,optimal
+WT,6h,WT_6h,Gluconeogenesis from lactate,optimal
+WT,6h,WT_6h,Gluconeogenesis from alanine,optimal
+WT,6h,WT_6h,Glycogenolysis,optimal
+WT,6h,WT_6h,Ketogenesis from fatty acid,optimal
+WT,6h,WT_6h,Fatty acid oxidation for energy,optimal
+WT,6h,WT_6h,Ureagenesis from alanine,infeasible
+WT,6h,WT_6h,Gluconeogenesis from glycerol,optimal
+WT,6h,WT_6h,Ureagenesis from glutamine,optimal
+WT,6h,WT_6h,Combined fasted state,optimal
+WT,6h,WT_6h,Glucose to glycogen (storage),optimal
+WT,6h,WT_6h,Glucose to lipid (lipogenesis),infeasible
+WT,6h,WT_6h,Combined fed state,infeasible
+WT,6h,WT_6h,BCAA oxidation for energy,infeasible
+WT,6h,WT_6h,Transsulfuration: methionine to taurine,infeasible
+WT,6h,WT_6h,Glutathione synthesis,infeasible
+WT,6h,WT_6h,Creatine synthesis,infeasible
+WT,6h,WT_6h,Polyamine synthesis,infeasible
+WT,6h,WT_6h,Homocysteine remethylation via betaine,infeasible
+WT,6h,WT_6h,Nicotinamide clearance via NNMT,infeasible
+WT,6h,WT_6h,NAD salvage cycle,optimal
+WT,8h,WT_8h,Gluconeogenesis from lactate,optimal
+WT,8h,WT_8h,Gluconeogenesis from alanine,optimal
+WT,8h,WT_8h,Glycogenolysis,optimal
+WT,8h,WT_8h,Ketogenesis from fatty acid,optimal
+WT,8h,WT_8h,Fatty acid oxidation for energy,optimal
+WT,8h,WT_8h,Ureagenesis from alanine,infeasible
+WT,8h,WT_8h,Gluconeogenesis from glycerol,optimal
+WT,8h,WT_8h,Ureagenesis from glutamine,optimal
+WT,8h,WT_8h,Combined fasted state,optimal
+WT,8h,WT_8h,Glucose to glycogen (storage),optimal
+WT,8h,WT_8h,Glucose to lipid (lipogenesis),infeasible
+WT,8h,WT_8h,Combined fed state,infeasible
+WT,8h,WT_8h,BCAA oxidation for energy,infeasible
+WT,8h,WT_8h,Transsulfuration: methionine to taurine,infeasible
+WT,8h,WT_8h,Glutathione synthesis,infeasible
+WT,8h,WT_8h,Creatine synthesis,infeasible
+WT,8h,WT_8h,Polyamine synthesis,infeasible
+WT,8h,WT_8h,Homocysteine remethylation via betaine,infeasible
+WT,8h,WT_8h,Nicotinamide clearance via NNMT,infeasible
+WT,8h,WT_8h,NAD salvage cycle,optimal
+WT,12h,WT_12h,Gluconeogenesis from lactate,optimal
+WT,12h,WT_12h,Gluconeogenesis from alanine,optimal
+WT,12h,WT_12h,Glycogenolysis,infeasible
+WT,12h,WT_12h,Ketogenesis from fatty acid,optimal
+WT,12h,WT_12h,Fatty acid oxidation for energy,optimal
+WT,12h,WT_12h,Ureagenesis from alanine,optimal
+WT,12h,WT_12h,Gluconeogenesis from glycerol,optimal
+WT,12h,WT_12h,Ureagenesis from glutamine,optimal
+WT,12h,WT_12h,Combined fasted state,optimal
+WT,12h,WT_12h,Glucose to glycogen (storage),optimal
+WT,12h,WT_12h,Glucose to lipid (lipogenesis),infeasible
+WT,12h,WT_12h,Combined fed state,infeasible
+WT,12h,WT_12h,BCAA oxidation for energy,optimal
+WT,12h,WT_12h,Transsulfuration: methionine to taurine,infeasible
+WT,12h,WT_12h,Glutathione synthesis,infeasible
+WT,12h,WT_12h,Creatine synthesis,infeasible
+WT,12h,WT_12h,Polyamine synthesis,infeasible
+WT,12h,WT_12h,Homocysteine remethylation via betaine,infeasible
+WT,12h,WT_12h,Nicotinamide clearance via NNMT,infeasible
+WT,12h,WT_12h,NAD salvage cycle,optimal
+WT,16h,WT_16h,Gluconeogenesis from lactate,optimal
+WT,16h,WT_16h,Gluconeogenesis from alanine,optimal
+WT,16h,WT_16h,Glycogenolysis,infeasible
+WT,16h,WT_16h,Ketogenesis from fatty acid,optimal
+WT,16h,WT_16h,Fatty acid oxidation for energy,optimal
+WT,16h,WT_16h,Ureagenesis from alanine,infeasible
+WT,16h,WT_16h,Gluconeogenesis from glycerol,optimal
+WT,16h,WT_16h,Ureagenesis from glutamine,optimal
+WT,16h,WT_16h,Combined fasted state,optimal
+WT,16h,WT_16h,Glucose to glycogen (storage),optimal
+WT,16h,WT_16h,Glucose to lipid (lipogenesis),infeasible
+WT,16h,WT_16h,Combined fed state,infeasible
+WT,16h,WT_16h,BCAA oxidation for energy,infeasible
+WT,16h,WT_16h,Transsulfuration: methionine to taurine,optimal
+WT,16h,WT_16h,Glutathione synthesis,infeasible
+WT,16h,WT_16h,Creatine synthesis,optimal
+WT,16h,WT_16h,Polyamine synthesis,optimal
+WT,16h,WT_16h,Homocysteine remethylation via betaine,optimal
+WT,16h,WT_16h,Nicotinamide clearance via NNMT,infeasible
+WT,16h,WT_16h,NAD salvage cycle,optimal
+WT,24h,WT_24h,Gluconeogenesis from lactate,optimal
+WT,24h,WT_24h,Gluconeogenesis from alanine,optimal
+WT,24h,WT_24h,Glycogenolysis,infeasible
+WT,24h,WT_24h,Ketogenesis from fatty acid,optimal
+WT,24h,WT_24h,Fatty acid oxidation for energy,optimal
+WT,24h,WT_24h,Ureagenesis from alanine,optimal
+WT,24h,WT_24h,Gluconeogenesis from glycerol,optimal
+WT,24h,WT_24h,Ureagenesis from glutamine,optimal
+WT,24h,WT_24h,Combined fasted state,optimal
+WT,24h,WT_24h,Glucose to glycogen (storage),optimal
+WT,24h,WT_24h,Glucose to lipid (lipogenesis),infeasible
+WT,24h,WT_24h,Combined fed state,infeasible
+WT,24h,WT_24h,BCAA oxidation for energy,optimal
+WT,24h,WT_24h,Transsulfuration: methionine to taurine,optimal
+WT,24h,WT_24h,Glutathione synthesis,optimal
+WT,24h,WT_24h,Creatine synthesis,optimal
+WT,24h,WT_24h,Polyamine synthesis,optimal
+WT,24h,WT_24h,Homocysteine remethylation via betaine,optimal
+WT,24h,WT_24h,Nicotinamide clearance via NNMT,optimal
+WT,24h,WT_24h,NAD salvage cycle,optimal
+ob_ob,0h,ob_ob_0h,Gluconeogenesis from lactate,optimal
+ob_ob,0h,ob_ob_0h,Gluconeogenesis from alanine,optimal
+ob_ob,0h,ob_ob_0h,Glycogenolysis,optimal
+ob_ob,0h,ob_ob_0h,Ketogenesis from fatty acid,optimal
+ob_ob,0h,ob_ob_0h,Fatty acid oxidation for energy,optimal
+ob_ob,0h,ob_ob_0h,Ureagenesis from alanine,optimal
+ob_ob,0h,ob_ob_0h,Gluconeogenesis from glycerol,infeasible
+ob_ob,0h,ob_ob_0h,Ureagenesis from glutamine,optimal
+ob_ob,0h,ob_ob_0h,Combined fasted state,optimal
+ob_ob,0h,ob_ob_0h,Glucose to glycogen (storage),optimal
+ob_ob,0h,ob_ob_0h,Glucose to lipid (lipogenesis),optimal
+ob_ob,0h,ob_ob_0h,Combined fed state,optimal
+ob_ob,0h,ob_ob_0h,BCAA oxidation for energy,optimal
+ob_ob,0h,ob_ob_0h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,0h,ob_ob_0h,Glutathione synthesis,optimal
+ob_ob,0h,ob_ob_0h,Creatine synthesis,infeasible
+ob_ob,0h,ob_ob_0h,Polyamine synthesis,infeasible
+ob_ob,0h,ob_ob_0h,Homocysteine remethylation via betaine,optimal
+ob_ob,0h,ob_ob_0h,Nicotinamide clearance via NNMT,optimal
+ob_ob,0h,ob_ob_0h,NAD salvage cycle,optimal
+ob_ob,2h,ob_ob_2h,Gluconeogenesis from lactate,optimal
+ob_ob,2h,ob_ob_2h,Gluconeogenesis from alanine,optimal
+ob_ob,2h,ob_ob_2h,Glycogenolysis,optimal
+ob_ob,2h,ob_ob_2h,Ketogenesis from fatty acid,optimal
+ob_ob,2h,ob_ob_2h,Fatty acid oxidation for energy,optimal
+ob_ob,2h,ob_ob_2h,Ureagenesis from alanine,optimal
+ob_ob,2h,ob_ob_2h,Gluconeogenesis from glycerol,infeasible
+ob_ob,2h,ob_ob_2h,Ureagenesis from glutamine,optimal
+ob_ob,2h,ob_ob_2h,Combined fasted state,optimal
+ob_ob,2h,ob_ob_2h,Glucose to glycogen (storage),optimal
+ob_ob,2h,ob_ob_2h,Glucose to lipid (lipogenesis),optimal
+ob_ob,2h,ob_ob_2h,Combined fed state,optimal
+ob_ob,2h,ob_ob_2h,BCAA oxidation for energy,optimal
+ob_ob,2h,ob_ob_2h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,2h,ob_ob_2h,Glutathione synthesis,optimal
+ob_ob,2h,ob_ob_2h,Creatine synthesis,infeasible
+ob_ob,2h,ob_ob_2h,Polyamine synthesis,infeasible
+ob_ob,2h,ob_ob_2h,Homocysteine remethylation via betaine,optimal
+ob_ob,2h,ob_ob_2h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,2h,ob_ob_2h,NAD salvage cycle,optimal
+ob_ob,4h,ob_ob_4h,Gluconeogenesis from lactate,optimal
+ob_ob,4h,ob_ob_4h,Gluconeogenesis from alanine,optimal
+ob_ob,4h,ob_ob_4h,Glycogenolysis,optimal
+ob_ob,4h,ob_ob_4h,Ketogenesis from fatty acid,optimal
+ob_ob,4h,ob_ob_4h,Fatty acid oxidation for energy,optimal
+ob_ob,4h,ob_ob_4h,Ureagenesis from alanine,infeasible
+ob_ob,4h,ob_ob_4h,Gluconeogenesis from glycerol,infeasible
+ob_ob,4h,ob_ob_4h,Ureagenesis from glutamine,optimal
+ob_ob,4h,ob_ob_4h,Combined fasted state,optimal
+ob_ob,4h,ob_ob_4h,Glucose to glycogen (storage),optimal
+ob_ob,4h,ob_ob_4h,Glucose to lipid (lipogenesis),optimal
+ob_ob,4h,ob_ob_4h,Combined fed state,optimal
+ob_ob,4h,ob_ob_4h,BCAA oxidation for energy,infeasible
+ob_ob,4h,ob_ob_4h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,4h,ob_ob_4h,Glutathione synthesis,infeasible
+ob_ob,4h,ob_ob_4h,Creatine synthesis,infeasible
+ob_ob,4h,ob_ob_4h,Polyamine synthesis,infeasible
+ob_ob,4h,ob_ob_4h,Homocysteine remethylation via betaine,optimal
+ob_ob,4h,ob_ob_4h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,4h,ob_ob_4h,NAD salvage cycle,optimal
+ob_ob,6h,ob_ob_6h,Gluconeogenesis from lactate,optimal
+ob_ob,6h,ob_ob_6h,Gluconeogenesis from alanine,optimal
+ob_ob,6h,ob_ob_6h,Glycogenolysis,optimal
+ob_ob,6h,ob_ob_6h,Ketogenesis from fatty acid,optimal
+ob_ob,6h,ob_ob_6h,Fatty acid oxidation for energy,optimal
+ob_ob,6h,ob_ob_6h,Ureagenesis from alanine,optimal
+ob_ob,6h,ob_ob_6h,Gluconeogenesis from glycerol,infeasible
+ob_ob,6h,ob_ob_6h,Ureagenesis from glutamine,optimal
+ob_ob,6h,ob_ob_6h,Combined fasted state,optimal
+ob_ob,6h,ob_ob_6h,Glucose to glycogen (storage),optimal
+ob_ob,6h,ob_ob_6h,Glucose to lipid (lipogenesis),optimal
+ob_ob,6h,ob_ob_6h,Combined fed state,optimal
+ob_ob,6h,ob_ob_6h,BCAA oxidation for energy,optimal
+ob_ob,6h,ob_ob_6h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,6h,ob_ob_6h,Glutathione synthesis,optimal
+ob_ob,6h,ob_ob_6h,Creatine synthesis,infeasible
+ob_ob,6h,ob_ob_6h,Polyamine synthesis,infeasible
+ob_ob,6h,ob_ob_6h,Homocysteine remethylation via betaine,optimal
+ob_ob,6h,ob_ob_6h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,6h,ob_ob_6h,NAD salvage cycle,optimal
+ob_ob,8h,ob_ob_8h,Gluconeogenesis from lactate,optimal
+ob_ob,8h,ob_ob_8h,Gluconeogenesis from alanine,optimal
+ob_ob,8h,ob_ob_8h,Glycogenolysis,optimal
+ob_ob,8h,ob_ob_8h,Ketogenesis from fatty acid,optimal
+ob_ob,8h,ob_ob_8h,Fatty acid oxidation for energy,optimal
+ob_ob,8h,ob_ob_8h,Ureagenesis from alanine,optimal
+ob_ob,8h,ob_ob_8h,Gluconeogenesis from glycerol,infeasible
+ob_ob,8h,ob_ob_8h,Ureagenesis from glutamine,optimal
+ob_ob,8h,ob_ob_8h,Combined fasted state,optimal
+ob_ob,8h,ob_ob_8h,Glucose to glycogen (storage),optimal
+ob_ob,8h,ob_ob_8h,Glucose to lipid (lipogenesis),optimal
+ob_ob,8h,ob_ob_8h,Combined fed state,optimal
+ob_ob,8h,ob_ob_8h,BCAA oxidation for energy,optimal
+ob_ob,8h,ob_ob_8h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,8h,ob_ob_8h,Glutathione synthesis,infeasible
+ob_ob,8h,ob_ob_8h,Creatine synthesis,infeasible
+ob_ob,8h,ob_ob_8h,Polyamine synthesis,infeasible
+ob_ob,8h,ob_ob_8h,Homocysteine remethylation via betaine,optimal
+ob_ob,8h,ob_ob_8h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,8h,ob_ob_8h,NAD salvage cycle,optimal
+ob_ob,12h,ob_ob_12h,Gluconeogenesis from lactate,optimal
+ob_ob,12h,ob_ob_12h,Gluconeogenesis from alanine,optimal
+ob_ob,12h,ob_ob_12h,Glycogenolysis,optimal
+ob_ob,12h,ob_ob_12h,Ketogenesis from fatty acid,optimal
+ob_ob,12h,ob_ob_12h,Fatty acid oxidation for energy,optimal
+ob_ob,12h,ob_ob_12h,Ureagenesis from alanine,optimal
+ob_ob,12h,ob_ob_12h,Gluconeogenesis from glycerol,optimal
+ob_ob,12h,ob_ob_12h,Ureagenesis from glutamine,optimal
+ob_ob,12h,ob_ob_12h,Combined fasted state,optimal
+ob_ob,12h,ob_ob_12h,Glucose to glycogen (storage),optimal
+ob_ob,12h,ob_ob_12h,Glucose to lipid (lipogenesis),optimal
+ob_ob,12h,ob_ob_12h,Combined fed state,optimal
+ob_ob,12h,ob_ob_12h,BCAA oxidation for energy,optimal
+ob_ob,12h,ob_ob_12h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,12h,ob_ob_12h,Glutathione synthesis,optimal
+ob_ob,12h,ob_ob_12h,Creatine synthesis,infeasible
+ob_ob,12h,ob_ob_12h,Polyamine synthesis,infeasible
+ob_ob,12h,ob_ob_12h,Homocysteine remethylation via betaine,optimal
+ob_ob,12h,ob_ob_12h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,12h,ob_ob_12h,NAD salvage cycle,optimal
+ob_ob,16h,ob_ob_16h,Gluconeogenesis from lactate,optimal
+ob_ob,16h,ob_ob_16h,Gluconeogenesis from alanine,optimal
+ob_ob,16h,ob_ob_16h,Glycogenolysis,optimal
+ob_ob,16h,ob_ob_16h,Ketogenesis from fatty acid,optimal
+ob_ob,16h,ob_ob_16h,Fatty acid oxidation for energy,optimal
+ob_ob,16h,ob_ob_16h,Ureagenesis from alanine,infeasible
+ob_ob,16h,ob_ob_16h,Gluconeogenesis from glycerol,infeasible
+ob_ob,16h,ob_ob_16h,Ureagenesis from glutamine,optimal
+ob_ob,16h,ob_ob_16h,Combined fasted state,optimal
+ob_ob,16h,ob_ob_16h,Glucose to glycogen (storage),optimal
+ob_ob,16h,ob_ob_16h,Glucose to lipid (lipogenesis),infeasible
+ob_ob,16h,ob_ob_16h,Combined fed state,infeasible
+ob_ob,16h,ob_ob_16h,BCAA oxidation for energy,infeasible
+ob_ob,16h,ob_ob_16h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,16h,ob_ob_16h,Glutathione synthesis,infeasible
+ob_ob,16h,ob_ob_16h,Creatine synthesis,infeasible
+ob_ob,16h,ob_ob_16h,Polyamine synthesis,infeasible
+ob_ob,16h,ob_ob_16h,Homocysteine remethylation via betaine,optimal
+ob_ob,16h,ob_ob_16h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,16h,ob_ob_16h,NAD salvage cycle,optimal
+ob_ob,24h,ob_ob_24h,Gluconeogenesis from lactate,optimal
+ob_ob,24h,ob_ob_24h,Gluconeogenesis from alanine,optimal
+ob_ob,24h,ob_ob_24h,Glycogenolysis,optimal
+ob_ob,24h,ob_ob_24h,Ketogenesis from fatty acid,optimal
+ob_ob,24h,ob_ob_24h,Fatty acid oxidation for energy,optimal
+ob_ob,24h,ob_ob_24h,Ureagenesis from alanine,infeasible
+ob_ob,24h,ob_ob_24h,Gluconeogenesis from glycerol,infeasible
+ob_ob,24h,ob_ob_24h,Ureagenesis from glutamine,optimal
+ob_ob,24h,ob_ob_24h,Combined fasted state,optimal
+ob_ob,24h,ob_ob_24h,Glucose to glycogen (storage),optimal
+ob_ob,24h,ob_ob_24h,Glucose to lipid (lipogenesis),infeasible
+ob_ob,24h,ob_ob_24h,Combined fed state,infeasible
+ob_ob,24h,ob_ob_24h,BCAA oxidation for energy,infeasible
+ob_ob,24h,ob_ob_24h,Transsulfuration: methionine to taurine,infeasible
+ob_ob,24h,ob_ob_24h,Glutathione synthesis,infeasible
+ob_ob,24h,ob_ob_24h,Creatine synthesis,infeasible
+ob_ob,24h,ob_ob_24h,Polyamine synthesis,infeasible
+ob_ob,24h,ob_ob_24h,Homocysteine remethylation via betaine,optimal
+ob_ob,24h,ob_ob_24h,Nicotinamide clearance via NNMT,infeasible
+ob_ob,24h,ob_ob_24h,NAD salvage cycle,optimal

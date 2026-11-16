@@ -1,0 +1,38 @@
+Network: 117 reactions, 20 tasks
+
+Glycogenolysis:
+  WT    11111000 (0h->24h)
+  ob_ob 11111111 (0h->24h)
+Ureagenesis from alanine:
+  WT    11100101 (0h->24h)
+  ob_ob 11011100 (0h->24h)
+Gluconeogenesis from glycerol:
+  WT    11111111 (0h->24h)
+  ob_ob 00000100 (0h->24h)
+Glucose to lipid (lipogenesis):
+  WT    00000000 (0h->24h)
+  ob_ob 11111100 (0h->24h)
+Combined fed state:
+  WT    00000000 (0h->24h)
+  ob_ob 11111100 (0h->24h)
+BCAA oxidation for energy:
+  WT    11100101 (0h->24h)
+  ob_ob 11011100 (0h->24h)
+Transsulfuration: methionine to taurine:
+  WT    00000011 (0h->24h)
+  ob_ob 00000000 (0h->24h)
+Glutathione synthesis:
+  WT    00000001 (0h->24h)
+  ob_ob 11010100 (0h->24h)
+Creatine synthesis:
+  WT    00000011 (0h->24h)
+  ob_ob 00000000 (0h->24h)
+Polyamine synthesis:
+  WT    00000011 (0h->24h)
+  ob_ob 00000000 (0h->24h)
+Homocysteine remethylation via betaine:
+  WT    00000011 (0h->24h)
+  ob_ob 11111111 (0h->24h)
+Nicotinamide clearance via NNMT:
+  WT    00000001 (0h->24h)
+  ob_ob 10000000 (0h->24h)

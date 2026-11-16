@@ -1,0 +1,5 @@
+Full network: 117 reactions total (Script 24's 95 - 1 [METHYLATION_SINK replaced by real GNMT] + 23 new)
+Tasks (20): Gluconeogenesis from lactate, Gluconeogenesis from alanine, Glycogenolysis, Ketogenesis from fatty acid, Fatty acid oxidation for energy, Ureagenesis from alanine, Gluconeogenesis from glycerol, Ureagenesis from glutamine, Combined fasted state, Glucose to glycogen (storage), Glucose to lipid (lipogenesis), Combined fed state, BCAA oxidation for energy, Transsulfuration: methionine to taurine, Glutathione synthesis, Creatine synthesis, Polyamine synthesis, Homocysteine remethylation via betaine, Nicotinamide clearance via NNMT, NAD salvage cycle
+Stage 1 (minimize union) solve status: optimal
+Stage 2 (minimize flux at fixed size) solve status: optimal
+Smallest joint network: 100/117 reactions

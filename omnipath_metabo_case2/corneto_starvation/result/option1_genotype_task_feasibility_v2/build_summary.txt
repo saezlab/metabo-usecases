@@ -1,0 +1,10 @@
+Network: 95 reactions, 15 tasks
+
+WT: 11/15 tasks feasible
+  INFEASIBLE: Glucose to lipid (lipogenesis) (blocked by: )
+  INFEASIBLE: Combined fed state (blocked by: )
+  INFEASIBLE: Transsulfuration: methionine to taurine (blocked by: )
+  INFEASIBLE: Glutathione synthesis (blocked by: )
+ob_ob: 13/15 tasks feasible
+  INFEASIBLE: Gluconeogenesis from glycerol (blocked by: )
+  INFEASIBLE: Transsulfuration: methionine to taurine (blocked by: )
