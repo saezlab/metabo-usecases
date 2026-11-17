@@ -1,18 +1,51 @@
-# Case studies for the upcoming OmniPath Metabo manuscript
+# Option 1: metabolic-task network inference for liver starvation
 
-This repository includes all notebooks used to create figures and data tables for the manuscript.
+CORNETO-based metabolic-task analysis of a WT vs ob/ob mouse-liver
+starvation time course (Morita et al., 8 timepoints: 0, 2, 4, 6, 8, 12,
+16, 24h). This is the "Option 1" route from the
+[corneto-metabo-mct](https://github.com/saezlab/corneto-metabo-mct)
+notebook: metabolic tasks on a small hand-curated network, rather than the
+full Mouse-GEM.
 
-## Structure
+A metabolic task asks whether the network can carry out a function — it
+opens the task's substrate inputs, requires a product output, and asks for
+a steady-state flux within the reaction bounds. We build a 117-reaction
+liver network supporting 20 fed- and fasted-state tasks, then close
+reactions whose enzymes are low-expressed in the measured proteomics to see
+which tasks each genotype can still perform, and how that changes over the
+time course.
 
-- Each use-case goes in its own directory, use `uv` for environment management (or `nix`)
-- Supplementary tables should be saved in the Google Drive as `ExtendedDataTable_Number_ShortName.xlsx` with a sheet overview in the first sheet:
+See [`OPTION1_SUMMARY.md`](OPTION1_SUMMARY.md) for the methods and findings.
 
-    | Sheet | Content |
-    |---------|---------|
-    | Sheet 1 | Rawdata. |
-    | Sheet 2 | Normalised data. |
-    | Sheet 3 | ... |
+## Scripts
 
-- The final figures should be saved as `.svg` and as `.pdf`
-- Ensure that any papers and methods you mention or use in your notebooks are cited (e.g. using `.bib` file)
+Run in order; each writes to the matching directory under `result/`.
 
+| Script | Does |
+|---|---|
+| `scripts/01_metabolic_task_network.py` | Build the 117-reaction network and the 20 tasks; find the smallest reaction set supporting all tasks jointly. |
+| `scripts/02_genotype_task_feasibility.py` | Gate the network by each genotype's proteomics; test which tasks stay feasible. |
+| `scripts/03_temporal_task_feasibility.py` | Same gating per timepoint; track task feasibility across the 16 states. |
+
+Scripts 02 and 03 read `result/gene_scores/` (the proteomics gene scores)
+and import the network from script 01.
+
+## Running
+
+Requires Python ≥ 3.13, [uv](https://docs.astral.sh/uv/), and a GUROBI
+license (academic licenses are free). The CORNETO analysis package is
+vendored under `src/corneto_mcmt`.
+
+```bash
+uv run python scripts/01_metabolic_task_network.py
+uv run python scripts/02_genotype_task_feasibility.py
+uv run python scripts/03_temporal_task_feasibility.py
+```
+
+## Layout
+
+```
+scripts/   01-03, the pipeline
+src/       corneto_mcmt, the CORNETO analysis package
+result/    outputs, one directory per script + gene_scores input
+```
