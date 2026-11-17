@@ -1,18 +1,14 @@
-"""Option 1 task feasibility, per (genotype, timepoint) STATE, on the full
-117-reaction hand-curated network (Script 27: SAM methylation economy --
-real GNMT, creatine, polyamines, betaine remethylation, NAD salvage/NNMT;
-20 tasks). Extends the per-genotype snapshot (Script 28) to preserve the
-temporal trajectory: a gene can be normal at T0 (fed) and only drop low by
-T24 (late fasting), and WT vs ob/ob may diverge in WHEN that happens.
+"""Test task feasibility at each (genotype, timepoint) state, to follow how
+metabolic capacity changes over the starvation time course.
 
-Mechanism: the low-expression threshold is computed ONCE per genotype (its
-full 8-state x network-genes distribution, bottom decile -- a fixed
-reference line so crossings are comparable across time), then applied to
-each INDIVIDUAL state's own value to call a gene low at that timepoint. All
-20 tasks are solved per state (single-task feasibility, tracking WHEN each
-task flips), for each of the 16 states.
+This extends 02_genotype_task_feasibility, which pooled all timepoints into
+one snapshot per genotype. A gene can be normal at 0h (fed) and only drop low
+by 24h (late fasting), and WT and ob/ob may differ in when that happens. The
+low-expression threshold is still set once per genotype (bottom decile of its
+8-state distribution, a fixed reference line), but the call now uses each
+state's own value. The 20 tasks are solved at each of the 16 states.
 
-Outputs (corneto_starvation/result/option1_temporal_task_feasibility_v3/):
+Outputs (result/temporal_task_feasibility/):
   gene_detection_by_state.csv, task_feasibility_by_state.csv,
   feasibility_status_matrix.csv, feasibility_heatmap.png, build_summary.txt
 """
@@ -38,10 +34,10 @@ import pandas as pd  # noqa: E402
 from corneto.methods import MultiSampleFBA  # noqa: E402
 from corneto.methods.metabolism._utils import evaluate_gpr_expression, get_genes_from_gpr  # noqa: E402
 
-script27 = importlib.import_module("27_option1_sam_methylation_expansion")  # noqa: E402
+network = importlib.import_module("01_metabolic_task_network")  # noqa: E402
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
-OUTDIR = PKG_ROOT / "result" / "option1_temporal_task_feasibility_v3"
+OUTDIR = PKG_ROOT / "result" / "temporal_task_feasibility"
 GENE_SCORES_PATH = PKG_ROOT / "result" / "gene_scores" / "all_states_gene_scores.csv"
 
 GENOTYPES = ("WT", "ob_ob")
@@ -115,8 +111,8 @@ def low_expression_genes_per_state(
 def main() -> None:
     OUTDIR.mkdir(parents=True, exist_ok=True)
 
-    graph = script27.build_full_metabolic_network()
-    task_bounds_all = script27.build_task_bounds()
+    graph = network.build_full_metabolic_network()
+    task_bounds_all = network.build_task_bounds()
     task_names = list(task_bounds_all)
     print(f"Network: {graph.num_edges} reactions, {len(task_names)} tasks, "
           f"{len(GENOTYPES) * len(STATE_SUFFIXES)} states")
@@ -195,7 +191,7 @@ def main() -> None:
     ]
     fig.legend(handles=legend_elements, loc="lower center", ncol=2, frameon=False, fontsize=9,
                bbox_to_anchor=(0.5, -0.02))
-    fig.suptitle("Option 1 (expanded, 117-reaction network) task feasibility over the starvation time course", fontsize=12)
+    fig.suptitle("Task feasibility over the starvation time course", fontsize=12)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(OUTDIR / "feasibility_heatmap.png", dpi=180, bbox_inches="tight")
     plt.close(fig)

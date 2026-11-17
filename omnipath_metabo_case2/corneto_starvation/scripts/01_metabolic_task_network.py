@@ -1,60 +1,21 @@
-"""Option 1, third expansion round: the SAM "methylation economy" module
-group, added on top of Script 24's 95-reaction network. Chosen because it
-couples directly to the Mat1a/Cbs/Cdo1 genotype differences Scripts 25/26
-just surfaced (the methionine cycle's committed step and transsulfuration
-arm) -- these modules are the main CONSUMERS of SAM, so if WT and ob/ob
-really differ in methionine-cycle capacity, the downstream methylation
-sinks are where that difference should propagate. All modules are grounded
-in our own tissue metabolomics panel (Guanidinoacetate, Creatine,
-Creatinine, Putrescine, Spermidine, Spermine, 5-Methylthioadenosine,
-N1-Acetylspermidine, Choline, Betaine, N,N-Dimethylglycine, Sarcosine,
-Nicotinamide, 1-Methylnicotinamide are all measured), and 12/21 of the
-new GPR genes are in the proteomics panel (Gnmt, Chdh, Dmgdh, Sardh,
-Nnmt, Nampt, Nmnat1, Oat, Srm, Gldc, Amt, Parp1 -- checked directly).
+"""Build a curated metabolic network and find the smallest set of reactions
+that supports a set of metabolic tasks (Option 1).
 
-What's added:
+A metabolic task asks whether the network can carry out a specified
+function -- for example, *gluconeogenesis from lactate* lets lactate enter,
+requires glucose to leave, and asks for a steady-state flux that obeys the
+reaction bounds. We define 20 fed- and fasted-liver tasks on a 117-reaction
+network (central carbon metabolism, ketogenesis, the urea cycle, BCAA
+catabolism, and the methionine/SAM methylation economy), then find the
+smallest reaction set that supports all of them at once: each task keeps its
+own fluxes, while the reactions available to every task are selected jointly.
 
-1. GNMT made real (replaces Script 24's generic METHYLATION_SINK, which
-   was `SAM_c -> SAH_c` with GPR "GNMT" but no methyl acceptor). Real
-   glycine N-methyltransferase: `GLY_c + SAM_c -> SARC_c + SAH_c`, plus
-   SARDH (sarcosine -> glycine, FAD-linked) closing the loop, plus the
-   glycine cleavage system (GLDC/AMT, lumped) as a true glycine sink
-   releasing NH3 into the (real, Script 24) urea cycle. GNMT is the
-   liver's SAM overflow valve -- the single most abundant methyl-
-   transferase in hepatocytes.
-2. Creatine synthesis: GATM (Arg + Gly -> guanidinoacetate + ornithine)
-   + GAMT (GAA + SAM -> creatine + SAH) + creatine export. Quantitatively
-   the LARGEST SAM consumer in mammals; both intermediates measured.
-3. Polyamine synthesis: AMD1 (SAM -> decarboxylated SAM) + ODC1
-   (ornithine -> putrescine) + SRM/SMS (-> spermidine -> spermine, each
-   consuming one dcSAM and releasing MTA). Requires net ornithine
-   synthesis, so ORN_SYN (glutamate -> ornithine, ALDH18A1+OAT lumped,
-   ATP+NADPH cost) is added too -- the urea cycle alone is a closed
-   ornithine loop with no net production.
-4. Betaine remethylation arm: choline uptake -> CHDH/ALDH7A1 (choline ->
-   betaine, lumped) -> BHMT (betaine + homocysteine -> methionine +
-   dimethylglycine) -> DMGDH (DMG -> sarcosine), joining the GNMT/SARDH
-   glycine loop. Gives homocysteine a second fate besides CBS
-   transsulfuration -- the real fasting-liver branch point.
-5. NAD salvage + NNMT: NAD consumers (SIRT1/PARP1 lumped, NAD -> NAM) +
-   NAMPT/NMNAT1 resynthesis (NAM + 2 ATP -> NAD) + NNMT (NAM + SAM ->
-   1-methylnicotinamide + SAH, exported). Links the SAM economy to the
-   NAD_c pool; 1-methylnicotinamide is measured.
+This network is the starting point for the genotype and timepoint analyses
+in the sibling scripts.
 
-5 new tasks (20 total): Creatine synthesis, Polyamine synthesis,
-Homocysteine remethylation via betaine (forces GNMT flux with NO
-methionine input -- proves the remethylation arm can sustain the
-methylation cycle on choline alone), Nicotinamide clearance via NNMT,
-NAD salvage cycle.
-
-Network: Script 24's 95 reactions - 1 (METHYLATION_SINK removed) + 23 new
-= 117 reactions.
-
-Same two-stage MultiSampleFBA(lambda_reg=1.0) mechanism as Scripts 19-24.
-
-Outputs (corneto_starvation/result/option1_sam_methylation_expansion/):
+Outputs (result/metabolic_task_network/):
   task_flux.csv, selected_reactions.csv, task_flux_gallery.html,
-  build_summary.txt, figures/union_network.{svg,png}
+  build_summary.txt
 """
 
 from __future__ import annotations
@@ -74,29 +35,28 @@ from corneto.methods import MultiSampleFBA  # noqa: E402
 from corneto_mcmt.model_example import plot_task_flux_gallery  # noqa: E402
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
-OUTDIR = PKG_ROOT / "result" / "option1_sam_methylation_expansion"
+OUTDIR = PKG_ROOT / "result" / "metabolic_task_network"
 
 INPUTS = (
     "EX_GLC_IN", "EX_FA_IN", "EX_LAC_IN", "EX_ALA_IN", "EX_GLYCOGEN_IN",
     "EX_GLY_IN", "EX_GLN_IN",
     "EX_ASP_IN", "EX_LEU_IN", "EX_ILE_IN", "EX_VAL_IN",
     "EX_MET_IN", "EX_SER_IN", "EX_GLYAA_IN",
-    # NEW
     "EX_CHOL_IN", "EX_NAM_IN",
 )
 OUTPUTS = (
     "EX_GLC_OUT", "EX_LAC_OUT", "EX_LIPID_OUT", "EX_KET_OUT",
     "EX_GLYCOGEN_OUT", "EX_HEXOSAMINE_OUT", "EX_UREA_OUT",
     "EX_TAU_OUT", "EX_GSH_OUT",
-    # NEW
     "EX_CREAT_OUT", "EX_SPD_OUT", "EX_SPM_OUT", "EX_MTA_OUT", "EX_MNA_OUT",
 )
 BLOCKED_CYCLES = ("FUTILE_ATPASE",)
 
 
 def build_full_metabolic_network() -> cn.Graph:
-    """Script 24's network (minus the generic METHYLATION_SINK) plus the
-    SAM methylation economy modules described in the module docstring."""
+    """Each spec is (reaction id, reactants, products, lower bound, upper
+    bound, pathway, GPR). Reversible reactions are split into forward/reverse
+    edges. GPRs use human gene symbols."""
     specs = [
         # --- Exchange & Transport ---
         ("EX_GLC_IN", {}, {"GLC_c": 1.0}, 0.0, 10.0, "Transport", "SLC2A2 or SLC2A1"),
@@ -193,7 +153,7 @@ def build_full_metabolic_network() -> cn.Graph:
 
         ("AKG_TO_OAA", {"AKG_c": 1.0, "NAD_m": 1.0, "FAD_m": 1.0, "ADP_m": 1.0}, {"OAA_c": 1.0, "NADH_m": 1.0, "FADH2_m": 1.0, "ATP_m": 1.0}, 0.0, 10.0, "TCA_OxPhos", "OGDH and SUCLA2 and SDHA and FH and MDH2"),
 
-        # --- Full urea cycle (Script 24) ---
+        # --- Full urea cycle ---
         ("EX_ASP_IN", {}, {"ASP_c": 1.0}, 0.0, 10.0, "Ureagenesis", "SLC1A3 or SLC25A13"),
         ("CPS1_RXN", {"NH3_c": 1.0, "ATP_m": 2.0}, {"CARBP_m": 1.0, "ADP_m": 2.0}, 0.0, 10.0, "Ureagenesis", "CPS1"),
         ("OTC_RXN", {"CARBP_m": 1.0, "ORN_m": 1.0}, {"CIT_m_UREA": 1.0}, 0.0, 10.0, "Ureagenesis", "OTC"),
@@ -204,7 +164,7 @@ def build_full_metabolic_network() -> cn.Graph:
         ("ARG1_RXN", {"ARG_c": 1.0}, {"ORN_c": 1.0, "UREA_c": 1.0}, 0.0, 10.0, "Ureagenesis", "ARG1"),
         ("FUM_TO_OAA", {"FUM_c": 1.0, "NAD_c": 1.0}, {"OAA_c": 1.0, "NADH_c": 1.0}, 0.0, 10.0, "Ureagenesis", "FH and MDH1"),
 
-        # --- BCAA catabolism (Script 24) ---
+        # --- BCAA catabolism ---
         ("EX_LEU_IN", {}, {"LEU_c": 1.0}, 0.0, 10.0, "AA_Catabolism", "SLC7A5 or SLC3A2"),
         ("LEU_OX", {"LEU_c": 1.0, "NAD_m": 1.0}, {"ACCOA_m": 2.0, "NADH_m": 1.0, "NH3_c": 1.0}, 0.0, 10.0, "AA_Catabolism", "BCAT2 and BCKDHA and BCKDHB and IVD and HMGCL"),
         ("EX_ILE_IN", {}, {"ILE_c": 1.0}, 0.0, 10.0, "AA_Catabolism", "SLC7A5 or SLC3A2"),
@@ -212,7 +172,7 @@ def build_full_metabolic_network() -> cn.Graph:
         ("EX_VAL_IN", {}, {"VAL_c": 1.0}, 0.0, 10.0, "AA_Catabolism", "SLC7A5 or SLC3A2"),
         ("VAL_OX", {"VAL_c": 1.0, "NAD_m": 1.0, "FAD_m": 1.0}, {"OAA_m": 1.0, "NADH_m": 1.0, "FADH2_m": 1.0, "NH3_c": 1.0}, 0.0, 10.0, "AA_Catabolism", "BCAT2 and BCKDHA and BCKDHB and MUT"),
 
-        # --- Methionine cycle / transsulfuration (Script 24) ---
+        # --- Methionine cycle and transsulfuration ---
         ("EX_MET_IN", {}, {"MET_c": 1.0}, 0.0, 10.0, "Methionine_Cycle", "SLC7A5 or SLC3A2"),
         ("MAT1A_RXN", {"MET_c": 1.0, "ATP_c": 1.0}, {"SAM_c": 1.0, "ADP_c": 1.0}, 0.0, 10.0, "Methionine_Cycle", "MAT1A"),
         ("SAHH_RXN", {"SAH_c": 1.0}, {"HCY_c": 1.0}, 0.0, 10.0, "Methionine_Cycle", "AHCY"),
@@ -225,25 +185,17 @@ def build_full_metabolic_network() -> cn.Graph:
         ("GSH_SYN", {"CYS_c": 1.0, "GLU_c": 1.0, "GLY_c": 1.0, "ATP_c": 2.0}, {"GSH_c": 1.0, "ADP_c": 2.0}, 0.0, 10.0, "Methionine_Cycle", "GCLC and GCLM and GSS"),
         ("EX_GSH_OUT", {"GSH_c": 1.0}, {}, 0.0, 10.0, "Methionine_Cycle", "ABCC2"),
 
-        # ============ NEW: real GNMT + glycine handling ============
-        # Replaces the generic METHYLATION_SINK (SAM_c -> SAH_c): GNMT is
-        # the liver's actual SAM overflow valve and needs a real methyl
-        # acceptor (glycine). SARDH closes the sarcosine->glycine loop;
-        # the glycine cleavage system is the true net glycine sink,
-        # releasing NH3 into the urea cycle.
+        # --- Glycine N-methylation (SAM overflow) ---
         ("GNMT_RXN", {"GLY_c": 1.0, "SAM_c": 1.0}, {"SARC_c": 1.0, "SAH_c": 1.0}, 0.0, 10.0, "Methylation", "GNMT"),
         ("SARDH_RXN", {"SARC_c": 1.0, "FAD_m": 1.0}, {"GLY_c": 1.0, "FADH2_m": 1.0}, 0.0, 10.0, "Methylation", "SARDH"),
         ("GLY_CLEAV", {"GLY_c": 1.0, "NAD_m": 1.0}, {"NH3_c": 1.0, "NADH_m": 1.0}, 0.0, 10.0, "Methylation", "GLDC and AMT"),
 
-        # ============ NEW: creatine synthesis ============
+        # --- Creatine synthesis ---
         ("GATM_RXN", {"ARG_c": 1.0, "GLY_c": 1.0}, {"GAA_c": 1.0, "ORN_c": 1.0}, 0.0, 10.0, "Creatine", "GATM"),
         ("GAMT_RXN", {"GAA_c": 1.0, "SAM_c": 1.0}, {"CREAT_c": 1.0, "SAH_c": 1.0}, 0.0, 10.0, "Creatine", "GAMT"),
         ("EX_CREAT_OUT", {"CREAT_c": 1.0}, {}, 0.0, 10.0, "Creatine", ""),
 
-        # ============ NEW: polyamine synthesis ============
-        # ORN_SYN (ALDH18A1+OAT lumped, glutamate -> ornithine) provides
-        # the NET ornithine the polyamine drain requires -- the urea cycle
-        # alone is a closed ornithine loop with no net production.
+        # --- Polyamine synthesis (ORN_SYN gives net ornithine) ---
         ("ORN_SYN", {"GLU_c": 1.0, "ATP_c": 1.0, "NADPH_c": 1.0}, {"ORN_c": 1.0, "ADP_c": 1.0, "NADP_c": 1.0}, 0.0, 10.0, "Polyamine", "ALDH18A1 and OAT"),
         ("SAMDC_RXN", {"SAM_c": 1.0}, {"DCSAM_c": 1.0}, 0.0, 10.0, "Polyamine", "AMD1"),
         ("ODC_RXN", {"ORN_c": 1.0}, {"PUTR_c": 1.0}, 0.0, 10.0, "Polyamine", "ODC1"),
@@ -253,13 +205,13 @@ def build_full_metabolic_network() -> cn.Graph:
         ("EX_SPM_OUT", {"SPM_c": 1.0}, {}, 0.0, 10.0, "Polyamine", ""),
         ("EX_MTA_OUT", {"MTA_c": 1.0}, {}, 0.0, 10.0, "Polyamine", ""),
 
-        # ============ NEW: betaine remethylation arm ============
+        # --- Betaine remethylation of homocysteine ---
         ("EX_CHOL_IN", {}, {"CHOL_c": 1.0}, 0.0, 10.0, "Remethylation", "SLC44A1"),
         ("CHDH_RXN", {"CHOL_c": 1.0, "NAD_c": 1.0}, {"BET_c": 1.0, "NADH_c": 1.0}, 0.0, 10.0, "Remethylation", "CHDH and ALDH7A1"),
         ("BHMT_RXN", {"BET_c": 1.0, "HCY_c": 1.0}, {"MET_c": 1.0, "DMG_c": 1.0}, 0.0, 10.0, "Remethylation", "BHMT"),
         ("DMGDH_RXN", {"DMG_c": 1.0, "FAD_m": 1.0}, {"SARC_c": 1.0, "FADH2_m": 1.0}, 0.0, 10.0, "Remethylation", "DMGDH"),
 
-        # ============ NEW: NAD salvage + NNMT ============
+        # --- NAD salvage and nicotinamide methylation ---
         ("EX_NAM_IN", {}, {"NAM_c": 1.0}, 0.0, 10.0, "NAD_Salvage", ""),
         ("NNMT_RXN", {"NAM_c": 1.0, "SAM_c": 1.0}, {"MNA_c": 1.0, "SAH_c": 1.0}, 0.0, 10.0, "NAD_Salvage", "NNMT"),
         ("EX_MNA_OUT", {"MNA_c": 1.0}, {}, 0.0, 10.0, "NAD_Salvage", ""),
@@ -281,11 +233,11 @@ def build_task_bounds() -> dict[str, dict[str, tuple[float, float]]]:
     base_bounds = {reaction: (0.0, 0.0) for reaction in (*INPUTS, *OUTPUTS, *BLOCKED_CYCLES)}
     base_bounds["ATP_MAINT"] = (1.0, 1.0)
     return {
-        # --- Script 24's 15 tasks, unchanged in intent. The transsulfuration
-        # and glutathione tasks still work with GNMT replacing the generic
-        # sink: GNMT's glycine is fully recycled through SARDH (GNMT makes
-        # 1 SARC per GLY consumed, SARDH converts it back), so no new
-        # glycine input is needed there.
+        # Each task opens its substrate inputs and requires a product output
+        # (lower bound 1). ATP_MAINT holds a baseline ATP demand. When a task
+        # consumes an amino acid, its nitrogen must leave (EX_UREA_OUT open);
+        # when it consumes SAM, the homocysteine it produces needs an exit
+        # (transsulfuration or remethylation open).
         "Gluconeogenesis from lactate": {
             **base_bounds, "EX_LAC_IN": (0.0, 10.0), "EX_GLC_OUT": (1.0, 10.0),
         },
@@ -348,14 +300,9 @@ def build_task_bounds() -> dict[str, dict[str, tuple[float, float]]]:
             "EX_UREA_OUT": (0.0, 10.0), "EX_ASP_IN": (0.0, 10.0),
         },
 
-        # --- NEW tasks exercising the SAM methylation economy ---
-        # Net reaction: Gly + (SAM methyl) -> guanidinoacetate -> creatine.
-        # Arg is regenerated by the urea cycle (ORN -> ... -> ARG), which
-        # needs NH3 (from Gln via GLS) and Asp (ASS1); urea is an optional
-        # co-product, glucose the carbon side-exit for Gln's skeleton.
-        # GAMT's SAH byproduct ends as homocysteine, whose disposal is
-        # obligate (same lesson as every nitrogen task): the
-        # transsulfuration arm (Ser in, taurine out) is opened for it.
+        # Gly + SAM methyl -> guanidinoacetate -> creatine; arginine is
+        # regenerated through the urea cycle, homocysteine leaves via
+        # transsulfuration.
         "Creatine synthesis": {
             **base_bounds,
             "EX_MET_IN": (0.0, 10.0), "EX_GLYAA_IN": (0.0, 10.0),
@@ -364,9 +311,9 @@ def build_task_bounds() -> dict[str, dict[str, tuple[float, float]]]:
             "EX_UREA_OUT": (0.0, 10.0), "EX_GLC_OUT": (0.0, 10.0),
             "EX_CREAT_OUT": (1.0, 10.0),
         },
-        # Spermine export forced so BOTH SRM and SMS must run (spermidine
-        # is the intermediate). Ornithine comes from ORN_SYN (glutamate),
-        # dcSAM from methionine; glucose opens the PPP for ORN_SYN's NADPH.
+        # Spermine output forces both SRM and SMS (spermidine is the
+        # intermediate); ornithine from ORN_SYN, decarboxylated SAM from
+        # methionine.
         "Polyamine synthesis": {
             **base_bounds,
             "EX_MET_IN": (0.0, 10.0), "EX_GLN_IN": (0.0, 10.0),
@@ -374,20 +321,16 @@ def build_task_bounds() -> dict[str, dict[str, tuple[float, float]]]:
             "EX_UREA_OUT": (0.0, 10.0), "EX_GLC_OUT": (0.0, 10.0),
             "EX_MTA_OUT": (0.0, 10.0), "EX_SPM_OUT": (1.0, 10.0),
         },
-        # NO methionine input: forces GNMT to run on a methylation cycle
-        # sustained entirely by choline-derived betaine remethylating
-        # homocysteine back to methionine. The net glycine surplus (DMG ->
-        # sarcosine -> glycine exceeds GNMT's consumption) exits via the
-        # glycine cleavage system into the urea cycle.
+        # No methionine input: GNMT flux must be sustained by choline-derived
+        # betaine remethylating homocysteine back to methionine.
         "Homocysteine remethylation via betaine": {
             **base_bounds,
             "EX_CHOL_IN": (0.0, 10.0), "GNMT_RXN": (1.0, 10.0),
             "EX_ASP_IN": (0.0, 10.0), "EX_UREA_OUT": (0.0, 10.0),
             "EX_GLC_OUT": (0.0, 10.0),
         },
-        # Methyl group arrives on SAM (from Met) and leaves on
-        # 1-methylnicotinamide; homocysteine disposal may use either arm
-        # (transsulfuration via Ser, or remethylation via choline).
+        # Methyl arrives on SAM (from Met) and leaves on 1-methylnicotinamide;
+        # homocysteine may exit by either transsulfuration or remethylation.
         "Nicotinamide clearance via NNMT": {
             **base_bounds,
             "EX_NAM_IN": (0.0, 10.0), "EX_MET_IN": (0.0, 10.0),
@@ -396,9 +339,8 @@ def build_task_bounds() -> dict[str, dict[str, tuple[float, float]]]:
             "EX_UREA_OUT": (0.0, 10.0), "EX_GLC_OUT": (0.0, 10.0),
             "EX_MNA_OUT": (1.0, 10.0),
         },
-        # NAD consumer flux (SIRT1/PARP1) forced; NAMPT/NMNAT1 must
-        # resynthesize NAD from the released nicotinamide (2 ATP/turn),
-        # with fatty acid oxidation covering the energy cost.
+        # NAD consumption is forced; NAMPT/NMNAT1 must resynthesize NAD from
+        # the released nicotinamide, with fatty acid oxidation for energy.
         "NAD salvage cycle": {
             **base_bounds,
             "NAD_CONSUM": (1.0, 10.0), "EX_FA_IN": (0.0, 10.0),
@@ -417,6 +359,9 @@ def main() -> None:
     task_bounds = build_task_bounds()
     print(f"Tasks ({len(task_bounds)}):", ", ".join(task_bounds))
 
+    # build_many gives each task its own flux column. lambda_reg marks a
+    # reaction as used if any task carries flux through it; minimizing the
+    # sum of those markers gives the smallest network supporting every task.
     task_method = MultiSampleFBA(lambda_reg=1.0, beta_reg=0.0)
     task_problem = task_method.build_many(graph, reaction_bounds=task_bounds)
     task_problem.add_objective(
@@ -428,6 +373,8 @@ def main() -> None:
     if status_1 != "optimal":
         raise RuntimeError(f"The tasks could not be satisfied: {first_solve.status}")
 
+    # With the reaction count fixed at its minimum, minimize total absolute
+    # flux for a parsimonious, readable flux solution of the same network.
     minimum_size = int(np.count_nonzero(np.asarray(task_problem.expr.edge_has_flux_OR.value) > 0.5))
     flow = task_problem.expr.flow
     absolute_flow = task_method.backend.Variable(
@@ -468,8 +415,7 @@ def main() -> None:
     (OUTDIR / "task_flux_gallery.html").write_text(f"<html><body>{html}</body></html>")
 
     summary = (
-        f"Full network: {graph.num_edges} reactions total "
-        f"(Script 24's 95 - 1 [METHYLATION_SINK replaced by real GNMT] + 23 new)\n"
+        f"Full network: {graph.num_edges} reactions total\n"
         f"Tasks ({len(task_bounds)}): {', '.join(task_bounds)}\n"
         f"Stage 1 (minimize union) solve status: {status_1}\n"
         f"Stage 2 (minimize flux at fixed size) solve status: {status_2}\n"

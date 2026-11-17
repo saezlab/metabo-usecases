@@ -1,24 +1,16 @@
-"""Option 1 task feasibility, per genotype, on the full 117-reaction
-hand-curated network (Script 27: SAM methylation economy -- real GNMT,
-creatine, polyamines, betaine remethylation, NAD salvage/NNMT; 20 tasks),
-gated by each genotype's OWN measured proteomics.
+"""Test which metabolic tasks each genotype can carry out, given its own
+measured proteomics.
 
-Gating convention: genes absent from the ~3,452-gene proteomics panel
-default to AVAILABLE (unknown, not penalized); only genes that ARE measured
-and fall in the bottom-decile low-expression range
-(LOW_EXPRESSION_QUANTILE = 0.10, pooled over that genotype's 8 states x the
-network's own GPR genes) count as evidence the enzyme is genuinely down and
-close the reaction. A hard knockout in a small, tightly-coupled network
-needs this strict cutoff: Scripts 03/16's (0.50, 0.76) iMAT convention
-calls ~half of all genes "low" by construction, which forces nearly every
-multi-step task infeasible -- a quantile artifact, not a genotype signal.
-Reactions whose GPR evaluates to unsupported are forced to (0, 0) for that
-genotype, then merged with each task's own bounds (closure takes priority);
-a task requiring a closed reaction becomes infeasible -- the informative
-outcome this script surfaces. All 20 tasks are solved per genotype
-individually (no forced WT/ob-ob reaction union).
+We take the task network from 01_metabolic_task_network and close a reaction
+when its enzyme is low-expressed: a gene counts as low only if it is measured
+AND falls at or below the bottom decile of that genotype's expression over
+the network's GPR genes and 8 timepoints. Genes absent from the proteomics
+panel stay available (not detected is not the same as not expressed). A
+reaction whose GPR then evaluates to unsupported is fixed to zero flux for
+that genotype; a task that needs it becomes infeasible. The 20 tasks are
+solved per genotype.
 
-Outputs (corneto_starvation/result/option1_genotype_task_feasibility_v3/):
+Outputs (result/genotype_task_feasibility/):
   gene_detection.csv, task_feasibility.csv, selected_reactions_<genotype>.csv,
   build_summary.txt
 """
@@ -39,10 +31,10 @@ import pandas as pd  # noqa: E402
 from corneto.methods import MultiSampleFBA  # noqa: E402
 from corneto.methods.metabolism._utils import evaluate_gpr_expression, get_genes_from_gpr  # noqa: E402
 
-script27 = importlib.import_module("27_option1_sam_methylation_expansion")  # noqa: E402
+network = importlib.import_module("01_metabolic_task_network")  # noqa: E402
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
-OUTDIR = PKG_ROOT / "result" / "option1_genotype_task_feasibility_v3"
+OUTDIR = PKG_ROOT / "result" / "genotype_task_feasibility"
 GENE_SCORES_PATH = PKG_ROOT / "result" / "gene_scores" / "all_states_gene_scores.csv"
 
 GENOTYPES = ("WT", "ob_ob")
@@ -110,8 +102,8 @@ def main() -> None:
     OUTDIR.mkdir(parents=True, exist_ok=True)
     (OUTDIR / "figures").mkdir(exist_ok=True)
 
-    graph = script27.build_full_metabolic_network()
-    task_bounds_all = script27.build_task_bounds()
+    graph = network.build_full_metabolic_network()
+    task_bounds_all = network.build_task_bounds()
     reaction_ids = list(graph.get_attr_from_edges("id"))
     print(f"Network: {graph.num_edges} reactions, {len(task_bounds_all)} tasks")
 
