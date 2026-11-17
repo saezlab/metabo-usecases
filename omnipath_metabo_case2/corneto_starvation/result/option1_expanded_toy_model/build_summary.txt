@@ -1,5 +1,0 @@
-Expanded network: 69 reactions total (tutorial's 58 + 11 new)
-Tasks: Gluconeogenesis from lactate, Gluconeogenesis from alanine, Glycogenolysis, Ketogenesis from fatty acid, Fatty acid oxidation for energy, Ureagenesis from alanine, Gluconeogenesis from glycerol, Ureagenesis from glutamine, Combined fasted state, Glucose to glycogen (storage), Glucose to lipid (lipogenesis), Combined fed state
-Stage 1 (minimize union) solve status: optimal
-Stage 2 (minimize flux at fixed size) solve status: optimal
-Smallest joint network: 56/69 reactions

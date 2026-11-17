@@ -1,9 +1,0 @@
-Mouse-GEM: 12987 reactions total
-Variable metabolites: 84 plasma, 51 tissue (74/135 matched to a Mouse-GEM vertex)
-Reactions touching a variable metabolite: 4136/12987
-MILP solve status: user_limit (1200.3s, max 1200s)
-Selected network: 388/12987 reactions
-  touching a variable metabolite: 173
-  proteomics-supported (score > 0): 81
-  proteomics-contradicted (score < 0): 7
-  repaired MAR00021 flux: 0.01 (required >= 0.01)

@@ -1,14 +1,20 @@
-"""Script 23, rerun on Script 27's expanded 117-reaction network (SAM
-methylation economy: real GNMT, creatine, polyamines, betaine
-remethylation, NAD salvage/NNMT; 20 tasks instead of 15).
-Mechanism is IDENTICAL to Script 23 (per-state low-expression calls against
-a fixed per-genotype threshold, preserving the time trajectory) -- see
-Script 23's own docstring for the full reasoning; not repeated here.
+"""Option 1 task feasibility, per (genotype, timepoint) STATE, on the full
+117-reaction hand-curated network (Script 27: SAM methylation economy --
+real GNMT, creatine, polyamines, betaine remethylation, NAD salvage/NNMT;
+20 tasks). Extends the per-genotype snapshot (Script 28) to preserve the
+temporal trajectory: a gene can be normal at T0 (fed) and only drop low by
+T24 (late fasting), and WT vs ob/ob may diverge in WHEN that happens.
+
+Mechanism: the low-expression threshold is computed ONCE per genotype (its
+full 8-state x network-genes distribution, bottom decile -- a fixed
+reference line so crossings are comparable across time), then applied to
+each INDIVIDUAL state's own value to call a gene low at that timepoint. All
+20 tasks are solved per state (single-task feasibility, tracking WHEN each
+task flips), for each of the 16 states.
 
 Outputs (corneto_starvation/result/option1_temporal_task_feasibility_v3/):
   gene_detection_by_state.csv, task_feasibility_by_state.csv,
   feasibility_status_matrix.csv, feasibility_heatmap.png, build_summary.txt
-  -- same set as Script 23.
 """
 
 from __future__ import annotations
@@ -30,19 +36,80 @@ from matplotlib.patches import Rectangle  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from corneto.methods import MultiSampleFBA  # noqa: E402
+from corneto.methods.metabolism._utils import evaluate_gpr_expression, get_genes_from_gpr  # noqa: E402
 
-script22 = importlib.import_module("22_option1_genotype_task_feasibility")  # noqa: E402
-script23 = importlib.import_module("23_option1_temporal_task_feasibility")  # noqa: E402
 script27 = importlib.import_module("27_option1_sam_methylation_expansion")  # noqa: E402
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
 OUTDIR = PKG_ROOT / "result" / "option1_temporal_task_feasibility_v3"
+GENE_SCORES_PATH = PKG_ROOT / "result" / "gene_scores" / "all_states_gene_scores.csv"
 
-GENOTYPES = script23.GENOTYPES
-STATE_SUFFIXES = script23.STATE_SUFFIXES
-TIMEPOINT_HOURS = script23.TIMEPOINT_HOURS
-STATUS_GOOD = script23.STATUS_GOOD
-STATUS_CRITICAL = script23.STATUS_CRITICAL
+GENOTYPES = ("WT", "ob_ob")
+STATE_SUFFIXES = ("0h", "2h", "4h", "6h", "8h", "12h", "16h", "24h")
+TIMEPOINT_HOURS = (0, 2, 4, 6, 8, 12, 16, 24)
+LOW_EXPRESSION_QUANTILE = 0.10
+
+# dataviz skill reference palette: status colors (reserved, not reused for
+# categorical series) -- good/critical, always paired with a label/icon.
+STATUS_GOOD = "#0ca30c"
+STATUS_CRITICAL = "#d03b3b"
+
+
+def network_mouse_genes(graph) -> list[str]:
+    """All unique mouse-converted gene symbols referenced in the network's GPRs
+    (human all-caps symbols .capitalize()-d to mouse Title case)."""
+    genes: set[str] = set()
+    for i in range(graph.num_edges):
+        gpr = graph.get_attr_edge(i).get("GPR") or ""
+        if gpr.strip():
+            genes.update(g.capitalize() for g in get_genes_from_gpr(gpr))
+    return sorted(genes)
+
+
+def reaction_availability(graph, low: set[str]) -> dict[str, dict]:
+    """Per-reaction GPR evaluation against a low-gene set. default_value=1
+    (available) for any gene not in `low`, including genes never measured.
+    Reactions with no GPR are always available."""
+    results = {}
+    for i in range(graph.num_edges):
+        attrs = graph.get_attr_edge(i)
+        reaction_id = attrs["id"]
+        gpr = attrs.get("GPR") or ""
+        if not gpr.strip():
+            results[reaction_id] = {"gpr": "", "available": True, "low_genes": ""}
+            continue
+        genes = set(get_genes_from_gpr(gpr))
+        mouse_genes = {g: g.capitalize() for g in genes}
+        symbol_values = {mouse_genes[g]: int(mouse_genes[g] not in low) for g in genes}
+        mouse_gpr = gpr
+        for human, mouse in mouse_genes.items():
+            mouse_gpr = mouse_gpr.replace(human, mouse)
+        available = bool(evaluate_gpr_expression([mouse_gpr], symbol_values, default_value=1)[0])
+        low_here = [mouse_genes[g] for g in genes if mouse_genes[g] in low]
+        results[reaction_id] = {
+            "gpr": gpr, "available": available, "low_genes": ";".join(sorted(low_here)),
+        }
+    return results
+
+
+def low_expression_genes_per_state(
+    wide_scores: pd.DataFrame, network_genes: list[str],
+) -> dict[str, set[str]]:
+    """Fixed per-genotype threshold (bottom decile of that genotype's own
+    8-state x network-genes distribution), but the per-gene CALL uses each
+    state's own individual value -- preserves which timepoints cross the line."""
+    present_genes = [g for g in network_genes if g in wide_scores.index]
+    low_by_state: dict[str, set[str]] = {}
+    for genotype in GENOTYPES:
+        state_cols = [f"{genotype}_{t}" for t in STATE_SUFFIXES]
+        state_expression = wide_scores.loc[present_genes, state_cols]
+        threshold = np.nanquantile(
+            state_expression.to_numpy(dtype=float), LOW_EXPRESSION_QUANTILE
+        )
+        for state in state_cols:
+            values = state_expression[state]
+            low_by_state[state] = set(values.index[values <= threshold])
+    return low_by_state
 
 
 def main() -> None:
@@ -54,9 +121,9 @@ def main() -> None:
     print(f"Network: {graph.num_edges} reactions, {len(task_names)} tasks, "
           f"{len(GENOTYPES) * len(STATE_SUFFIXES)} states")
 
-    network_genes = script22.network_mouse_genes(graph)
-    wide_scores = pd.read_csv(script22.GENE_SCORES_PATH, index_col=0)
-    low_by_state = script23.low_expression_genes_per_state(wide_scores, network_genes)
+    network_genes = network_mouse_genes(graph)
+    wide_scores = pd.read_csv(GENE_SCORES_PATH, index_col=0)
+    low_by_state = low_expression_genes_per_state(wide_scores, network_genes)
 
     gene_rows = []
     feasibility_rows = []
@@ -69,7 +136,7 @@ def main() -> None:
     for genotype in GENOTYPES:
         for timepoint in STATE_SUFFIXES:
             state = f"{genotype}_{timepoint}"
-            availability = script22.reaction_availability(graph, low_by_state[state])
+            availability = reaction_availability(graph, low_by_state[state])
             for reaction_id, info in availability.items():
                 gene_rows.append({"state": state, "genotype": genotype, "timepoint": timepoint,
                                    "reaction": reaction_id, **info})

@@ -1,5 +1,0 @@
-Tutorial network: 58 reactions total
-Tasks: Gluconeogenesis from lactate, Ketogenesis from fatty acid, Fatty acid oxidation for energy, Combined fasted state
-Stage 1 (minimize union) solve status: optimal
-Stage 2 (minimize flux at fixed size) solve status: optimal
-Smallest joint network: 27/58 reactions

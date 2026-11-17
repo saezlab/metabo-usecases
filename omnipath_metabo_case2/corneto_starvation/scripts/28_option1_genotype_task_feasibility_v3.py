@@ -1,15 +1,26 @@
-"""Script 22, rerun on Script 27's expanded 117-reaction network (SAM
-methylation economy: real GNMT, creatine, polyamines, betaine
-remethylation, NAD salvage/NNMT; 20 tasks instead of 15).
-Mechanism is IDENTICAL to Script 22 -- same genotype-pooled low-expression
-gating, same LOW_EXPRESSION_QUANTILE=0.10, same default-available-if-
-unmeasured convention -- only the network and task set changed. See Script
-22's own docstring for the full methodological reasoning; not repeated
-here.
+"""Option 1 task feasibility, per genotype, on the full 117-reaction
+hand-curated network (Script 27: SAM methylation economy -- real GNMT,
+creatine, polyamines, betaine remethylation, NAD salvage/NNMT; 20 tasks),
+gated by each genotype's OWN measured proteomics.
+
+Gating convention: genes absent from the ~3,452-gene proteomics panel
+default to AVAILABLE (unknown, not penalized); only genes that ARE measured
+and fall in the bottom-decile low-expression range
+(LOW_EXPRESSION_QUANTILE = 0.10, pooled over that genotype's 8 states x the
+network's own GPR genes) count as evidence the enzyme is genuinely down and
+close the reaction. A hard knockout in a small, tightly-coupled network
+needs this strict cutoff: Scripts 03/16's (0.50, 0.76) iMAT convention
+calls ~half of all genes "low" by construction, which forces nearly every
+multi-step task infeasible -- a quantile artifact, not a genotype signal.
+Reactions whose GPR evaluates to unsupported are forced to (0, 0) for that
+genotype, then merged with each task's own bounds (closure takes priority);
+a task requiring a closed reaction becomes infeasible -- the informative
+outcome this script surfaces. All 20 tasks are solved per genotype
+individually (no forced WT/ob-ob reaction union).
 
 Outputs (corneto_starvation/result/option1_genotype_task_feasibility_v3/):
   gene_detection.csv, task_feasibility.csv, selected_reactions_<genotype>.csv,
-  build_summary.txt -- same set as Script 22.
+  build_summary.txt
 """
 
 from __future__ import annotations
@@ -26,15 +37,73 @@ import importlib  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from corneto.methods import MultiSampleFBA  # noqa: E402
+from corneto.methods.metabolism._utils import evaluate_gpr_expression, get_genes_from_gpr  # noqa: E402
 
-script22 = importlib.import_module("22_option1_genotype_task_feasibility")  # noqa: E402
 script27 = importlib.import_module("27_option1_sam_methylation_expansion")  # noqa: E402
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
 OUTDIR = PKG_ROOT / "result" / "option1_genotype_task_feasibility_v3"
+GENE_SCORES_PATH = PKG_ROOT / "result" / "gene_scores" / "all_states_gene_scores.csv"
 
-GENOTYPES = script22.GENOTYPES
-LOW_EXPRESSION_QUANTILE = script22.LOW_EXPRESSION_QUANTILE
+GENOTYPES = ("WT", "ob_ob")
+STATE_SUFFIXES = ("0h", "2h", "4h", "6h", "8h", "12h", "16h", "24h")
+LOW_EXPRESSION_QUANTILE = 0.10
+
+
+def low_expression_genes_per_genotype(
+    wide_scores: pd.DataFrame, network_genes: list[str],
+) -> dict[str, set[str]]:
+    """Genes MEASURED (present in the proteomics panel) and at or below the
+    bottom-decile threshold of that genotype's own 8-state x network-genes
+    distribution -- genuine low-expression evidence, not panel absence."""
+    present_genes = [g for g in network_genes if g in wide_scores.index]
+    low: dict[str, set[str]] = {}
+    for genotype in GENOTYPES:
+        state_cols = [f"{genotype}_{t}" for t in STATE_SUFFIXES]
+        state_expression = wide_scores.loc[present_genes, state_cols]
+        threshold = np.nanquantile(state_expression.to_numpy(dtype=float), LOW_EXPRESSION_QUANTILE)
+        gene_median = state_expression.median(axis=1, skipna=True)
+        low[genotype] = set(gene_median.index[gene_median <= threshold])
+    return low
+
+
+def network_mouse_genes(graph) -> list[str]:
+    """All unique mouse-converted gene symbols referenced in the network's GPRs.
+    GPRs use human all-caps symbols (tutorial convention); mouse orthologs are
+    the same symbol in Title case for the vast majority, so `.capitalize()`."""
+    genes: set[str] = set()
+    for i in range(graph.num_edges):
+        gpr = graph.get_attr_edge(i).get("GPR") or ""
+        if gpr.strip():
+            genes.update(g.capitalize() for g in get_genes_from_gpr(gpr))
+    return sorted(genes)
+
+
+def reaction_availability(graph, low: set[str]) -> dict[str, dict]:
+    """Per-reaction GPR evaluation against a low-gene set. default_value=1
+    (available) for any gene not in `low`, including genes never measured --
+    absence from the panel must NOT be read as evidence of absence. Reactions
+    with no GPR (pure exchange/maintenance) are always available."""
+    results = {}
+    for i in range(graph.num_edges):
+        attrs = graph.get_attr_edge(i)
+        reaction_id = attrs["id"]
+        gpr = attrs.get("GPR") or ""
+        if not gpr.strip():
+            results[reaction_id] = {"gpr": "", "available": True, "low_genes": ""}
+            continue
+        genes = set(get_genes_from_gpr(gpr))
+        mouse_genes = {g: g.capitalize() for g in genes}
+        symbol_values = {mouse_genes[g]: int(mouse_genes[g] not in low) for g in genes}
+        mouse_gpr = gpr
+        for human, mouse in mouse_genes.items():
+            mouse_gpr = mouse_gpr.replace(human, mouse)
+        available = bool(evaluate_gpr_expression([mouse_gpr], symbol_values, default_value=1)[0])
+        low_here = [mouse_genes[g] for g in genes if mouse_genes[g] in low]
+        results[reaction_id] = {
+            "gpr": gpr, "available": available, "low_genes": ";".join(sorted(low_here)),
+        }
+    return results
 
 
 def main() -> None:
@@ -46,11 +115,11 @@ def main() -> None:
     reaction_ids = list(graph.get_attr_from_edges("id"))
     print(f"Network: {graph.num_edges} reactions, {len(task_bounds_all)} tasks")
 
-    network_genes = script22.network_mouse_genes(graph)
+    network_genes = network_mouse_genes(graph)
     print(f"Network GPR genes: {len(network_genes)}")
 
-    wide_scores = pd.read_csv(script22.GENE_SCORES_PATH, index_col=0)
-    low_by_genotype = script22.low_expression_genes_per_genotype(wide_scores, network_genes)
+    wide_scores = pd.read_csv(GENE_SCORES_PATH, index_col=0)
+    low_by_genotype = low_expression_genes_per_genotype(wide_scores, network_genes)
     for genotype, genes in low_by_genotype.items():
         print(f"{genotype}: {len(genes)}/{len(network_genes)} network genes called low-expression")
 
@@ -58,7 +127,7 @@ def main() -> None:
     feasibility_rows = []
 
     for genotype in GENOTYPES:
-        availability = script22.reaction_availability(graph, low_by_genotype[genotype])
+        availability = reaction_availability(graph, low_by_genotype[genotype])
         for reaction_id, info in availability.items():
             gene_detection_rows.append({"genotype": genotype, "reaction": reaction_id, **info})
 

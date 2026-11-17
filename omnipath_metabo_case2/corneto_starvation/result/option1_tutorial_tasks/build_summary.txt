@@ -1,5 +1,0 @@
-Tutorial network: 58 reactions total
-Tasks: Glucose to lactate, Glucose to glycogen, Glucose to lipid, Fatty acid to ketone, Glucose to hexosamine, Lactate to lipid
-Stage 1 (minimize union) solve status: optimal
-Stage 2 (minimize flux at fixed size) solve status: optimal
-Smallest joint network: 37/58 reactions
