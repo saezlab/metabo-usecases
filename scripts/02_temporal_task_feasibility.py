@@ -1,12 +1,18 @@
 """Test task feasibility at each (genotype, timepoint) state, to follow how
 metabolic capacity changes over the starvation time course.
 
-This extends 02_genotype_task_feasibility, which pooled all timepoints into
-one snapshot per genotype. A gene can be normal at 0h (fed) and only drop low
-by 24h (late fasting), and WT and ob/ob may differ in when that happens. The
-low-expression threshold is still set once per genotype (bottom decile of its
-8-state distribution, a fixed reference line), but the call now uses each
-state's own value. The 20 tasks are solved at each of the 16 states.
+Close a reaction when its enzyme is low-expressed, then solve each task per
+state. A gene can be normal at 0h (fed) and only drop low by 24h (late
+fasting), and WT and ob/ob may differ in when that happens, so feasibility is
+resolved per timepoint rather than pooled. The low-expression threshold is set
+once per genotype (bottom decile of its 8-state distribution, a fixed
+reference line), but the call uses each state's own value. The 20 tasks are
+solved at each of the 16 states.
+
+The per-genotype overview in build_summary.txt is read off the real states
+(tasks feasible at every timepoint, never feasible, and feasible at the 24h
+endpoint), not a pooled timepoint median -- in a time course the median
+corresponds to no real physiological state.
 
 Outputs (result/temporal_task_feasibility/):
   gene_detection_by_state.csv, task_feasibility_by_state.csv,
@@ -197,8 +203,23 @@ def main() -> None:
     plt.close(fig)
     print(f"Wrote {OUTDIR / 'feasibility_heatmap.png'}")
 
-    # --- Summary: which tasks change status at some point ---
+    # --- Per-genotype overview from real states (no pooling): tasks feasible
+    #     at every timepoint, never feasible, and feasible at the 24h endpoint.
     summary_lines = [f"Network: {graph.num_edges} reactions, {len(task_names)} tasks\n"]
+    for genotype in GENOTYPES:
+        cols = [f"{genotype}_{t}" for t in STATE_SUFFIXES]
+        sub = status_matrix[cols]
+        throughout = [t for t in task_names if sub.loc[t].all()]
+        never = [t for t in task_names if not sub.loc[t].any()]
+        at_24h = [t for t in task_names if status_matrix.loc[t, f"{genotype}_24h"]]
+        summary_lines.append(
+            f"{genotype}: {len(throughout)}/{len(task_names)} feasible throughout, "
+            f"{len(never)} never feasible, {len(at_24h)}/{len(task_names)} feasible at 24h"
+        )
+        summary_lines.append(f"  never feasible: {', '.join(never) or '(none)'}")
+    summary_lines.append("")
+
+    # --- Tasks that change status over time or differ between genotypes ---
     for task_name in task_names:
         row = status_matrix.loc[task_name]
         wt_vals = row[[f"WT_{t}" for t in STATE_SUFFIXES]]

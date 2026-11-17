@@ -1,5 +1,10 @@
 Network: 117 reactions, 20 tasks
 
+WT: 9/20 feasible throughout, 2 never feasible, 17/20 feasible at 24h
+  never feasible: Glucose to lipid (lipogenesis), Combined fed state
+ob_ob: 10/20 feasible throughout, 3 never feasible, 10/20 feasible at 24h
+  never feasible: Transsulfuration: methionine to taurine, Creatine synthesis, Polyamine synthesis
+
 Glycogenolysis:
   WT    11111000 (0h->24h)
   ob_ob 11111111 (0h->24h)

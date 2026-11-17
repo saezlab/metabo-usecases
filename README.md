@@ -24,11 +24,10 @@ Run in order; each writes to the matching directory under `result/`.
 | Script | Does |
 |---|---|
 | `scripts/01_metabolic_task_network.py` | Build the 117-reaction network and the 20 tasks; find the smallest reaction set supporting all tasks jointly. |
-| `scripts/02_genotype_task_feasibility.py` | Gate the network by each genotype's proteomics; test which tasks stay feasible. |
-| `scripts/03_temporal_task_feasibility.py` | Same gating per timepoint; track task feasibility across the 16 states. |
+| `scripts/02_temporal_task_feasibility.py` | Gate the network by each genotype's proteomics at every timepoint; track task feasibility across the 16 states, with a per-genotype overview (feasible throughout / never / at 24h). |
 
-Scripts 02 and 03 read `result/gene_scores/` (the proteomics gene scores)
-and import the network from script 01.
+Script 02 reads `result/gene_scores/` (the proteomics gene scores) and
+imports the network from script 01.
 
 ## Running
 
@@ -38,8 +37,7 @@ vendored under `src/corneto_mcmt`.
 
 ```bash
 uv run python scripts/01_metabolic_task_network.py
-uv run python scripts/02_genotype_task_feasibility.py
-uv run python scripts/03_temporal_task_feasibility.py
+uv run python scripts/02_temporal_task_feasibility.py
 ```
 
 ## Layout
