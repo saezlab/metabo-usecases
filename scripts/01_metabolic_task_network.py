@@ -349,6 +349,47 @@ def build_task_bounds() -> dict[str, dict[str, tuple[float, float]]]:
     }
 
 
+def solve_minimum_network(
+    graph: cn.Graph, task_bounds: dict[str, dict[str, tuple[float, float]]], *, verbosity: int = 0,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """Two-stage solve: find the smallest reaction set supporting every task,
+    then a parsimonious flux on that fixed-size network. Returns the boolean
+    selected-reaction mask, the (reactions x tasks) flux array, and the minimum
+    reaction count. Raises if the tasks cannot be jointly satisfied."""
+    # build_many gives each task its own flux column. lambda_reg marks a
+    # reaction as used if any task carries flux through it; minimizing the
+    # sum of those markers gives the smallest network supporting every task.
+    method = MultiSampleFBA(lambda_reg=1.0, beta_reg=0.0)
+    problem = method.build_many(graph, reaction_bounds=task_bounds)
+    problem.add_objective(
+        problem.expr.edge_has_flux_OR.sum(), name="explicit_minimum_network_size"
+    )
+    if str(problem.solve(solver="GUROBI", verbosity=verbosity).status).lower() != "optimal":
+        raise RuntimeError("The tasks could not be jointly satisfied")
+
+    # With the reaction count fixed at its minimum, minimize total absolute
+    # flux for a parsimonious, readable flux solution of the same network.
+    minimum_size = int(np.count_nonzero(np.asarray(problem.expr.edge_has_flux_OR.value) > 0.5))
+    flow = problem.expr.flow
+    absolute_flow = method.backend.Variable(
+        name="task_absolute_flux", shape=flow.shape, lb=0.0, vartype=VarType.CONTINUOUS
+    )
+    problem.add_constraints([
+        problem.expr.edge_has_flux_OR.sum() == minimum_size,
+        absolute_flow >= flow,
+        absolute_flow >= -flow,
+    ])
+    problem.add_objective(absolute_flow.sum(), name="parsimonious_task_flux")
+    if str(problem.solve(solver="GUROBI", verbosity=verbosity).status).lower() != "optimal":
+        raise RuntimeError("Flux refinement failed")
+
+    flux = np.asarray(problem.expr.flow.value, dtype=float)
+    selected = np.asarray(problem.expr.edge_has_flux_OR.value).ravel() > 0.5
+    assert int(selected.sum()) == minimum_size
+    assert np.array_equal(selected, (np.abs(flux) > 1e-6).any(axis=1))
+    return selected, flux, minimum_size
+
+
 def main() -> None:
     OUTDIR.mkdir(parents=True, exist_ok=True)
     (OUTDIR / "figures").mkdir(exist_ok=True)
@@ -359,48 +400,11 @@ def main() -> None:
     task_bounds = build_task_bounds()
     print(f"Tasks ({len(task_bounds)}):", ", ".join(task_bounds))
 
-    # build_many gives each task its own flux column. lambda_reg marks a
-    # reaction as used if any task carries flux through it; minimizing the
-    # sum of those markers gives the smallest network supporting every task.
-    task_method = MultiSampleFBA(lambda_reg=1.0, beta_reg=0.0)
-    task_problem = task_method.build_many(graph, reaction_bounds=task_bounds)
-    task_problem.add_objective(
-        task_problem.expr.edge_has_flux_OR.sum(), name="explicit_minimum_network_size"
-    )
-    first_solve = task_problem.solve(solver="GUROBI", verbosity=1)
-    status_1 = str(first_solve.status).lower()
-    print(f"Stage 1 (minimize union) solve status: {status_1}")
-    if status_1 != "optimal":
-        raise RuntimeError(f"The tasks could not be satisfied: {first_solve.status}")
-
-    # With the reaction count fixed at its minimum, minimize total absolute
-    # flux for a parsimonious, readable flux solution of the same network.
-    minimum_size = int(np.count_nonzero(np.asarray(task_problem.expr.edge_has_flux_OR.value) > 0.5))
-    flow = task_problem.expr.flow
-    absolute_flow = task_method.backend.Variable(
-        name="task_absolute_flux", shape=flow.shape, lb=0.0, vartype=VarType.CONTINUOUS
-    )
-    task_problem.add_constraints([
-        task_problem.expr.edge_has_flux_OR.sum() == minimum_size,
-        absolute_flow >= flow,
-        absolute_flow >= -flow,
-    ])
-    task_problem.add_objective(absolute_flow.sum(), name="parsimonious_task_flux")
-    second_solve = task_problem.solve(solver="GUROBI", verbosity=1)
-    status_2 = str(second_solve.status).lower()
-    print(f"Stage 2 (minimize flux at fixed size) solve status: {status_2}")
-    if status_2 != "optimal":
-        raise RuntimeError(f"Flux refinement failed: {second_solve.status}")
+    selected_reactions, flux, minimum_size = solve_minimum_network(graph, task_bounds, verbosity=1)
 
     reaction_ids = list(graph.get_attr_from_edges("id"))
-    task_flux = pd.DataFrame(
-        np.asarray(task_problem.expr.flow.value), index=reaction_ids, columns=task_bounds
-    )
+    task_flux = pd.DataFrame(flux, index=reaction_ids, columns=task_bounds)
     task_flux.to_csv(OUTDIR / "task_flux.csv")
-
-    selected_reactions = np.asarray(task_problem.expr.edge_has_flux_OR.value).ravel() > 0.5
-    assert selected_reactions.sum() == minimum_size
-    assert np.array_equal(selected_reactions, (np.abs(task_flux.to_numpy()) > 1e-6).any(axis=1))
 
     print(f"Smallest joint network: {minimum_size} of {graph.num_edges} reactions")
 
@@ -417,8 +421,6 @@ def main() -> None:
     summary = (
         f"Full network: {graph.num_edges} reactions total\n"
         f"Tasks ({len(task_bounds)}): {', '.join(task_bounds)}\n"
-        f"Stage 1 (minimize union) solve status: {status_1}\n"
-        f"Stage 2 (minimize flux at fixed size) solve status: {status_2}\n"
         f"Smallest joint network: {minimum_size}/{graph.num_edges} reactions\n"
     )
     (OUTDIR / "build_summary.txt").write_text(summary)

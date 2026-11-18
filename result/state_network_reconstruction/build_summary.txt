@@ -1,0 +1,4 @@
+Network: 117 reactions, 20 tasks
+
+WT: 57-94 of 117 reactions (0h->24h: 0h:63, 2h:64, 4h:64, 6h:57, 8h:57, 12h:61, 16h:81, 24h:94)
+ob_ob: 62-84 of 117 reactions (0h->24h: 0h:83, 2h:80, 4h:70, 6h:80, 8h:73, 12h:84, 16h:62, 24h:62)

@@ -1,0 +1,17 @@
+state,genotype,timepoint,n_feasible_tasks,n_reactions
+WT_0h,WT,0h,12,63
+WT_2h,WT,2h,12,64
+WT_4h,WT,4h,12,64
+WT_6h,WT,6h,10,57
+WT_8h,WT,8h,10,57
+WT_12h,WT,12h,11,61
+WT_16h,WT,16h,13,81
+WT_24h,WT,24h,17,94
+ob_ob_0h,ob_ob,0h,16,83
+ob_ob_2h,ob_ob,2h,15,80
+ob_ob_4h,ob_ob,4h,12,70
+ob_ob_6h,ob_ob,6h,15,80
+ob_ob_8h,ob_ob,8h,14,73
+ob_ob_12h,ob_ob,12h,16,84
+ob_ob_16h,ob_ob,16h,10,62
+ob_ob_24h,ob_ob,24h,10,62
