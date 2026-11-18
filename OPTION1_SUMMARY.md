@@ -117,7 +117,9 @@ Lactate gluconeo/ketogenesis/FA-ox: all 1, both genotypes (robust core)
   (selected_reactions_by_state.csv, reconstruction_summary.csv, and
   figures/<state>.{svg,png} + figures/<state>/<task>.{svg,png}), plus the
   pathway-level summary from script 04 (pathway_activity.csv,
-  pathway_activity_heatmap.png, pathway_difference_heatmap.png).
+  pathway_activity_heatmap.png, pathway_difference_heatmap.png,
+  pathway_fraction_heatmap.png -- activity as a % of each pathway's size, so
+  pathways of different sizes are comparable).
 - `result/gene_scores/` — proteomics gene scores, the input read by 02.
 - Solver: GUROBI (academic license). Figures: rsvg-convert + graphviz neato.
   Run with `uv run`.

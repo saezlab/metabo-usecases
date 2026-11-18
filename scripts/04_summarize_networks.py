@@ -7,9 +7,12 @@ heatmap (how many reactions each pathway uses over the time course) and a
 WT - ob/ob difference heatmap (which pathways each genotype runs more).
 
 Outputs (result/state_network_reconstruction/):
-  pathway_activity.csv             pathway x state active-reaction counts
-  pathway_activity_heatmap.png     WT and ob/ob activity, pathway x timepoint
-  pathway_difference_heatmap.png   WT - ob/ob, pathway x timepoint
+  pathway_activity.csv              pathway x state active-reaction counts
+  pathway_activity_heatmap.png      WT and ob/ob activity, pathway x timepoint
+  pathway_difference_heatmap.png    WT - ob/ob, pathway x timepoint
+  pathway_fraction_heatmap.png      activity as a fraction of each pathway's
+                                    reactions (0-100%), so pathways of different
+                                    sizes are comparable
 """
 
 from __future__ import annotations
@@ -78,6 +81,13 @@ def main() -> None:
     wt = activity[wt_cols].to_numpy()
     ob = activity[ob_cols].to_numpy()
 
+    # Fraction of each pathway's reactions that are active (fixed denominator =
+    # the pathway's size in the 117-reaction network), so pathways of different
+    # sizes and states of different total size are comparable.
+    pathway_total = membership.groupby("pathway").size().reindex(pathways).to_numpy()
+    wt_frac = 100.0 * wt / pathway_total[:, None]
+    ob_frac = 100.0 * ob / pathway_total[:, None]
+
     # --- Figure 1: per-genotype activity (sequential: magnitude, one hue) ---
     vmax = int(max(wt.max(), ob.max()))
     fig, axes = plt.subplots(1, 2, figsize=(12, 7), sharey=True)
@@ -115,7 +125,24 @@ def main() -> None:
     fig.savefig(OUTDIR / "pathway_difference_heatmap.png", dpi=180, bbox_inches="tight")
     plt.close(fig)
 
-    print(f"Wrote pathway_activity.csv and 2 heatmaps to {OUTDIR}")
+    # --- Figure 3: activity as a fraction of pathway size (0-100%) ---
+    fig, axes = plt.subplots(1, 2, figsize=(12, 7), sharey=True)
+    for ax, data, name in zip(axes, (wt_frac, ob_frac), ("WT", "ob/ob")):
+        im = ax.imshow(data, aspect="auto", cmap="Blues", vmin=0, vmax=100)
+        ax.set_xticks(range(len(hours)), hours, fontsize=8)
+        ax.set_yticks(range(len(pathways)), pathways, fontsize=8)
+        ax.set_title(name, fontsize=11, fontweight="bold")
+        ax.set_xlabel("timepoint", fontsize=9)
+        ax.tick_params(length=0)
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        _annotate(ax, data, fmt="{:.0f}%", dark_above=60)
+    fig.colorbar(im, ax=axes, label="% of pathway's reactions active", fraction=0.025, pad=0.02)
+    fig.suptitle("Pathway activity as a fraction of pathway size", fontsize=12)
+    fig.savefig(OUTDIR / "pathway_fraction_heatmap.png", dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+    print(f"Wrote pathway_activity.csv and 3 heatmaps to {OUTDIR}")
     print("\nMost WT-biased pathways (mean WT - ob/ob over the time course):")
     print(bias.sort_values(ascending=False).head(6).to_string())
 
