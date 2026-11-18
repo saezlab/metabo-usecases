@@ -13,6 +13,7 @@ Outputs (result/state_network_reconstruction/):
   pathway_fraction_heatmap.png      activity as a fraction of each pathway's
                                     reactions (0-100%), so pathways of different
                                     sizes are comparable
+  network_size_trajectory.png       total reactions per state over time, WT vs ob/ob
 """
 
 from __future__ import annotations
@@ -142,7 +143,29 @@ def main() -> None:
     fig.savefig(OUTDIR / "pathway_fraction_heatmap.png", dpi=180, bbox_inches="tight")
     plt.close(fig)
 
-    print(f"Wrote pathway_activity.csv and 3 heatmaps to {OUTDIR}")
+    # --- Figure 4: total network size over the time course (line) ---
+    totals = membership[states].sum()
+    wt_total = [int(totals[f"WT_{t}"]) for t in STATE_SUFFIXES]
+    ob_total = [int(totals[f"ob_ob_{t}"]) for t in STATE_SUFFIXES]
+    x = range(len(STATE_SUFFIXES))
+    fig, ax = plt.subplots(figsize=(7.5, 4.5))
+    ax.plot(x, wt_total, marker="o", markersize=7, linewidth=2, color="#2a6f97")
+    ax.plot(x, ob_total, marker="o", markersize=7, linewidth=2, color="#e8833a")
+    ax.text(x[-1] + 0.12, wt_total[-1], "WT", color="#2a6f97", va="center", fontweight="bold", fontsize=10)
+    ax.text(x[-1] + 0.12, ob_total[-1], "ob/ob", color="#e8833a", va="center", fontweight="bold", fontsize=10)
+    ax.set_xticks(list(x), hours)
+    ax.set_xlabel("timepoint", fontsize=9)
+    ax.set_ylabel("reactions in reconstructed network", fontsize=9)
+    ax.set_title("Reconstructed network size over the starvation time course", fontsize=11)
+    ax.set_ylim(0, graph.num_edges)
+    ax.grid(axis="y", color="#edf0f2")
+    ax.set_axisbelow(True)
+    for spine in ("top", "right"):
+        ax.spines[spine].set_visible(False)
+    fig.savefig(OUTDIR / "network_size_trajectory.png", dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+    print(f"Wrote pathway_activity.csv and 4 figures to {OUTDIR}")
     print("\nMost WT-biased pathways (mean WT - ob/ob over the time course):")
     print(bias.sort_values(ascending=False).head(6).to_string())
 
