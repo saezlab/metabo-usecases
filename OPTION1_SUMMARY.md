@@ -59,6 +59,14 @@ remethylation) open. Closing them deadlocks the task.
    itself be infeasible). Renders a union-network figure per state and a
    per-task flux panel, with `plot_task_flux_gallery`.
 
+4. **`04_summarize_networks`** — aggregate 03's reaction x state membership to
+   pathway level and draw two heatmaps: per-genotype pathway activity over the
+   time course, and the WT - ob/ob difference. This reads the 16 networks at a
+   glance. The headline: the methionine cycle / SAM methylation economy
+   (methionine cycle, methylation, polyamine, creatine) is ob/ob-high early
+   (0-12h) and WT-high late (16-24h) -- a temporal switch, the same mirror
+   image seen in the task feasibility.
+
 Feasibility solves (step 2) are single-task (no coupling); the joint
 two-stage solve (steps 1 and 3) couples across the tasks in question.
 
@@ -107,7 +115,9 @@ Lactate gluconeo/ketogenesis/FA-ox: all 1, both genotypes (robust core)
   overview in build_summary.txt).
 - `result/state_network_reconstruction/` — per-state minimal networks
   (selected_reactions_by_state.csv, reconstruction_summary.csv, and
-  figures/<state>.{svg,png} + figures/<state>/<task>.{svg,png}).
+  figures/<state>.{svg,png} + figures/<state>/<task>.{svg,png}), plus the
+  pathway-level summary from script 04 (pathway_activity.csv,
+  pathway_activity_heatmap.png, pathway_difference_heatmap.png).
 - `result/gene_scores/` — proteomics gene scores, the input read by 02.
 - Solver: GUROBI (academic license). Figures: rsvg-convert + graphviz neato.
   Run with `uv run`.

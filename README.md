@@ -26,10 +26,12 @@ Run in order; each writes to the matching directory under `result/`.
 | `scripts/01_metabolic_task_network.py` | Build the 117-reaction network and the 20 tasks; find the smallest reaction set supporting all tasks jointly. |
 | `scripts/02_temporal_task_feasibility.py` | Gate the network by each genotype's proteomics at every timepoint; track task feasibility across the 16 states, with a per-genotype overview (feasible throughout / never / at 24h). |
 | `scripts/03_state_network_reconstruction.py` | For each state, reconstruct the minimal active network supporting its feasible tasks; render the network figures per state. |
+| `scripts/04_summarize_networks.py` | Aggregate the 16 reconstructed networks to pathway level; draw pathway-activity and WT−ob/ob difference heatmaps so the rewiring is readable without opening every per-state figure. |
 
 Script 02 reads `result/gene_scores/` (the proteomics gene scores) and imports
 the network from script 01. Script 03 reads script 02's feasibility matrix and
-imports the solver and gating helpers from scripts 01 and 02.
+imports the solver and gating helpers from scripts 01 and 02. Script 04 reads
+script 03's membership matrix.
 
 ## Running
 
@@ -41,6 +43,7 @@ vendored under `src/corneto_mcmt`.
 uv run python scripts/01_metabolic_task_network.py
 uv run python scripts/02_temporal_task_feasibility.py
 uv run python scripts/03_state_network_reconstruction.py
+uv run python scripts/04_summarize_networks.py
 ```
 
 Script 03 renders figures with `rsvg-convert` (librsvg) and graphviz
