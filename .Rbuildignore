@@ -15,8 +15,6 @@
 ^python$
 ^tex$
 ^preview$
-^omnipath_metabo_case1$
-^omnipath_metabo_case[0-9]+$
 ^omnipath-build$
 ^omnipathr-log$
 ^out$
@@ -46,3 +44,4 @@
 
 # .gitkeep markers inside the package inst/ tree.
 inst/extdata/.*\.gitkeep$
+^.*\.Rproj$

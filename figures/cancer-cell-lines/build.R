@@ -1,24 +1,20 @@
 # figures/cancer-cell-lines/build.R
 #
-# Cancer cell lines use case (Shorthouse 2022 + azelate webapp queries).
+# Cancer cell lines use case: OmniPath Metabo evidence for azelate.
 #
 # Panels:
-#   A — KRAS volcano (limma logFC vs. -log10 P)
-#   B — EGFR volcano (same axis limits as A, FR-019)
-#   C — Azelate interaction-type composition by upstream source
+#   A — Azelate interaction-type composition by upstream source
 #       (from data/derived/azelate/csvs/interaction_types_by_source.csv)
-#   D — Azelate cancer associations by sample type
+#   B — Azelate cancer associations by sample type
 #       (from data/derived/azelate/csvs/cancer_assoc_by_sample_type.csv)
 #
-# The former COSMOS PKN panels (E, F) are dropped; their analysis is
-# kept as an archive in analyses/cancer-cell-lines-cosmos/.
+# The former KRAS / EGFR volcano panels (read from the previous Shorthouse
+# pipeline) and the COSMOS PKN panels were removed in the 2026-11 cleanup;
+# see RESTRUCTURING.md. The figure as of the first preprint is at the tag
+# `preprint_v0`.
 #
 # Inputs consumed (all repo-local):
-#   - data/derived/cancer-cell-lines/ExtendedDataTable_...xlsx
 #   - data/derived/azelate/csvs/{interaction_types_by_source,cancer_assoc_by_sample_type}.csv
-#
-# The refactor of the analysis Rmds into the pipeline is deferred
-# (tasks T058–T062).
 
 suppressPackageStartupMessages({
     library(metabo.figures)
@@ -36,7 +32,7 @@ fs::dir_create(out_dir)
 
 dep5 <- deployment_provenance("dev5")
 
-# ── Composite-compact label scales (memory: composite_panel_label_sizes) ────
+# ── Composite-compact label scales ───────────────────────────────────────────
 #
 # font_scale: body / axis / title size multiplier. ~1.7 lands axis
 # labels around 10 pt at the panel's rendered size in the composite.
@@ -48,101 +44,54 @@ legend_scale <- 1.1
 
 # ── Data loading ─────────────────────────────────────────────────────────────
 
-logger::log_info("[cancer-cell-lines] loading differential-analysis xlsx (KRAS, EGFR)")
-kras_dem <- case_study_differential("KRAS")
-egfr_dem <- case_study_differential("EGFR")
-
-logger::log_info("[cancer-cell-lines] loading azelate Panel C / Panel D source CSVs")
-azelate_c <- azelate_panel_c_data()
-azelate_d <- azelate_panel_d_data()
+logger::log_info("[cancer-cell-lines] loading azelate source CSVs")
+azelate_interactions <- azelate_panel_c_data()
+azelate_diseases     <- azelate_panel_d_data()
 
 # ── Category-colour registration ─────────────────────────────────────────────
 
 register_azelate_colours()
 
-# ── Volcano shared limits (FR-019) ───────────────────────────────────────────
-
-volcano_lims <- volcano_shared_limits(list(kras_dem, egfr_dem))
-
 # ── Panel rendering ──────────────────────────────────────────────────────────
 
-# Highlight: azelaic acid (HMDB0000784) — Panels A / B + downstream
-# Panel C / D draw on the same metabolite as the worked example.
-azelate_highlight <- c(HMDB0000784 = "Azelaic acid")
-
-logger::log_info("[cancer-cell-lines] rendering Panel A (KRAS volcano)")
-panel_a <- volcano_panel(
-    kras_dem,
-    contrast_label = "KRAS",
-    xlim           = volcano_lims$xlim,
-    ylim           = volcano_lims$ylim,
-    width_mm       = 89L,
-    font_scale     = font_scale,
-    legend_scale   = legend_scale,
-    highlight      = azelate_highlight
-)
-
-logger::log_info("[cancer-cell-lines] rendering Panel B (EGFR volcano)")
-panel_b <- volcano_panel(
-    egfr_dem,
-    contrast_label = "EGFR",
-    xlim           = volcano_lims$xlim,
-    ylim           = volcano_lims$ylim,
-    width_mm       = 89L,
-    font_scale     = font_scale,
-    legend_scale   = legend_scale,
-    highlight      = azelate_highlight
-)
-
-logger::log_info("[cancer-cell-lines] rendering Panel C (azelate interaction types)")
-panel_c <- azelate_interaction_panel(
-    azelate_c,
+logger::log_info("[cancer-cell-lines] rendering Panel A (azelate interaction types)")
+panel_a <- azelate_interaction_panel(
+    azelate_interactions,
     width_mm     = 89L,
     font_scale   = font_scale,
     legend_scale = legend_scale
 )
 
-logger::log_info("[cancer-cell-lines] rendering Panel D (azelate cancer associations)")
-panel_d <- azelate_disease_panel(
-    azelate_d,
+logger::log_info("[cancer-cell-lines] rendering Panel B (azelate cancer associations)")
+panel_b <- azelate_disease_panel(
+    azelate_diseases,
     width_mm     = 89L,
     font_scale   = font_scale,
     legend_scale = legend_scale
 )
 
-# ── Save individual panels (per FR-026: SVG + PDF per panel) ─────────────────
+# ── Save individual panels (SVG + PDF per panel) ─────────────────────────────
 
 individual_panels <- list(
-    panel_a            = panel_a,
-    panel_b            = panel_b,
-    panel_c            = panel_c,
-    panel_d            = panel_d
+    panel_a = panel_a,
+    panel_b = panel_b
 )
 
 for (name in names(individual_panels)) {
-    ggsave(
-        filename = file.path(out_dir, paste0(name, ".pdf")),
-        plot     = individual_panels[[name]],
-        width    = 89,
-        height   = 70,
-        units    = "mm"
-    )
-    ggsave(
-        filename = file.path(out_dir, paste0(name, ".svg")),
-        plot     = individual_panels[[name]],
-        width    = 89,
-        height   = 70,
-        units    = "mm"
-    )
+    for (ext in c("pdf", "svg")) {
+        ggsave(
+            filename = file.path(out_dir, paste0(name, ".", ext)),
+            plot     = individual_panels[[name]],
+            width    = 89,
+            height   = 70,
+            units    = "mm"
+        )
+    }
 }
 
-# ── Composite (nested patchwork) ─────────────────────────────────────────────
-#
-# Conceptual layout:
-#   Row 1: A | B                          (volcanos)
-#   Row 2: C | D                          (azelate)
+# ── Composite: A | B ─────────────────────────────────────────────────────────
 
-row_ab <- patchwork::wrap_plots(
+composite <- patchwork::wrap_plots(
     list(
         panel_a + ggplot2::labs(tag = "A"),
         panel_b + ggplot2::labs(tag = "B")
@@ -150,91 +99,67 @@ row_ab <- patchwork::wrap_plots(
     ncol = 2L
 )
 
-row_cd <- patchwork::wrap_plots(
-    list(
-        panel_c + ggplot2::labs(tag = "C"),
-        panel_d + ggplot2::labs(tag = "D")
-    ),
-    ncol = 2L
-)
-
-composite <- row_ab / row_cd
-
 logger::log_info(paste0(
-    "[cancer-cell-lines] assembled composite (2 rows; ",
+    "[cancer-cell-lines] assembled composite (1 row; ",
     "font_scale={font_scale}, legend_scale={legend_scale})"
 ))
 
-# 180 mm × 110 mm — two rows at the row height of the former
-# three-row layout.
-ggsave(
-    filename = file.path(out_dir, "cancer-cell-lines.pdf"),
-    plot     = composite,
-    width    = 180,
-    height   = 110,
-    units    = "mm"
-)
-ggsave(
-    filename = file.path(out_dir, "cancer-cell-lines.svg"),
-    plot     = composite,
-    width    = 180,
-    height   = 110,
-    units    = "mm"
-)
+composite_width_mm  <- 180L
+composite_height_mm <- 55L
+
+for (ext in c("pdf", "svg")) {
+    ggsave(
+        filename = file.path(out_dir, paste0("cancer-cell-lines.", ext)),
+        plot     = composite,
+        width    = composite_width_mm,
+        height   = composite_height_mm,
+        units    = "mm"
+    )
+}
 
 # ── Caption ──────────────────────────────────────────────────────────────────
 
 caption_info <- compose_caption(
     figure_id      = "cancer-cell-lines",
-    composite_pdf  = file.path(
-        out_dir, "cancer-cell-lines.pdf"
-    ),
+    composite_pdf  = file.path(out_dir, "cancer-cell-lines.pdf"),
     caption_source = "figures/cancer-cell-lines/caption.tex",
     out_dir        = out_dir,
-    panel_count    = 4L
+    panel_count    = 2L
 )
 
 # ── Provenance sidecar ────────────────────────────────────────────────────────
 
 external_inputs <- list(
     list(
-        kind        = "shorthouse-differential-analysis",
-        path        = attr(kras_dem, "source_path"),
-        fingerprint = attr(kras_dem, "fingerprint"),
-        source      = "analyses/cancer-cell-lines/04_differential_analysis.Rmd",
-        sheets      = c("KRAS_filt_limma", "EGFR_filt_limma")
-    ),
-    list(
-        kind        = "azelate-panel-c",
-        path        = attr(azelate_c, "source_path"),
-        fingerprint = attr(azelate_c, "fingerprint"),
+        kind        = "azelate-interaction-types",
+        path        = attr(azelate_interactions, "source_path"),
+        fingerprint = attr(azelate_interactions, "fingerprint"),
         source      = "analyses/azelate/azelaic_acid_query_tables.py"
     ),
     list(
-        kind        = "azelate-panel-d",
-        path        = attr(azelate_d, "source_path"),
-        fingerprint = attr(azelate_d, "fingerprint"),
+        kind        = "azelate-cancer-associations",
+        path        = attr(azelate_diseases, "source_path"),
+        fingerprint = attr(azelate_diseases, "fingerprint"),
         source      = "analyses/azelate/azelaic_acid_query_tables.py"
     )
 )
 
 write_sidecar(
     artifact_id     = "cancer-cell-lines",
-    artifact_path   = file.path(
-        out_dir, "cancer-cell-lines.pdf"
-    ),
+    artifact_path   = file.path(out_dir, "cancer-cell-lines.pdf"),
     deployments     = list(dep5$deployment),
     manifests       = list(dep5$manifest),
     script_path     = "figures/cancer-cell-lines/build.R",
     queries         = list(),
     external_inputs = external_inputs,
     parameters      = list(
-        volcano_pvalue_threshold = 0.05,
-        volcano_logfc_threshold  = 0.5,
-        font_scale               = font_scale,
-        legend_scale             = legend_scale,
-        composite_dims_mm        = list(width = 180L, height = 110L),
-        azelate_source           = paste0(
+        font_scale        = font_scale,
+        legend_scale      = legend_scale,
+        composite_dims_mm = list(
+            width  = composite_width_mm,
+            height = composite_height_mm
+        ),
+        azelate_source    = paste0(
             "CSVs from data/derived/azelate/csvs/ ",
             "(generated by azelaic_acid_query_tables.py against ",
             "dev.omnipathdb.org)"
