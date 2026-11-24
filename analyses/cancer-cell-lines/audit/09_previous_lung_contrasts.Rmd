@@ -24,7 +24,7 @@ contrasts, and whether KRAS vs EGFR is worth pursuing.
 ## Inputs
 
 - `data/derived/cancer-cell-lines/shorthouse_v1/shorthouse_analysis_v1.rds`
-- `analyses/cancer-cell-lines/04_differential_analysis.Rmd` (previous contrasts, for the cohort definitions)
+- `analyses/cancer-cell-lines/04_differential_analysis.Rmd` at commit `03c9674` (previous contrasts, for the cohort definitions; `git show 03c9674:analyses/cancer-cell-lines/04_differential_analysis.Rmd`)
 - `config.yml`: `contrast`
 
 ## Methods

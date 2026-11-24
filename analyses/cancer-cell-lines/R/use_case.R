@@ -20,6 +20,30 @@ uc_dir <- function(config, kind, ...) {
     path
 }
 
+#' Load an RData file of the previous pipeline from git history
+#'
+#' The previous pipeline and its outputs were removed from the working tree
+#' (see RESTRUCTURING.md); they are read from `config$previous_pipeline$commit`.
+#' Needs `git` and the repository history (not a shallow clone).
+#'
+#' @param config Configuration from `load_config()`.
+#' @param file File name inside `config$previous_pipeline$derived`.
+#' @return The first object stored in the RData file.
+load_previous_rdata <- function(config, file) {
+    prev <- config$previous_pipeline
+    spec <- sprintf("%s:%s/%s", prev$commit, prev$derived, file)
+    tmp <- tempfile(fileext = ".RData")
+    on.exit(unlink(tmp))
+    status <- system2(
+        "git", c("-C", shQuote(here::here()), "show", shQuote(spec)),
+        stdout = tmp, stderr = FALSE
+    )
+    if (!identical(status, 0L)) stop("Cannot read ", spec, " from git history")
+    env <- new.env()
+    load(tmp, envir = env)
+    as.list(env)[[1]]
+}
+
 #' Record a filtering step
 #'
 #' Every step that removes samples or features goes through this function,

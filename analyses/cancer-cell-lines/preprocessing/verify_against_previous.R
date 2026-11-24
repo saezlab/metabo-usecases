@@ -1,9 +1,10 @@
 # Compare the refactored pre-processing (shorthouse_v1) with the previous
-# pipeline (analyses/cancer-cell-lines/0[1-3]_*.Rmd, outputs in
-# data/derived/cancer-cell-lines/*.RData). Every difference is either
-# attributed to an intended change or counted as unexplained.
+# pipeline (0[1-3]_*.Rmd, outputs in data/derived/cancer-cell-lines/*.RData).
+# The previous pipeline was removed from the working tree; its outputs are
+# read from git history (config$previous_pipeline). Every difference is
+# either attributed to an intended change or counted as unexplained.
 #
-# Run from the repository root after both pipelines have been run:
+# Run from the repository root after the pre-processing has been run:
 #   Rscript analyses/cancer-cell-lines/preprocessing/verify_against_previous.R
 
 suppressMessages({
@@ -14,11 +15,9 @@ suppressMessages({
 source(here::here("analyses/cancer-cell-lines/R/use_case.R"))
 config <- load_config()
 new_dir <- uc_dir(config, "derived")
-old_dir <- here::here("data/derived/cancer-cell-lines")
 out_dir <- uc_dir(config, "output", "verify_against_previous")
 
-load_one <- function(f) { e <- new.env(); load(f, envir = e); as.list(e)[[1]] }
-old <- load_one(file.path(old_dir, "Shorthouse_2022_extended.RData"))
+old <- load_previous_rdata(config, "Shorthouse_2022_extended.RData")
 new_lines <- readRDS(file.path(new_dir, "01_lines.rds"))
 new_cells <- readr::read_tsv(file.path(new_dir, "02_cell_lines.tsv"), show_col_types = FALSE)
 new_genes <- readr::read_tsv(file.path(new_dir, "02_gene_status.tsv"), show_col_types = FALSE)

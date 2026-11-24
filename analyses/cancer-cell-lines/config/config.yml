@@ -8,6 +8,13 @@ paths:
   # QC tables, plots and rendered reports (gitignored)
   output: analyses/cancer-cell-lines/output
 
+# The previous pipeline (01_preprocess.Rmd ... 04_differential_analysis.Rmd and
+# its outputs in data/derived/cancer-cell-lines/) was removed from the working
+# tree; audits that compare against it read its files from this commit.
+previous_pipeline:
+  commit: 03c9674
+  derived: data/derived/cancer-cell-lines
+
 shorthouse:
   files:
     injections: msb202211006-sup-0002-datasetev1.xlsx   # Dataset EV1

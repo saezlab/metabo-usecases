@@ -23,7 +23,7 @@ download).
 ## Inputs
 
 - `data/derived/cancer-cell-lines/shorthouse_v1/02_cell_lines.tsv`, `02_gene_status.tsv` (Cellosaurus, release 53.0)
-- `data/derived/cancer-cell-lines/Shorthouse_2022.RData`: output of the previous pipeline (`mutated_genes` before the fix)
+- `data/derived/cancer-cell-lines/Shorthouse_2022.RData` at commit `03c9674`: output of the previous pipeline (`mutated_genes` before the fix), read from git history
 - `data/raw/cancer-cell-lines/shorthouse_github/Mutations_in_celllines.csv`: mutation calls used by Shorthouse et al. (**local only**, no licence)
 - `data/raw/cancer-cell-lines/msb202211006-sup-0005-datasetev4.xlsx`, `…-0006-datasetev5.xlsx`: Datasets EV4/EV5 (genes tested by the authors and their t-statistics)
 
@@ -75,8 +75,7 @@ and fusions.
 
 ```{r ranking}
 # previous pipeline: genes listed in mutated_genes, per name; names mapped to lines
-load_one <- function(f) { e <- new.env(); load(f, envir = e); as.list(e)[[1]] }
-old_samples <- load_one(file.path(here::here("data/derived/cancer-cell-lines"), "Shorthouse_2022.RData"))$samples
+old_samples <- load_previous_rdata(config, "Shorthouse_2022.RData")$samples
 member_of <- cell_lines %>%
     separate_rows(member_names, sep = "; ") %>%
     select(name = member_names, line)
