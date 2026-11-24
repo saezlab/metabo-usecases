@@ -4,9 +4,9 @@ The COSMOS+ prior-knowledge network: which regulation types it encodes,
 how it compares with the old COSMOS PKN, its coverage of subcellular
 compartments, and the contribution of each resource.
 
-**Status (2026-11-24):** reads vendored COSMOS+ exports of June 2026 and
-MetaLinksDB 2.0 from dev5 (`custom_views.metalinksdb_relations`, which dev5
-no longer has, so the MetaLinksDB panel fails). COSMOS and MetaLinksDB will
+**Status (2026-11-24): fails** on dev5, which no longer has
+`custom_views.metalinksdb_relations` (MetaLinksDB 2.0 panel); the other
+panels read vendored COSMOS+ exports of June 2026. COSMOS and MetaLinksDB will
 become subsets of the Parquet release (`docs/DB_ACCESS.md`); re-vendor or
 read from there when they land.
 

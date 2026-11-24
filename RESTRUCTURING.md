@@ -268,9 +268,9 @@ checkouts use, so test runs install the branch into a private library
   database-content and ramp-comparison fail (`metabo_ramp_inchikey_conflict`
   missing), cosmos-pkn fails (`custom_views.metalinksdb_relations` missing).
   Running two builds in parallel also exhausted Postgres shared memory.
-- **No `xelatex` on beauty's PATH** in the pipeline environment, so captioned
-  PDFs are skipped and the three tables fail at their final LaTeX step
-  (their queries succeed).
+- **No `xelatex` on beauty's PATH** outside `shell.nix`, so captioned PDFs
+  are skipped and the tables fail at their final LaTeX step. Inside
+  `nix-shell shell.nix` they build (checked 2026-11-24).
 
 - **Old COSMOS PKN is not pinned.** `cosmos_old_pkn()` installs cosmosR from
   GitHub HEAD at build time and uses its `meta_network`. It ignores the
@@ -427,4 +427,24 @@ Everything removed can be recovered from `03c9674`, e.g.
 ### Kept on purpose
 
 - `analyses/ramp-ambiguity/`: may change soon.
+
+### State of the builds (2026-11-24)
+
+`main` at `1607ae6`, built on beauty one target at a time against dev5
+(`metalinks-versions`: prod), package installed into a private library,
+inside `nix-shell shell.nix` for LaTeX.
+
+| Target | Result | Cause |
+|---|---|---|
+| architecture | fails | `metabo_entity_structural_specificity` missing on dev5 |
+| database-content | fails | `metabo_ramp_inchikey_conflict` missing on dev5 |
+| metalinks-versions | builds | MetaLinksDB 2.0 from prod (June data); panel B axis labels overlap, panel E legend cut off |
+| cosmos-pkn | fails | `custom_views.metalinksdb_relations` missing on dev5 |
+| id-resolving | builds | Now covers all 170 OmniPath resources (too large for a page); caption says dev3 |
+| ramp-comparison | fails | `metabo_ramp_inchikey_conflict` missing on dev5 |
+| record-coverage | builds | Five rows empty: row definitions use pre-Biolink vocabulary |
+
+Each folder's README carries its status. The missing tables are Postgres
+derivations that the current dev5 load and the Parquet release do not have
+(`docs/DB_ACCESS.md`).
 

@@ -82,6 +82,7 @@ the pipeline runs there or through an SSH tunnel; see `docs/DB_ACCESS.md`.
 
 ```sh
 . ~/.config/metabo-figures/env.sh          # on beauty: connection settings
+nix-shell shell.nix                        # LaTeX, pdftk, libpq
 ./rebuild.sh --dry-run                     # list what would be built
 ./rebuild.sh metalinks-versions            # build one figure
 ./rebuild.sh --png --bundle --check        # build everything, with checks

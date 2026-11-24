@@ -122,11 +122,16 @@ On beauty:
 
 ```bash
 . ~/.config/metabo-figures/env.sh                       # connection settings
+nix-shell shell.nix                                     # xelatex, pdftk, libpq
 ./rebuild.sh --dry-run                                  # what would be built
 ./rebuild.sh metalinks-versions                         # one figure or table
 tail -f build/logs/latest.log
 Rscript analyses/cancer-cell-lines/run_analysis.R --list
 ```
+
+Outside `shell.nix` there is no `xelatex` on beauty: tables fail at their
+LaTeX step and captioned PDFs are skipped. Run builds one at a time against
+a Postgres instance (parallel builds exhausted its shared memory).
 
 During development, load the package from the checkout instead of the
 installed version:

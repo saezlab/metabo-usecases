@@ -4,8 +4,10 @@ Identifiers contributed by each resource, split by identifier type: the ten
 most frequent types as columns, the rest as `Misc`, and a `Total` column and
 row.
 
-**Status (2026-11-24):** queries dev5 Postgres (`identifier_evidence`,
-`entity_evidence_identifier`, about 75 s). To be redone: in the Parquet
+**Status (2026-11-24): builds** on dev5 inside `shell.nix` (about 75 s),
+but no longer fits its purpose: it now lists all 170 OmniPath resources
+(not only the metabolite resources), too many for one page, and the
+caption still says dev3. To be redone: in the Parquet
 release every entity is resolved before publication, so the table needs a
 new definition (`docs/DB_ACCESS.md`). When it is updated, the counting goes
 into `analyses/` and this folder only formats the result (see `AGENTS.md`).

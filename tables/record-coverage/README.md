@@ -5,7 +5,11 @@ lipids, drugs, diseases, transport, signalling, structures, ...): a
 checkmark where the resource has at least N records of the type (N = 1,
 recorded in the sidecar).
 
-**Status (2026-11-24):** queries the facet bitmaps on dev5 Postgres. The
+**Status (2026-11-24): builds** on dev5 inside `shell.nix`, but five rows
+are empty (Proteins, Molecular classes, Transport, Signaling, Structures):
+the row definitions use the old vocabulary (`Gene:MI:0250`,
+`Protein:MI:0326`, `Cv Term:OM:0012`, ...), while the database now uses
+Biolink names (`protein`, `gene`, `ontology_class`, ...). The
 chemical-class rows (metabolites, lipids, drugs, food) and the structures
 row need Postgres derivations that the Parquet release does not have
 (`docs/DB_ACCESS.md`). When it is updated, the counting goes into

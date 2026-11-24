@@ -4,10 +4,10 @@ The OmniPath Metabo architecture diagram (hand-made in Inkscape), plus a
 digest of headline database statistics whose numbers are copied into the
 diagram by hand.
 
-**Status (2026-11-24):** queries dev5 Postgres. In October 2026 the build
-failed because dev5 lacks `metabo_entity_structural_specificity` (used by
-the digest's Structures section); see `docs/DB_ACCESS.md` for what the
-backends provide.
+**Status (2026-11-24): fails.** The diagram is copied, but the statistics
+digest stops because dev5 lacks `metabo_entity_structural_specificity`
+(Structures section); see `docs/DB_ACCESS.md` for what the backends
+provide.
 
 ## Inputs
 

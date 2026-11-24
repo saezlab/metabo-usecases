@@ -4,9 +4,12 @@ MetaLinksDB 2.0 compared with MetaLinksDB 1.0: coverage of interactions,
 metabolites and proteins, metabolite and protein classes, and relationship
 types.
 
-**Status (2026-11-24):** MetaLinksDB 2.0 is read from
+**Status (2026-11-24): builds** (about 3 min), with layout problems: the
+x-axis labels of the metabolite-class panel overlap, and the legend of the
+relationship-type panel is cut off at the right. MetaLinksDB 2.0 is read
+from
 `custom_views.metalinksdb_relations` on the `prod` Postgres deployment
-(June 2026, opt-in). dev5 does not have that view. MetaLinksDB will become a
+(June 2026 data, opt-in). dev5 does not have that view. MetaLinksDB will become a
 subset of the Parquet release (`docs/DB_ACCESS.md`); move the query there
 when it lands.
 

@@ -4,10 +4,9 @@ What the OmniPath Metabo database contains: entities, interactions,
 identifiers and structures per resource, overlap between resources, and
 structural specificity by chemical category.
 
-**Status (2026-11-24):** queries dev5 Postgres. In October 2026 the build
-failed because dev5 lacks `metabo_ramp_inchikey_conflict` and
-`metabo_entity_structural_specificity`; chemical classes and facet bitmaps
-exist only in Postgres. To be moved to the Parquet release when updated
+**Status (2026-11-24): fails** on dev5: `metabo_ramp_inchikey_conflict`
+does not exist (nor does `metabo_entity_structural_specificity`); chemical
+classes and facet bitmaps exist only in Postgres. To be moved to the Parquet release when updated
 (`docs/DB_ACCESS.md`).
 
 ## Panels
