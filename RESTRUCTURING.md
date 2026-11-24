@@ -80,6 +80,8 @@ In order on `restructure`, starting from `preprint_v0` (`25136b9`):
 | `a660713` | Drop the COSMOS PKN panels (E, F) from the cancer cell lines figure | Outdated; the analysis stays as an archive in `analyses/cancer-cell-lines-cosmos/`. |
 | `37e2286` | Differential analysis joins feature annotations by key (`V<ionIdx>`) | Annotations were attached by position to a differently ordered table: nearly all metabolite names in the results were wrong (see Known issues). |
 | `f2195c3` | Cancer cell lines analysis runs from raw data in fresh sessions | Cached intermediates are recomputed; PUBCHEM summary row fixed; dplyr 1.2 and missing `library(tibble)` fixed. |
+| `f0e96d4` | Record the analysis re-run, the labelling bug and use case 2 in this file | Last commit on `restructure`. |
+| `25456e2` | Merge `restructure` into `main` (2026-10-27) | Development continues trunk-based on `main`. |
 
 ## Rename maps
 
@@ -235,8 +237,9 @@ checkouts use, so test runs install the branch into a private library
 - [ ] Collaborators review their moved parts (open questions are in each
       README): Daniele `analyses/azelate/`, Christina/Jonathan `analyses/ramp-ambiguity/`,
       Denes the pipeline changes.
-- [ ] After the re-run: delete the local, untracked `omnipath_metabo_case1/`
-      and its entries in `.gitignore`.
+- [x] After the re-run: delete the local, untracked `omnipath_metabo_case1/`
+      and its entries in `.gitignore` (`19a625c`, see
+      [Cleanup after the metabolomics phase](#cleanup-after-the-metabolomics-phase-2026-11)).
 
 ## Known issues (not fixed in the restructure)
 
@@ -291,8 +294,8 @@ checkouts use, so test runs install the branch into a private library
 - **Unused COSMOS-PKN panel code.** Since the cancer cell lines figure dropped
   its COSMOS PKN panels, `case_study_cosmos_pkn()`, `case_study_pkn_summary()`,
   `gem_allosteric_panel()`, `subcellular_location_panel()` and
-  `register_case_study_resource_colours()` are not used by any figure. They
-  stay until it is decided whether the package is slimmed down.
+  `register_case_study_resource_colours()` are not used by any figure.
+  Removed in `19a625c`.
 - **Private spec references.** Comments and READMEs still cite `FR-0xx` and
   `T0xx` ids from the saezverse spec; see the mapping below.
 
@@ -382,3 +385,39 @@ cover:
   contrasts;
 - replacing the cached intermediates in `03_feature_processing.Rmd`;
 - the azelate workbook as a `tables/` artifact.
+
+## Cleanup after the metabolomics phase (2026-11)
+
+After the metabolomics phase of the cancer cell lines use case (branch
+`cancer-cell-lines-v2`), the repository was cleaned up on `main`.
+
+### Merge
+
+`cancer-cell-lines-v2` (`caa8b05` … `03c9674`, 22 commits) was fast-forwarded
+into `main` on 2026-11-24. `main` had no commits of its own since `25456e2`,
+so there is no merge commit. The branch adds the refactored use case:
+`analyses/cancer-cell-lines/{preprocessing,analysis,audit,docs,R,config}/`
+and the remaining Shorthouse supplementary files in
+`data/raw/cancer-cell-lines/`.
+
+### Changes by commit
+
+| Commit | Change | Why |
+|---|---|---|
+| `19a625c` | Remove `analyses/cancer-cell-lines-cosmos/` and `data/derived/cancer-cell-lines-cosmos/` | Archived since `a660713`, used by no figure. |
+| 〃 | Remove `analyses/cancer-cell-lines/01_preprocess.Rmd` … `04_differential_analysis.Rmd` and their outputs in `data/derived/cancer-cell-lines/` (`Shorthouse_2022*.RData`, `features_Shorthouse_*.RData`, `cellosaurus_entry_lookup.RData`, `ExtendedDataTable_DifferentialAnalysis_Shorthouse_LungMutations.xlsx`) | Replaced by `preprocessing/` and `analysis/`; the workbook carried the labelling bug of the first preprint. |
+| 〃 | Cancer cell lines figure: drop the KRAS/EGFR volcano panels, keep the two azelate panels (now A, B; 180 × 55 mm) | The volcanos showed the previous contrasts; the use case has changed. |
+| 〃 | Remove `R/plots-stacked_bars.R`, `R/plots-volcano.R`, `R/data-case_study.R`, their exports and `man/` pages | Used only by the removed panels. |
+| 〃 | Remove `data/vendored/mpi-baselines/README.md` | Placeholder without data; `load_vendored_mpi_snapshot()` returns an empty table for a missing baseline and the build leaves that resource out. |
+| 〃 | Delete the local, untracked `omnipath_metabo_case1/` and its `.gitignore` / `.Rbuildignore` entries | Legacy working copy (193 MB), superseded by `analyses/cancer-cell-lines/`. |
+
+| `3f062ce` | Remove `analyses/azelate/`, `data/derived/azelate/`, `R/data-azelate.R`, `R/plots-azelate.R` (exports, `man/`) and `figures/cancer-cell-lines/`; Figure 6 → `null` in `manuscript.yaml` | The azelate queries used the retired `dev.omnipathdb.org` API, and azelate was chosen as a top EGFR hit only because of the labelling bug. Without the azelate panels the figure was empty. |
+
+Everything removed can be recovered from `03c9674`, e.g.
+`git checkout 03c9674 -- analyses/cancer-cell-lines-cosmos/` or
+`git checkout 03c9674 -- analyses/azelate/ data/derived/azelate/`.
+
+### Kept on purpose
+
+- `analyses/ramp-ambiguity/`: may change soon.
+
