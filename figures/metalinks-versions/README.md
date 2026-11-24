@@ -1,29 +1,40 @@
-# metalinks-versions — MetaLinksDB resource comparison
+# metalinks-versions
 
-This directory builds the FR-010 family of panels for Figure 4 (post-
-2026-06-14 six-figure renumbering — was Figure 3).
+MetaLinksDB 2.0 compared with MetaLinksDB 1.0: coverage of interactions,
+metabolites and proteins, metabolite and protein classes, and relationship
+types.
 
-Inputs:
-- MetaLinksDB v2.0 from `custom_views.metalinksdb_relations` on the
-  `dev5` integrated build.
-- MetaLinksDB v1.0 from the SQLite shipped by `OmnipathR`.
-- Vendored normalized baseline snapshots under
-  `data/vendored/mpi-baselines/` for external MPI resources
-  (CellPhoneDB, scConnect, STITCH).
+**Status (2026-11-24):** MetaLinksDB 2.0 is read from
+`custom_views.metalinksdb_relations` on the `prod` Postgres deployment
+(June 2026, opt-in). dev5 does not have that view. MetaLinksDB will become a
+subset of the Parquet release (`docs/DB_ACCESS.md`); move the query there
+when it lands.
 
-Outputs:
-- `out/coverage.{pdf,svg}` (Panel A — FR-010a)
-- `out/metabolite_classes.{pdf,svg}` (Panel B — FR-010b)
-- `out/protein_classes.{pdf,svg}` (Panel C — FR-010c)
-- `out/metalinks_overview.{pdf,svg}` (Panel D — FR-010d, MetaLinksDB
-  2.0 grouped-bar overview)
-- `out/relationship_types.{pdf,svg}` (Panel E — FR-010e, relationship
-  types restricted to transport / receptor / interaction)
-- `out/metalinks-versions.{pdf,svg}` — five-panel composite
-- `out/metalinks-versions.pdf.provenance.json` — provenance
-  sidecar carrying the dev5 build_id (FR-032) and per-resource
-  evidence-dimension availability (FR-010g).
-- `out/supplementary/4A..4E/*.csv` — per-panel raw-interaction CSV
-  exports (FR-010h).
-- `out/supplementary/legend.csv` — central legend for every
-  supplementary CSV (FR-010i).
+## Inputs
+
+| Input | What |
+|---|---|
+| `prod` Postgres, `custom_views.metalinksdb_relations` | MetaLinksDB 2.0 |
+| OmnipathR (`metalinks_v1_snapshot()`) | MetaLinksDB 1.0 from the SQLite shipped with OmnipathR |
+| `data/vendored/mpi-baselines/` | Optional normalized snapshots of other resources (CellPhoneDB, scConnect, STITCH). None exist; the build leaves those resources out and records that in the sidecar. |
+
+## Outputs (`out/`, gitignored)
+
+| File | Panel |
+|---|---|
+| `coverage` | Interactions, metabolites and proteins per resource |
+| `metabolite_classes` | Coverage by metabolite class |
+| `protein_classes` | Coverage by protein class |
+| `metalinks_overview` | MetaLinksDB 2.0 by contributing resource |
+| `relationship_types` | Transport, receptor and interaction relations |
+| `metalinks-versions` | The composite |
+| `supplementary/` | Per-panel CSVs and `legend.csv` |
+
+Each figure as PDF and SVG, plus the captioned PDF, `caption.txt` and a
+provenance sidecar.
+
+## Run
+
+```sh
+./rebuild.sh metalinks-versions
+```

@@ -1,16 +1,16 @@
 [project]
-name = "metabo-figures-helpers"
+name = "metabo-usecases"
 version = "0.0.0"
-description = "Python helpers shelled from the metabo.figures R pipeline (SVG composition, Postgres helpers, COSMOS PKN refactor)"
+description = "Python environment of the metabo-usecases repository: pipeline helpers and Python analyses"
 requires-python = ">=3.11"
 dependencies = [
-    "pyarrow>=15.0.0",
-    "psycopg[binary]>=3.1.0",
-    "svgutils>=0.3.4",
+    "duckdb>=1.5",
+    "pandas>=2.2",
+    "pyarrow>=15.0",
     "pyyaml>=6.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "ruff>=0.4.0",
     "pytest>=8.0",
@@ -19,10 +19,14 @@ dev = [
 [tool.uv]
 package = false
 
+# Lint only; do not run `ruff format` or black: they rewrite code against the
+# saezverse Python style (spaces around `=` in keyword arguments, single
+# quotes, blank lines inside blocks). Import order follows that guide too
+# (typing imports in their own group), so isort rules are not selected.
 [tool.ruff]
-line-length = 100
+line-length = 80
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "B", "UP"]
+select = ["E", "F", "W", "B", "UP"]
 ignore = []

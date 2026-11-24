@@ -1,53 +1,31 @@
-# id-resolving — Identifier resolving across integrated resources
+# id-resolving
 
-**Mode**: pipeline (FR-014, Methods table)
+Identifiers contributed by each resource, split by identifier type: the ten
+most frequent types as columns, the rest as `Misc`, and a `Total` column and
+row.
 
-**Deployment**: `dev3` (default for `id-resolving` — see
-`R/utils-deployment.R::deployment_registry`).
+**Status (2026-11-24):** queries dev5 Postgres (`identifier_evidence`,
+`entity_evidence_identifier`, about 75 s). To be redone: in the Parquet
+release every entity is resolved before publication, so the table needs a
+new definition (`docs/DB_ACCESS.md`). When it is updated, the counting goes
+into `analyses/` and this folder only formats the result (see `AGENTS.md`).
 
-## Shape
+## Inputs
 
-| Aspect | Choice |
+dev5 Postgres through `R/tables-id_resolving.R` (`tbl_id_resolving_*()`).
+
+## Outputs (`out/`, gitignored)
+
+| File | What |
 |---|---|
-| Rows | Resources (sorted by total identifier count, descending). |
-| Columns | Top-10 identifier types by global frequency, then `Misc` long-tail collapse, then a `Total` column. |
-| Cells | Distinct identifier count for the (resource, id_type) pair. |
-| Renderer | `gt` via the LaTeX backend (`gt::as_latex()` → xelatex). |
+| `id-resolving.pdf`, `.csv` | The table (gt, LaTeX) and its data |
+| `id-resolving-with-caption.pdf`, `caption.txt` | With typeset caption; plain-text caption |
+| `id-resolving.pdf.provenance.json` | Provenance sidecar |
 
-## Caption draft (pre-FR-040 source)
+## Run
 
-> Identifiers contributed by each integrated OmniPath resource, split
-> by identifier type. Counts are distinct identifiers per (resource,
-> identifier type) pair on `dev3`. The ten most-populated identifier
-> types are shown as named columns; the long tail is collapsed into a
-> single `Misc` column. The `Total` column is the row sum across all
-> identifier types (including `Misc`). The grand-summary row at the
-> bottom of the body is the column sum across resources.
+```sh
+./rebuild.sh id-resolving
+```
 
-The canonical caption consumed by the build lives in this folder as
-`caption.tex` (FR-040, FR-040a).
-
-## Files
-
-- `build.R` — orchestration: resolves the deployment, runs
-  `tbl_id_resolving_counts()`, pivots to wide via
-  `tbl_id_resolving_wide()`, renders via `tbl_id_resolving_gt()`,
-  saves PDF + CSV via `tables_save_pdf_csv()`, composes the
-  caption-and-table PDF via `tables_compose_caption()`, writes the
-  provenance sidecar via `write_sidecar()`.
-- `caption.tex` — FR-040a caption source (main title + one panel
-  `(a)` sub-caption since the table is a single panel).
-- `out/` — generated artifacts:
-  - `id-resolving.pdf` — typeset table (xelatex via gt LaTeX).
-  - `id-resolving.csv` — wide-format CSV (FR-026).
-  - `id-resolving-with-caption.pdf` — table + caption (FR-041).
-  - `caption.txt` — plain-text caption (FR-041a).
-  - `id-resolving.pdf.provenance.json` — sidecar (FR-031).
-
-## Performance
-
-The underlying join is the same shape FR-007a Identifiers uses (~76 s
-on dev3 against the cycle-001 build). A DB-side proposal at
-`saezverse/human/plans/omnipath-improvements-2026-06-identifier-source-count.md`
-proposes a derived `identifier_source_count` table that would cut
-this to a single sequential scan; T070 will adopt it once it lands.
+Needs `xelatex` on the PATH.

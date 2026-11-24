@@ -4,7 +4,7 @@
 # renumbering): queries dev5 for the FR-007 quantitative panel data,
 # renders every FR-007a..f variant + the composite-selected subset
 # (A: resource-overview-total, B: specificity, C: resource-overlap, D: entity-interaction) via ggplot,
-# composes via tex/compose_fig02.tex, and writes the provenance
+# composes them with patchwork, and writes the provenance
 # sidecar. The architecture asset (formerly Panel A) and the FR-043
 # statistics digest moved to Figure 1 — see
 # figures/architecture/build.R.

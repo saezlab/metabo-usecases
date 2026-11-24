@@ -1,13 +1,13 @@
-"""Unified logging helper for Python pipeline scripts.
+"""
+Logging of Python steps into the unified pipeline log.
 
-Writes to the file pointed at by ``METABO_FIGURES_LOG`` using the line
-format documented in
-``specs/001-figures-pipeline/contracts/log-format.md``:
+Lines are appended to the file named by ``METABO_FIGURES_LOG`` (set by
+``rebuild.R``) in the format the R side writes (``R/utils-log.R``):
 
-    <ISO-8601-with-tz> [Python][<level>][<component>] <message>
+    <ISO-8601 time with offset> [Python][<level>][<component>] <message>
 
-Falls back to ``build/logs/orphan-<PID>.log`` with a stderr warning when the
-env var is missing.
+Without ``METABO_FIGURES_LOG``, the log goes to
+``build/logs/orphan-<PID>.log`` in the repository, with a warning on stderr.
 """
 
 from __future__ import annotations
@@ -15,57 +15,72 @@ from __future__ import annotations
 import logging
 import os
 import sys
-import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class _IsoTzFormatter(logging.Formatter):
-    """Format times as ISO-8601 with the local timezone offset."""
+    """
+    Formats times as ISO-8601 with the local time zone offset.
+    """
 
-    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+    def formatTime(
+        self,
+        record: logging.LogRecord,
+        datefmt: str | None = None,
+    ) -> str:
+
         dt = datetime.fromtimestamp(record.created).astimezone()
-        return dt.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+        return dt.strftime('%Y-%m-%dT%H:%M:%S%z')
 
 
-def _resolve_log_path() -> Path:
-    raw = os.environ.get("METABO_FIGURES_LOG")
+def _log_path() -> Path:
+    """
+    The log file of this run, or a fallback in ``build/logs/``.
+    """
+
+    raw = os.environ.get('METABO_FIGURES_LOG')
+
     if raw:
+
         return Path(raw)
 
-    fallback = Path("build") / "logs" / f"orphan-{os.getpid()}.log"
-    fallback.parent.mkdir(parents=True, exist_ok=True)
-    os.environ["METABO_FIGURES_LOG"] = str(fallback)
+    fallback = REPO_ROOT / 'build' / 'logs' / f'orphan-{os.getpid()}.log'
+    fallback.parent.mkdir(parents = True, exist_ok = True)
+    os.environ['METABO_FIGURES_LOG'] = str(fallback)
     print(
-        f"[python/utils/log.py] WARNING: METABO_FIGURES_LOG not set; "
-        f"using {fallback}",
-        file=sys.stderr,
+        '[python/utils/log.py] WARNING: METABO_FIGURES_LOG not set; '
+        f'using {fallback}',
+        file = sys.stderr,
     )
+
     return fallback
 
 
 def configure_pipeline_log(component: str) -> logging.Logger:
-    """Configure the root logger to append to the unified pipeline log.
-
-    Parameters
-    ----------
-    component
-        Logical owner string for this script's log lines. Conventionally
-        ``<step>:<id>`` or ``check:<name>``.
-
-    Returns
-    -------
-    logging.Logger
-        The configured component logger; use it for all subsequent log
-        calls (``logger.info(...)``, ``logger.warning(...)``).
     """
-    log_path = _resolve_log_path()
+    Sends the log records of this process to the pipeline log.
 
-    handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
+    Call it in the ``if __name__ == '__main__':`` block of a script, before
+    anything else logs.
+
+    Args:
+        component: Owner of the log lines, e.g. ``analysis:<name>`` or
+            ``check:<name>``.
+
+    Returns:
+        The logger of the component; use it for all further messages.
+    """
+
+    handler = logging.FileHandler(_log_path(), mode = 'a', encoding = 'utf-8')
     handler.setFormatter(
         _IsoTzFormatter(
-            fmt=f"%(asctime)s [Python][%(levelname)s][{component}] %(message)s",
-        )
+            fmt = f'%(asctime)s [Python][%(levelname)s][{component}] '
+            '%(message)s',
+        ),
     )
 
     root = logging.getLogger()

@@ -415,7 +415,10 @@ and the remaining Shorthouse supplementary files in
 
 | `e56f942` | Remove `R/compose-mixed_source.R`, `tex/compose_fig01.tex`, `tex/compose_helpers.sty`, `python/compose/` | Unused: every composite is built with `compose_patchwork()`. `python/utils/log.py` stays. |
 | `9b62bc6` | Architecture statistics digest → `figures/architecture/out/panel-a-stats/`; `digest-config.yaml` → `figures/architecture/` | Generated output was tracked, from a June dev5 build that no longer exists. |
-| `fc49fde` | Rewrite `docs/DB_ACCESS.md`, `docs/CONFIGURATION.md` and the connection template | dev3/dev4 are empty; the Parquet release (`2026.11.19`) is the default backend for new work, dev5 Postgres is interim. |
+| `426c220` | Rewrite `docs/DB_ACCESS.md`, `docs/CONFIGURATION.md` and the connection template | dev3/dev4 are empty; the Parquet release (`2026.11.19`) is the default backend for new work, dev5 Postgres is interim. |
+
+| (next commit) | READMEs of every analysis, figure, table and data folder rewritten to one short template (purpose, status, inputs, outputs, run); spec ids removed from captions; `data/vendored/cosmos/` notes merged into a README with corrected fingerprints | They described removed files, empty deployments and private spec ids. The COSMOS+ CSVs were regenerated on 2026-06-17 (`ea73b7f`) without updating their note. |
+| 〃 | `docs/CODING_STYLE.md`: R and Python practices (saezverse guidelines plus repository rules); `python/` becomes the repository's uv environment (duckdb, pandas, pyarrow, pyyaml; ruff without formatter) | Python had no stated conventions; `svgutils`/`psycopg` were only needed by removed code. |
 
 Everything removed can be recovered from `03c9674`, e.g.
 `git checkout 03c9674 -- analyses/cancer-cell-lines-cosmos/` or

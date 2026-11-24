@@ -1,88 +1,48 @@
-# cosmos-pkn — COSMOS+ Prior-Knowledge Network (FR-011)
+# cosmos-pkn
 
-**Mode**: mixed (one manual schematic at the top + three pipeline
-data panels in a row beneath).
+The COSMOS+ prior-knowledge network: which regulation types it encodes,
+how it compares with the old COSMOS PKN, its coverage of subcellular
+compartments, and the contribution of each resource.
 
-## Purpose
+**Status (2026-11-24):** reads vendored COSMOS+ exports of June 2026 and
+MetaLinksDB 2.0 from dev5 (`custom_views.metalinksdb_relations`, which dev5
+no longer has, so the MetaLinksDB panel fails). COSMOS and MetaLinksDB will
+become subsets of the Parquet release (`docs/DB_ACCESS.md`); re-vendor or
+read from there when they land.
 
-Characterises the OmniPath Metabo COSMOS+ prior-knowledge network:
-the regulation-type repertoire it encodes, its coverage across
-subcellular compartments, and the relative contribution of each
-upstream resource. See FR-011 family in
-`specs/001-figures-pipeline/spec.md`.
+## Panels
 
-## Active composite (post-2026-06-18 merge)
+| Composite | Output (`out/`) | Shows | Source |
+|---|---|---|---|
+| A | — | Regulation-type schematic | `manual/regulation-types.png` |
+| B | `panel_a` | Old COSMOS PKN vs COSMOS+ by interaction type | `cosmos_comparison_panel()` |
+| C | `panel_b` | COSMOS+ interactions per compartment | `cosmos_compartment_panel()` |
+| D | `panel_c_split` | Metabolites and proteins per resource | `cosmos_resource_contribution_panel()` |
+| — | `panel_c` | Variant of D, stacked | |
+| — | `panel_d` | MetaLinksDB 2.0 vs COSMOS+ (not in the composite) | `metalinks_cosmos_panel()` |
 
-Four panels: the regulation-types schematic (A, full width, top) plus
-the three COSMOS+ data panels (B comparison, C compartments, D
-resources) in a side-by-side row beneath. The three data panels share a
-portrait `coord_flip` shape, so a single 3-across row fits them better
-than stretching the comparison across a full-width slot. Set
-`composite_layout <- 'comparison_fullwidth'` in `build.R` to instead put
-the comparison full-width under the schematic with C | D as a bottom row.
+Plus `cosmos-pkn.{pdf,svg}` (composite, 180 × 200 mm), the captioned PDF,
+`caption.txt` and a provenance sidecar. `composition.yaml` lists the
+panels.
 
-| Panel | Source | Description |
-|------:|:-------|:------------|
-| A | Manual (`manual/regulation-types.png`) | Regulation-type schematic — visual key for the signed interaction categories the PKN carries. **Top, full width.** |
-| B | Pipeline (`cosmos_comparison_panel`) | Species-aware old COSMOS vs. COSMOS+ comparison by interaction type (3 bars/group). **Data row.** |
-| C | Pipeline (`cosmos_compartment_panel`) | COSMOS+ interactions per annotated subcellular compartment, stacked by interaction type. **Data row.** |
-| D | Pipeline (`cosmos_resource_contribution_panel`, `position = "dodge"`) | Metabolite (teal) + protein (magenta) entity counts per top-15 resources, **grouped (side-by-side) bars**. **Data row.** |
+## Inputs
 
-One pipeline panel stays rendered as a standalone artifact, not in the
-composite:
+| Input | What |
+|---|---|
+| `data/vendored/cosmos/meta_network.RData` | Old COSMOS PKN (cosmosR 1.18.1) |
+| `data/vendored/cosmos/cosmos_plus_{human,mouse}.csv` | COSMOS+ exports |
+| dev5 Postgres | MetaLinksDB 2.0, and the snapshot id for provenance |
+| `manual/regulation-types.{pdf,png}` | Schematic, see `manual/README.md` |
 
-- `panel_d.{pdf,svg}` — FR-011d MetaLinksDB 2.0 vs. COSMOS+ comparison
-  by interaction type (the comparison panel, formerly standalone
-  `panel_a`, is now composite Panel B).
+## Run
 
-## Artifact IDs
+```sh
+./rebuild.sh cosmos-pkn
+```
 
-| ID | Kind | Mode |
-|----|------|------|
-| `cosmos-pkn` | figure-composite | mixed |
-| `cosmos-pkn/panel_a` | figure-panel | pipeline (comparison; composite Panel B) |
-| `cosmos-pkn/panel_b` | figure-panel | pipeline (compartments; composite Panel C) |
-| `cosmos-pkn/panel_c` | figure-panel | pipeline (resources, stacked; standalone variant) |
-| `cosmos-pkn/panel_c_split` | figure-panel | pipeline (resources, semicolon-split + dodged; composite Panel D) |
-| `cosmos-pkn/panel_d` | figure-panel | pipeline (MetaLinksDB; standalone) |
-| `cosmos-pkn/regulation-types` | schematic | manual (composite Panel A) |
+## Known issues
 
-## Deployment
-
-`dev5` — provides `custom_views.metalinksdb_relations` (used by
-the still-rendered Panel D standalone) and is the sole anchor for
-the snapshot identifier recorded in the provenance sidecar.
-
-## Outputs
-
-| File | Description |
-|------|-------------|
-| `out/cosmos-pkn.{pdf,svg}` | **Active composite** — schematic (A) full width on top; Panel B (comparison), C (compartments), D (resources, grouped) side by side below. 180×200 mm. |
-| `out/cosmos-pkn-pipeline.{pdf,svg}` | Identical copy of the composite kept for backward compatibility with downstream consumers. |
-| `out/panel_{a,b,c,c_split,d}.{pdf,svg}` | Individual pipeline panels. |
-| `out/cosmos-pkn-with-caption.pdf` | Composite + typeset caption (xelatex + `tex/caption.sty`, FR-041). |
-| `out/caption.txt` | Plain-text caption (FR-041a). |
-| `out/cosmos-pkn.pdf.provenance.json` | Provenance sidecar — dev5 build_id, vendored COSMOS+ CSV fingerprints, old-COSMOS species assumption, schematic PNG fingerprint, Panel C position parameter. |
-
-## Dependencies
-
-- `R/data-cosmos_old.R` — `cosmos_old_pkn()` loader for the
-  vendored `meta_network.RData`.
-- `R/data-cosmos_plus.R` — `cosmos_plus_data()` for the vendored
-  `cosmos_plus_{human,mouse}.csv`.
-- `R/plots-version_comparison.R` — the four `cosmos_*` / `metalinks_cosmos_*` renderer
-  functions (legacy naming — kept until a deliberate package-wide
-  function rename).
-- `data/vendored/cosmos/{meta_network.RData,cosmos_plus_*.csv}` —
-  vendored input data.
-- `manual/regulation-types.{pdf,png}` — hand-authored schematic
-  (the PNG variant is embedded in the composite via
-  `png::readPNG` + `grid::rasterGrob` + `patchwork::wrap_elements`).
-
-## Open items
-
-- The other two schematics from the original FR-011 plan
-  (`pkn-to-binary-network`, `moon-activity-inference`) remain as
-  `.gitkeep` placeholders. They are NOT included in the active
-  composite. When authored, the build.R schematic slot can be
-  extended to a multi-element top row.
+- `cosmos_old_pkn()` installs cosmosR from GitHub at build time instead
+  of reading the vendored `meta_network.RData` (see `RESTRUCTURING.md`).
+- `cosmos_plus_data()` takes more than 40 minutes on the 29 MB CSV in
+  the tests.

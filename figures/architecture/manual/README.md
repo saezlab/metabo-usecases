@@ -1,12 +1,11 @@
-# OmniPath architecture diagram — vendored manual asset (Figure 1 Panel A)
+# Architecture diagram (manual asset)
 
-Per FR-005 / FR-005a / SC-010 (2026-06-09 follow-up), Figure 1 Panel A
-is a **vendored manual asset** authored in Inkscape outside this
-repository. The pipeline embeds the PDF verbatim at the composite's
-Panel A position; it never regenerates the artwork.
+The architecture diagram is a **vendored manual asset** authored in
+Inkscape outside this repository. The pipeline copies the PDF verbatim; it
+never regenerates the artwork.
 
 A swap, silent re-edit, or content drift since the last pin causes the
-rebuild to fail (FR-005a). To refresh the asset:
+rebuild to fail. To refresh the asset:
 
 1. Re-export the PDF + SVG from Inkscape.
 2. Copy both files over the vendored copies in this folder.
@@ -33,8 +32,7 @@ rebuild to fail (FR-005a). To refresh the asset:
 
 ## Why a manual asset and not pipeline-generated?
 
-The 2026-06-09 follow-up retired the prior FR-005..FR-006a TikZ
-authoring track. The architecture diagram is now hand-arranged in
+Until June 2026 the diagram was drawn in TikZ. It is now hand-arranged in
 Inkscape — it gives the contributor full control over visual identity
 (box typography, logo placement, downstream-triangle geometry) without
 the constraints of programmatic layout. The pipeline's role is to

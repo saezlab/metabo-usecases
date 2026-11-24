@@ -1,54 +1,42 @@
-# architecture — Architecture diagram + statistics digest
+# architecture
 
-**Mode**: manual (architecture asset vendored from Inkscape) + pipeline
-side-output (FR-043 statistics digest).
+The OmniPath Metabo architecture diagram (hand-made in Inkscape), plus a
+digest of headline database statistics whose numbers are copied into the
+diagram by hand.
 
-Post-2026-06-14 six-figure renumbering: Figure 1 is the standalone
-workflow-architecture diagram. The previous quantitative panels that used
-to live next to it are now Figure 2 (under
-`figures/database-content/`).
+**Status (2026-11-24):** queries dev5 Postgres. In October 2026 the build
+failed because dev5 lacks `metabo_entity_structural_specificity` (used by
+the digest's Structures section); see `docs/DB_ACCESS.md` for what the
+backends provide.
 
 ## Inputs
 
-- `figures/architecture/manual/omnipath-architecture-new2026.{pdf,svg}`
-  — vendored Inkscape source, SHA-256-pinned in the folder's README.md
-  (FR-005, FR-005a).
-- `digest-config.yaml` — definition variants for the
-  FR-043 digest (transporter/receptor curated resource lists, pathway/
-  reaction preferred-vs-fallback switches, slot-3 fallback chain).
+| Input | What |
+|---|---|
+| `manual/omnipath-architecture-new2026.{pdf,svg}` | The diagram; SHA-256 pinned in `manual/README.md` and checked by `build.R` |
+| `digest-config.yaml` | Definitions of the digest's counts (e.g. which resources count as transporter or receptor sources) |
+| dev5 Postgres | Counts for the digest (`R/stats-*.R`) |
 
-## Outputs
+## Outputs (`out/`, gitignored)
 
-- `out/architecture.pdf` — verbatim copy of the vendored Inkscape PDF.
-- `out/architecture.svg` — verbatim copy of the vendored Inkscape SVG.
-- `out/architecture-with-caption.pdf` — typeset caption-and-figure PDF
-  (FR-041).
-- `out/caption.txt` — plain-text caption (FR-041a).
-- `out/architecture.pdf.provenance.json` — sidecar carrying the dev5
-  build_id, the architecture asset fingerprint, and a pointer at the digest
-  sidecar.
-- `out/panel-a-stats/{stats.json, stats.csv, stats.md, stats.pdf,
-  stats.provenance.json}` — the FR-043 statistics digest (FR-043 family).
-  The author hand-transcribes these numbers into the Inkscape diagram
-  before re-vendoring.
+| File | What |
+|---|---|
+| `architecture.{pdf,svg}` | Copy of the diagram |
+| `architecture-with-caption.pdf`, `caption.txt` | Figure with typeset caption; plain-text caption |
+| `panel-a-stats/stats.{json,csv,md,pdf}` | The statistics digest (schema `inst/extdata/contracts/panel-a-stats.schema.json`) |
+| `*.provenance.json` | Provenance sidecars |
 
-## How to rebuild
+## Run
 
 ```sh
 ./rebuild.sh architecture
 ```
 
-This verifies the architecture asset fingerprint, re-runs the digest
-against dev5, recompiles the caption, and writes the sidecar.
+## Updating the diagram
 
-## Updating the architecture diagram
-
-When the Inkscape source is re-edited and a new PDF/SVG exported:
-
-1. Copy the new files to
-   `figures/architecture/manual/omnipath-architecture-new2026.{pdf,svg}`.
-2. Recompute the SHA-256 fingerprint and update the value in
-   `figures/architecture/manual/README.md` (also bump the
-   `last_edit_date` field).
-3. Re-run `./rebuild.sh architecture`. The rebuild fails fast if the
-   PDF on disk does not match the README fingerprint.
+1. Edit the Inkscape source; transfer the numbers from
+   `out/panel-a-stats/stats.md`.
+2. Export to `manual/omnipath-architecture-new2026.{pdf,svg}`.
+3. Update the SHA-256 in `manual/README.md`; the build fails if it does
+   not match.
+4. `./rebuild.sh architecture`.

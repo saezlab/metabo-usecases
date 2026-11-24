@@ -2,9 +2,9 @@
 
 Changes of the refactored pre-processing (`preprocessing/`, output
 `data/derived/cancer-cell-lines/shorthouse_v1/`) relative to the previous
-pipeline (`01_preprocess.Rmd` … `03_feature_processing.Rmd`, which stays
-in place for Figure 6 until the differential analysis is replaced). Bug ids
-refer to the review of 2026-10-28.
+pipeline (`01_preprocess.Rmd` … `03_feature_processing.Rmd`, removed in
+the 2026-11 cleanup; available at commit `03c9674`). Bug ids refer to the
+review of 2026-10-28.
 
 Verification: `preprocessing/verify_against_previous.R` compares both
 pipelines; every difference below is attributed there, none is unexplained.

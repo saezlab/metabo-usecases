@@ -21,19 +21,28 @@ metabolomics data of Cherkaoui et al. 2022.
 | `msb202211006-sup-0009-datasetev8.xlsx` | Dataset EV8: log10 p-values, IC50 values vs SMPDB pathway activity |
 | `msb202211006-sup-0010-datasetev9.xlsx` | Dataset EV9: Pearson correlation of pathway sensitivities between drug pairs |
 
-EV1–EV3 are used by `analyses/cancer-cell-lines/`. EV4–EV9 and the appendix
-were added on 2026-10-28 as reference material; unused files may be removed
-later.
+EV1–EV3 are the input of the pre-processing. EV4 (genes tested by the
+authors) is used by the analysis and audit 04, EV5 by audit 04. EV6–EV9 and
+the appendix were added on 2026-10-28 as reference material and are not used
+by any script.
+
+## Shorthouse et al. GitHub data (`shorthouse_github/`, local only)
+
+`Cellline_mappings_shorthouse.csv`, `Metabolite_levels_shorthouse.csv`,
+`Mutations_in_celllines.csv` from `Data/` of
+<https://github.com/shorthouse-mrc/CellLine_Metabolomics> at commit
+`cce3b15776c28f6a45efe74b3566e9e4efd56d3a` (downloaded 2026-10-28; see
+`SOURCE.txt` there). The repository has no licence, so the files are not
+committed. Used by audits 02, 03 and 04.
 
 ## Ortmayr et al. 2019 (`ortmayr_2019/`)
 
 Ortmayr K., Dubuis S., Zampieri M. (2019) Metabolic profiling of cancer cells
 reveals genome-wide crosstalk between transcriptional regulators and
 metabolism. Nat Commun 10:1841. <https://doi.org/10.1038/s41467-019-09695-9>
-Supplementary files (downloaded 2025-08-05). Not used by any analysis yet and
-not in git (41 MB); kept locally until it is used. To set it up, download the
-files below from the article's supplementary information into
-`data/raw/cancer-cell-lines/ortmayr_2019/`.
+Supplementary files (downloaded 2025-08-05). Used by audits 03 and 06. Not
+in git (41 MB): download the files below from the article's supplementary
+information into `data/raw/cancer-cell-lines/ortmayr_2019/`.
 
 | File | Content |
 |---|---|
@@ -60,7 +69,7 @@ MD5 sums given there:
 
 ## Cellosaurus (local dependency)
 
-- `analyses/cancer-cell-lines/preprocessing/02_cell_lines_mutations.Rmd` (and the previous `02_add_metadata.Rmd`) expect a local file at `data/raw/cancer-cell-lines/cellosaurus.txt` (release 53.0 is used, see `config.yml`).
+- `analyses/cancer-cell-lines/preprocessing/02_cell_lines_mutations.Rmd` expects a local file at `data/raw/cancer-cell-lines/cellosaurus.txt` (release 53.0 is used, see `config.yml`).
 - Download source: `https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt`
 - After download, remove the first 57 lines before using the file in the workflow.
 - The prepared file is intentionally kept out of Git because it is a large static local dependency.
@@ -70,5 +79,3 @@ Example preparation command:
 ```bash
 curl -L https://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt | tail -n +58 > data/raw/cancer-cell-lines/cellosaurus.txt
 ```
-
-Running `analyses/cancer-cell-lines/02_add_metadata.Rmd` also creates `data/derived/cancer-cell-lines/cellosaurus_entry_lookup.RData` as a cache of the parsed Cellosaurus entries (tracked in git).
