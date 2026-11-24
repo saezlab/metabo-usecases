@@ -2,9 +2,8 @@
 #'
 #' Applies capital-letter panel labels (FR-017 / FR-024), explicit
 #' layout widths/heights for deterministic rendering (research.md R-10),
-#' and the shared style typography. Use this for R-only composites
-#' (every panel produced by ggplot in the same R session); for mixed
-#' R+TikZ+manual composites use \code{\link{compose_mixed_source}}.
+#' and the shared style typography. Every composite in the pipeline is
+#' built this way.
 #'
 #' @param panels A named list of ggplot objects; names become the panel
 #'     labels' alphabetical ordering source (first panel = A, etc.).

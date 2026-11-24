@@ -51,8 +51,7 @@ def configure_pipeline_log(component: str) -> logging.Logger:
     ----------
     component
         Logical owner string for this script's log lines. Conventionally
-        one of ``svg_assemble:<id>``, ``cosmos_pkn``, ``check:<name>``,
-        etc.
+        ``<step>:<id>`` or ``check:<name>``.
 
     Returns
     -------
