@@ -28,19 +28,12 @@ A list with elements \code{name}, \code{url},
 }
 \description{
 Reads \code{~/.config/metabo-figures/connection.yaml} (or a
-project-local \code{connection.yaml}, or env-only) and resolves a
-deployment name into a connection record. Per the 2026-06-14 dev5
-integrated-build promotion every panel routes to a single
-deployment: \code{dev5} (integrated build — gene-centric entities
-\itemize{
-\item stored labels including Goslin lipid names + chemical-fallback
-resolution + RDKit-derived structural specificity + RaMP-conflict
-tables + cycle-001 derived family). \code{dev3} and \code{dev4}
-are retained in the enum for historical-sidecar compatibility but
-the registry does not route any current panel to them. \code{prod}
-/ \code{dev2} are excluded from the active rotation and require
-\code{allow_optin = TRUE} to load.
-}
+project-local \code{connection.yaml}) and resolves a
+deployment name into a connection record. Every panel routes to
+\code{default_deployment} (\code{dev5}). \code{dev3} and
+\code{dev4} are empty and kept only so that old provenance
+sidecars resolve. \code{prod} / \code{dev2} require
+\code{allow_optin = TRUE} to load. See docs/CONFIGURATION.md.
 }
 \details{
 Per-deployment port overrides are read from the env vars

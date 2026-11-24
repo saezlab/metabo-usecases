@@ -8,10 +8,8 @@ check_deployment(deployments = "dev5")
 }
 \arguments{
 \item{deployments}{Character vector of deployment names to probe.
-Defaults to the single-deployment regime \code{c("dev5")};
-pass \code{c("dev5", "dev3", "dev4")} (with
-\code{allow_optin = TRUE} for the historical instances if
-they are no longer running) to probe the full set.}
+Defaults to \code{"dev5"}. Opt-in deployments (\code{prod},
+\code{dev2}) are refused.}
 }
 \value{
 Invisibly a list keyed by deployment name with the
@@ -19,9 +17,8 @@ resolved connection record.
 }
 \description{
 Resolves the deployment connection record the figure pipeline
-will touch — post-2026-06-14 dev5 integrated-build promotion this
-is just \code{dev5} (the only deployment in the active rotation) —
-and logs a one-line summary per deployment. The full
+will touch (\code{dev5}) and logs a one-line summary per
+deployment. The full
 \code{build_manifest} probe lives in
 \code{\link{build_manifest_for}}; this helper does not open a
 Postgres handle.

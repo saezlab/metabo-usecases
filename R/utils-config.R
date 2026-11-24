@@ -3,13 +3,11 @@
 #' Static table of the five deployments documented in
 #' \code{saezverse/human/dev-deployments.md}. Used by
 #' \code{\link{load_connection}} to resolve a deployment name into
-#' connection parameters. Per the 2026-06-14 dev5 integrated-build
-#' promotion the figure pipeline routes every panel to \code{dev5}
-#' (integrated build). \code{dev3} and \code{dev4} are retained in
-#' the enum for historical-sidecar compatibility (role
-#' \code{"figures-legacy"}) but the registry does not route any
-#' current panel to them. \code{prod} and \code{dev2} are excluded
-#' from the active rotation and require an explicit opt-in.
+#' connection parameters. The figure pipeline routes every panel to
+#' \code{dev5}. \code{dev3} and \code{dev4} (empty since autumn 2026)
+#' stay in the table so that old provenance sidecars still resolve
+#' (role \code{"figures-legacy"}). \code{prod} and \code{dev2} need an
+#' explicit opt-in. See docs/DB_ACCESS.md for the current backends.
 #'
 #' @return A tibble with columns \code{name}, \code{url}, \code{db_port},
 #'     \code{db_name}, \code{role}. \code{role} classifies the
@@ -34,17 +32,12 @@ known_deployments <- function() {
 #' Read and validate the pipeline's deployment connection config
 #'
 #' Reads \code{~/.config/metabo-figures/connection.yaml} (or a
-#' project-local \code{connection.yaml}, or env-only) and resolves a
-#' deployment name into a connection record. Per the 2026-06-14 dev5
-#' integrated-build promotion every panel routes to a single
-#' deployment: \code{dev5} (integrated build — gene-centric entities
-#' + stored labels including Goslin lipid names + chemical-fallback
-#' resolution + RDKit-derived structural specificity + RaMP-conflict
-#' tables + cycle-001 derived family). \code{dev3} and \code{dev4}
-#' are retained in the enum for historical-sidecar compatibility but
-#' the registry does not route any current panel to them. \code{prod}
-#' / \code{dev2} are excluded from the active rotation and require
-#' \code{allow_optin = TRUE} to load.
+#' project-local \code{connection.yaml}) and resolves a
+#' deployment name into a connection record. Every panel routes to
+#' \code{default_deployment} (\code{dev5}). \code{dev3} and
+#' \code{dev4} are empty and kept only so that old provenance
+#' sidecars resolve. \code{prod} / \code{dev2} require
+#' \code{allow_optin = TRUE} to load. See docs/CONFIGURATION.md.
 #'
 #' Per-deployment port overrides are read from the env vars
 #' \code{PGPORT_DEV5}, \code{PGPORT_DEV3}, \code{PGPORT_DEV4},
@@ -111,10 +104,9 @@ load_connection <- function(
     if (identical(record$role, "opt-in") && !isTRUE(allow_optin)) {
         rlang::abort(sprintf(
             paste0(
-                "Deployment '%s' is excluded from the active figure ",
-                "rotation (post-2026-06-14 dev5 integrated-build ",
-                "promotion: dev5 is the only deployment in the active ",
-                "rotation). Pass allow_optin = TRUE to override."
+                "Deployment '%s' is opt-in (the pipeline uses dev5; ",
+                "see docs/CONFIGURATION.md). ",
+                "Pass allow_optin = TRUE to override."
             ),
             requested
         ))
@@ -229,18 +221,15 @@ resolve_connection_config <- function(config_path = NULL) {
 #' Quick sanity-check of the figure-pipeline deployments
 #'
 #' Resolves the deployment connection record the figure pipeline
-#' will touch — post-2026-06-14 dev5 integrated-build promotion this
-#' is just \code{dev5} (the only deployment in the active rotation) —
-#' and logs a one-line summary per deployment. The full
+#' will touch (\code{dev5}) and logs a one-line summary per
+#' deployment. The full
 #' \code{build_manifest} probe lives in
 #' \code{\link{build_manifest_for}}; this helper does not open a
 #' Postgres handle.
 #'
 #' @param deployments Character vector of deployment names to probe.
-#'     Defaults to the single-deployment regime \code{c("dev5")};
-#'     pass \code{c("dev5", "dev3", "dev4")} (with
-#'     \code{allow_optin = TRUE} for the historical instances if
-#'     they are no longer running) to probe the full set.
+#'     Defaults to \code{"dev5"}. Opt-in deployments (\code{prod},
+#'     \code{dev2}) are refused.
 #'
 #' @return Invisibly a list keyed by deployment name with the
 #'     resolved connection record.

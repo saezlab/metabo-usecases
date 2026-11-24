@@ -1,108 +1,210 @@
-# DB Access & Quick-Iteration Handover (figures pipeline)
+# Database access
 
-Operational companion to **`CONFIGURATION.md`** (which covers the connection
-schema + per-panel routing). This file is the *ground truth* for actually
-opening a connection and iterating fast. If something here disagrees with code,
-trust a live check (`docker exec … psql`).
+How this repository reaches OmniPath data, and which backend to use for
+what. Checked on beauty on 2026-11-24; backends change often, so verify
+with the commands below before relying on a detail.
 
-## TL;DR
+`docs/CONFIGURATION.md` covers the connection configuration of the
+`metabo.figures` pipeline (Postgres).
 
-- The OmniPath Postgres instances run **on `beauty`**, each published on
-  **`127.0.0.1:<port>` only** (not on a public hostname).
-- Credentials are the same trivial dev creds everywhere: **user `omnipath`,
-  password `omnipath`, database `omnipath`**. There is no secret to hunt for.
-- Because the ports are loopback-only, you must either **run on beauty**
-  (`PGHOST=localhost`) or **open an SSH tunnel** from your machine. Connecting to
-  `dev3.omnipathdb.org:5403` directly will **not** work.
+## Backends
 
-## Where the data is
+| Backend | Where | Release | Use for |
+|---|---|---|---|
+| **Parquet release** (default for new work) | beauty, `~/instances/metsig1/data-2026.11.19/` | `2026.11.19` | Analyses, and every figure or table that is updated |
+| Public dev API | `https://omnipath-metabo-dev.schaul.click/api` | latest `2026.10.25.1` | Quick lookups from anywhere; client API mode; installing a local copy |
+| **dev5 Postgres** (interim) | beauty, `127.0.0.1:5405` | dev5 load of October 2026 | The current figure/table builds and what Parquet does not have yet (see below) |
+| New Postgres instance | — | — | Coming: loaded from a Parquet release by `packages/postgres` of the monorepo. Not available yet. |
 
-| Deployment | Host port | Container | Build |
-|-----------:|:----------|:----------|:------|
-| **dev3** (default) | `5403` | `omnipath-present-dev3-postgres-1` | **gene-centric** full build, ~5.47M entities, stored `entity.label`, has `Gene:MI:0250` entity type |
-| **dev4** | `5404` | `omnipath-present-dev4-postgres-1` | **protein-centric** full build, ~5.57M entities, RDKit structural-specificity + RaMP-conflict tables (no gene type) |
-| dev5 | 5405 | (reserved) | the new **integrated** build (gene-centric + full chemical resolution + global protein anchoring + metabo) is being finalized in the *build* PG and will be promoted to a web slot later — **use dev3/dev4 for now** |
+The ground truth for releases, the API and the clients is the `monorepo`
+branch of [saezlab/pypath](https://github.com/saezlab/pypath/tree/monorepo):
+`packages/query` (R `omnipath.client`, Python `omnipath_client`, shared
+SQL), `packages/api`, `packages/subsets` and `docs/versioning.md`.
 
-All three DBs are `omnipath`/`omnipath`/`omnipath`. Treat them as **read targets**
-— don't run heavy DDL/`VACUUM FULL`/drops; they are shared.
+Not usable: dev3 and dev4 (empty since autumn 2026), the old
+`dev.omnipathdb.org` FastAPI, and public hostnames such as
+`dev3.omnipathdb.org:5403`.
 
-## Connecting — pick one
+## Parquet release
 
-### A. On beauty, via the container (no creds needed — simplest sanity check)
-```sh
-ssh -p2323 omnipath@omnipathdb.org            # off Uni network
-# on Uni network instead: ssh omnipath@beauty
-docker exec -it omnipath-present-dev3-postgres-1 psql -U omnipath -d omnipath
+A release pins one version of each resource. It is published as Parquet
+files plus one DuckDB database that holds the whole release (the same
+database the API serves).
+
+```
+~/instances/metsig1/data-2026.11.19/
+  releases/2026.11.19.json              the pins: resource -> version
+  resources/<resource>/<version>/       Parquet per resource (entity, relation, ...)
+  serving/2026.11.19.duckdb             the release as one DuckDB database (18 GB)
+  subsets/2026.11.19/metsigdb/          MetSigDB memberships
+  subsets/2026.11.19/exclusion_metabolites/
 ```
 
-### B. On beauty, via the host port (for the R/Python pipeline)
-`psql` is **not** on beauty's PATH — get it from nix when you need the CLI:
+No API serves `2026.11.19` yet; read the files on beauty. metsig1 is an
+agent sandbox of the build team: **read only**, never write into it (see
+[Instance locks](#instance-locks)). When the release moves, update the path
+here and in the analyses' configuration.
+
+### Tables of the serving database
+
+| Table | One row per |
+|---|---|
+| `entity` | merged entity: `entity_key`, `label`, `entity_type`, `taxon`, `resources` (list), counts, `summary` (struct) |
+| `entity_identifier` | identifier of an entity (`ns`, `id`, e.g. `inchikey`, `hmdb`, `chebi`, `uniprot`) |
+| `entity_annotation` | annotation of an entity (`term`, `value`, quantities) |
+| `entity_evidence` | source record stating an entity, with `resource` |
+| `relation` | merged relation: `subject_n`, `object_n`, `predicate`, `category`, `interaction_class`, `sign`, `resources` |
+| `relation_annotation`, `relation_evidence` | annotations and source records of relations |
+| `relation_endpoint` | a relation under each of its ends (fast lookup by entity) |
+| `ontology_edge` | `child_key` → `parent_key` |
+| `metsigdb_membership` | metabolite in a set (`resource`, `set_label`, `hmdb`, `chebi`, `inchikey`, ...) |
+| `exclusion_metabolite` | metabolite on the exclusion list, with its class |
+| `resources`, `database_info`, `subset_info` | versions and build information |
+
+Entities and relations are merged across resources; filter with
+`list_contains(resources, 'hmdb')`. There are no per-resource tables.
+`packages/query/python/README.md` of the monorepo describes the tables in
+full.
+
+### Reading it
+
+On beauty, open the database read-only. Several sessions can read at once.
+
+```r
+con <- DBI::dbConnect(
+    duckdb::duckdb(),
+    "/home/omnipath/instances/metsig1/data-2026.11.19/serving/2026.11.19.duckdb",
+    read_only = TRUE
+)
+DBI::dbGetQuery(con, "SELECT release FROM database_info")
+DBI::dbGetQuery(
+    con,
+    "SELECT set_label, hmdb FROM metsigdb_membership WHERE resource = ? LIMIT 5",
+    list("Reactome")
+)
+DBI::dbDisconnect(con)
+```
+
+```python
+import duckdb
+
+con = duckdb.connect(
+    "/home/omnipath/instances/metsig1/data-2026.11.19/serving/2026.11.19.duckdb",
+    read_only=True,
+)
+con.sql("SELECT release FROM database_info").fetchall()
+```
+
+To read rows by number fast, put the numbers into the SQL as a literal list
+in a query of their own (`WHERE entity_n IN (1, 2, 3)`); DuckDB uses its
+index only then (see `packages/query/README.md`).
+
+### Through the clients
+
+The R package `omnipath.client` and the Python package `omnipath_client`
+(monorepo, `packages/query/`) answer the explorer's questions (search,
+relations, entity details, MetSigDB) with the same SQL as the API:
+
+- **API mode** asks the public dev API (release `2026.10.25.1` at the time
+  of writing); nothing is downloaded.
+- **Local mode** downloads a release into a data directory and writes
+  `omnipath.duckdb` there (all resources: about 18 GB and 20 minutes; or a
+  selection by topic or name).
+
+```r
+# install from a checkout of the monorepo branch
+install.packages("packages/query/r", repos = NULL, type = "source")
+
+library(omnipath.client)
+api <- op_connect()                                    # API mode
+op_metsigdb(api, resource = "Reactome", entity = "HMDB0000538")
+op_init(c("hmdb", "chebi"))                            # local mode
+con <- op_connect(op_data_directory())
+op_sql(con, "SELECT count(*) FROM entity")
+```
+
+Neither client is installed on beauty yet. They are not on CRAN or PyPI:
+install them from the monorepo checkout, in a separate environment for
+Python (`pip install omnipath-client` installs an unrelated older package).
+
+### What Parquet does not have yet
+
+Compared with the tables the pipeline queries on dev5:
+
+| Missing | Needed by | Status |
+|---|---|---|
+| Chemical classes (metabolite, drug, food, lipid), metabolic domains | architecture statistics, database-content, record-coverage | Postgres derivation (`classify/chemical_class.yaml`); the `summary.entityFacetHints` fields in Parquet are empty |
+| Facet bitmaps | database-content, record-coverage, specificity | Postgres speed-up; replace with SQL on `relation` / `entity_annotation` |
+| RDKit structural specificity, RaMP InChIKey conflicts | architecture statistics, database-content, ramp-comparison | Missing on dev5 too |
+| MetaLinksDB | metalinks-versions, cosmos-pkn | Will become a Parquet subset; port verified against Postgres (`packages/subsets/docs/reports/metalinksdb-from-parquet-20261026.md`). Missing on dev5 (`custom_views.metalinksdb_relations`). |
+| COSMOS PKN | cosmos-pkn | Will become a Parquet subset; prototype only |
+| Resolved vs unresolved records | id-resolving | Resolution happens before publication, so every entity is resolved; needs a new definition |
+
+## dev5 Postgres (interim)
+
+The figure and table builds of `metabo.figures` connect to dev5
+(`default_deployment: dev5`). Credentials are the shared dev credentials
+`omnipath` / `omnipath`, database `omnipath`.
+
+On beauty, set the connection environment and run a build:
+
 ```sh
+. ~/.config/metabo-figures/env.sh
+./rebuild.sh metalinks-versions
+```
+
+`env.sh` sets `PGHOST=localhost`, the user, password and the per-deployment
+ports (`PGPORT_DEV5=5405`, ...). `~/.config/metabo-figures/connection.yaml`
+selects dev5 and reads the credentials from `pg-credentials.yaml` next to
+it. (The wrapper `with-metabo-figures-env` named in older notes no longer
+exists.)
+
+`psql` is not on beauty's PATH. For a quick query:
+
+```sh
+docker exec -it omnipath-present-dev5-postgres-1 psql -U omnipath -d omnipath
+# or
 nix-shell -p postgresql --run \
-  "PGPASSWORD=omnipath psql -h 127.0.0.1 -p 5403 -U omnipath -d omnipath"
-```
-Libraries connect straight to the loopback port:
-```
-postgresql://omnipath:omnipath@127.0.0.1:5403/omnipath      # dev3
-postgresql://omnipath:omnipath@127.0.0.1:5404/omnipath      # dev4
+  "PGPASSWORD=omnipath psql -h 127.0.0.1 -p 5405 -U omnipath -d omnipath"
 ```
 
-### C. From your laptop, via an SSH tunnel (ports are loopback-only)
-```sh
-ssh -p2323 -N \
-  -L 5403:127.0.0.1:5403 \
-  -L 5404:127.0.0.1:5404 \
-  omnipath@omnipathdb.org
-# leave that running; in another shell, connect to the tunnelled local ports:
-#   postgresql://omnipath:omnipath@127.0.0.1:5403/omnipath
-```
-
-## Wiring it into the pipeline (`credentials_source: env`)
-```sh
-export PGHOST=localhost          # on beauty, or the tunnelled localhost
-export PGDATABASE=omnipath
-export PGUSER=omnipath
-export PGPASSWORD=omnipath
-export PGPORT_DEV3=5403           # gene-centric (default)
-export PGPORT_DEV4=5404           # protein-centric + RDKit
-```
-See `CONFIGURATION.md` for `connection.yaml`, per-panel `overrides:`, and the
-`pgpass`/`file` credential sources.
-
-## Quick-iteration flow (edit local → rsync → run on beauty → commit)
-
-The pipeline must run **where it can reach `127.0.0.1:540x`** — i.e. on beauty
-(no tunnel, lowest latency). Iterate without committing each attempt:
+From a laptop, tunnel the loopback port:
 
 ```sh
-# 1. edit the figures code in your local clone
-# 2. push it to your beauty checkout (fast, no commit):
-rsync -az -e "ssh -p2323" --delete \
-  --exclude .git --exclude '*.Rproj.user' --exclude 'build/' --exclude '.venv' \
-  ~/omnipath-metabo/usecases/   omnipath@omnipathdb.org:~/figures-work/usecases/
-# 3. run it on beauty (DB is local there):
-ssh -p2323 omnipath@omnipathdb.org \
-  'cd ~/figures-work/usecases && PGHOST=localhost PGUSER=omnipath PGPASSWORD=omnipath \
-   PGDATABASE=omnipath PGPORT_DEV3=5403 PGPORT_DEV4=5404 ./rebuild.sh <target>'
-# 4. once it works, commit + push from your LOCAL clone (commits = checkpoints)
+ssh -N -L 5405:127.0.0.1:5405 beauty
+# then postgresql://omnipath:omnipath@127.0.0.1:5405/omnipath
 ```
 
-Notes:
-- Create the beauty checkout once (`~/figures-work/` above is just a suggestion —
-  pick a path and keep using it). `rsync` the working tree; don't `git pull` on
-  beauty during iteration.
-- Keep heavy downloads / DB writes off your laptop — run them on beauty.
-- For a single throwaway query, recipe **A** (`docker exec … psql`) is fastest.
+dev5 is shared and held read-only for collaborators: no DDL, `VACUUM FULL`
+or drops. Do not run two builds against it in parallel (Postgres shared
+memory ran out when this was tried).
 
-## Gotchas
+## beauty
 
-- **Loopback-only ports.** `dev3.omnipathdb.org:5403` from outside fails — tunnel
-  or run on beauty. (The hostnames in `R/utils-config.R` assume `PGHOST=localhost`
-  on beauty.)
-- **No `psql` on beauty's PATH** — `docker exec` into the container, or
-  `nix-shell -p postgresql`.
-- **dev3 vs dev4 are different builds**, not replicas: dev3 is gene-centric
-  (genes + labels), dev4 is protein-centric (RDKit specificity + RaMP-conflict).
-  Pick per the deployment matrix in `CONFIGURATION.md`.
-- **SSH:** off the Uni network use `ssh -p2323 omnipath@omnipathdb.org`; on it,
-  `ssh omnipath@beauty`.
+```sh
+ssh -p 2323 omnipath@omnipathdb.org    # off the university network
+ssh omnipath@beauty                    # on it
+```
+
+Everyone logs in as the shared `omnipath` user. Keep heavy downloads and
+queries on beauty; the Parquet release and the Postgres ports are only
+there.
+
+Iterating on the figures: edit locally, copy the working tree to a checkout
+on beauty with `rsync` (exclude `.git`, `build/`, `.venv`), run there,
+commit from the local clone.
+
+## Instance locks
+
+The instances under `~/instances/` on beauty use a lock file per instance
+(`~/instances/AGENTS.md`). Check before using one:
+
+```sh
+~/instances/lockctl status metsig1
+~/instances/lockctl status dev5
+```
+
+Reading data does not need a claim. Anything that changes an instance
+(builds, restarts, writes to its database or data directory) needs a claim
+by the person doing it, and an agent must ask its user first. Never use
+`--force` on someone else's claim.

@@ -1,117 +1,102 @@
-# Configuration
+# Pipeline connection configuration
 
-The pipeline reads its deployment + credentials configuration from
-**either** `~/.config/metabo-figures/connection.yaml` **or** a
-project-local `.env` (gitignored). Environment variables passed at
-invocation time win over both.
+How the `metabo.figures` pipeline (`rebuild.R`, `figures/*/build.R`,
+`tables/*/build.R`) finds its Postgres database. Which backend to use for
+what, and how to reach it, is in `docs/DB_ACCESS.md`.
 
-## Deployment matrix (2026-06-09 cycle-001 + 002 handover)
+Figures and tables that move to the Parquet release read it directly (see
+`docs/DB_ACCESS.md`); this configuration then no longer applies to them.
 
-The figure pipeline targets two OmniPath Postgres instances on `beauty`:
+## Deployments
 
-| Deployment | Port  | Role                | Used for |
-|-----------:|:------|:--------------------|:---------|
-| `dev3`     | 5403  | figures-default     | Default — gene-centric build with stored entity labels. |
-| `dev4`     | 5404  | figures-structures  | FR-007a Structures facet, FR-007e, FR-007f, FR-015 — RDKit structural specificity + RaMP-conflict tables. |
-| `dev5`     | 5405  | reserved            | Reserved for the ongoing integrated build — refused by `load_connection()`. |
-| `prod`     | 5485  | opt-in              | Excluded from the active rotation; loadable only with `allow_optin = TRUE`. |
-| `dev2`     | 5402  | opt-in              | Excluded from the active rotation; loadable only with `allow_optin = TRUE`. |
+Known deployments (`R/utils-config.R::known_deployments()`):
 
-The per-panel routing is encoded in `R/utils-deployment.R::panel_deployment()`;
-user-side `overrides:` block (see schema below) can shadow the built-in
-registry when the integrated build promotes and a single deployment
-collapses the split.
+| Deployment | Port | Role | State (2026-11-24) |
+|---|---|---|---|
+| `dev5` | 5405 | `figures-default` | Full load (October 2026); the only deployment the pipeline uses |
+| `dev3` | 5403 | `figures-legacy` | Empty |
+| `dev4` | 5404 | `figures-legacy` | Empty |
+| `prod` | 5485 | `opt-in` | Production database of June 2026; loads only with `allow_optin = TRUE` |
+| `dev2` | 5402 | `opt-in` | No longer on beauty |
 
-## connection.yaml schema
+All ports listen on `127.0.0.1` on beauty only. Every panel routes to
+`default_deployment`; the built-in per-panel registry
+(`R/utils-deployment.R::deployment_registry()`) is empty. When the new
+Postgres instance comes, add it to `known_deployments()` and point
+`default_deployment` at it.
 
-See also: `inst/extdata/connection.template.yaml`.
+## connection.yaml
+
+The pipeline reads the first of:
+
+1. `connection.yaml` in the repository root (gitignored), for a local
+   override;
+2. `~/.config/metabo-figures/connection.yaml`.
+
+Without either, `load_connection()` stops with an error. Start from
+`inst/extdata/connection.template.yaml`:
 
 ```yaml
-default_deployment: dev3       # dev3 (default) | dev4 | dev5 (refused)
-credentials_source: env        # env | file | pgpass
-credentials_path: null         # required when credentials_source == "file"
-overrides:                     # optional — user-side per-(panel, facet) routing
-  database-content:
-    structures: dev4
-    panel_e: dev4
-    ramp_conflict: dev4
-  ramp-comparison:
-    default: dev4
+default_deployment: dev5
+credentials_source: env      # env | file | pgpass
+credentials_path: null       # required when credentials_source is file
+overrides: {}
 ```
 
-### `default_deployment`
+- `default_deployment`: the deployment every panel uses. The legacy field
+  `deployment:` is read as `default_deployment`.
+- `overrides`: optional routing per panel, either `{ default: <name> }` or
+  `{ <facet>: <name>, ... }`, e.g.
 
-The pinned OmniPath Postgres instance the pipeline targets when no
-per-panel override applies. `dev3` is the cycle-002 gene-centric build
-with stored entity labels — appropriate for ongoing development.
-`dev5` is currently reserved for the integrated build and is refused by
-`load_connection()`; `prod` / `dev2` are excluded from the active
-rotation and require `allow_optin = TRUE` to load.
+  ```yaml
+  overrides:
+    ramp-comparison:
+      default: dev5
+  ```
 
-For backwards compatibility the legacy single-deployment field
-`deployment:` is still read and promoted to `default_deployment`.
+  Overrides win over the built-in registry.
+- `credentials_source`:
+  - `env`: user, password and database from `PGUSER`, `PGPASSWORD`,
+    `PGDATABASE`;
+  - `file`: a YAML file at `credentials_path` with `user`, `password`,
+    `host`, `port`, `database`;
+  - `pgpass`: `~/.pgpass` (libpq rules).
 
-### `overrides`
-
-Optional mapping from panel id → either `{ default: <name> }`
-(panel-wide override) or `{ <facet>: <name>, … }` (per-facet
-override). User overrides win over the built-in registry in
-`R/utils-deployment.R::deployment_registry()`. Useful when:
-
-- The integrated build promotes on `dev5` and all panels can collapse
-  back to a single deployment (set `default_deployment: dev5`, remove
-  the `overrides:` block).
-- A specific panel needs to run against a one-off deployment for
-  debugging (add a panel-level override).
-
-### `credentials_source`
-
-- `env` (default) — credentials read from `PGUSER`, `PGPASSWORD`,
-  `PGHOST`, `PGPORT`, `PGDATABASE`. On beauty, `PGHOST=localhost` (no
-  SSH tunneling needed).
-- `file` — credentials read from the YAML file at `credentials_path`
-  containing `user`, `password`, `host`, `port`, `database`.
-- `pgpass` — credentials read from `~/.pgpass` per standard libpq
-  semantics; only `host`, `port`, `database` come from `connection.yaml`.
-
-## Required env (when `credentials_source: env`)
+## Environment
 
 ```sh
-export PGHOST=localhost          # on beauty; otherwise the deployment hostname
-export PGPORT_DEV3=5403          # gene-centric build (default)
-export PGPORT_DEV4=5404          # protein-centric build with RDKit
+export PGHOST=localhost          # on beauty, or the local end of a tunnel
 export PGDATABASE=omnipath
-export PGUSER=...
-export PGPASSWORD=...
+export PGUSER=omnipath
+export PGPASSWORD=omnipath
+export PGPORT_DEV5=5405          # per-deployment port overrides
 ```
 
-`PGPORT_DEV3` / `PGPORT_DEV4` / `PGPORT_DEV5` / `PGPORT_PROD` / `PGPORT_DEV2`
-override the per-deployment port from the table above — useful when
-the pipeline runs against tunnelled deployments. Plain `PGPORT` is
-honoured only when no per-deployment override is set.
+`PGPORT_<DEPLOYMENT>` (e.g. `PGPORT_DEV5`) overrides that deployment's
+port, which helps with tunnels on other local ports. Plain `PGPORT` is used
+only when no per-deployment variable is set.
 
-## Logging env
-
-The pipeline writes a single unified log file per run, path communicated via:
+On beauty, `~/.config/metabo-figures/env.sh` sets these variables and
+`~/.config/metabo-figures/connection.yaml` selects dev5 with
+`credentials_source: file`:
 
 ```sh
-METABO_FIGURES_LOG=<absolute-path-to-log-file>
+. ~/.config/metabo-figures/env.sh
+./rebuild.sh <target>
 ```
 
-Set automatically by `rebuild.R`. Scripts run outside `rebuild.R` (e.g.
-during development) fall back to `build/logs/orphan-<PID>.log` with a stderr
-warning. See `specs/001-figures-pipeline/contracts/log-format.md` for the
-full contract.
+## Logging
 
-## Verification
+`rebuild.R` sets `METABO_FIGURES_LOG` to the run's log file
+(`build/logs/`). Scripts run outside `rebuild.R` write to
+`build/logs/orphan-<PID>.log` and warn on stderr.
 
-After configuring, verify the connections:
+## Check
 
 ```sh
 Rscript -e 'metabo.figures::check_deployment()'
 ```
 
-The check resolves each deployment record listed in `c("dev3", "dev4")`
-and logs a one-line summary per deployment. The full `build_manifest`
-probe lives in `metabo.figures::build_manifest_for()` and lands during
-the manifest refresh (commit 3 of the post-handover refresh, T026).
+resolves `dev5` and logs one summary line for it, without opening a
+connection. Pass other names to check those, e.g.
+`check_deployment(c("dev5", "dev3"))`; `prod` and `dev2` are refused.

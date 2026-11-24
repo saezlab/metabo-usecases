@@ -413,6 +413,10 @@ and the remaining Shorthouse supplementary files in
 
 | `3f062ce` | Remove `analyses/azelate/`, `data/derived/azelate/`, `R/data-azelate.R`, `R/plots-azelate.R` (exports, `man/`) and `figures/cancer-cell-lines/`; Figure 6 → `null` in `manuscript.yaml` | The azelate queries used the retired `dev.omnipathdb.org` API, and azelate was chosen as a top EGFR hit only because of the labelling bug. Without the azelate panels the figure was empty. |
 
+| `e56f942` | Remove `R/compose-mixed_source.R`, `tex/compose_fig01.tex`, `tex/compose_helpers.sty`, `python/compose/` | Unused: every composite is built with `compose_patchwork()`. `python/utils/log.py` stays. |
+| `9b62bc6` | Architecture statistics digest → `figures/architecture/out/panel-a-stats/`; `digest-config.yaml` → `figures/architecture/` | Generated output was tracked, from a June dev5 build that no longer exists. |
+| `fc49fde` | Rewrite `docs/DB_ACCESS.md`, `docs/CONFIGURATION.md` and the connection template | dev3/dev4 are empty; the Parquet release (`2026.11.19`) is the default backend for new work, dev5 Postgres is interim. |
+
 Everything removed can be recovered from `03c9674`, e.g.
 `git checkout 03c9674 -- analyses/cancer-cell-lines-cosmos/` or
 `git checkout 03c9674 -- analyses/azelate/ data/derived/azelate/`.
