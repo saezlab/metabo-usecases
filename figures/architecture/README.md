@@ -13,7 +13,7 @@ to live next to it are now Figure 2 (under
 - `figures/architecture/manual/omnipath-architecture-new2026.{pdf,svg}`
   — vendored Inkscape source, SHA-256-pinned in the folder's README.md
   (FR-005, FR-005a).
-- `digest-config.yaml` under `panel-a-stats/` — definition variants for the
+- `digest-config.yaml` — definition variants for the
   FR-043 digest (transporter/receptor curated resource lists, pathway/
   reaction preferred-vs-fallback switches, slot-3 fallback chain).
 
@@ -27,7 +27,7 @@ to live next to it are now Figure 2 (under
 - `out/architecture.pdf.provenance.json` — sidecar carrying the dev5
   build_id, the architecture asset fingerprint, and a pointer at the digest
   sidecar.
-- `panel-a-stats/{stats.json, stats.csv, stats.md, stats.pdf,
+- `out/panel-a-stats/{stats.json, stats.csv, stats.md, stats.pdf,
   stats.provenance.json}` — the FR-043 statistics digest (FR-043 family).
   The author hand-transcribes these numbers into the Inkscape diagram
   before re-vendoring.

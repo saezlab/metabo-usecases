@@ -87,10 +87,10 @@ panel_a_section_names <- function() {
 #'     \code{NULL}, the digest reads the snapshot id from
 #'     \code{dev5.build_manifest} and records it.
 #' @param out_dir Character: output directory. Defaults to
-#'     \code{figures/architecture/panel-a-stats/} relative to the
+#'     \code{figures/architecture/out/panel-a-stats/} relative to the
 #'     repo root.
 #' @param config_path Character or \code{NULL}: digest-config.yaml
-#'     path. \code{NULL} → default location next to \code{out_dir}.
+#'     path. \code{NULL} → \code{figures/architecture/digest-config.yaml}.
 #' @param caption_sty Character: shared caption layout used for the
 #'     typeset PDF. Defaults to the in-repo
 #'     \code{tex/caption.sty}.
@@ -121,7 +121,7 @@ panel_a_section_names <- function() {
 #' @export
 build_panel_a_digest <- function(
     snapshot_id = NULL,
-    out_dir = "figures/architecture/panel-a-stats",
+    out_dir = "figures/architecture/out/panel-a-stats",
     config_path = NULL,
     caption_sty = "tex/caption.sty",
     validate_schema = TRUE

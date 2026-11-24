@@ -6,7 +6,7 @@
 \usage{
 build_panel_a_digest(
   snapshot_id = NULL,
-  out_dir = "figures/architecture/panel-a-stats",
+  out_dir = "figures/architecture/out/panel-a-stats",
   config_path = NULL,
   caption_sty = "tex/caption.sty",
   validate_schema = TRUE
@@ -21,11 +21,11 @@ digest's \code{metadata.snapshot_id}; mismatch aborts. If
 \code{dev5.build_manifest} and records it.}
 
 \item{out_dir}{Character: output directory. Defaults to
-\code{figures/architecture/panel-a-stats/} relative to the
+\code{figures/architecture/out/panel-a-stats/} relative to the
 repo root.}
 
 \item{config_path}{Character or \code{NULL}: digest-config.yaml
-path. \code{NULL} → default location next to \code{out_dir}.}
+path. \code{NULL} → \code{figures/architecture/digest-config.yaml}.}
 
 \item{caption_sty}{Character: shared caption layout used for the
 typeset PDF. Defaults to the in-repo

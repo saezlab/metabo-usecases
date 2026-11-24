@@ -9,7 +9,7 @@
 #   figures/architecture/manual/README.md (FR-005a),
 # - copies the vendored PDF + SVG to out/architecture.{pdf,svg},
 # - invokes build_panel_a_digest() to refresh
-#   panel-a-stats/{stats.json, stats.csv, stats.md, stats.pdf,
+#   out/panel-a-stats/{stats.json, stats.csv, stats.md, stats.pdf,
 #   stats.provenance.json} (FR-043),
 # - compiles the Figure 1 caption-and-figure PDF (FR-041) + caption.txt
 #   (FR-041a) from caption.tex,
@@ -95,7 +95,7 @@ logger::log_info(paste0(
 logger::log_info("Building Panel A statistics digest (FR-043)")
 digest_result <- build_panel_a_digest(
     snapshot_id = snapshot_id(dep5$manifest),
-    out_dir     = "figures/architecture/panel-a-stats",
+    out_dir     = file.path(out_dir, "panel-a-stats"),
     caption_sty = "tex/caption.sty"
 )
 
