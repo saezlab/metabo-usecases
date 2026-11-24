@@ -14,7 +14,7 @@ figures:
   3: null  # webapp screenshots (manual)
   4: metalinks-versions
   5: cosmos-pkn
-  6: cancer-cell-lines
+  6: null  # cancer cell lines use case (figure to be rebuilt from analyses/cancer-cell-lines/)
 
 tables:
   1: id-resolving
