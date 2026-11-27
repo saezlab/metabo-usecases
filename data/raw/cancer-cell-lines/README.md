@@ -86,7 +86,7 @@ information into `data/raw/cancer-cell-lines/ortmayr_2019/`.
 Source of mutation and copy-number status (decision in
 `analyses/cancer-cell-lines/audit/04_mutation_sources.Rmd`). DepMap 24Q4 Public,
 Figshare <https://doi.org/10.25452/figshare.plus.27993248.v1>, licence CC BY 4.0.
-Not in git because of its size (about 730 MB). Download the files below from
+Not in git because of its size (about 1.2 GB). Download the files below from
 the Figshare record into `data/raw/cancer-cell-lines/depmap_24Q4/` and check the
 MD5 sums given there:
 
@@ -98,6 +98,7 @@ MD5 sums given there:
 | `OmicsSomaticMutationsMatrixHotspot.csv` | Model × gene: hotspot mutations |
 | `OmicsSomaticMutationsMatrixDamaging.csv` | Model × gene: likely loss-of-function mutations |
 | `OmicsAbsoluteCNGene.csv` | Gene-level absolute copy number (PureCN) |
+| `OmicsExpressionProteinCodingGenesTPMLogp1.csv` | Model × gene: RNA expression of protein-coding genes, log2(TPM + 1); for the NRF2 activity audit. Downloaded 2026-11-27 (Figshare file 51065489, MD5 `71794802b750ce77c422dad0720a40af`) |
 
 ## Cellosaurus (local dependency)
 
