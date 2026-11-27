@@ -60,7 +60,7 @@ The other files of the archive (`metabolomics_180CCL.mzTab`,
 | `injections` | 1153 injections: sample name, perturbation (cell line), confluency, injection sequence, **culture batch (1–7)**, cell line, tissue |
 | `ions` | 1809 ions: m/z, quality, top annotation |
 | `annotation` | candidate metabolites per ion (formula, adduct, score, HMDB and KEGG IDs) |
-| `intensities` | ion × injection intensities of the primary analysis |
+| `intensities` | ion × injection intensities of the primary analysis; not raw: the total ion count is equal across injections (CV 2 %), so at least TIC-normalised; whether ComBat (chosen in the paper) was applied is not stated |
 
 The Shorthouse et al. data are a reanalysis of these measurements with more
 repeat cultures (EV1: sub-batches such as `Batch1A`). Where both list the same
