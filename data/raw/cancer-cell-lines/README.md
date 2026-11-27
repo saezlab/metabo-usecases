@@ -62,6 +62,16 @@ The other files of the archive (`metabolomics_180CCL.mzTab`,
 | `annotation` | candidate metabolites per ion (formula, adduct, score, HMDB and KEGG IDs) |
 | `intensities` | ion × injection intensities of the primary analysis; not raw: the total ion count is equal across injections (CV 2 %), so at least TIC-normalised; whether ComBat (chosen in the paper) was applied is not stated |
 
+`metabolomicsData_notNormalized.xlsx` (MD5 `a0506213437f5c08d089ec87959daabb`,
+git blob `46570724512c2e30437127280d2c89473faa6a1a`) is taken unchanged from
+the authors' code repository <https://github.com/zamboni-lab/CCL180-analysis>,
+file `data/metabolomicsData_notNormalized.xlsx` at commit
+`b9b1cdc6f3730e8924321cc1ed62530c348fc040` (2022-07-27), downloaded 2026-11-27.
+Licence: MIT (Copyright (c) 2022 Sarah Cherkaoui). Same sheets as above, with
+1265 injections (batch in column `dsUser1`); unlike the ETH file, it contains
+the QC lines MCF7 and MDAMB231 in all seven batches. Despite its name, how
+its intensities were processed has not been checked.
+
 The Shorthouse et al. data are a reanalysis of these measurements with more
 repeat cultures (EV1: sub-batches such as `Batch1A`). Where both list the same
 sample, the batch labels agree; the majority batch per cell line agrees for
