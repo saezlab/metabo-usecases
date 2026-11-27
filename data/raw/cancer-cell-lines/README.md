@@ -35,6 +35,38 @@ by any script.
 `SOURCE.txt` there). The repository has no licence, so the files are not
 committed. Used by audits 02, 03 and 04.
 
+## Cherkaoui et al. 2022 primary data (`cherkaoui_2022/`)
+
+Cherkaoui S., Durot S., Bradley J., Critchlow S., Dubuis S., Masiero M. M.,
+Wegmann R., Snijder B., Othman A., Bendtsen C., Zamboni N. (2022) A functional
+analysis of 180 cancer cell lines reveals conserved intrinsic metabolic
+programs. Mol Syst Biol 18:e11033. <https://doi.org/10.15252/msb.202211033>
+
+Data record: Zamboni N., Cherkaoui S. (2021) *Epithelial-mesenchymal
+transition status is the main driver of intrinsic metabolism in cancer cell
+lines*. ETH Zurich Research Collection.
+<https://doi.org/10.3929/ethz-b-000511784>, licence CC BY 4.0. Cited as the
+data source in the paper's Data Availability section (local copy:
+`literature/Cherkaoui_2022_PMC9627673.xml`).
+
+`Metabolomics_180CCL.xlsx` (MD5 `32d8509f90c192367730d6097fbf509c`) is taken
+unchanged from `PrimaryAnalysis.zip` of that record, downloaded 2026-11-27 from
+<https://www.research-collection.ethz.ch/bitstreams/c3737fa0-7e05-4749-b4a2-af4df64ed054/download>.
+The other files of the archive (`metabolomics_180CCL.mzTab`,
+`OmicsIntegration_180CCL.csv`, `PathwayScore_180CCL.csv`) are not kept.
+
+| Sheet | Content |
+|---|---|
+| `injections` | 1153 injections: sample name, perturbation (cell line), confluency, injection sequence, **culture batch (1–7)**, cell line, tissue |
+| `ions` | 1809 ions: m/z, quality, top annotation |
+| `annotation` | candidate metabolites per ion (formula, adduct, score, HMDB and KEGG IDs) |
+| `intensities` | ion × injection intensities of the primary analysis |
+
+The Shorthouse et al. data are a reanalysis of these measurements with more
+repeat cultures (EV1: sub-batches such as `Batch1A`). Where both list the same
+sample, the batch labels agree; the majority batch per cell line agrees for
+173 of 176 shared lines (checked 2026-11-27).
+
 ## Ortmayr et al. 2019 (`ortmayr_2019/`)
 
 Ortmayr K., Dubuis S., Zampieri M. (2019) Metabolic profiling of cancer cells
